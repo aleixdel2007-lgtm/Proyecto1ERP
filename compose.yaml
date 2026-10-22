@@ -1,0 +1,52 @@
+# Bases de dades de desenvolupament de LudusERP.
+#
+# No cal aixecar-les a ma: spring-boot-docker-compose llegeix aquest fitxer en
+# arrencar l'aplicacio, engega els contenidors, espera que passin el healthcheck
+# i injecta les URL de connexio. No hi ha cap credencial a application.properties.
+#
+# Els ports publicats no son els estandard, per no xocar amb un MySQL o un Mongo
+# que algu del grup ja tingui instal·lat a la seva maquina. Spring els descobreix
+# sol; nomes els necessites tu si vols connectar-hi Workbench o Compass.
+
+services:
+
+  mysql:
+    image: mysql:8.4
+    environment:
+      MYSQL_DATABASE: luduserp
+      MYSQL_USER: luduserp
+      MYSQL_PASSWORD: luduserp
+      MYSQL_ROOT_PASSWORD: root
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-p$$MYSQL_ROOT_PASSWORD"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 20s
+
+  mongo:
+    image: mongo:8.0
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: luduserp
+      MONGO_INITDB_ROOT_PASSWORD: luduserp
+      MONGO_INITDB_DATABASE: luduserp
+    ports:
+      - "27018:27017"
+    volumes:
+      - mongo-data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.runCommand({ping:1}).ok"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 10s
+
+# Volums amb nom: les dades sobreviuen a reiniciar o recrear els contenidors.
+# Per partir de zero: docker compose down -v
+volumes:
+  mysql-data:
+  mongo-data:
