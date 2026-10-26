@@ -1,0 +1,2056 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LudusERP · Prototipo</title>
+<style>
+/* ===========================================================================
+   LudusERP — prototipo de vistas
+   Maqueta navegable sin logica de negocio: los datos son ficticios y las
+   acciones no persisten nada. Un solo fichero, sin dependencias externas.
+   =========================================================================== */
+:root{
+  --bg:#1c1c1c;
+  --surface:#232326;
+  --surface-2:#2a2a2e;
+  --surface-3:#31313a;
+  --line:rgba(255,255,255,.08);
+  --line-strong:rgba(255,255,255,.15);
+  --ink:#ededed;
+  --ink-2:#b9b9c0;
+  --muted:#8b8b93;
+  --purple:#8b5cf6;
+  --purple-light:#a78bfa;
+  --purple-deep:#2e1065;
+  --purple-dim:rgba(139,92,246,.14);
+  --good:#56d364;
+  --warn:#e3b341;
+  --serious:#f0883e;
+  --crit:#f85149;
+  --info:#58a6ff;
+  --r:10px;
+  --r-sm:6px;
+  --sidebar:252px;
+  --topbar:58px;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.28);
+  --font:"Segoe UI Variable Text","Segoe UI",Inter,system-ui,-apple-system,sans-serif;
+  --mono:"Cascadia Mono",Consolas,"SF Mono",monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--bg);color:var(--ink);
+  font-family:var(--font);font-size:14px;line-height:1.5;
+  -webkit-font-smoothing:antialiased;
+}
+a{color:var(--purple-light);text-decoration:none}
+a:hover{text-decoration:underline}
+h1,h2,h3,h4{margin:0;font-weight:600;letter-spacing:-.01em}
+button{font-family:inherit;font-size:inherit;cursor:pointer}
+input,select,textarea{font-family:inherit;font-size:inherit}
+::selection{background:var(--purple);color:#fff}
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:#3a3a42;border-radius:6px;border:2px solid var(--bg)}
+::-webkit-scrollbar-thumb:hover{background:#4a4a55}
+
+/* --- aviso de prototipo ---------------------------------------------------- */
+.proto-flag{
+  position:fixed;right:14px;bottom:14px;z-index:900;
+  background:var(--purple-deep);border:1px solid var(--purple);
+  color:var(--purple-light);font-size:11px;font-weight:600;
+  padding:6px 11px;border-radius:99px;letter-spacing:.04em;text-transform:uppercase;
+  box-shadow:var(--shadow);pointer-events:none;
+}
+
+/* ====================== ENVOLTORIO: PANEL ================================= */
+.app{display:grid;grid-template-columns:var(--sidebar) 1fr;min-height:100vh}
+
+.side{
+  background:#1f1f23;border-right:1px solid var(--line);
+  display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow:hidden;
+}
+.brand{
+  display:flex;align-items:center;gap:10px;height:var(--topbar);
+  padding:0 16px;border-bottom:1px solid var(--line);flex:0 0 auto;
+}
+.brand-mark{
+  width:28px;height:28px;border-radius:7px;flex:0 0 auto;
+  background:linear-gradient(145deg,var(--purple-light),var(--purple) 55%,#6d28d9);
+  display:grid;place-items:center;color:#fff;font-weight:700;font-size:14px;
+  box-shadow:0 0 0 1px rgba(255,255,255,.12) inset;
+}
+.brand-name{font-weight:650;font-size:15px;letter-spacing:-.02em}
+.brand-name span{color:var(--purple-light)}
+.side-scroll{overflow-y:auto;padding:10px 0 18px;flex:1 1 auto}
+.nav-group{padding:12px 16px 4px;font-size:10.5px;font-weight:700;
+  letter-spacing:.09em;text-transform:uppercase;color:#6e6e78}
+.nav-item{
+  display:flex;align-items:center;gap:10px;margin:1px 8px;padding:7px 9px;
+  border-radius:var(--r-sm);color:var(--ink-2);font-size:13.5px;cursor:pointer;
+  border:none;background:none;width:calc(100% - 16px);text-align:left;
+}
+.nav-item:hover{background:var(--surface-2);color:var(--ink)}
+.nav-item.on{background:var(--purple-dim);color:#fff;font-weight:550;
+  box-shadow:inset 0 0 0 1px rgba(139,92,246,.3)}
+.nav-item.on .ic{color:var(--purple-light)}
+.nav-item .ic{flex:0 0 auto;color:#7d7d88;display:grid;place-items:center}
+.nav-item .tag{margin-left:auto;font-size:10px;font-weight:700;padding:1px 6px;
+  border-radius:99px;background:var(--purple);color:#fff}
+.side-foot{border-top:1px solid var(--line);padding:10px;flex:0 0 auto}
+
+/* --- barra superior ------------------------------------------------------- */
+.main{min-width:0;display:flex;flex-direction:column}
+.top{
+  height:var(--topbar);border-bottom:1px solid var(--line);background:rgba(28,28,28,.86);
+  backdrop-filter:blur(8px);display:flex;align-items:center;gap:12px;padding:0 20px;
+  position:sticky;top:0;z-index:50;
+}
+.crumb{font-size:12.5px;color:var(--muted);display:flex;align-items:center;gap:7px}
+.crumb b{color:var(--ink-2);font-weight:550}
+.top-search{
+  margin-left:auto;display:flex;align-items:center;gap:8px;
+  background:var(--surface);border:1px solid var(--line);border-radius:var(--r-sm);
+  padding:5px 10px;width:230px;color:var(--muted);
+}
+.top-search input{background:none;border:none;color:var(--ink);outline:none;width:100%;font-size:13px}
+.icon-btn{
+  width:32px;height:32px;border-radius:var(--r-sm);border:1px solid var(--line);
+  background:var(--surface);color:var(--ink-2);display:grid;place-items:center;position:relative;
+}
+.icon-btn:hover{background:var(--surface-2);color:var(--ink)}
+.dot{position:absolute;top:6px;right:6px;width:7px;height:7px;border-radius:50%;
+  background:var(--purple-light);box-shadow:0 0 0 2px var(--surface)}
+.lang{
+  background:var(--surface);border:1px solid var(--line);color:var(--ink-2);
+  border-radius:var(--r-sm);padding:6px 8px;outline:none;
+}
+.who{display:flex;align-items:center;gap:9px;padding-left:12px;border-left:1px solid var(--line)}
+.avatar{
+  width:30px;height:30px;border-radius:50%;display:grid;place-items:center;
+  background:linear-gradient(145deg,#6d28d9,var(--purple));color:#fff;font-size:12px;font-weight:700;
+}
+.who-txt{line-height:1.25}
+.who-txt b{display:block;font-size:12.5px;font-weight:600}
+.who-txt span{font-size:11px;color:var(--muted)}
+
+/* --- lienzo de pagina ----------------------------------------------------- */
+.canvas{padding:22px 24px 60px;max-width:1500px;width:100%}
+.page-head{display:flex;align-items:flex-start;gap:16px;margin-bottom:18px;flex-wrap:wrap}
+.page-head h1{font-size:21px}
+.page-head p{margin:5px 0 0;color:var(--muted);font-size:13px;max-width:70ch}
+.page-actions{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap}
+</style>
+<style>
+/* ====================== COMPONENTES ======================================= */
+/* --- botones -------------------------------------------------------------- */
+.btn{
+  display:inline-flex;align-items:center;gap:7px;border-radius:var(--r-sm);
+  padding:7px 13px;font-size:13px;font-weight:550;border:1px solid var(--line-strong);
+  background:var(--surface-2);color:var(--ink);white-space:nowrap;
+}
+.btn:hover{background:var(--surface-3);border-color:rgba(255,255,255,.22)}
+.btn-primary{background:var(--purple);border-color:var(--purple);color:#fff}
+.btn-primary:hover{background:var(--purple-light);border-color:var(--purple-light)}
+.btn-ghost{background:transparent;border-color:transparent;color:var(--ink-2)}
+.btn-ghost:hover{background:var(--surface-2);color:var(--ink)}
+.btn-danger{color:#ffb4ae;border-color:rgba(248,81,73,.35);background:rgba(248,81,73,.1)}
+.btn-danger:hover{background:rgba(248,81,73,.18)}
+.btn-sm{padding:4px 9px;font-size:12px}
+.btn[disabled]{opacity:.45;pointer-events:none}
+
+/* --- tarjetas ------------------------------------------------------------- */
+.card{
+  background:var(--surface);border:1px solid var(--line);border-radius:var(--r);
+  overflow:hidden;
+}
+.card-head{
+  padding:13px 16px;border-bottom:1px solid var(--line);
+  display:flex;align-items:center;gap:12px;
+}
+.card-head h3{font-size:14px}
+.card-head .sub{font-size:12px;color:var(--muted)}
+.card-head .right{margin-left:auto;display:flex;gap:8px;align-items:center}
+.card-body{padding:16px}
+.card-body.tight{padding:0}
+.grid{display:grid;gap:16px}
+.g2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.g3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.g4{grid-template-columns:repeat(4,minmax(0,1fr))}
+.g-2-1{grid-template-columns:2fr 1fr}
+.g-1-2{grid-template-columns:1fr 2fr}
+@media(max-width:1100px){
+  .g4{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .g3,.g-2-1,.g-1-2{grid-template-columns:1fr}
+}
+
+/* --- distintivos de estado (color + texto, nunca color solo) -------------- */
+.badge{
+  display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:600;
+  padding:2px 8px;border-radius:99px;border:1px solid;white-space:nowrap;
+  background:var(--surface-2);border-color:var(--line-strong);color:var(--ink-2);
+}
+.badge::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor;flex:0 0 auto}
+.badge.b-good{color:var(--good);background:rgba(86,211,100,.1);border-color:rgba(86,211,100,.28)}
+.badge.b-warn{color:var(--warn);background:rgba(227,179,65,.1);border-color:rgba(227,179,65,.28)}
+.badge.b-serious{color:var(--serious);background:rgba(240,136,62,.1);border-color:rgba(240,136,62,.28)}
+.badge.b-crit{color:var(--crit);background:rgba(248,81,73,.1);border-color:rgba(248,81,73,.3)}
+.badge.b-info{color:var(--info);background:rgba(88,166,255,.1);border-color:rgba(88,166,255,.28)}
+.badge.b-purple{color:var(--purple-light);background:var(--purple-dim);border-color:rgba(139,92,246,.32)}
+.badge.b-mute{color:var(--muted)}
+.chip{
+  display:inline-flex;align-items:center;gap:6px;font-size:12px;padding:3px 9px;
+  border-radius:99px;background:var(--surface-2);border:1px solid var(--line);color:var(--ink-2);
+}
+.chip.on{background:var(--purple-dim);border-color:rgba(139,92,246,.35);color:var(--purple-light)}
+.chip .x{color:var(--muted);font-weight:700}
+
+/* --- tablas --------------------------------------------------------------- */
+.tbl-wrap{overflow-x:auto}
+table.tbl{width:100%;border-collapse:collapse;font-size:13px}
+table.tbl th{
+  text-align:left;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--muted);padding:9px 14px;border-bottom:1px solid var(--line);
+  background:var(--surface-2);white-space:nowrap;
+}
+table.tbl td{padding:10px 14px;border-bottom:1px solid var(--line);vertical-align:middle}
+table.tbl tbody tr:hover{background:rgba(255,255,255,.025)}
+table.tbl tbody tr:last-child td{border-bottom:none}
+table.tbl td.num,table.tbl th.num{text-align:right;font-variant-numeric:tabular-nums}
+table.tbl td.acts{text-align:right;white-space:nowrap}
+.t-main{font-weight:550;color:var(--ink)}
+.t-sub{font-size:11.5px;color:var(--muted)}
+.mono{font-family:var(--mono);font-size:12.5px}
+.enc{font-family:var(--mono);font-size:12px;color:var(--muted);letter-spacing:.02em}
+.enc-tag{font-size:10px;color:var(--purple-light);background:var(--purple-dim);
+  padding:1px 5px;border-radius:99px;margin-left:5px;font-family:var(--font)}
+
+/* --- filtros y paginacion ------------------------------------------------- */
+.filters{
+  display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end;
+  padding:12px 16px;border-bottom:1px solid var(--line);background:rgba(0,0,0,.14);
+}
+.fld{display:flex;flex-direction:column;gap:4px}
+.fld>label{font-size:10.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+.inp{
+  background:var(--surface-2);border:1px solid var(--line);color:var(--ink);
+  border-radius:var(--r-sm);padding:6px 10px;outline:none;min-width:0;
+}
+.inp:focus{border-color:var(--purple);box-shadow:0 0 0 3px rgba(139,92,246,.18)}
+.inp::placeholder{color:#6e6e78}
+select.inp{appearance:none;padding-right:26px;
+  background-image:linear-gradient(45deg,transparent 50%,var(--muted) 50%),
+    linear-gradient(135deg,var(--muted) 50%,transparent 50%);
+  background-position:calc(100% - 14px) 52%,calc(100% - 9px) 52%;
+  background-size:5px 5px,5px 5px;background-repeat:no-repeat}
+textarea.inp{resize:vertical;min-height:84px;line-height:1.55}
+.search-inp{display:flex;align-items:center;gap:7px;
+  background:var(--surface-2);border:1px solid var(--line);border-radius:var(--r-sm);padding:6px 10px}
+.search-inp input{background:none;border:none;outline:none;color:var(--ink);width:190px}
+.search-inp svg{color:var(--muted);flex:0 0 auto}
+.pager{
+  display:flex;align-items:center;gap:10px;padding:11px 16px;border-top:1px solid var(--line);
+  font-size:12.5px;color:var(--muted);
+}
+.pager .pages{margin-left:auto;display:flex;gap:4px}
+.pg{min-width:28px;height:28px;border-radius:var(--r-sm);border:1px solid var(--line);
+  background:var(--surface-2);color:var(--ink-2);display:grid;place-items:center;font-size:12.5px}
+.pg.on{background:var(--purple);border-color:var(--purple);color:#fff;font-weight:600}
+.pg:hover:not(.on){background:var(--surface-3)}
+
+/* --- formularios ---------------------------------------------------------- */
+.form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:15px 18px}
+.form-grid .wide{grid-column:1/-1}
+@media(max-width:800px){.form-grid{grid-template-columns:1fr}}
+.frow{display:flex;flex-direction:column;gap:5px}
+.frow>label{font-size:12.5px;font-weight:550;color:var(--ink-2)}
+.frow>label .req{color:var(--purple-light);margin-left:2px}
+.hint{font-size:11.5px;color:var(--muted)}
+.hint.err{color:#ffb4ae}
+.inp.bad{border-color:rgba(248,81,73,.55);box-shadow:0 0 0 3px rgba(248,81,73,.12)}
+.sect-label{
+  font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--muted);margin:4px 0 2px;padding-bottom:7px;border-bottom:1px solid var(--line);
+}
+.switch{display:inline-flex;align-items:center;gap:9px;cursor:pointer;font-size:13px;color:var(--ink-2)}
+.switch i{
+  width:34px;height:19px;border-radius:99px;background:var(--surface-3);position:relative;
+  border:1px solid var(--line-strong);transition:.15s;flex:0 0 auto;
+}
+.switch i::after{content:"";position:absolute;top:2px;left:2px;width:13px;height:13px;
+  border-radius:50%;background:#8b8b93;transition:.15s}
+.switch input{display:none}
+.switch input:checked + i{background:var(--purple);border-color:var(--purple)}
+.switch input:checked + i::after{left:17px;background:#fff}
+.cbx{display:inline-flex;align-items:center;gap:8px;font-size:13px;color:var(--ink-2);cursor:pointer}
+.cbx input{accent-color:var(--purple);width:15px;height:15px}
+.form-foot{
+  display:flex;gap:8px;justify-content:flex-end;align-items:center;
+  padding:14px 16px;border-top:1px solid var(--line);background:rgba(0,0,0,.14);
+}
+.form-foot .note{margin-right:auto;font-size:12px;color:var(--muted)}
+
+/* --- pestanas ------------------------------------------------------------- */
+.tabs{display:flex;gap:2px;border-bottom:1px solid var(--line);padding:0 16px;background:var(--surface-2)}
+.tab{
+  padding:10px 13px;font-size:13px;color:var(--muted);border:none;background:none;
+  border-bottom:2px solid transparent;margin-bottom:-1px;font-weight:550;
+}
+.tab:hover{color:var(--ink-2)}
+.tab.on{color:#fff;border-bottom-color:var(--purple)}
+.tab-pane{display:none}
+.tab-pane.on{display:block}
+</style>
+<style>
+/* ====================== PANEL / INDICADORES =============================== */
+.kpi{
+  background:var(--surface);border:1px solid var(--line);border-radius:var(--r);
+  padding:14px 16px;display:flex;flex-direction:column;gap:3px;min-width:0;
+}
+.kpi .k-label{font-size:11.5px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--muted)}
+.kpi .k-val{font-size:25px;font-weight:650;letter-spacing:-.02em;font-variant-numeric:tabular-nums;line-height:1.15}
+.kpi .k-foot{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--muted);margin-top:2px}
+.kpi.accent{border-color:rgba(139,92,246,.3);background:
+  linear-gradient(180deg,rgba(139,92,246,.09),transparent 60%),var(--surface)}
+.kpi.accent .k-val{color:var(--purple-light)}
+
+/* --- ranking horizontal -------------------------------------------------- */
+.rank{display:flex;flex-direction:column;gap:9px}
+.rank-row{display:grid;grid-template-columns:18px 1fr auto;gap:10px;align-items:center;font-size:13px}
+.rank-row .n{color:var(--muted);font-size:11.5px;font-variant-numeric:tabular-nums;text-align:right}
+.rank-bar{height:22px;background:var(--surface-2);border-radius:4px;overflow:hidden;position:relative}
+.rank-bar i{position:absolute;inset:0 auto 0 0;background:var(--purple);border-radius:0 4px 4px 0;
+  display:block;opacity:.85}
+.rank-bar span{position:absolute;left:8px;top:0;height:100%;display:flex;align-items:center;
+  font-size:12px;color:#fff;z-index:2;text-shadow:0 1px 2px rgba(0,0,0,.6)}
+.rank-row .v{font-variant-numeric:tabular-nums;color:var(--ink-2);font-size:12.5px}
+
+/* --- listas de aviso / actividad ------------------------------------------ */
+.feed{display:flex;flex-direction:column}
+.feed-row{display:flex;gap:11px;padding:11px 16px;border-bottom:1px solid var(--line);align-items:flex-start}
+.feed-row:last-child{border-bottom:none}
+.feed-row .ic{width:28px;height:28px;border-radius:var(--r-sm);display:grid;place-items:center;
+  background:var(--surface-2);color:var(--ink-2);flex:0 0 auto}
+.feed-row .ic.p{background:var(--purple-dim);color:var(--purple-light)}
+.feed-row .ic.w{background:rgba(227,179,65,.12);color:var(--warn)}
+.feed-row .ic.c{background:rgba(248,81,73,.12);color:var(--crit)}
+.feed-txt{min-width:0;flex:1 1 auto;font-size:13px}
+.feed-txt .when{font-size:11.5px;color:var(--muted);margin-top:1px}
+.empty{padding:38px 20px;text-align:center;color:var(--muted)}
+.empty h4{font-size:14px;color:var(--ink-2);margin-bottom:5px}
+
+/* ====================== ENVOLTORIO: TIENDA ================================ */
+.shop{min-height:100vh;display:flex;flex-direction:column}
+.shop-top{
+  position:sticky;top:0;z-index:50;background:rgba(28,28,28,.92);backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--line);
+}
+.shop-bar{display:flex;align-items:center;gap:16px;padding:12px 26px;max-width:1360px;margin:0 auto;width:100%}
+.shop-nav{display:flex;gap:4px;margin-left:10px}
+.shop-nav a{padding:6px 11px;border-radius:var(--r-sm);color:var(--ink-2);font-size:13.5px;text-decoration:none}
+.shop-nav a:hover{background:var(--surface-2);color:var(--ink);text-decoration:none}
+.shop-search{
+  margin-left:auto;display:flex;align-items:center;gap:8px;background:var(--surface);
+  border:1px solid var(--line);border-radius:99px;padding:7px 14px;width:300px;
+}
+.shop-search input{background:none;border:none;outline:none;color:var(--ink);width:100%}
+.cart-btn{position:relative}
+.cart-n{
+  position:absolute;top:-5px;right:-6px;background:var(--purple);color:#fff;font-size:10px;
+  font-weight:700;min-width:17px;height:17px;border-radius:99px;display:grid;place-items:center;
+  border:2px solid var(--bg);
+}
+.shop-body{max-width:1360px;margin:0 auto;width:100%;padding:24px 26px 70px}
+.shop-foot{border-top:1px solid var(--line);color:var(--muted);font-size:12.5px;
+  padding:20px 26px;text-align:center}
+
+/* --- rejilla de catalogo -------------------------------------------------- */
+.cat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(205px,1fr));gap:18px}
+.game{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);
+  overflow:hidden;cursor:pointer;display:flex;flex-direction:column}
+.game:hover{border-color:rgba(139,92,246,.45);transform:translateY(-2px);transition:.14s}
+.cover{
+  aspect-ratio:3/4;display:grid;place-items:center;padding:14px;text-align:center;
+  font-weight:700;font-size:15px;letter-spacing:-.01em;color:#fff;position:relative;
+  text-shadow:0 2px 10px rgba(0,0,0,.5);
+}
+.cover.wide{aspect-ratio:16/9}
+.cover .pegi{
+  position:absolute;top:8px;left:8px;background:rgba(0,0,0,.55);border:1px solid rgba(255,255,255,.3);
+  font-size:10px;font-weight:700;padding:1px 5px;border-radius:4px;backdrop-filter:blur(3px);
+}
+.cover .off{
+  position:absolute;top:8px;right:8px;background:var(--purple);font-size:10.5px;font-weight:700;
+  padding:2px 6px;border-radius:4px;
+}
+.game-inf{padding:11px 12px;display:flex;flex-direction:column;gap:5px;flex:1 1 auto}
+.game-inf .ttl{font-size:13.5px;font-weight:600;line-height:1.3}
+.game-inf .meta{font-size:11.5px;color:var(--muted)}
+.game-inf .foot{margin-top:auto;display:flex;align-items:center;gap:8px;padding-top:4px}
+.price{font-weight:650;font-variant-numeric:tabular-nums}
+.price .old{color:var(--muted);text-decoration:line-through;font-weight:400;font-size:12px;margin-right:5px}
+
+/* --- ficha de juego ------------------------------------------------------- */
+.gal{display:grid;grid-template-columns:1fr;gap:10px}
+.gal-main{aspect-ratio:16/9;border-radius:var(--r);overflow:hidden}
+.gal-thumbs{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.gal-thumbs .cover{aspect-ratio:16/9;font-size:11px;border-radius:var(--r-sm);cursor:pointer;opacity:.65}
+.gal-thumbs .cover:hover,.gal-thumbs .cover.on{opacity:1;box-shadow:0 0 0 2px var(--purple)}
+.buy-box{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px;
+  display:flex;flex-direction:column;gap:12px;position:sticky;top:78px}
+.buy-price{font-size:28px;font-weight:650;letter-spacing:-.02em}
+
+/* --- pasos / cesta -------------------------------------------------------- */
+.steps{display:flex;align-items:center;gap:0;margin-bottom:22px}
+.step{display:flex;align-items:center;gap:9px;font-size:13px;color:var(--muted)}
+.step i{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;font-size:12px;
+  font-weight:700;background:var(--surface-2);border:1px solid var(--line-strong);color:var(--muted)}
+.step.on{color:var(--ink)}
+.step.on i{background:var(--purple);border-color:var(--purple);color:#fff}
+.step.done i{background:rgba(86,211,100,.14);border-color:rgba(86,211,100,.4);color:var(--good)}
+.step-sep{flex:1 1 auto;height:1px;background:var(--line);margin:0 14px;min-width:24px}
+.totals{display:flex;flex-direction:column;gap:9px;font-size:13.5px}
+.totals .r{display:flex;justify-content:space-between;color:var(--ink-2)}
+.totals .r.big{font-size:17px;font-weight:650;color:var(--ink);padding-top:10px;
+  border-top:1px solid var(--line);margin-top:3px}
+.totals .r span:last-child{font-variant-numeric:tabular-nums}
+
+/* --- clave de licencia ---------------------------------------------------- */
+.keybox{
+  display:flex;align-items:center;gap:10px;background:#121214;border:1px dashed var(--line-strong);
+  border-radius:var(--r-sm);padding:9px 12px;font-family:var(--mono);font-size:13px;
+}
+.keybox.hidden span{filter:blur(5px);user-select:none}
+.keybox .k{letter-spacing:.06em;color:var(--purple-light)}
+
+/* --- indicador en directo ------------------------------------------------ */
+.live{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;color:var(--good)}
+.live i{width:7px;height:7px;border-radius:50%;background:var(--good);
+  box-shadow:0 0 0 3px rgba(86,211,100,.18);animation:pulse 1.8s infinite}
+@keyframes pulse{50%{opacity:.35}}
+
+/* --- modal ---------------------------------------------------------------- */
+.modal-bg{
+  position:fixed;inset:0;background:rgba(0,0,0,.66);backdrop-filter:blur(3px);z-index:800;
+  display:grid;place-items:center;padding:24px;
+}
+.modal{
+  background:var(--surface);border:1px solid var(--line-strong);border-radius:12px;
+  width:100%;max-width:520px;box-shadow:var(--shadow);max-height:86vh;display:flex;flex-direction:column;
+}
+.modal.lg{max-width:860px}
+.modal-head{padding:15px 18px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:12px}
+.modal-head h3{font-size:15px}
+.modal-body{padding:18px;overflow-y:auto}
+.modal-foot{padding:13px 18px;border-top:1px solid var(--line);display:flex;gap:8px;justify-content:flex-end;
+  background:rgba(0,0,0,.14)}
+
+/* --- documento PDF simulado ----------------------------------------------- */
+.doc{background:#fff;color:#1a1a1a;border-radius:4px;padding:34px 38px;font-size:12px;line-height:1.6;
+  box-shadow:0 10px 40px rgba(0,0,0,.5)}
+.doc h2{font-size:17px;color:#2e1065;margin-bottom:2px}
+.doc .doc-head{display:flex;justify-content:space-between;align-items:flex-start;
+  border-bottom:2px solid #2e1065;padding-bottom:12px;margin-bottom:16px}
+.doc table{width:100%;border-collapse:collapse;margin:14px 0;font-size:11.5px}
+.doc th{background:#f1ecfb;text-align:left;padding:7px 9px;border-bottom:1px solid #d9cdf2;color:#2e1065}
+.doc td{padding:7px 9px;border-bottom:1px solid #eee}
+.doc .tot{text-align:right}
+.doc .muted{color:#777}
+
+/* --- varios --------------------------------------------------------------- */
+.row{display:flex;gap:10px;align-items:center}
+.row.wrap{flex-wrap:wrap}
+.spread{display:flex;gap:12px;align-items:center;justify-content:space-between}
+.stack{display:flex;flex-direction:column;gap:14px}
+.sep{height:1px;background:var(--line);margin:4px 0}
+.muted{color:var(--muted)}
+.right{text-align:right}
+.nowrap{white-space:nowrap}
+.kv{display:grid;grid-template-columns:150px 1fr;gap:9px 14px;font-size:13px}
+.kv dt{color:var(--muted)}
+.kv dd{margin:0;color:var(--ink)}
+.note-box{
+  background:var(--purple-dim);border:1px solid rgba(139,92,246,.28);border-radius:var(--r-sm);
+  padding:11px 13px;font-size:12.5px;color:var(--ink-2);display:flex;gap:9px;align-items:flex-start;
+}
+.note-box svg{color:var(--purple-light);flex:0 0 auto;margin-top:1px}
+.perm{font-family:var(--mono);font-size:12px;color:var(--ink-2)}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<div class="proto-flag">Prototipo · sin datos reales</div>
+
+<script>
+/* ===========================================================================
+   1. ICONOS  (SVG en linea, trazo de 1.6px sobre rejilla de 24)
+   =========================================================================== */
+const I = (d, extra) => `<svg width="17" height="17" viewBox="0 0 24 24" fill="none"
+  stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"
+  ${extra || ""}>${d}</svg>`;
+const ICONS = {
+  panel:    I(`<rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/>`),
+  game:     I(`<rect x="2" y="6" width="20" height="12" rx="4"/><path d="M7 11v2M6 12h2M16 11.5h.01M18 13.5h.01"/>`),
+  tag:      I(`<path d="M3 11V4a1 1 0 0 1 1-1h7l9 9-8 8-9-9Z"/><circle cx="7.5" cy="7.5" r="1.2"/>`),
+  image:    I(`<rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="8.5" cy="9.5" r="1.6"/><path d="m4 17 4.5-4.5 3 3L16 11l4 4"/>`),
+  star:     I(`<path d="m12 3 2.6 5.6 6.1.8-4.5 4.2 1.2 6.1L12 16.8 6.6 19.7l1.2-6.1L3.3 9.4l6.1-.8Z"/>`),
+  truck:    I(`<path d="M3 7h11v9H3zM14 10h3.5l2.5 3v3H14z"/><circle cx="7" cy="18" r="1.8"/><circle cx="17" cy="18" r="1.8"/>`),
+  box:      I(`<path d="m12 3 8 4.2v9.6L12 21l-8-4.2V7.2Z"/><path d="m4 7.2 8 4.3 8-4.3M12 11.5V21"/>`),
+  key:      I(`<circle cx="7.5" cy="12" r="3.5"/><path d="M11 12h9M17 12v3M20 12v2.5"/>`),
+  upload:   I(`<path d="M12 15V4M8.5 7.5 12 4l3.5 3.5M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/>`),
+  cart:     I(`<circle cx="9" cy="19" r="1.6"/><circle cx="17" cy="19" r="1.6"/><path d="M3 4h2l2.2 10.2a1.5 1.5 0 0 0 1.5 1.2h8.1a1.5 1.5 0 0 0 1.5-1.2L20 7H6"/>`),
+  users:    I(`<circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.3 2.7-5.5 6-5.5s6 2.2 6 5.5"/><path d="M16 11.2A3.2 3.2 0 0 0 16 5M18 19.6c.6-.3 2-.9 3-1.6"/>`),
+  badge2:   I(`<path d="M12 3 4 6v5.5c0 4.6 3.3 8.3 8 9.5 4.7-1.2 8-4.9 8-9.5V6Z"/><path d="m9 12 2.2 2.2L15.5 10"/>`),
+  dept:     I(`<rect x="4" y="9" width="16" height="12" rx="2"/><path d="M9 21v-5h6v5M9 3h6v6H9z"/>`),
+  cog:      I(`<circle cx="12" cy="12" r="3"/><path d="M12 2.5v2.2M12 19.3v2.2M21.5 12h-2.2M4.7 12H2.5M18.7 5.3l-1.6 1.6M6.9 17.1l-1.6 1.6M18.7 18.7l-1.6-1.6M6.9 6.9 5.3 5.3"/>`),
+  clock:    I(`<circle cx="12" cy="12" r="9"/><path d="M12 7v5.2l3.2 2"/>`),
+  file:     I(`<path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4M9 12h6M9 15.5h6M9 19h3"/>`),
+  bell:     I(`<path d="M18 15.5V11a6 6 0 1 0-12 0v4.5L4.5 18h15Z"/><path d="M10 20.5a2 2 0 0 0 4 0"/>`),
+  search:   I(`<circle cx="11" cy="11" r="6.5"/><path d="m16 16 4 4"/>`),
+  back:     I(`<path d="M15 5 8 12l7 7"/>`),
+  plus:     I(`<path d="M12 5v14M5 12h14"/>`),
+  edit:     I(`<path d="M4 20h4l10-10-4-4L4 16Z"/><path d="m13.5 6.5 4 4"/>`),
+  trash:    I(`<path d="M4 6h16M9 6V4h6v2M6 6l1 14h10l1-14"/>`),
+  eye:      I(`<path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Z"/><circle cx="12" cy="12" r="2.8"/>`),
+  down:     I(`<path d="M12 4v11M8 11.5l4 3.5 4-3.5M4.5 20h15"/>`),
+  check:    I(`<path d="m5 12.5 4.5 4.5L19 7"/>`),
+  x:        I(`<path d="m6 6 12 12M18 6 6 18"/>`),
+  warn:     I(`<path d="M12 4 2.8 20h18.4Z"/><path d="M12 10v4M12 17h.01"/>`),
+  mail:     I(`<rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3.5 6.5 8.5 6 8.5-6"/>`),
+  shop:     I(`<path d="M4 9h16l-1 11H5Z"/><path d="M8.5 9V6.5a3.5 3.5 0 0 1 7 0V9"/>`),
+  play:     I(`<path d="M7 4.5 19 12 7 19.5Z"/>`),
+  lock:     I(`<rect x="5" y="10" width="14" height="10" rx="2"/><path d="M8.5 10V7.5a3.5 3.5 0 0 1 7 0V10"/>`),
+};
+
+/* ===========================================================================
+   2. UTILIDADES
+   =========================================================================== */
+const eur = n => n.toLocaleString("es-ES",{style:"currency",currency:"EUR"});
+const num = n => n.toLocaleString("es-ES");
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+/* Portada ficticia: degradado estable derivado del titulo, siempre dentro de
+   la familia del morado para que el catalogo se lea como un solo sistema. */
+function coverStyle(seed){
+  let h = 0; for (const ch of seed) h = (h * 31 + ch.charCodeAt(0)) % 360;
+  const a = 232 + (h % 68);           /* 232-300: azul-violeta  */
+  const b = (a + 26 + (h % 22)) % 360;
+  return `background:linear-gradient(145deg,hsl(${a} 52% 34%),hsl(${b} 46% 18%) 70%,#17171a)`;
+}
+function cover(title, cls, extra){
+  return `<div class="cover ${cls||""}" style="${coverStyle(title)}">
+    ${extra||""}<span>${esc(title)}</span></div>`;
+}
+
+/* Distintivo de estado: color + texto, nunca color a secas. */
+const BADGE = {
+  DISPONIBLE:"b-good", RESERVADA:"b-warn", VENDIDA:"b-mute", ANULADA:"b-crit",
+  BORRADOR:"b-mute", CONFIRMADA:"b-info", RECIBIDA:"b-good", CANCELADA:"b-crit",
+  PENDIENTE:"b-warn", PAGADA:"b-good", REEMBOLSADA:"b-serious",
+  ABIERTO:"b-info", EN_CURSO:"b-warn", RESUELTO:"b-good", CERRADO:"b-mute",
+  PUBLICADA:"b-good", OCULTA:"b-mute",
+  BAJA:"b-mute", NORMAL:"b-info", ALTA:"b-serious", URGENTE:"b-crit",
+  ACTIVO:"b-good", INACTIVO:"b-mute", OK:"b-good", ERROR:"b-crit", AGOTADO:"b-crit",
+};
+const badge = (txt, kind) => `<span class="badge ${kind || BADGE[txt] || ""}">${esc(String(txt).replace(/_/g," "))}</span>`;
+
+/* Tabla generica. cols: [{t, cls}] ; rows: [[celda, ...]] */
+function table(cols, rows, cls){
+  return `<div class="tbl-wrap"><table class="tbl ${cls||""}">
+    <thead><tr>${cols.map(c=>`<th class="${c.cls||""}">${c.t}</th>`).join("")}</tr></thead>
+    <tbody>${rows.map(r=>`<tr>${r.map((c,i)=>
+      `<td class="${(cols[i]||{}).cls||""}">${c}</td>`).join("")}</tr>`).join("")}</tbody>
+  </table></div>`;
+}
+function pager(shown, total, pages, active){
+  const p = [];
+  for (let i=1;i<=pages;i++) p.push(`<button class="pg ${i===(active||1)?"on":""}">${i}</button>`);
+  return `<div class="pager"><span>Mostrando <b>${shown}</b> de <b>${num(total)}</b> registros</span>
+    <div class="pages"><button class="pg">&lsaquo;</button>${p.join("")}<button class="pg">&rsaquo;</button></div></div>`;
+}
+const acts = list => list.map(a =>
+  `<button class="btn btn-sm ${a.cls||"btn-ghost"}" title="${a.t}">${ICONS[a.i]||""}</button>`).join(" ");
+</script>
+<script>
+/* ===========================================================================
+   3. DATOS FICTICIOS
+   Nada de esto sale de una base de datos: son constantes para poder ver las
+   pantallas llenas. Los nombres de campo siguen el esquema del documento.
+   =========================================================================== */
+const CATS  = ["Accion","Aventura","RPG","Estrategia","Simulacion","Deportes","Terror","Indie","Carreras","Puzzle"];
+const PLATS = [["PC","STEAM"],["PlayStation 5","PS5"],["Xbox Series","XSX"],["Nintendo Switch","NSW"]];
+const DEVS  = [
+  {id:1, nom:"Larian Studios", pais:"Belgica", web:"larian.com", jocs:3},
+  {id:2, nom:"FromSoftware", pais:"Japon", web:"fromsoftware.jp", jocs:4},
+  {id:3, nom:"Hello Games", pais:"Reino Unido", web:"hellogames.org", jocs:1},
+  {id:4, nom:"Supergiant Games", pais:"EE. UU.", web:"supergiantgames.com", jocs:2},
+  {id:5, nom:"Paradox Interactive", pais:"Suecia", web:"paradoxplaza.com", jocs:5},
+  {id:6, nom:"Team Cherry", pais:"Australia", web:"teamcherry.com.au", jocs:1},
+];
+const GAMES = [
+  {id:318,t:"Eclipse Protocol",     dev:"Larian Studios",    cat:"RPG",        plat:"PC",            p:44.99, pa:59.99, pegi:16, st:142, act:1, lanz:"2026-03-14"},
+  {id:319,t:"Neon Drifter",         dev:"Hello Games",       cat:"Carreras",   plat:"PC",            p:24.99, pa:0,     pegi:7,  st:38,  act:1, lanz:"2025-11-02"},
+  {id:320,t:"Ashen Crown",          dev:"FromSoftware",      cat:"Accion",     plat:"PS5",           p:69.99, pa:0,     pegi:18, st:0,   act:1, lanz:"2026-06-20"},
+  {id:321,t:"Mycelium",             dev:"Team Cherry",       cat:"Indie",      plat:"NSW",           p:19.99, pa:0,     pegi:12, st:211, act:1, lanz:"2026-01-30"},
+  {id:322,t:"Orbital Foundry",      dev:"Paradox Interactive",cat:"Simulacion",plat:"PC",            p:34.99, pa:39.99, pegi:3,  st:87,  act:1, lanz:"2025-09-12"},
+  {id:323,t:"Last Signal",          dev:"Supergiant Games",  cat:"Terror",     plat:"Xbox Series",   p:29.99, pa:0,     pegi:18, st:6,   act:1, lanz:"2026-04-04"},
+  {id:324,t:"Ironline Tactics",     dev:"Paradox Interactive",cat:"Estrategia",plat:"PC",            p:39.99, pa:0,     pegi:12, st:64,  act:1, lanz:"2026-02-18"},
+  {id:325,t:"Velora: Deep Harvest", dev:"Larian Studios",    cat:"Aventura",   plat:"PS5",           p:54.99, pa:0,     pegi:16, st:19,  act:1, lanz:"2026-05-22"},
+  {id:326,t:"Pixel Rally 99",       dev:"Hello Games",       cat:"Carreras",   plat:"NSW",           p:14.99, pa:19.99, pegi:3,  st:150, act:1, lanz:"2025-07-08"},
+  {id:327,t:"Thornfall",            dev:"FromSoftware",      cat:"RPG",        plat:"PC",            p:49.99, pa:0,     pegi:18, st:73,  act:1, lanz:"2026-08-01"},
+  {id:328,t:"Glasswork",            dev:"Supergiant Games",  cat:"Puzzle",     plat:"PC",            p:9.99,  pa:0,     pegi:3,  st:304, act:1, lanz:"2026-09-15"},
+  {id:329,t:"Dust League 26",       dev:"Paradox Interactive",cat:"Deportes",  plat:"Xbox Series",   p:59.99, pa:0,     pegi:3,  st:12,  act:0, lanz:"2026-10-01"},
+];
+const PROVEEDORES = [
+  {id:1, nom:"Nordic Keys Distribution", rao:"Nordic Keys AB",        cif:"SE556##-####", pais:"Suecia",  mail:"ventas@nordickeys.se",   act:1, total:184200.40},
+  {id:2, nom:"Iberia Digital Supply",    rao:"Iberia Digital S.L.",   cif:"B-8#######",   pais:"Espana",  mail:"pedidos@iberiadig.es",   act:1, total:96510.00},
+  {id:3, nom:"Rhein Game Trade",         rao:"Rhein Game GmbH",       cif:"DE2########",  pais:"Alemania",mail:"b2b@rheingame.de",       act:1, total:71240.75},
+  {id:4, nom:"Pacific Key Partners",     rao:"Pacific Key Ltd.",      cif:"GB3#######",   pais:"Reino Unido", mail:"sales@pacifickey.uk",act:1, total:45980.10},
+  {id:5, nom:"Alpha Codes Benelux",      rao:"Alpha Codes BV",        cif:"NL8#######",   pais:"Paises Bajos",mail:"info@alphacodes.nl", act:0, total:12300.00},
+];
+const COMPRAS = [
+  {id:1, num:"OC-2026-0041", prov:"Nordic Keys Distribution", data:"2026-10-18", rec:"",            est:"BORRADOR",   tot:8480.00,  lin:3, uds:220},
+  {id:2, num:"OC-2026-0040", prov:"Iberia Digital Supply",    data:"2026-10-15", rec:"",            est:"CONFIRMADA", tot:15300.00, lin:4, uds:500},
+  {id:3, num:"OC-2026-0039", prov:"Rhein Game Trade",         data:"2026-10-09", rec:"2026-10-12",  est:"RECIBIDA",   tot:6240.50,  lin:2, uds:180},
+  {id:4, num:"OC-2026-0038", prov:"Nordic Keys Distribution", data:"2026-10-02", rec:"2026-10-06",  est:"RECIBIDA",   tot:22980.00, lin:6, uds:760},
+  {id:5, num:"OC-2026-0037", prov:"Pacific Key Partners",     data:"2026-09-28", rec:"",            est:"CANCELADA",  tot:3100.00,  lin:1, uds:100},
+  {id:6, num:"OC-2026-0036", prov:"Iberia Digital Supply",    data:"2026-09-21", rec:"2026-09-25",  est:"RECIBIDA",   tot:11450.00, lin:3, uds:390},
+];
+const CLAVES = [
+  {id:9011, cod:"ECLP-7J4K-99XZ-QA21", joc:"Eclipse Protocol", est:"DISPONIBLE", oc:"OC-2026-0038", alta:"2026-10-06", venda:""},
+  {id:9012, cod:"ECLP-2M8P-41WD-LK07", joc:"Eclipse Protocol", est:"VENDIDA",    oc:"OC-2026-0038", alta:"2026-10-06", venda:"2026-10-21"},
+  {id:9013, cod:"ASHC-5R2T-77VB-MN34", joc:"Ashen Crown",      est:"VENDIDA",    oc:"OC-2026-0036", alta:"2026-09-25", venda:"2026-10-19"},
+  {id:9014, cod:"MYCL-9F3G-12QQ-RT88", joc:"Mycelium",         est:"DISPONIBLE", oc:"OC-2026-0039", alta:"2026-10-12", venda:""},
+  {id:9015, cod:"NEON-4K7L-63HY-ZX10", joc:"Neon Drifter",     est:"RESERVADA",  oc:"OC-2026-0039", alta:"2026-10-12", venda:""},
+  {id:9016, cod:"LSIG-8D1S-24NM-PO55", joc:"Last Signal",      est:"ANULADA",    oc:"OC-2026-0038", alta:"2026-10-06", venda:""},
+  {id:9017, cod:"THRN-3W6E-85UI-AS92", joc:"Thornfall",        est:"DISPONIBLE", oc:"OC-2026-0038", alta:"2026-10-06", venda:""},
+  {id:9018, cod:"GLSW-6Y9U-30OP-DF46", joc:"Glasswork",        est:"DISPONIBLE", oc:"OC-2026-0036", alta:"2026-09-25", venda:""},
+];
+const CLIENTES = [
+  {id:1042, nom:"Marta Ribas",    mail:"marta.ribas@example.com",   pais:"Espana",  alta:"2025-02-11", com:14, gasto:612.40},
+  {id:1043, nom:"Oriol Camps",    mail:"oriol.camps@example.com",   pais:"Espana",  alta:"2025-06-03", com:7,  gasto:289.93},
+  {id:1044, nom:"Lucia Fernandez",mail:"lucia.f@example.com",       pais:"Espana",  alta:"2026-01-19", com:3,  gasto:124.97},
+  {id:1045, nom:"Tom Vanderberg", mail:"tom.v@example.nl",          pais:"Paises Bajos", alta:"2024-11-27", com:22, gasto:1104.55},
+  {id:1046, nom:"Sofia Greco",    mail:"sofia.greco@example.it",    pais:"Italia",  alta:"2026-04-02", com:5,  gasto:201.45},
+  {id:1047, nom:"Hugo Martin",    mail:"hugo.martin@example.fr",    pais:"Francia", alta:"2026-08-30", com:1,  gasto:44.99},
+];
+const PEDIDOS = [
+  {num:"C-2026-1884", cli:"Marta Ribas",    data:"2026-10-22", est:"PAGADA",      base:61.98, iva:13.02, tot:74.99, pago:"Tarjeta", art:2},
+  {num:"C-2026-1883", cli:"Tom Vanderberg", data:"2026-10-22", est:"PAGADA",      base:41.31, iva:8.68,  tot:49.99, pago:"PayPal",  art:1},
+  {num:"C-2026-1882", cli:"Sofia Greco",    data:"2026-10-21", est:"PENDIENTE",   base:57.84, iva:12.15, tot:69.99, pago:"Tarjeta", art:1},
+  {num:"C-2026-1881", cli:"Oriol Camps",    data:"2026-10-21", est:"PAGADA",      base:24.78, iva:5.21,  tot:29.99, pago:"Tarjeta", art:1},
+  {num:"C-2026-1880", cli:"Lucia Fernandez",data:"2026-10-20", est:"REEMBOLSADA", base:16.52, iva:3.47,  tot:19.99, pago:"PayPal",  art:1},
+  {num:"C-2026-1879", cli:"Marta Ribas",    data:"2026-10-19", est:"PAGADA",      base:90.07, iva:18.91, tot:108.98,pago:"Tarjeta", art:3},
+  {num:"C-2026-1878", cli:"Hugo Martin",    data:"2026-10-18", est:"CANCELADA",   base:37.18, iva:7.81,  tot:44.99, pago:"Tarjeta", art:1},
+];
+const DEPARTAMENTOS = [
+  {id:1, nom:"Direccion", emp:2}, {id:2, nom:"Catalogo", emp:4},
+  {id:3, nom:"Compras y almacen", emp:3}, {id:4, nom:"Atencion al cliente", emp:5},
+  {id:5, nom:"Sistemas", emp:2},
+];
+const EMPLEADOS = [
+  {id:1, nom:"Aleix Delgado",  mail:"admin@luduserp.cat",            dept:"Direccion",          carrec:"Administrador", rols:["ADMIN"],             alta:"2024-01-08", act:1},
+  {id:7, nom:"Nuria Soler",    mail:"gestor.productes@luduserp.cat", dept:"Catalogo",           carrec:"Jefa de catalogo", rols:["GESTOR_PRODUCTOS"], alta:"2024-03-15", act:1},
+  {id:8, nom:"Pau Esteve",     mail:"pau.esteve@luduserp.cat",       dept:"Catalogo",           carrec:"Editor de fichas", rols:["GESTOR_PRODUCTOS"], alta:"2025-01-20", act:1},
+  {id:9, nom:"Irene Vidal",    mail:"irene.vidal@luduserp.cat",      dept:"Compras y almacen",  carrec:"Responsable de compras", rols:["GESTOR_INVENTARIO"], alta:"2024-09-01", act:1},
+  {id:10,nom:"Marc Puig",      mail:"marc.puig@luduserp.cat",        dept:"Atencion al cliente",carrec:"Agente de soporte", rols:["GESTOR_CLIENTES"],  alta:"2025-05-12", act:1},
+  {id:11,nom:"Laia Font",      mail:"laia.font@luduserp.cat",        dept:"Atencion al cliente",carrec:"Agente de soporte", rols:["GESTOR_CLIENTES"],  alta:"2026-02-03", act:1},
+  {id:12,nom:"Dani Roca",      mail:"dani.roca@luduserp.cat",        dept:"Sistemas",           carrec:"Tecnico", rols:["GESTOR_INVENTARIO","GESTOR_PRODUCTOS"], alta:"2026-06-11", act:0},
+];
+const ROLES = ["CLIENTE","GESTOR_PRODUCTOS","GESTOR_CLIENTES","GESTOR_INVENTARIO","ADMIN"];
+const CONFIG = [
+  {k:"idioma_por_defecto", v:"ca",            tip:"ENUM",    desc:"Idioma que se aplica cuando el usuario no tiene preferencia"},
+  {k:"tipo_iva",           v:"21",            tip:"DECIMAL", desc:"Porcentaje de IVA aplicado a las facturas"},
+  {k:"umbral_stock_bajo",  v:"10",            tip:"ENTERO",  desc:"Claves disponibles por debajo de las cuales se avisa"},
+  {k:"razon_social",       v:"LudusERP S.L.", tip:"TEXTO",   desc:"Dato fiscal que encabeza la factura"},
+  {k:"cif_empresa",        v:"B-66#####",     tip:"TEXTO",   desc:"CIF que aparece en la factura"},
+  {k:"dias_purga_cesta",   v:"7",             tip:"ENTERO",  desc:"Dias de inactividad antes de liberar las claves reservadas"},
+];
+const JOBS = [
+  {nom:"Correo de confirmacion con factura", mec:"@Async", cada:"Al pagar un pedido",  ult:"2026-10-23 11:14", est:"OK",    dur:"1,2 s"},
+  {nom:"Recalculo de estadisticas",          mec:"@Scheduled", cada:"Cada noche 03:00",ult:"2026-10-23 03:00", est:"OK",    dur:"46 s"},
+  {nom:"Informe mensual en PDF",             mec:"@Scheduled", cada:"Dia 1 a las 06:00",ult:"2026-10-01 06:00",est:"OK",    dur:"8 s"},
+  {nom:"Vigilancia de stock bajo",           mec:"@Scheduled", cada:"Cada hora",       ult:"2026-10-23 11:00", est:"OK",    dur:"0,8 s"},
+  {nom:"Importacion masiva de claves",       mec:"@Async", cada:"Bajo demanda",        ult:"2026-10-22 16:35", est:"OK",    dur:"2 min 11 s"},
+  {nom:"Purga de cestas abandonadas",        mec:"@Scheduled", cada:"Diario 04:00",    ult:"2026-10-23 04:00", est:"ERROR", dur:"—"},
+];
+const TOP10 = [
+  ["Eclipse Protocol",96,4319.04],["Ashen Crown",81,5669.19],["Thornfall",74,3699.26],
+  ["Mycelium",69,1379.31],["Velora: Deep Harvest",58,3189.42],["Glasswork",54,539.46],
+  ["Orbital Foundry",47,1644.53],["Last Signal",41,1229.59],["Neon Drifter",38,949.62],
+  ["Ironline Tactics",29,1159.71],
+];
+</script>
+<script>
+/* ===========================================================================
+   4. GRAFICOS
+   Una sola serie por grafico: sin leyenda, identidad por titulo. Magnitud
+   en un solo tono y el valor siempre en texto al lado.
+   =========================================================================== */
+/* Ranking horizontal: magnitud en un solo tono, valor en texto neutro. */
+function rankChart(rows){
+  const max = Math.max(...rows.map(r=>r[1]));
+  return `<div class="rank">${rows.map((r,i)=>`
+    <div class="rank-row">
+      <span class="n">${i+1}</span>
+      <div class="rank-bar" title="${esc(r[0])}: ${r[1]} unidades">
+        <i style="width:${(r[1]/max*100).toFixed(1)}%"></i><span>${esc(r[0])}</span>
+      </div>
+      <span class="v">${r[1]} ud · ${eur(r[2])}</span>
+    </div>`).join("")}</div>`;
+}
+
+/* ===========================================================================
+   5. NAVEGACION
+   =========================================================================== */
+const NAV = [
+  {g:"Panel", items:[
+    {k:"panel", t:"Panel de control", i:"panel"},
+  ]},
+  {g:"Catalogo", items:[
+    {k:"catalogo/videojuegos",   t:"Videojuegos", i:"game"},
+    {k:"catalogo/clasificacion", t:"Clasificacion", i:"tag"},
+  ]},
+  {g:"Aprovisionamiento", items:[
+    {k:"compras/proveedores", t:"Proveedores", i:"truck"},
+    {k:"compras/ordenes",     t:"Ordenes de compra", i:"box"},
+    {k:"inventario/claves",   t:"Claves de licencia", i:"key"},
+  ]},
+  {g:"Ventas", items:[
+    {k:"ventas/pedidos",    t:"Pedidos", i:"cart"},
+    {k:"ventas/documentos", t:"Facturas", i:"file"},
+  ]},
+  {g:"Clientes", items:[
+    {k:"clientes/lista", t:"Clientes", i:"users"},
+  ]},
+  {g:"Administracion", items:[
+    {k:"admin/empleados",    t:"Empleados", i:"badge2"},
+    {k:"admin/departamentos",t:"Departamentos", i:"dept"},
+    {k:"admin/config",       t:"Configuracion", i:"cog"},
+    {k:"admin/jobs",         t:"Trabajos en segundo plano", i:"clock"},
+  ]},
+];
+
+/* ===========================================================================
+   6. ENVOLTORIOS
+   =========================================================================== */
+function shellPanel(view, route){
+  const nav = NAV.map(sec => `
+    <div class="nav-group">${sec.g}</div>
+    ${sec.items.map(it => `
+      <a class="nav-item ${route.startsWith(it.k)?"on":""}" href="#/${it.k}">
+        <span class="ic">${ICONS[it.i]||""}</span>${it.t}
+        ${it.tag?`<span class="tag">${it.tag}</span>`:""}
+      </a>`).join("")}`).join("");
+  return `<div class="app">
+    <aside class="side">
+      <div class="brand">
+        <div class="brand-mark">L</div>
+        <div class="brand-name">Ludus<span>ERP</span></div>
+      </div>
+      <div class="side-scroll">
+        ${nav}
+        <div class="nav-group">Prototipo</div>
+        <a class="nav-item ${route==="mapa"?"on":""}" href="#/mapa"><span class="ic">${ICONS.panel}</span>Mapa de vistas</a>
+        <a class="nav-item" href="#/tienda"><span class="ic">${ICONS.shop}</span>Ver la tienda</a>
+      </div>
+      <div class="side-foot">
+        <a class="nav-item" href="#/login"><span class="ic">${ICONS.back}</span>Cerrar sesion</a>
+      </div>
+    </aside>
+    <div class="main">
+      <header class="top">
+        <div class="crumb">${(view.crumb||[]).map(c=>`<b>${c}</b>`).join(" &rsaquo; ")}</div>
+        <div class="top-search">${ICONS.search}<input placeholder="Buscar en todo el ERP..."></div>
+        <button class="icon-btn" title="Notificaciones">${ICONS.bell}<span class="dot"></span></button>
+        <select class="lang" title="Idioma de la interfaz">
+          <option>ES</option><option>CA</option><option>EN</option>
+        </select>
+        <a class="who" href="#/perfil" style="text-decoration:none;color:inherit">
+          <div class="avatar">AD</div>
+          <div class="who-txt"><b>Aleix Delgado</b><span>ADMIN · Direccion</span></div>
+        </a>
+      </header>
+      <div class="canvas">${view.body()}</div>
+    </div>
+  </div>`;
+}
+function shellShop(view){
+  return `<div class="shop">
+    <header class="shop-top"><div class="shop-bar">
+      <a href="#/tienda" style="text-decoration:none;color:inherit" class="row">
+        <div class="brand-mark">L</div><div class="brand-name">Ludus<span>ERP</span></div>
+      </a>
+      <nav class="shop-nav">
+        <a href="#/tienda">Catalogo</a><a href="#/tienda">Novedades</a>
+        <a href="#/tienda">Ofertas</a><a href="#/tienda/biblioteca">Mi biblioteca</a>
+      </nav>
+      <div class="shop-search">${ICONS.search}<input placeholder="Buscar juegos, estudios, generos..."></div>
+      <select class="lang"><option>ES</option><option>CA</option><option>EN</option></select>
+      <a class="icon-btn cart-btn" href="#/tienda/cesta" title="Cesta">${ICONS.cart}<span class="cart-n">2</span></a>
+      <a class="btn btn-primary" href="#/panel">Panel ERP</a>
+    </div></header>
+    <main class="shop-body">${view.body()}</main>
+    <footer class="shop-foot">LudusERP · Prototipo de interfaz · Los precios y los juegos son ficticios</footer>
+  </div>`;
+}
+function shellBare(view){
+  return `<div style="min-height:100vh;display:grid;place-items:center;padding:30px;
+    background:radial-gradient(900px 500px at 50% -10%,rgba(139,92,246,.16),transparent 70%),var(--bg)">
+    ${view.body()}</div>`;
+}
+
+/* ===========================================================================
+   7. PIEZAS REUTILIZADAS
+   =========================================================================== */
+function head(title, sub, actions){
+  return `<div class="page-head"><div><h1>${title}</h1>${sub?`<p>${sub}</p>`:""}</div>
+    ${actions?`<div class="page-actions">${actions}</div>`:""}</div>`;
+}
+const backTo = (href, txt) =>
+  `<a class="btn btn-ghost btn-sm" href="${href}" style="margin-bottom:12px">${ICONS.back} ${txt}</a>`;
+const note = txt => `<div class="note-box">${ICONS.warn}<div>${txt}</div></div>`;
+</script>
+<script>
+/* ===========================================================================
+   8. VISTAS
+   Clave de ruta -> { shell, crumb, body }. El cuerpo devuelve HTML plano.
+   =========================================================================== */
+const VIEWS = {};
+
+/* --- 1. Acceso ------------------------------------------------------------ */
+VIEWS["login"] = { shell:"bare", body:()=>`
+  <div style="width:100%;max-width:390px">
+    <div class="row" style="justify-content:center;margin-bottom:22px">
+      <div class="brand-mark" style="width:36px;height:36px;font-size:17px">L</div>
+      <div class="brand-name" style="font-size:20px">Ludus<span>ERP</span></div>
+    </div>
+    <div class="card">
+      <div class="card-body stack">
+        <div>
+          <h2 style="font-size:17px">Iniciar sesion</h2>
+          <p class="hint" style="margin-top:4px">Un unico formulario para clientes y empleados: lo que cambia
+          es el rol. No hay catalogo publico: sin sesion no se ve nada.</p>
+        </div>
+        <div class="frow"><label>Correo electronico <span class="req">*</span></label>
+          <input class="inp" type="email" value="admin@luduserp.cat"></div>
+        <div class="frow"><label>Contrasena <span class="req">*</span></label>
+          <input class="inp" type="password" value="123456789"></div>
+        <div class="spread">
+          <label class="cbx"><input type="checkbox" checked> Recordarme</label>
+          <a href="#/login" class="hint">He olvidado la contrasena</a>
+        </div>
+        <a class="btn btn-primary" href="#/panel" style="justify-content:center">Entrar</a>
+        <div class="sep"></div>
+        <p class="hint" style="text-align:center;margin:0">
+          No tienes cuenta? <a href="#/registro">Crear una cuenta</a></p>
+      </div>
+    </div>
+    <p class="hint" style="text-align:center;margin-top:14px">
+      Prototipo: cualquier credencial entra como <b>ADMIN</b>.</p>
+  </div>`};
+
+VIEWS["registro"] = { shell:"bare", body:()=>`
+  <div style="width:100%;max-width:520px">
+    <div class="card">
+      <div class="card-head"><h3>Crear una cuenta de cliente</h3></div>
+      <div class="card-body">
+        <div class="form-grid">
+          <div class="frow"><label>Nombre <span class="req">*</span></label><input class="inp" value="Lucia"></div>
+          <div class="frow"><label>Apellidos <span class="req">*</span></label><input class="inp" value="Fernandez Soto"></div>
+          <div class="frow wide"><label>Correo electronico <span class="req">*</span></label>
+            <input class="inp" type="email" value="lucia.f@example.com">
+            <span class="hint">Sera tu identificador de acceso. Validado con <code>@Email</code> en el servidor.</span></div>
+          <div class="frow"><label>Contrasena <span class="req">*</span></label>
+            <input class="inp bad" type="password" value="1234">
+            <span class="hint err">Minimo 8 caracteres, una mayuscula y un numero.</span></div>
+          <div class="frow"><label>Repetir contrasena <span class="req">*</span></label>
+            <input class="inp" type="password" value=""></div>
+          <div class="frow"><label>Pais</label>
+            <select class="inp"><option>Espana</option><option>Francia</option><option>Italia</option></select></div>
+          <div class="frow"><label>Fecha de nacimiento</label><input class="inp" type="date" value="2001-04-18"></div>
+          <div class="frow wide"><label class="cbx"><input type="checkbox"> Acepto las condiciones y la politica de privacidad</label></div>
+        </div>
+      </div>
+      <div class="form-foot">
+        <span class="note">La contrasena se guarda con BCrypt (coste 12).</span>
+        <a class="btn" href="#/login">Cancelar</a>
+        <a class="btn btn-primary" href="#/login">Crear cuenta</a>
+      </div>
+    </div>
+  </div>`};
+
+/* --- 2. Tienda (solo con sesion) ------------------------------------------ */
+VIEWS["tienda"] = { shell:"shop", body:()=>`
+  <div class="spread" style="margin-bottom:18px">
+    <div><h1 style="font-size:22px">Catalogo</h1>
+      <p class="muted" style="margin:4px 0 0;font-size:13px">${GAMES.length} juegos · catalogo privado, requiere sesion</p></div>
+    <select class="inp"><option>Ordenar: mas vendidos</option><option>Precio ascendente</option>
+      <option>Precio descendente</option><option>Novedades</option></select>
+  </div>
+  <div class="card" style="margin-bottom:20px">
+    <div class="filters">
+      <div class="fld"><label>Buscar</label>
+        <div class="search-inp">${ICONS.search}<input placeholder="Titulo o estudio"></div></div>
+      <div class="fld"><label>Genero</label><select class="inp">
+        <option>Todos</option>${CATS.map(c=>`<option>${c}</option>`).join("")}</select></div>
+      <div class="fld"><label>Plataforma</label><select class="inp">
+        <option>Todas</option>${PLATS.map(p=>`<option>${p[0]}</option>`).join("")}</select></div>
+      <div class="fld"><label>Precio maximo</label><input class="inp" type="range" min="5" max="70" value="70"></div>
+      <div class="fld"><label>PEGI</label><select class="inp"><option>Cualquiera</option>
+        <option>3</option><option>7</option><option>12</option><option>16</option><option>18</option></select></div>
+      <div class="fld"><label>&nbsp;</label><button class="btn btn-primary">Aplicar</button></div>
+    </div>
+    <div style="padding:10px 16px;display:flex;gap:7px;flex-wrap:wrap;align-items:center">
+      <span class="hint">Filtros activos:</span>
+      <span class="chip on">RPG <b class="x">&times;</b></span>
+      <span class="chip on">PC <b class="x">&times;</b></span>
+      <span class="chip">Limpiar todo</span>
+    </div>
+  </div>
+  <div class="cat-grid">
+    ${GAMES.map(g=>`
+      <a class="game" href="#/tienda/ficha" style="text-decoration:none;color:inherit">
+        ${cover(g.t,"",`<span class="pegi">PEGI ${g.pegi}</span>
+          ${g.pa?`<span class="off">-${Math.round((1-g.p/g.pa)*100)}%</span>`:""}`)}
+        <div class="game-inf">
+          <div class="ttl">${g.t}</div>
+          <div class="meta">${g.dev} · ${g.cat}</div>
+          <div class="foot">
+            ${g.st===0 ? badge("AGOTADO") :
+              `<span class="price">${g.pa?`<span class="old">${eur(g.pa)}</span>`:""}${eur(g.p)}</span>`}
+          </div>
+        </div>
+      </a>`).join("")}
+  </div>
+  <div style="margin-top:22px">${pager(12,248,6,1)}</div>`};
+
+VIEWS["tienda/ficha"] = { shell:"shop", body:()=>{
+  const g = GAMES[0];
+  return `${backTo("#/tienda","Volver al catalogo")}
+  <div class="grid g-2-1">
+    <div class="stack">
+      <div class="gal">
+        <div class="gal-main">${cover(g.t,"wide")}</div>
+        <div class="gal-thumbs">
+          ${cover("Captura 1","on")}${cover("Captura 2")}${cover("Captura 3")}${cover("Captura 4")}
+        </div>
+      </div>
+      <div class="card"><div class="card-body stack">
+        <h2 style="font-size:19px">${g.t}</h2>
+        <div class="row wrap">
+          <span class="chip">${g.cat}</span><span class="chip">${g.plat}</span>
+          <span class="chip">PEGI ${g.pegi}</span><span class="chip">${g.lanz}</span>
+        </div>
+        <p style="margin:0;color:var(--ink-2);line-height:1.7">
+          Un RPG tactico por turnos ambientado en una estacion orbital a la deriva. Cada decision
+          consume oxigeno y el tiempo corre aunque no te muevas. Desarrollado por ${g.dev}.</p>
+      </div></div>
+    </div>
+    <div>
+      <div class="buy-box">
+        <div class="row" style="justify-content:space-between">
+          ${g.pa?`<span class="chip on">-${Math.round((1-g.p/g.pa)*100)}%</span>`:"<span></span>"}
+          <span class="live"><i></i>Stock en vivo</span>
+        </div>
+        <div class="buy-price">${g.pa?`<span class="old">${eur(g.pa)}</span>`:""}${eur(g.p)}</div>
+        <div class="row">${badge("DISPONIBLE")}<span class="hint">${g.st} claves en stock</span></div>
+        <a class="btn btn-primary" href="#/tienda/cesta" style="justify-content:center">${ICONS.cart} Anadir a la cesta</a>
+        <button class="btn" style="justify-content:center">Comprar ahora</button>
+        <div class="sep"></div>
+        <dl class="kv" style="grid-template-columns:90px 1fr;font-size:12.5px">
+          <dt>Estudio</dt><dd>${g.dev}</dd>
+          <dt>Genero</dt><dd>${g.cat}</dd>
+          <dt>Plataforma</dt><dd>${g.plat}</dd>
+          <dt>Entrega</dt><dd>Clave por correo, al instante</dd>
+        </dl>
+        <p class="hint" style="margin:0">La clave se asigna al confirmar el pago y queda ligada a tu biblioteca.</p>
+      </div>
+    </div>
+  </div>`;}};
+
+/* --- 3. Area del cliente -------------------------------------------------- */
+VIEWS["tienda/cesta"] = { shell:"shop", body:()=>`
+  <h1 style="font-size:22px;margin-bottom:18px">Tu cesta</h1>
+  <div class="grid g-2-1">
+    <div class="card"><div class="card-body tight">
+      ${[GAMES[0],GAMES[3]].map(g=>`
+        <div class="row" style="padding:14px 16px;border-bottom:1px solid var(--line);gap:14px">
+          <div style="width:62px;flex:0 0 auto">${cover(g.t,"wide")}</div>
+          <div style="flex:1 1 auto;min-width:0">
+            <div class="t-main">${g.t}</div>
+            <div class="t-sub">${g.dev} · ${g.plat}</div>
+            <div style="margin-top:5px">${badge("DISPONIBLE")}</div>
+          </div>
+          <div class="row">
+            <select class="inp" style="width:62px"><option>1</option><option>2</option></select>
+            <span class="price" style="min-width:76px;text-align:right">${eur(g.p)}</span>
+            <button class="btn btn-sm btn-ghost" title="Quitar">${ICONS.trash}</button>
+          </div>
+        </div>`).join("")}
+      <div style="padding:14px 16px">
+        <a href="#/tienda" class="hint">${ICONS.back} Seguir comprando</a>
+      </div>
+    </div></div>
+    <div class="card"><div class="card-body stack">
+      <h3 style="font-size:14px">Resumen</h3>
+      <div class="totals">
+        <div class="r"><span>Base imponible</span><span>${eur(53.70)}</span></div>
+        <div class="r"><span>IVA (21%)</span><span>${eur(11.28)}</span></div>
+        <div class="r big"><span>Total</span><span>${eur(64.98)}</span></div>
+      </div>
+      <a class="btn btn-primary" href="#/tienda/pago" style="justify-content:center">Tramitar pedido</a>
+      <p class="hint" style="margin:0">La cesta siempre cuelga de la cuenta: no hay cesta anonima,
+      porque al catalogo no se llega sin haber iniciado sesion.</p>
+    </div></div>
+  </div>`};
+
+VIEWS["tienda/pago"] = { shell:"shop", body:()=>`
+  <div style="max-width:780px;margin:0 auto">
+    <div class="steps">
+      <div class="step done"><i>${ICONS.check}</i>Cesta</div><div class="step-sep"></div>
+      <div class="step on"><i>2</i>Pago</div><div class="step-sep"></div>
+      <div class="step"><i>3</i>Confirmacion</div>
+    </div>
+    <div class="grid g-2-1">
+      <div class="stack">
+        <div class="card">
+          <div class="card-head"><h3>Datos de facturacion</h3></div>
+          <div class="card-body"><div class="form-grid">
+            <div class="frow"><label>Nombre y apellidos</label><input class="inp" value="Lucia Fernandez Soto"></div>
+            <div class="frow"><label>NIF</label><input class="inp" value="12345678Z"></div>
+            <div class="frow wide"><label>Direccion</label><input class="inp" value="Carrer Gran 14, 3r 2a"></div>
+            <div class="frow"><label>Ciudad</label><input class="inp" value="Barcelona"></div>
+            <div class="frow"><label>Pais</label><select class="inp"><option>Espana</option></select></div>
+          </div></div>
+        </div>
+        <div class="card">
+          <div class="card-head"><h3>Metodo de pago</h3>
+            <span class="right"><span class="badge b-purple">Simulado</span></span></div>
+          <div class="card-body stack">
+            <div class="row wrap">
+              <label class="cbx"><input type="radio" name="pg" checked> Tarjeta</label>
+              <label class="cbx"><input type="radio" name="pg"> PayPal</label>
+              <label class="cbx"><input type="radio" name="pg"> Transferencia</label>
+            </div>
+            <div class="form-grid">
+              <div class="frow wide"><label>Numero de tarjeta</label><input class="inp" value="4242 4242 4242 4242"></div>
+              <div class="frow"><label>Caducidad</label><input class="inp" value="12/29"></div>
+              <div class="frow"><label>CVC</label><input class="inp" value="123"></div>
+            </div>
+            ${note(`La pasarela es un <b>Strategy</b> intercambiable que devuelve autorizado o rechazado.
+              No hay cobro real y no se integra ninguna pasarela externa.`)}
+          </div>
+        </div>
+      </div>
+      <div class="card"><div class="card-body stack">
+        <h3 style="font-size:14px">Tu pedido</h3>
+        <div class="totals">
+          <div class="r"><span>Eclipse Protocol</span><span>${eur(44.99)}</span></div>
+          <div class="r"><span>Mycelium</span><span>${eur(19.99)}</span></div>
+          <div class="r"><span>IVA (21%)</span><span>${eur(11.28)}</span></div>
+          <div class="r big"><span>Total</span><span>${eur(64.98)}</span></div>
+        </div>
+        <a class="btn btn-primary" href="#/tienda/biblioteca" style="justify-content:center">${ICONS.lock} Pagar ${eur(64.98)}</a>
+        <p class="hint" style="margin:0">Al confirmar: se reserva una clave por linea, se emite la
+        factura en PDF y sale un correo de confirmacion en segundo plano.</p>
+      </div></div>
+    </div>
+  </div>`};
+
+VIEWS["tienda/biblioteca"] = { shell:"shop", body:()=>`
+  <div class="spread" style="margin-bottom:18px">
+    <div><h1 style="font-size:22px">Mi biblioteca</h1>
+      <p class="muted" style="margin:4px 0 0;font-size:13px">4 claves · ligadas a tu cuenta para siempre</p></div>
+    <a class="btn" href="#/tienda/pedidos">Ver mis pedidos</a>
+  </div>
+  <div class="grid g2">
+    ${[GAMES[0],GAMES[3],GAMES[9],GAMES[11]].map((g,i)=>`
+      <div class="card"><div class="card-body row" style="gap:14px;align-items:flex-start">
+        <div style="width:74px;flex:0 0 auto">${cover(g.t)}</div>
+        <div style="flex:1 1 auto;min-width:0" class="stack">
+          <div>
+            <div class="t-main">${g.t}</div>
+            <div class="t-sub">${g.plat} · comprado el 22/10/2026</div>
+          </div>
+          <div class="keybox ${i?"hidden":""}">
+            ${ICONS.key}<span class="k">${CLAVES[i].cod}</span>
+            <button class="btn btn-sm btn-ghost" style="margin-left:auto">${i?"Revelar":"Copiar"}</button>
+          </div>
+          <div class="row"><a class="hint" href="#/tienda/pedidos">${ICONS.down} Factura</a></div>
+        </div>
+      </div></div>`).join("")}
+  </div>`};
+
+VIEWS["tienda/pedidos"] = { shell:"shop", body:()=>`
+  <h1 style="font-size:22px;margin-bottom:18px">Mis pedidos</h1>
+  <div class="card"><div class="card-body tight">
+    ${table(
+      [{t:"Numero"},{t:"Fecha"},{t:"Articulos",cls:"num"},{t:"Estado"},{t:"Total",cls:"num"},{t:"",cls:"acts"}],
+      PEDIDOS.slice(0,5).map(p=>[
+        `<span class="mono">${p.num}</span>`, p.data, p.art, badge(p.est),
+        `<b>${eur(p.tot)}</b>`,
+        `<a class="btn btn-sm" href="#/ventas/factura">${ICONS.down} Factura</a>`
+      ]))}
+  </div></div>
+  <p class="hint" style="margin-top:12px">El cliente solo ve sus propios pedidos: el filtro se fuerza
+  en la capa de servicio, no en la vista.</p>`};
+</script>
+<script>
+/* --- 4. Panel de control -------------------------------------------------- */
+const kpi = (label, val, foot, cls) => `
+  <div class="kpi ${cls||""}">
+    <span class="k-label">${label}</span>
+    <span class="k-val">${val}</span>
+    <span class="k-foot">${foot||""}</span>
+  </div>`;
+
+VIEWS["panel"] = { shell:"panel", crumb:["Panel de control"], body:()=>`
+  ${head("Panel de control","Octubre de 2026 · cifras precalculadas cada noche por la tarea programada.")}
+
+  <div class="grid g4" style="margin-bottom:16px">
+    ${kpi("Ingresos", eur(48213.55), "", "accent")}
+    ${kpi("Coste", eur(31004.10), "")}
+    ${kpi("Margen", eur(17209.45), "")}
+    ${kpi("Unidades vendidas", num(1187), "")}
+  </div>
+  <div class="grid g2" style="margin-bottom:16px">
+    ${kpi("Pedidos", num(904), "<span>31 hoy</span>")}
+    ${kpi("Claves disponibles", num(1106), `<span>en ${GAMES.length} juegos</span>`)}
+  </div>
+
+  <div class="card">
+    <div class="card-head"><h3>Los 10 mas vendidos</h3><span class="sub">por unidades, este mes</span></div>
+    <div class="card-body">${rankChart(TOP10)}</div>
+  </div>`};
+
+VIEWS["perfil"] = { shell:"panel", crumb:["Mi perfil"], body:()=>`
+  ${head("Mi perfil y preferencias","Estas opciones no viven en MySQL: son el documento de la coleccion <code>preferencias_usuario</code> de MongoDB.")}
+  <div class="grid g-1-2">
+    <div class="card"><div class="card-body stack" style="align-items:center;text-align:center">
+      <div class="avatar" style="width:74px;height:74px;font-size:26px">AD</div>
+      <div><div class="t-main" style="font-size:16px">Aleix Delgado</div>
+        <div class="t-sub">admin@luduserp.cat</div></div>
+      <div class="row wrap" style="justify-content:center">
+        ${badge("ADMIN","b-purple")}${badge("ACTIVO")}
+      </div>
+      <div class="sep" style="width:100%"></div>
+      <dl class="kv" style="grid-template-columns:auto auto;gap:6px 16px;font-size:12.5px">
+        <dt>Departamento</dt><dd>Direccion</dd>
+        <dt>Alta</dt><dd>08/01/2024</dd>
+        <dt>Ultimo acceso</dt><dd>hoy, 08:12</dd>
+      </dl>
+    </div></div>
+    <div class="card">
+      <div class="card-head"><h3>Preferencias</h3></div>
+      <div class="card-body"><div class="form-grid">
+        <div class="frow"><label>Idioma de la interfaz</label>
+          <select class="inp"><option>Castellano</option><option>Catala</option><option>English</option></select>
+          <span class="hint">Primer nivel de la resolucion de idioma; por encima de la cabecera del navegador.</span></div>
+        <div class="frow"><label>Moneda</label><select class="inp"><option>EUR</option><option>USD</option></select></div>
+        <div class="frow"><label>Tema</label><select class="inp"><option>Oscuro</option><option>Claro</option></select></div>
+        <div class="frow"><label>Filas por pagina</label>
+          <select class="inp"><option>20</option><option>50</option><option>100</option></select></div>
+        <div class="frow wide"><div class="sect-label">Notificaciones</div></div>
+        <div class="frow wide row wrap" style="gap:20px">
+          <label class="switch"><input type="checkbox" checked><i></i> Por correo</label>
+          <label class="switch"><input type="checkbox" checked><i></i> En tiempo real (WebSocket)</label>
+          <label class="switch"><input type="checkbox"><i></i> Ofertas y novedades</label>
+        </div>
+      </div></div>
+      <div class="form-foot"><span class="note">Se guarda en MongoDB, no requiere migracion.</span>
+        <button class="btn">Cancelar</button><button class="btn btn-primary">Guardar</button></div>
+    </div>
+  </div>`};
+
+/* --- 5. Catalogo ---------------------------------------------------------- */
+VIEWS["catalogo/videojuegos"] = { shell:"panel", crumb:["Catalogo","Videojuegos"], body:()=>`
+  ${head("Videojuegos","CRUD principal del catalogo. Relaciona desarrollador (1:N), categorias y plataformas (N:M) e imagenes (1:N).",
+    `<a class="btn btn-primary" href="#/catalogo/videojuego">${ICONS.plus} Nuevo videojuego</a>`)}
+  <div class="card">
+    <div class="filters">
+      <div class="fld"><label>Buscar por titulo</label>
+        <div class="search-inp">${ICONS.search}<input placeholder="Titulo..."></div></div>
+      <div class="fld"><label>Categoria</label><select class="inp"><option>Todas</option>
+        ${CATS.map(c=>`<option>${c}</option>`).join("")}</select></div>
+      <div class="fld"><label>Plataforma</label><select class="inp"><option>Todas</option>
+        ${PLATS.map(p=>`<option>${p[0]}</option>`).join("")}</select></div>
+      <div class="fld"><label>Precio</label><div class="row">
+        <input class="inp" style="width:72px" placeholder="min"><span class="muted">—</span>
+        <input class="inp" style="width:72px" placeholder="max"></div></div>
+      <div class="fld"><label>Estado</label><select class="inp">
+        <option>Todos</option><option>Activo</option><option>Inactivo</option></select></div>
+      <div class="fld"><label>&nbsp;</label><button class="btn btn-primary">Filtrar</button></div>
+    </div>
+    <div class="card-body tight">
+      ${table(
+        [{t:"Juego"},{t:"Estudio"},{t:"Categoria"},{t:"Plataforma"},{t:"PEGI",cls:"num"},
+         {t:"Precio",cls:"num"},{t:"Stock",cls:"num"},{t:"Estado"},{t:"",cls:"acts"}],
+        GAMES.map(g=>[
+          `<div class="row"><div style="width:30px;flex:0 0 auto">${cover(g.t)}</div>
+             <div><div class="t-main">${g.t}</div><div class="t-sub">#${g.id} · ${g.lanz}</div></div></div>`,
+          g.dev, `<span class="chip">${g.cat}</span>`, g.plat, g.pegi,
+          `<b>${eur(g.p)}</b>${g.pa?`<div class="t-sub">antes ${eur(g.pa)}</div>`:""}`,
+          g.st===0?badge("AGOTADO"):(g.st<20?`<span class="badge b-warn">${g.st}</span>`:g.st),
+          badge(g.act?"ACTIVO":"INACTIVO"),
+          acts([{i:"eye",t:"Ver ficha"},{i:"image",t:"Imagenes"},{i:"edit",t:"Editar"},{i:"trash",t:"Borrar",cls:"btn-danger"}])
+        ]))}
+    </div>
+    ${pager(12,248,13,1)}
+  </div>`};
+
+VIEWS["catalogo/videojuego"] = { shell:"panel", crumb:["Catalogo","Videojuegos","Editar"], body:()=>`
+  ${backTo("#/catalogo/videojuegos","Volver al listado")}
+  ${head("Eclipse Protocol","Ficha #318 · ultima modificacion hoy por gestor.productes@luduserp.cat",
+    `<a class="btn" href="#/catalogo/imagenes">${ICONS.image} Imagenes</a>
+     <button class="btn btn-danger">${ICONS.trash} Borrar</button>`)}
+  <div class="card">
+    <div class="tabs" data-tabs>
+      <button class="tab on" data-tab="0">Datos generales</button>
+      <button class="tab" data-tab="1">Clasificacion</button>
+      <button class="tab" data-tab="2">Precio y stock</button>
+    </div>
+    <div class="card-body">
+      <div class="tab-pane on" data-pane="0"><div class="form-grid">
+        <div class="frow"><label>Titulo <span class="req">*</span></label><input class="inp" value="Eclipse Protocol"></div>
+        <div class="frow"><label>Slug <span class="req">*</span></label>
+          <input class="inp mono" value="eclipse-protocol">
+          <span class="hint">Unico. Se usa en la URL publica del catalogo.</span></div>
+        <div class="frow wide"><label>Sinopsis</label>
+          <textarea class="inp">RPG tactico por turnos ambientado en una estacion orbital a la deriva.</textarea></div>
+        <div class="frow"><label>Desarrollador <span class="req">*</span></label>
+          <select class="inp">${DEVS.map(d=>`<option ${d.nom==="Larian Studios"?"selected":""}>${d.nom}</option>`).join("")}</select></div>
+        <div class="frow"><label>Fecha de lanzamiento</label><input class="inp" type="date" value="2026-03-14"></div>
+        <div class="frow"><label>Clasificacion PEGI</label>
+          <select class="inp"><option>3</option><option>7</option><option>12</option>
+            <option selected>16</option><option>18</option></select></div>
+        <div class="frow"><label>Estado</label>
+          <label class="switch" style="margin-top:6px"><input type="checkbox" checked><i></i> Visible en el catalogo</label></div>
+      </div></div>
+      <div class="tab-pane" data-pane="1"><div class="stack">
+        <div><div class="sect-label">Categorias (N:M)</div>
+          <div class="row wrap" style="margin-top:10px">
+            ${CATS.map(c=>`<span class="chip ${["RPG","Estrategia"].includes(c)?"on":""}">${c}</span>`).join("")}</div></div>
+        <div><div class="sect-label">Plataformas (N:M)</div>
+          <div class="row wrap" style="margin-top:10px">
+            ${PLATS.map(p=>`<span class="chip ${p[1]==="STEAM"?"on":""}">${p[0]}</span>`).join("")}</div></div>
+      </div></div>
+      <div class="tab-pane" data-pane="2"><div class="form-grid">
+        <div class="frow"><label>Precio de venta <span class="req">*</span></label>
+          <input class="inp" value="44.99">
+          <span class="hint">Validador de negocio: no puede quedar por debajo del coste medio (${eur(28.40)}).</span></div>
+        <div class="frow"><label>Precio anterior</label><input class="inp" value="59.99"></div>
+        <div class="frow"><label>Umbral de stock bajo</label><input class="inp" value="10">
+          <span class="hint">Por debajo de este numero salta el aviso horario al gestor de inventario.</span></div>
+        <div class="frow"><label>Stock actual</label>
+          <div class="row" style="margin-top:6px">${badge("DISPONIBLE")}<b>142 claves</b>
+            <a class="hint" href="#/inventario/claves">Ver claves</a></div></div>
+      </div></div>
+    </div>
+    <div class="form-foot">
+      <span class="note">Validacion de servidor con Bean Validation sobre el DTO; en el navegador, atributos HTML5.</span>
+      <a class="btn" href="#/catalogo/videojuegos">Cancelar</a>
+      <button class="btn btn-primary">${ICONS.check} Guardar cambios</button>
+    </div>
+  </div>`};
+
+VIEWS["catalogo/imagenes"] = { shell:"panel", crumb:["Catalogo","Videojuegos","Imagenes"], body:()=>`
+  ${backTo("#/catalogo/videojuego","Volver a la ficha")}
+  ${head("Imagenes de Eclipse Protocol","Tabla <code>imagen_videojuego</code>: tipo PORTADA, CAPTURA o BANNER, mas el campo de orden.",
+    `<button class="btn btn-primary">${ICONS.upload} Subir imagenes</button>`)}
+  <div class="grid g2">
+    <div class="card">
+      <div class="card-head"><h3>Galeria</h3><span class="sub">arrastra para reordenar</span></div>
+      <div class="card-body"><div class="grid" style="grid-template-columns:repeat(3,1fr);gap:12px">
+        ${["Portada","Captura 1","Captura 2","Captura 3","Banner","Captura 4"].map((t,i)=>`
+          <div class="card" style="overflow:hidden">
+            ${cover(t,"wide",`<span class="pegi">${i===0?"PORTADA":i===4?"BANNER":"CAPTURA"}</span>`)}
+            <div class="row" style="padding:7px 9px;justify-content:space-between">
+              <span class="t-sub">Orden ${i+1}</span>
+              <span>${acts([{i:"star",t:"Designar portada"},{i:"trash",t:"Quitar",cls:"btn-danger"}])}</span>
+            </div>
+          </div>`).join("")}
+      </div></div>
+    </div>
+    <div class="stack">
+      <div class="card">
+        <div class="card-head"><h3>Subir una imagen</h3></div>
+        <div class="card-body stack">
+          <div style="border:1.5px dashed var(--line-strong);border-radius:var(--r);padding:30px;
+            text-align:center;color:var(--muted)">
+            ${ICONS.upload}<div style="margin-top:8px">Arrastra aqui los archivos o <a href="#/catalogo/imagenes">selecciona</a></div>
+            <div class="hint" style="margin-top:4px">JPG o PNG, maximo 2 MB</div>
+          </div>
+          <div class="frow"><label>Texto alternativo</label>
+            <input class="inp" placeholder="Descripcion para lectores de pantalla"></div>
+          <div class="frow"><label>Tipo</label><select class="inp">
+            <option>CAPTURA</option><option>PORTADA</option><option>BANNER</option></select></div>
+          <button class="btn btn-primary">Anadir a la galeria</button>
+        </div>
+      </div>
+      ${note(`Solo una imagen puede ser <b>PORTADA</b>: al designar una nueva, la anterior pasa a CAPTURA.`)}
+    </div>
+  </div>`};
+
+VIEWS["catalogo/clasificacion"] = { shell:"panel", crumb:["Catalogo","Clasificacion"], body:()=>`
+  ${head("Clasificacion","Las dos tablas auxiliares del catalogo: categorias y plataformas, que se relacionan con el videojuego en N:M.",
+    `<button class="btn btn-primary">${ICONS.plus} Nuevo registro</button>`)}
+  <div class="card">
+    <div class="tabs" data-tabs>
+      <button class="tab on" data-tab="0">Categorias (${CATS.length})</button>
+      <button class="tab" data-tab="1">Plataformas (${PLATS.length})</button>
+    </div>
+    <div class="tab-pane on" data-pane="0">
+      ${table([{t:"Nombre"},{t:"Slug"},{t:"Juegos",cls:"num"},{t:"",cls:"acts"}],
+        CATS.map((c,i)=>[`<span class="t-main">${c}</span>`,
+          `<span class="mono">${c.toLowerCase()}</span>`, 12+i*3,
+          acts([{i:"edit",t:"Editar"},{i:"trash",t:"Borrar",cls:"btn-danger"}])]))}
+    </div>
+    <div class="tab-pane" data-pane="1">
+      ${table([{t:"Nombre"},{t:"Codigo"},{t:"Juegos",cls:"num"},{t:"",cls:"acts"}],
+        PLATS.map((p,i)=>[`<span class="t-main">${p[0]}</span>`,
+          `<span class="mono">${p[1]}</span>`, 40-i*7,
+          acts([{i:"edit",t:"Editar"},{i:"trash",t:"Borrar",cls:"btn-danger"}])]))}
+    </div>
+  </div>`};
+
+</script>
+<script>
+/* --- 6. Aprovisionamiento e inventario ------------------------------------ */
+const encrypted = txt => `<span class="enc">${txt}</span><span class="enc-tag">AES-256</span>`;
+
+VIEWS["compras/proveedores"] = { shell:"panel", crumb:["Aprovisionamiento","Proveedores"], body:()=>`
+  ${head("Proveedores","CRUD de proveedores. El CIF y el IBAN se guardan cifrados con AES-256-GCM mediante un <code>AttributeConverter</code> de JPA.",
+    `<a class="btn btn-primary" href="#/compras/proveedor">${ICONS.plus} Nuevo proveedor</a>`)}
+  <div class="card">
+    <div class="filters">
+      <div class="fld"><label>Buscar</label>
+        <div class="search-inp">${ICONS.search}<input placeholder="Nombre comercial o CIF"></div></div>
+      <div class="fld"><label>Pais</label><select class="inp"><option>Todos</option>
+        <option>Espana</option><option>Suecia</option><option>Alemania</option></select></div>
+      <div class="fld"><label>Estado</label><select class="inp">
+        <option>Todos</option><option>Activo</option><option>Inactivo</option></select></div>
+      <div class="fld"><label>&nbsp;</label><button class="btn btn-primary">Filtrar</button></div>
+    </div>
+    <div class="card-body tight">
+      ${table([{t:"Proveedor"},{t:"CIF"},{t:"Pais"},{t:"Contacto"},
+               {t:"Total comprado",cls:"num"},{t:"Estado"},{t:"",cls:"acts"}],
+        PROVEEDORES.map(p=>[
+          `<div><div class="t-main">${p.nom}</div><div class="t-sub">${p.rao}</div></div>`,
+          encrypted(p.cif), p.pais, `<a href="#/compras/proveedores">${p.mail}</a>`,
+          `<b>${eur(p.total)}</b>`, badge(p.act?"ACTIVO":"INACTIVO"),
+          acts([{i:"eye",t:"Ver"},{i:"edit",t:"Editar"},{i:"trash",t:"Borrar",cls:"btn-danger"}])]))}
+    </div>
+    ${pager(5,5,1,1)}
+  </div>`};
+
+VIEWS["compras/proveedor"] = { shell:"panel", crumb:["Aprovisionamiento","Proveedores","Nuevo"], body:()=>`
+  ${backTo("#/compras/proveedores","Volver al listado")}
+  ${head("Nuevo proveedor")}
+  <div class="grid g-2-1">
+    <div class="card">
+      <div class="card-body"><div class="form-grid">
+        <div class="frow"><label>Nombre comercial <span class="req">*</span></label>
+          <input class="inp" placeholder="Nordic Keys Distribution"></div>
+        <div class="frow"><label>Razon social <span class="req">*</span></label>
+          <input class="inp" placeholder="Nordic Keys AB"></div>
+        <div class="frow"><label>CIF / VAT <span class="req">*</span></label>
+          <input class="inp" placeholder="SE556000-0000">
+          <span class="hint">Se almacena cifrado; en el volcado de la base no es legible.</span></div>
+        <div class="frow"><label>IBAN</label><input class="inp" placeholder="SE00 0000 0000 0000 0000 0000">
+          <span class="hint">Tambien cifrado.</span></div>
+        <div class="frow"><label>Correo de pedidos <span class="req">*</span></label>
+          <input class="inp" type="email" placeholder="pedidos@proveedor.com"></div>
+        <div class="frow"><label>Telefono</label><input class="inp" placeholder="+46 ..."></div>
+        <div class="frow"><label>Pais</label><select class="inp">
+          <option>Espana</option><option>Suecia</option><option>Alemania</option>
+          <option>Reino Unido</option><option>Paises Bajos</option></select></div>
+        <div class="frow"><label>Estado</label>
+          <label class="switch" style="margin-top:6px"><input type="checkbox" checked><i></i> Activo</label></div>
+      </div></div>
+      <div class="form-foot"><span class="note">Un proveedor con ordenes de compra no se puede borrar, solo desactivar.</span>
+        <a class="btn" href="#/compras/proveedores">Cancelar</a>
+        <button class="btn btn-primary">Crear proveedor</button></div>
+    </div>
+    <div class="stack">
+      ${note(`Los campos marcados como cifrados pasan por un <code>AttributeConverter</code>:
+        el cifrado y el descifrado ocurren al entrar y salir de la base de datos, y el codigo
+        de negocio no se entera.`)}
+      <div class="card"><div class="card-head"><h3>Ultimas ordenes</h3></div>
+        <div class="empty"><h4>Todavia no hay ordenes</h4>
+          <p class="hint">Apareceran aqui cuando se cree la primera.</p></div></div>
+    </div>
+  </div>`};
+
+VIEWS["compras/ordenes"] = { shell:"panel", crumb:["Aprovisionamiento","Ordenes de compra"], body:()=>`
+  ${head("Ordenes de compra","El ciclo es BORRADOR &rarr; CONFIRMADA &rarr; RECIBIDA. Recibir una orden es lo que convierte unidades compradas en claves vendibles.",
+    `<a class="btn btn-primary" href="#/compras/orden">${ICONS.plus} Nueva orden</a>`)}
+  <div class="card">
+    <div class="filters">
+      <div class="fld"><label>Proveedor</label><select class="inp"><option>Todos</option>
+        ${PROVEEDORES.map(p=>`<option>${p.nom}</option>`).join("")}</select></div>
+      <div class="fld"><label>Estado</label><select class="inp"><option>Todos</option>
+        <option>BORRADOR</option><option>CONFIRMADA</option><option>RECIBIDA</option>
+        <option>CANCELADA</option></select></div>
+      <div class="fld"><label>Desde</label><input class="inp" type="date" value="2026-09-01"></div>
+      <div class="fld"><label>Hasta</label><input class="inp" type="date" value="2026-10-23"></div>
+      <div class="fld"><label>&nbsp;</label><button class="btn btn-primary">Filtrar</button></div>
+    </div>
+    <div class="card-body tight">
+      ${table([{t:"Numero"},{t:"Proveedor"},{t:"Fecha"},{t:"Recepcion"},{t:"Lineas",cls:"num"},
+               {t:"Unidades",cls:"num"},{t:"Coste total",cls:"num"},{t:"Estado"},{t:"",cls:"acts"}],
+        COMPRAS.map(c=>[
+          `<a class="mono" href="#/compras/orden">${c.num}</a>`, c.prov, c.data,
+          c.rec||`<span class="muted">—</span>`, c.lin, num(c.uds), `<b>${eur(c.tot)}</b>`, badge(c.est),
+          acts([{i:"eye",t:"Ver"},
+                ...(c.est==="CONFIRMADA"?[{i:"truck",t:"Recibir",cls:"btn-primary"}]:[]),
+                ...(c.est==="BORRADOR"?[{i:"edit",t:"Editar"}]:[]),
+                ...(c.est==="RECIBIDA"?[{i:"file",t:"Albaran"}]:[])])]))}
+    </div>
+    ${pager(6,41,7,1)}
+  </div>`};
+
+VIEWS["compras/orden"] = { shell:"panel", crumb:["Aprovisionamiento","Ordenes","OC-2026-0040"], body:()=>`
+  ${backTo("#/compras/ordenes","Volver a las ordenes")}
+  ${head("OC-2026-0040","Iberia Digital Supply · creada el 15/10/2026 por irene.vidal@luduserp.cat",
+    `<button class="btn">${ICONS.file} Imprimir</button>
+     <button class="btn btn-danger">${ICONS.x} Cancelar orden</button>
+     <a class="btn btn-primary" href="#/compras/recepcion">${ICONS.truck} Recibir mercancia</a>`)}
+  <div class="grid g-2-1">
+    <div class="stack">
+      <div class="card">
+        <div class="card-head"><h3>Lineas de la orden</h3>
+          <span class="right"><button class="btn btn-sm">${ICONS.plus} Anadir linea</button></span></div>
+        <div class="card-body tight">
+          ${table([{t:"Videojuego"},{t:"Cantidad",cls:"num"},{t:"Coste unitario",cls:"num"},
+                   {t:"Subtotal",cls:"num"},{t:"",cls:"acts"}],
+            [[GAMES[0],200,28.40],[GAMES[2],150,41.00],[GAMES[9],100,30.00],[GAMES[7],50,33.20]]
+              .map(([g,q,c])=>[
+                `<div class="row"><div style="width:26px;flex:0 0 auto">${cover(g.t)}</div>
+                  <span class="t-main">${g.t}</span></div>`,
+                `<input class="inp" style="width:74px;text-align:right" value="${q}">`,
+                `<input class="inp" style="width:94px;text-align:right" value="${c.toFixed(2)}">`,
+                `<b>${eur(q*c)}</b>`,
+                acts([{i:"trash",t:"Quitar linea",cls:"btn-danger"}])]))}
+        </div>
+        <div class="form-foot">
+          <span class="note">Las lineas solo son editables en BORRADOR y CONFIRMADA.</span>
+          <div class="totals" style="min-width:230px">
+            <div class="r"><span>Unidades</span><span>500</span></div>
+            <div class="r big"><span>Coste total</span><span>${eur(15300)}</span></div>
+          </div>
+        </div>
+      </div>
+      ${note(`Al pulsar <b>Recibir mercancia</b> el sistema genera una <code>clave_licencia</code>
+        por cada unidad de cada linea, las pone en estado DISPONIBLE y emite el albaran en PDF.`)}
+    </div>
+    <div class="stack">
+      <div class="card"><div class="card-head"><h3>Estado</h3></div>
+        <div class="card-body stack">
+          <div class="row">${badge("CONFIRMADA")}<span class="hint">a la espera del proveedor</span></div>
+          <div class="sep"></div>
+          <dl class="kv" style="grid-template-columns:110px 1fr">
+            <dt>Proveedor</dt><dd><a href="#/compras/proveedores">Iberia Digital Supply</a></dd>
+            <dt>Contacto</dt><dd>pedidos@iberiadig.es</dd>
+            <dt>Fecha</dt><dd>15/10/2026</dd>
+            <dt>Recepcion</dt><dd class="muted">pendiente</dd>
+            <dt>Creada por</dt><dd>Irene Vidal</dd>
+          </dl>
+        </div>
+      </div>
+      <div class="card"><div class="card-head"><h3>Historial</h3></div>
+        <div class="feed">
+          ${[["Orden confirmada","15/10/2026 12:04","p"],["Lineas modificadas","15/10/2026 11:48","p"],
+             ["Borrador creado","15/10/2026 11:30","p"]].map(([t,w,k])=>`
+            <div class="feed-row"><div class="ic ${k}">${ICONS.check}</div>
+              <div class="feed-txt"><b>${t}</b><div class="when">${w} · Irene Vidal</div></div></div>`).join("")}
+        </div>
+      </div>
+    </div>
+  </div>`};
+
+VIEWS["compras/recepcion"] = { shell:"panel", crumb:["Aprovisionamiento","Recepcion de mercancia"], body:()=>`
+  ${backTo("#/compras/orden","Volver a la orden")}
+  ${head("Recibir la orden OC-2026-0040","Confirma que ha llegado de verdad. Lo recibido puede no coincidir con lo pedido.")}
+  <div class="grid g-2-1">
+    <div class="card">
+      <div class="card-head"><h3>Que ha llegado</h3></div>
+      <div class="card-body tight">
+        ${table([{t:"Videojuego"},{t:"Pedido",cls:"num"},{t:"Recibido",cls:"num"},
+                 {t:"Diferencia",cls:"num"},{t:"Claves a generar",cls:"num"}],
+          [[GAMES[0],200,200],[GAMES[2],150,150],[GAMES[9],100,80],[GAMES[7],50,50]]
+            .map(([g,ped,rec])=>[
+              `<span class="t-main">${g.t}</span>`, ped,
+              `<input class="inp" style="width:80px;text-align:right" value="${rec}">`,
+              rec===ped?`<span class="muted">0</span>`:`<span class="badge b-warn">${rec-ped}</span>`,
+              `<b>${rec}</b>`]))}
+      </div>
+      <div class="form-foot">
+        <span class="note">Se generaran <b>480</b> claves en estado DISPONIBLE.</span>
+        <a class="btn" href="#/compras/orden">Cancelar</a>
+        <a class="btn btn-primary" href="#/inventario/claves">${ICONS.check} Confirmar recepcion</a>
+      </div>
+    </div>
+    <div class="stack">
+      <div class="card"><div class="card-head"><h3>Que pasara al confirmar</h3></div>
+        <div class="feed">
+          ${[["Se crean 480 claves de licencia","estado DISPONIBLE, ligadas a su linea de compra","key"],
+             ["La orden pasa a RECIBIDA","con la fecha de recepcion de hoy","check"],
+             ["Se emite el albaran en PDF","pedido contra recibido, mas las claves dadas de alta","file"],
+             ["Se avisa por WebSocket","a quien tenga abierto el panel de inventario","bell"]]
+            .map(([t,s,ic])=>`
+            <div class="feed-row"><div class="ic p">${ICONS[ic]}</div>
+              <div class="feed-txt"><b>${t}</b><div class="when">${s}</div></div></div>`).join("")}
+        </div>
+      </div>
+      <div class="card"><div class="card-body stack">
+        <div class="frow"><label>Numero de albaran del proveedor</label>
+          <input class="inp" placeholder="ALB-IDS-77213"></div>
+        <div class="frow"><label>Observaciones</label>
+          <textarea class="inp" placeholder="20 unidades menos en Thornfall, el proveedor las servira la semana que viene"></textarea></div>
+      </div></div>
+    </div>
+  </div>`};
+
+VIEWS["inventario/claves"] = { shell:"panel", crumb:["Aprovisionamiento","Claves de licencia"], body:()=>`
+  ${head("Claves de licencia","El stock no es un contador: cada clave es una fila con su propia trazabilidad, de la linea de compra a la linea de pedido.")}
+  <div class="card">
+    <div class="filters">
+      <div class="fld"><label>Videojuego</label><select class="inp"><option>Todos</option>
+        ${GAMES.map(g=>`<option>${g.t}</option>`).join("")}</select></div>
+      <div class="fld"><label>Estado</label><select class="inp"><option>Todos</option>
+        <option>DISPONIBLE</option><option>RESERVADA</option><option>VENDIDA</option>
+        <option>ANULADA</option></select></div>
+      <div class="fld"><label>Orden de compra</label><select class="inp"><option>Todas</option>
+        ${COMPRAS.map(c=>`<option>${c.num}</option>`).join("")}</select></div>
+      <div class="fld"><label>&nbsp;</label><button class="btn btn-primary">Filtrar</button></div>
+    </div>
+    <div class="card-body tight">
+      ${table([{t:"Codigo"},{t:"Videojuego"},{t:"Origen"},{t:"Alta"},{t:"Venta"},{t:"Estado"},{t:"",cls:"acts"}],
+        CLAVES.map(c=>[
+          `${encrypted(c.cod)}`,
+          `<span class="t-main">${c.joc}</span>`,
+          `<a class="mono" href="#/compras/orden">${c.oc}</a>`,
+          c.alta, c.venda||`<span class="muted">—</span>`, badge(c.est),
+          acts([{i:"eye",t:"Trazabilidad"},
+                ...(c.est==="DISPONIBLE"?[{i:"x",t:"Anular clave",cls:"btn-danger"}]:[])])]))}
+    </div>
+    ${pager(8,5977,30,1)}
+  </div>
+  <p class="hint" style="margin-top:12px">El codigo esta cifrado en la base de datos: es literalmente
+  dinero y no debe quedar legible para quien acceda a un volcado.</p>`};
+
+</script>
+<script>
+/* --- 7. Ventas ------------------------------------------------------------ */
+VIEWS["ventas/pedidos"] = { shell:"panel", crumb:["Ventas","Pedidos"], body:()=>`
+  ${head("Pedidos","Cabecera, lineas, claves entregadas y factura. El cliente solo ve los suyos; aqui se ven todos.")}
+  <div class="grid g3" style="margin-bottom:16px">
+    ${kpi("Pagados", num(871), "", "accent")}
+    ${kpi("Pendientes","21","<span>pago sin confirmar</span>")}
+    ${kpi("Reembolsados","12","")}
+  </div>
+  <div class="card">
+    <div class="filters">
+      <div class="fld"><label>Buscar</label>
+        <div class="search-inp">${ICONS.search}<input placeholder="Numero o cliente"></div></div>
+      <div class="fld"><label>Estado</label><select class="inp"><option>Todos</option>
+        <option>PENDIENTE</option><option>PAGADA</option><option>CANCELADA</option>
+        <option>REEMBOLSADA</option></select></div>
+      <div class="fld"><label>Desde</label><input class="inp" type="date" value="2026-10-01"></div>
+      <div class="fld"><label>Hasta</label><input class="inp" type="date" value="2026-10-23"></div>
+      <div class="fld"><label>&nbsp;</label><button class="btn btn-primary">Filtrar</button></div>
+    </div>
+    <div class="card-body tight">
+      ${table([{t:"Numero"},{t:"Cliente"},{t:"Fecha"},{t:"Art.",cls:"num"},{t:"Pago"},
+               {t:"Base",cls:"num"},{t:"IVA",cls:"num"},{t:"Total",cls:"num"},{t:"Estado"},{t:"",cls:"acts"}],
+        PEDIDOS.map(p=>[
+          `<a class="mono" href="#/ventas/pedido">${p.num}</a>`,
+          `<a href="#/clientes/ficha">${p.cli}</a>`, p.data, p.art, p.pago,
+          eur(p.base), eur(p.iva), `<b>${eur(p.tot)}</b>`, badge(p.est),
+          acts([{i:"eye",t:"Ver pedido"},{i:"file",t:"Factura"}])]))}
+    </div>
+    ${pager(7,904,46,1)}
+  </div>`};
+
+VIEWS["ventas/pedido"] = { shell:"panel", crumb:["Ventas","Pedidos","C-2026-1884"], body:()=>`
+  ${backTo("#/ventas/pedidos","Volver a los pedidos")}
+  ${head("Pedido C-2026-1884","Marta Ribas · 22/10/2026 11:48 · pagado con tarjeta",
+    `<a class="btn" href="#/ventas/factura">${ICONS.file} Ver factura</a>
+     <button class="btn">${ICONS.mail} Reenviar correo</button>
+     <button class="btn btn-danger">Reembolsar</button>`)}
+  <div class="grid g-2-1">
+    <div class="stack">
+      <div class="card">
+        <div class="card-head"><h3>Lineas y claves entregadas</h3></div>
+        <div class="card-body tight">
+          ${table([{t:"Videojuego"},{t:"Precio",cls:"num"},{t:"Dto.",cls:"num"},
+                   {t:"Clave entregada"},{t:"Estado"}],
+            [[GAMES[0],44.99,0,CLAVES[1]],[GAMES[3],19.99,0,CLAVES[3]]].map(([g,p,d,k])=>[
+              `<div class="row"><div style="width:26px;flex:0 0 auto">${cover(g.t)}</div>
+                <span class="t-main">${g.t}</span></div>`,
+              eur(p), d?eur(d):`<span class="muted">—</span>`,
+              encrypted(k.cod), badge("VENDIDA")]))}
+        </div>
+        <div class="form-foot">
+          <div class="totals" style="min-width:250px;margin-left:auto">
+            <div class="r"><span>Base imponible</span><span>${eur(61.98)}</span></div>
+            <div class="r"><span>IVA (21%)</span><span>${eur(13.02)}</span></div>
+            <div class="r big"><span>Total</span><span>${eur(74.99)}</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-head"><h3>Trazabilidad y margen</h3>
+          <span class="sub">de donde salio cada clave y cuanto costo</span></div>
+        <div class="card-body tight">
+          ${table([{t:"Videojuego"},{t:"Orden de compra"},{t:"Proveedor"},
+                   {t:"Coste",cls:"num"},{t:"Venta",cls:"num"},{t:"Margen",cls:"num"}],
+            [["Eclipse Protocol","OC-2026-0038","Nordic Keys Distribution",28.40,44.99],
+             ["Mycelium","OC-2026-0039","Rhein Game Trade",11.20,19.99]].map(r=>[
+              `<span class="t-main">${r[0]}</span>`,
+              `<a class="mono" href="#/compras/orden">${r[1]}</a>`, r[2],
+              eur(r[3]), eur(r[4]),
+              `<b style="color:var(--good)">${eur(r[4]-r[3])}</b>`]))}
+        </div>
+      </div>
+    </div>
+    <div class="stack">
+      <div class="card"><div class="card-head"><h3>Cliente</h3></div>
+        <div class="card-body stack">
+          <div class="row"><div class="avatar">MR</div>
+            <div><div class="t-main">Marta Ribas</div><div class="t-sub">marta.ribas@example.com</div></div></div>
+          <div class="sep"></div>
+          <dl class="kv" style="grid-template-columns:110px 1fr">
+            <dt>Cliente desde</dt><dd>11/02/2025</dd>
+            <dt>Pedidos</dt><dd>14</dd>
+            <dt>Gasto total</dt><dd>${eur(612.40)}</dd>
+            <dt>Pais</dt><dd>Espana</dd>
+          </dl>
+          <a class="btn btn-sm" href="#/clientes/ficha">Ver ficha completa</a>
+        </div>
+      </div>
+      <div class="card"><div class="card-head"><h3>Linea de tiempo</h3></div>
+        <div class="feed">
+          ${[["Pedido creado","22/10/2026 11:48","p","cart"],
+             ["Pago autorizado","22/10/2026 11:49","p","lock"],
+             ["Claves asignadas","22/10/2026 11:49","p","key"],
+             ["Factura F-2026-0912 emitida","22/10/2026 11:49","p","file"],
+             ["Correo enviado al cliente","22/10/2026 11:50","p","mail"]].map(([t,w,k,ic])=>`
+            <div class="feed-row"><div class="ic ${k}">${ICONS[ic]}</div>
+              <div class="feed-txt"><b>${t}</b><div class="when">${w}</div></div></div>`).join("")}
+        </div>
+      </div>
+    </div>
+  </div>`};
+
+VIEWS["ventas/documentos"] = { shell:"panel", crumb:["Ventas","Facturas"], body:()=>`
+  ${head("Facturas","La factura se emite al pasar un pedido a PAGADA: una plantilla Thymeleaf de HTML y CSS que se renderiza con OpenHTMLtoPDF.")}
+  <div class="card">
+    <div class="card-head"><h3>Facturas emitidas</h3>
+      <span class="right"><div class="search-inp">${ICONS.search}<input placeholder="Numero"></div></span></div>
+    <div class="card-body tight">
+      ${table([{t:"Factura"},{t:"Pedido"},{t:"Fecha"},{t:"Importe",cls:"num"},{t:"",cls:"acts"}],
+        [["F-2026-0912","C-2026-1884","22/10/2026",74.99],
+         ["F-2026-0911","C-2026-1883","22/10/2026",49.99],
+         ["F-2026-0910","C-2026-1881","21/10/2026",29.99]].map(r=>[
+          `<span class="mono">${r[0]}</span>`,
+          `<a class="mono" href="#/ventas/pedido">${r[1]}</a>`, r[2], eur(r[3]),
+          `<a class="btn btn-sm" href="#/ventas/factura">${ICONS.eye}</a>
+           <button class="btn btn-sm">${ICONS.down}</button>`]))}
+    </div>
+    ${pager(3,912,31,1)}
+  </div>`};
+
+VIEWS["ventas/factura"] = { shell:"panel", crumb:["Ventas","Facturas","F-2026-0912"], body:()=>`
+  ${backTo("#/ventas/documentos","Volver a facturas")}
+  ${head("Factura F-2026-0912","Previsualizacion de la plantilla Thymeleaf antes de convertirla a PDF.",
+    `<button class="btn">${ICONS.mail} Enviar por correo</button>
+     <button class="btn btn-primary">${ICONS.down} Descargar PDF</button>`)}
+  <div style="max-width:800px;margin:0 auto">
+    <div class="doc">
+      <div class="doc-head">
+        <div><h2>LudusERP S.L.</h2>
+          <div class="muted">CIF B-66#####<br>Carrer de la Tecnologia 3<br>08018 Barcelona</div></div>
+        <div class="tot"><h2>FACTURA</h2>
+          <div><b>F-2026-0912</b></div>
+          <div class="muted">Fecha: 22/10/2026<br>Pedido: C-2026-1884</div></div>
+      </div>
+      <div style="display:flex;gap:40px;margin-bottom:6px">
+        <div><b>Facturar a</b><br>Marta Ribas<br>
+          <span class="muted">marta.ribas@example.com<br>Barcelona, Espana</span></div>
+        <div><b>Metodo de pago</b><br>Tarjeta ****4242<br>
+          <span class="muted">Autorizado el 22/10/2026</span></div>
+      </div>
+      <table>
+        <thead><tr><th>Concepto</th><th>Plataforma</th><th class="tot">Precio</th>
+          <th class="tot">Uds.</th><th class="tot">Importe</th></tr></thead>
+        <tbody>
+          <tr><td>Eclipse Protocol</td><td>PC</td><td class="tot">44,99 &euro;</td>
+            <td class="tot">1</td><td class="tot">44,99 &euro;</td></tr>
+          <tr><td>Mycelium</td><td>Nintendo Switch</td><td class="tot">19,99 &euro;</td>
+            <td class="tot">1</td><td class="tot">19,99 &euro;</td></tr>
+        </tbody>
+      </table>
+      <div style="margin-left:auto;width:260px">
+        <table style="margin:0">
+          <tr><td>Base imponible</td><td class="tot">61,98 &euro;</td></tr>
+          <tr><td>IVA 21 %</td><td class="tot">13,02 &euro;</td></tr>
+          <tr><td><b>Total</b></td><td class="tot"><b>74,99 &euro;</b></td></tr>
+        </table>
+      </div>
+      <p class="muted" style="margin-top:22px;font-size:10.5px">
+        Producto digital: la entrega consiste en una clave de licencia asociada a la cuenta del
+        cliente. Documento generado automaticamente por LudusERP.</p>
+    </div>
+  </div>`};
+
+/* --- 8. Clientes ---------------------------------------------------------- */
+VIEWS["clientes/lista"] = { shell:"panel", crumb:["Clientes","Listado"], body:()=>`
+  ${head("Clientes","El gestor de clientes tiene solo lectura: puede consultar e historiar, pero no crear ni borrar.")}
+  <div class="card">
+    <div class="filters">
+      <div class="fld"><label>Buscar</label>
+        <div class="search-inp">${ICONS.search}<input placeholder="Correo o nombre"></div></div>
+      <div class="fld"><label>Pais</label><select class="inp"><option>Todos</option>
+        <option>Espana</option><option>Francia</option><option>Italia</option>
+        <option>Paises Bajos</option></select></div>
+      <div class="fld"><label>Alta desde</label><input class="inp" type="date" value="2024-01-01"></div>
+      <div class="fld"><label>&nbsp;</label><button class="btn btn-primary">Filtrar</button></div>
+    </div>
+    <div class="card-body tight">
+      ${table([{t:"Cliente"},{t:"Correo"},{t:"Pais"},{t:"Alta"},{t:"Pedidos",cls:"num"},
+               {t:"Gasto total",cls:"num"},{t:"",cls:"acts"}],
+        CLIENTES.map(c=>[
+          `<div class="row"><div class="avatar" style="width:28px;height:28px;font-size:11px">
+             ${c.nom.split(" ").map(x=>x[0]).join("")}</div>
+           <div><div class="t-main">${c.nom}</div><div class="t-sub">#${c.id}</div></div></div>`,
+          `<a href="#/clientes/ficha">${c.mail}</a>`, c.pais, c.alta, c.com,
+          `<b>${eur(c.gasto)}</b>`,
+          acts([{i:"eye",t:"Ver ficha"}])]))}
+    </div>
+    ${pager(6,3184,40,1)}
+  </div>`};
+
+VIEWS["clientes/ficha"] = { shell:"panel", crumb:["Clientes","Marta Ribas"], body:()=>`
+  ${backTo("#/clientes/lista","Volver al listado")}
+  ${head("Marta Ribas","Cliente #1042 · alta el 11/02/2025",
+    `<button class="btn">${ICONS.mail} Escribir</button>`)}
+  <div class="grid g4" style="margin-bottom:16px">
+    ${kpi("Pedidos","14","<span>13 pagados</span>")}
+    ${kpi("Gasto total", eur(612.40), "<span>desde 2025</span>", "accent")}
+    ${kpi("Ticket medio", eur(43.74),"")}
+    ${kpi("Claves en biblioteca","19","")}
+  </div>
+  <div class="grid g-1-2">
+    <div class="stack">
+      <div class="card"><div class="card-head"><h3>Datos del cliente</h3></div>
+        <div class="card-body"><dl class="kv">
+          <dt>Nombre</dt><dd>Marta Ribas Soler</dd>
+          <dt>Correo</dt><dd>marta.ribas@example.com</dd>
+          <dt>Telefono</dt><dd>+34 6## ### ###</dd>
+          <dt>Direccion</dt><dd>Carrer Gran 14, Barcelona</dd>
+          <dt>Pais</dt><dd>Espana</dd>
+          <dt>Nacimiento</dt><dd>04/08/1996</dd>
+          <dt>Idioma</dt><dd>Catala</dd>
+          <dt>Estado</dt><dd>${badge("ACTIVO")}</dd>
+        </dl></div>
+      </div>
+      ${note(`El perfil del cliente cuelga del usuario en relacion 1:1. Un empleado no tiene
+        <code>perfil_cliente</code> y un cliente no tiene departamento: por eso no hay herencia.`)}
+    </div>
+    <div class="card">
+      <div class="tabs" data-tabs>
+        <button class="tab on" data-tab="0">Historial de pedidos</button>
+        <button class="tab" data-tab="1">Biblioteca</button>
+      </div>
+      <div class="tab-pane on" data-pane="0">
+        ${table([{t:"Numero"},{t:"Fecha"},{t:"Total",cls:"num"},{t:"Estado"},{t:"",cls:"acts"}],
+          PEDIDOS.filter(p=>p.cli==="Marta Ribas").concat(PEDIDOS.slice(2,5)).map(p=>[
+            `<a class="mono" href="#/ventas/pedido">${p.num}</a>`, p.data,
+            `<b>${eur(p.tot)}</b>`, badge(p.est),
+            `<a class="btn btn-sm" href="#/ventas/pedido">${ICONS.eye}</a>`]))}
+      </div>
+      <div class="tab-pane" data-pane="1">
+        ${table([{t:"Videojuego"},{t:"Clave"},{t:"Comprado"},{t:"Estado"}],
+          CLAVES.slice(0,4).map(c=>[
+            `<span class="t-main">${c.joc}</span>`, encrypted(c.cod),
+            c.venda||c.alta, badge(c.est)]))}
+      </div>
+    </div>
+  </div>`};
+
+</script>
+<script>
+/* --- 9. Administracion ---------------------------------------------------- */
+VIEWS["admin/empleados"] = { shell:"panel", crumb:["Administracion","Empleados"], body:()=>`
+  ${head("Empleados","CRUD de empleados y departamentos. Dar de alta un empleado crea el usuario, le asigna roles y le envia la contrasena inicial por correo.",
+    `<a class="btn btn-primary" href="#/admin/empleado">${ICONS.plus} Nuevo empleado</a>`)}
+  <div class="card">
+    <div class="filters">
+      <div class="fld"><label>Buscar</label>
+        <div class="search-inp">${ICONS.search}<input placeholder="Nombre o correo"></div></div>
+      <div class="fld"><label>Departamento</label><select class="inp"><option>Todos</option>
+        ${DEPARTAMENTOS.map(d=>`<option>${d.nom}</option>`).join("")}</select></div>
+      <div class="fld"><label>Rol</label><select class="inp"><option>Todos</option>
+        ${ROLES.map(r=>`<option>${r}</option>`).join("")}</select></div>
+      <div class="fld"><label>&nbsp;</label><button class="btn btn-primary">Filtrar</button></div>
+    </div>
+    <div class="card-body tight">
+      ${table([{t:"Empleado"},{t:"Departamento"},{t:"Cargo"},{t:"Roles"},{t:"Alta"},
+               {t:"Estado"},{t:"",cls:"acts"}],
+        EMPLEADOS.map(e=>[
+          `<div class="row"><div class="avatar" style="width:28px;height:28px;font-size:11px">
+             ${e.nom.split(" ").map(x=>x[0]).join("")}</div>
+           <div><div class="t-main">${e.nom}</div><div class="t-sub">${e.mail}</div></div></div>`,
+          `<span class="chip">${e.dept}</span>`, e.carrec,
+          e.rols.map(r=>badge(r,"b-purple")).join(" "), e.alta,
+          badge(e.act?"ACTIVO":"INACTIVO"),
+          acts([{i:"edit",t:"Editar"},{i:"lock",t:"Roles"},{i:"trash",t:"Borrar",cls:"btn-danger"}])]))}
+    </div>
+    ${pager(7,16,2,1)}
+  </div>`};
+
+VIEWS["admin/empleado"] = { shell:"panel", crumb:["Administracion","Empleados","Nuevo"], body:()=>`
+  ${backTo("#/admin/empleados","Volver al listado")}
+  ${head("Nuevo empleado","Se crea el usuario y su perfil de empleado en la misma operacion.")}
+  <div class="grid g-2-1">
+    <div class="card">
+      <div class="card-body stack">
+        <div class="sect-label">Datos personales</div>
+        <div class="form-grid">
+          <div class="frow"><label>Nombre <span class="req">*</span></label><input class="inp"></div>
+          <div class="frow"><label>Apellidos <span class="req">*</span></label><input class="inp"></div>
+          <div class="frow"><label>Correo corporativo <span class="req">*</span></label>
+            <input class="inp" type="email" placeholder="nombre@luduserp.cat"></div>
+          <div class="frow"><label>NIF <span class="req">*</span></label>
+            <input class="inp" placeholder="00000000A">
+            <span class="hint">Se guarda cifrado con AES-256-GCM.</span></div>
+          <div class="frow"><label>IBAN</label><input class="inp" placeholder="ES00 ...">
+            <span class="hint">Tambien cifrado.</span></div>
+          <div class="frow"><label>Fecha de contratacion</label><input class="inp" type="date"></div>
+        </div>
+        <div class="sect-label">Puesto</div>
+        <div class="form-grid">
+          <div class="frow"><label>Departamento <span class="req">*</span></label>
+            <select class="inp">${DEPARTAMENTOS.map(d=>`<option>${d.nom}</option>`).join("")}</select></div>
+          <div class="frow"><label>Cargo</label><input class="inp" placeholder="Agente de soporte"></div>
+        </div>
+        <div class="sect-label">Roles asignados</div>
+        <div class="row wrap">
+          ${ROLES.filter(r=>r!=="CLIENTE").map(r=>`
+            <label class="cbx"><input type="checkbox" ${r==="GESTOR_CLIENTES"?"checked":""}>
+              <span class="perm">${r}</span></label>`).join("")}
+        </div>
+      </div>
+      <div class="form-foot">
+        <span class="note">Al guardar se envia un correo con la contrasena inicial.</span>
+        <a class="btn" href="#/admin/empleados">Cancelar</a>
+        <button class="btn btn-primary">Crear empleado</button>
+      </div>
+    </div>
+    <div class="stack">
+      ${note(`Un empleado y un cliente son la misma tabla <code>usuario</code>: lo que cambia es
+        el perfil 1:1 que le cuelga y los roles que tiene asignados.`)}
+      <div class="card"><div class="card-head"><h3>Permisos que tendra</h3>
+        <span class="sub">calculado a partir de los roles</span></div>
+        <div class="card-body stack">
+          ${["CATALOGO_LEER","CLIENTE_LISTAR / LEER"].map(p=>
+            `<div class="row">${ICONS.check}<span class="perm">${p}</span></div>`).join("")}
+          <p class="hint" style="margin:0">Spring Security los carga como authorities al iniciar sesion.</p>
+        </div>
+      </div>
+    </div>
+  </div>`};
+
+VIEWS["admin/departamentos"] = { shell:"panel", crumb:["Administracion","Departamentos"], body:()=>`
+  ${head("Departamentos","Tabla relacionada con el perfil de empleado en 1:N.",
+    `<button class="btn btn-primary">${ICONS.plus} Nuevo departamento</button>`)}
+  <div class="grid g-2-1">
+    <div class="card"><div class="card-body tight">
+      ${table([{t:"Departamento"},{t:"Empleados",cls:"num"},{t:"Responsable"},{t:"",cls:"acts"}],
+        DEPARTAMENTOS.map((d,i)=>[
+          `<span class="t-main">${d.nom}</span>`, d.emp,
+          EMPLEADOS[i]?EMPLEADOS[i].nom:"—",
+          acts([{i:"edit",t:"Editar"},{i:"trash",t:"Borrar",cls:"btn-danger"}])]))}
+    </div></div>
+    <div class="card">
+      <div class="card-head"><h3>Nuevo departamento</h3></div>
+      <div class="card-body stack">
+        <div class="frow"><label>Nombre <span class="req">*</span></label>
+          <input class="inp" placeholder="Marketing">
+          <span class="hint">Unico en la tabla.</span></div>
+        <div class="frow"><label>Responsable</label>
+          <select class="inp"><option>Sin asignar</option>
+            ${EMPLEADOS.map(e=>`<option>${e.nom}</option>`).join("")}</select></div>
+        <button class="btn btn-primary">Crear</button>
+        <div class="sep"></div>
+        <p class="hint" style="margin:0">No se puede borrar un departamento con empleados dentro:
+        el validador de negocio lo impide antes de tocar la base.</p>
+      </div>
+    </div>
+  </div>`};
+
+VIEWS["admin/config"] = { shell:"panel", crumb:["Administracion","Configuracion"], body:()=>`
+  ${head("Configuracion del sistema","Parametros globales editables sin tocar <code>application.properties</code> ni reiniciar. Viven en la coleccion <code>config_sistema</code> de MongoDB.",
+    `<button class="btn btn-primary">${ICONS.check} Guardar cambios</button>`)}
+  <div class="grid g-2-1">
+    <div class="card"><div class="card-body tight">
+      ${table([{t:"Parametro"},{t:"Valor"},{t:"Tipo"},{t:"Descripcion"}],
+        CONFIG.map(c=>[
+          `<span class="perm">${c.k}</span>`,
+          c.k==="idioma_por_defecto"
+            ? `<select class="inp"><option>ca</option><option>es</option><option>en</option></select>`
+            : `<input class="inp" style="width:170px" value="${c.v}">`,
+          `<span class="chip">${c.tip}</span>`,
+          `<span class="muted">${c.desc}</span>`]))}
+    </div></div>
+    <div class="stack">
+      ${note(`Cambiar el <b>umbral de stock bajo</b> afecta a la tarea horaria de vigilancia;
+        cambiar el <b>tipo de IVA</b> solo afecta a las facturas que se emitan a partir de ahora.`)}
+    </div>
+  </div>`};
+
+VIEWS["admin/jobs"] = { shell:"panel", crumb:["Administracion","Trabajos en segundo plano"], body:()=>`
+  ${head("Trabajos en segundo plano","Los seis procesos asincronos y programados del sistema. Ninguno bloquea una peticion del usuario.")}
+  <div class="card">
+    <div class="card-body tight">
+      ${table([{t:"Trabajo"},{t:"Mecanismo"},{t:"Cuando"},{t:"Ultima ejecucion"},
+               {t:"Duracion",cls:"num"},{t:"Estado"},{t:"",cls:"acts"}],
+        JOBS.map(j=>[
+          `<span class="t-main">${j.nom}</span>`,
+          `<span class="perm">${j.mec}</span>`,
+          `<span class="muted">${j.cada}</span>`,
+          `<span class="mono">${j.ult}</span>`, j.dur, badge(j.est),
+          `<button class="btn btn-sm">${ICONS.play} Ejecutar ahora</button>`]))}
+    </div>
+  </div>
+  <div class="grid g2" style="margin-top:16px">
+    <div class="card">
+      <div class="card-head"><h3>Purga de cestas abandonadas</h3>
+        <span class="right">${badge("ERROR")}</span></div>
+      <div class="card-body stack">
+        <p class="hint" style="margin:0">Ultimo intento hoy a las 04:00. Traza recortada:</p>
+        <div class="doc" style="background:#121214;color:#e6edf3;font-family:var(--mono);
+          font-size:11.5px;padding:13px;box-shadow:none">
+          org.springframework.dao.CannotAcquireLockException:<br>
+          &nbsp;&nbsp;could not execute statement [Lock wait timeout exceeded]<br>
+          &nbsp;&nbsp;at CartPurgeJob.releaseReservedKeys(CartPurgeJob.java:48)
+        </div>
+        <button class="btn btn-primary">${ICONS.play} Reintentar</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-head"><h3>Proximas ejecuciones</h3></div>
+      <div class="feed">
+        ${[["Vigilancia de stock bajo","hoy 12:00"],["Recalculo de estadisticas","manana 03:00"],
+           ["Purga de cestas abandonadas","manana 04:00"],["Informe mensual en PDF","01/11/2026 06:00"]]
+          .map(([t,w])=>`
+          <div class="feed-row"><div class="ic p">${ICONS.clock}</div>
+            <div class="feed-txt"><b>${t}</b><div class="when">${w}</div></div></div>`).join("")}
+      </div>
+    </div>
+  </div>`};
+
+/* --- 10. Mapa de vistas del prototipo ------------------------------------- */
+const MAPA = [
+  ["Acceso", [["login","Inicio de sesion"],["registro","Registro de cliente"]]],
+  ["Tienda", [["tienda","Catalogo"],["tienda/ficha","Ficha de videojuego"]]],
+  ["Area del cliente", [["tienda/cesta","Cesta"],["tienda/pago","Pago en 3 pasos"],
+    ["tienda/biblioteca","Biblioteca de claves"],["tienda/pedidos","Mis pedidos"]]],
+  ["Panel", [["panel","Panel de control"],["perfil","Mi perfil y preferencias"]]],
+  ["Catalogo", [["catalogo/videojuegos","Listado de videojuegos"],
+    ["catalogo/videojuego","Alta / edicion de videojuego"],["catalogo/imagenes","Imagenes y portada"],
+    ["catalogo/clasificacion","Categorias, plataformas y estudios"]]],
+  ["Aprovisionamiento", [["compras/proveedores","Listado de proveedores"],
+    ["compras/proveedor","Alta de proveedor"],["compras/ordenes","Ordenes de compra"],
+    ["compras/orden","Detalle de una orden"],["compras/recepcion","Recepcion de mercancia"],
+    ["inventario/claves","Claves de licencia"]]],
+  ["Ventas", [["ventas/pedidos","Listado de pedidos"],["ventas/pedido","Detalle de pedido"],
+    ["ventas/documentos","Facturas emitidas"],["ventas/factura","Previsualizacion de factura"]]],
+  ["Clientes", [["clientes/lista","Listado de clientes"],["clientes/ficha","Ficha de cliente"]]],
+  ["Administracion", [["admin/empleados","Empleados"],["admin/empleado","Alta de empleado"],
+    ["admin/departamentos","Departamentos"],
+    ["admin/config","Configuracion"],["admin/jobs","Trabajos en segundo plano"]]],
+];
+VIEWS["mapa"] = { shell:"panel", crumb:["Prototipo","Mapa de vistas"], body:()=>`
+  ${head("Mapa de vistas",
+    `Las ${MAPA.reduce((n,s)=>n+s[1].length,0)} pantallas del prototipo. Todo es maqueta: no hay
+     logica de negocio detras y ninguna accion guarda nada.`)}
+  <div class="grid g3">
+    ${MAPA.map(([g,items])=>`
+      <div class="card">
+        <div class="card-head"><h3>${g}</h3>
+          <span class="right"><span class="badge b-purple">${items.length}</span></span></div>
+        <div class="feed">
+          ${items.map(([k,t])=>`
+            <a class="feed-row" href="#/${k}" style="text-decoration:none;color:inherit">
+              <div class="ic p">${ICONS.panel}</div>
+              <div class="feed-txt"><b>${t}</b><div class="when mono">#/${k}</div></div>
+            </a>`).join("")}
+        </div>
+      </div>`).join("")}
+  </div>`};
+</script>
+<script>
+/* ===========================================================================
+   9. ENRUTADO E INTERACCION
+   =========================================================================== */
+function bindTabs(){
+  document.querySelectorAll("[data-tabs]").forEach(bar => {
+    const card = bar.closest(".card") || document;
+    bar.querySelectorAll(".tab").forEach(tab => {
+      tab.addEventListener("click", () => {
+        bar.querySelectorAll(".tab").forEach(t => t.classList.toggle("on", t === tab));
+        card.querySelectorAll("[data-pane]").forEach(p =>
+          p.classList.toggle("on", p.dataset.pane === tab.dataset.tab));
+      });
+    });
+  });
+}
+
+/* Confirmacion de borrado: el patron se repite en todos los CRUD. */
+function openModal(html){
+  const d = document.createElement("div");
+  d.className = "modal-bg";
+  d.innerHTML = html;
+  d.addEventListener("click", e => { if (e.target === d || e.target.dataset.close !== undefined) d.remove(); });
+  document.body.appendChild(d);
+}
+document.addEventListener("click", e => {
+  const b = e.target.closest('[title^="Borrar"], [title^="Quitar"], [title^="Anular"]');
+  if (!b) return;
+  e.preventDefault();
+  openModal(`<div class="modal">
+    <div class="modal-head"><h3>Confirmar la operacion</h3></div>
+    <div class="modal-body stack">
+      <p style="margin:0">Esta accion no se puede deshacer. Si el registro esta relacionado con
+      otros &mdash;un videojuego con claves vendidas, un proveedor con ordenes&mdash; el validador
+      de negocio la rechazara y solo permitira desactivarlo.</p>
+      ${note("En el prototipo no se borra nada: el dialogo esta aqui para ensenar el patron.")}
+    </div>
+    <div class="modal-foot">
+      <button class="btn" data-close>Cancelar</button>
+      <button class="btn btn-danger" data-close>Si, borrar</button>
+    </div>
+  </div>`);
+});
+
+function render(){
+  const key = decodeURIComponent(location.hash.replace(/^#\/?/, "")) || "login";
+  const view = VIEWS[key];
+  if (!view){ location.hash = "#/mapa"; return; }
+  const html = view.shell === "shop" ? shellShop(view)
+             : view.shell === "bare" ? shellBare(view)
+             : shellPanel(view, key);
+  document.getElementById("root").innerHTML = html;
+  document.title = "LudusERP · " + (view.crumb ? view.crumb[view.crumb.length-1] : "Prototipo");
+  window.scrollTo(0, 0);
+  bindTabs();
+}
+window.addEventListener("hashchange", render);
+render();
+</script>
+</body>
+</html>
