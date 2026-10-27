@@ -9,5 +9,9 @@ package model.seguridad;
  * @author PC
  */
 public enum Rol {
-    CLIENTE,GESTOR_PRODUCTOS,GESTOR_CLIENTES,GESTOR_INVENTARIO,ADMIN;
+    CLIENT,
+    GESTOR_PRODUCTES,
+    GESTOR_CLIENTS,
+    GESTOR_INVENTARI,
+    ADMIN;
 }
