@@ -3,7 +3,7 @@ package model.inventario;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-import model.aprovisionamiento.LiniaCompra;
+import model.aprovisionamiento.LineaCompra;
 import model.catalogo.Videojuego;
 
 import java.time.LocalDateTime;
@@ -24,7 +24,7 @@ public class ClaveLicencia {
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "linea_compra_id", nullable = false)
-    private LiniaCompra lineaCompra;
+    private LineaCompra lineaCompra;
 
     @Column(name = "codigo_cifrado", nullable = false, length = 128)
     private String codigo;
