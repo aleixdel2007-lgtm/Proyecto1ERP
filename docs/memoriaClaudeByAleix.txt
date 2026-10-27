@@ -48,8 +48,8 @@ Paquetes creados, TODOS en la raiz de src/main/java (ver aviso 7.1):
   model/ventas/             Cesta, LineaCesta, Pedido, LineaPedido, Factura,
                             EstadoPedido
 
-Son 21 clases. Solo UNA tiene codigo dentro: Usuario. Las otras 20 son
-plantillas vacias de NetBeans.
+Son 21 clases. Las CUATRO de seguridad ya tienen codigo (ver 5.3). Las otras
+17 siguen siendo plantillas vacias de NetBeans.
 
 
 -------------------------------------------------------------------------------
@@ -149,6 +149,29 @@ plantillas vacias de NetBeans.
     Tablas usuario y usuario_rol, ya sincronizadas con la entidad recortada.
     El fichero SIGUE ABIERTO: faltan departamento y empleado.
 
+5.3 AÑADIDO EL 27 DE OCTUBRE, rama ModificacionObjetosSeguridadMasSQL.
+    Didac (didaclopezz) subio el commit bfff1ca con las cuatro clases de
+    seguridad escritas contra el PDF, es decir en catalan y sin saber nada de
+    las decisiones del apartado 3. Se han alineado con este documento:
+      - tablas, columnas, campos y valores del enum pasados a castellano
+      - int id -> Long id en las tres entidades
+      - @Data sustituido por @Getter @Setter en todas (@Data en Departamento
+        provocaba un StackOverflowError por el ciclo con Empleado, y en
+        Usuario metia el hash de la contrasena en el toString)
+      - Empleado no tenia ninguna anotacion de Lombok aplicada, asi que no
+        tenia getters ni setters: ahora si
+      - recuperados telefono, pais y fechaNacimiento en Usuario, que se
+        habian quedado sin sitio al eliminar PerfilCliente
+      - recuperados el Set<Rol> con la tabla usuario_rol y el @PrePersist de
+        fechaAlta
+      - nombreEmpleados() renombrado a numeroEmpleados(): "nombre" en catalan
+        es "numero", y en castellano se leia como el nombre de los empleados
+      - V1__Seguridad.sql completado con las tablas departamento y empleado,
+        asi que el modulo de seguridad ya esta cerrado
+    PENDIENTE DE ACORDAR CON DIDAC: el idioma (el decidio catalan por el PDF)
+    y si el usuario tiene uno o varios roles (el puso uno solo). Lo que hay
+    ahora en la rama es castellano y varios roles.
+
 
 -------------------------------------------------------------------------------
 6. DECISIONES ABIERTAS (hay que contestarlas para seguir)
@@ -219,6 +242,22 @@ plantillas vacias de NetBeans.
 7.5 No hay maven wrapper (mvnw) y mvn no esta en el PATH. Se compila desde
     NetBeans, que trae su propio Maven. Anadir el wrapper con
     mvn -N wrapper:wrapper seria recomendable en un proyecto de grupo.
+
+7.6 PENDIENTE: cifrar el NIF y el IBAN del empleado con AES.
+    El requisito 3.7 lo pide y el documento nombra justo esos dos campos (mas
+    el CIF y el IBAN del proveedor, y el codigo de la clave de licencia). Hoy
+    estan en texto plano porque el conversor no existe todavia.
+    Cuando se escriba CifradoAesConverter: @Convert sobre el campo, y las
+    columnas pasan de VARCHAR a VARBINARY, lo que exigira una migracion nueva
+    si V1 ya se ha aplicado. La clave maestra se lee de una variable de
+    entorno y NO se versiona.
+
+7.7 AVISO para quien escriba DetallesUsuarioServicio: hasRole('ADMIN') busca
+    la autoridad ROLE_ADMIN, con prefijo. Al convertir el enum Rol en
+    authorities hay que anadir "ROLE_" delante. Si se olvida, no salta ningun
+    error: simplemente nadie tiene permiso para nada, y encontrarlo cuesta un
+    par de horas. La alternativa es usar hasAuthority('ADMIN'), que no anade
+    prefijo, pero entonces hay que ser consistente en todo el proyecto.
 
 
 -------------------------------------------------------------------------------

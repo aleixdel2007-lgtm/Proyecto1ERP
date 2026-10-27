@@ -1,41 +1,39 @@
 package model.seguridad;
 
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
-import model.seguridad.Departamento;
-import model.seguridad.Usuario;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.time.LocalDate;
+
 /**
  *
  * @author PC
  */
 @Entity
-@Table(name = "perfil_empleat")
+@Table(name = "empleado")
+@Getter
+@Setter
 public class Empleado {
 
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-    @OneToOne(optional = false)
-    @JoinColumn(name = "usuari_id", nullable = false, unique = true)
+    @OneToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "usuario_id", nullable = false, unique = true)
     private Usuario usuario;
 
-    @ManyToOne(optional = false)
-    @JoinColumn(name = "departament_id", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "departamento_id", nullable = false)
     private Departamento departamento;
 
-    @Column(length = 20)
+    @Column(name = "nif", length = 20, unique = true)
     private String nif;
 
-    @Column(length = 34)
+    @Column(name = "iban", length = 34)
     private String iban;
 
-    @Column(name = "data_contractacio")
-    private LocalDate dataContractacio;
-
-    @Column(length = 80)
-    private String carrec;
+    @Column(name = "fecha_contratacion")
+    private LocalDate fechaContratacion;
 }
