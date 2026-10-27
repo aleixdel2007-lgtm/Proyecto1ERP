@@ -1,0 +1,311 @@
+===============================================================================
+MEMORIA DE TRABAJO - LudusERP (repositorio Proyecto1ERP)
+Sesion del 26 de octubre de 2026
+===============================================================================
+
+Para que sirve este fichero: retomar el trabajo sin tener que volver a explicar
+nada. Si abres una sesion nueva de Claude Code, pasale este fichero primero.
+
+
+-------------------------------------------------------------------------------
+1. DONDE ESTA TODO
+-------------------------------------------------------------------------------
+
+Proyecto Spring Boot:
+  C:\Users\PC\Documents\ExempleProgramming\Proyecto1ERP
+  Rama master, remoto origin -> github.com/aleixdel2007-lgtm/Proyecto1ERP
+
+Entregables, dentro del repo:
+  docs\prototipo.html            maqueta navegable, 32 vistas, sin logica
+  docs\LudusERP-Disseny-UML.pdf  documento de diseno, 36 paginas, v1.2
+
+Fuente del PDF, FUERA del repo (no esta versionada):
+  C:\Users\PC\Desktop\ERP-Videojuegos-UML\erp-luduserp-disseny.html
+  + lib\mermaid.min.js (necesario, el HTML no dibuja los diagramas sin el)
+  + tools\*.js (scripts para medir si las figuras caben en la pagina)
+  El PDF se genera imprimiendo ese HTML desde Chrome.
+
+
+-------------------------------------------------------------------------------
+2. ESTADO DEL CODIGO
+-------------------------------------------------------------------------------
+
+Commits: 1600306 y 60acd10 (base), 0a8bbfc (objetos vacios),
+         fb6ea94 (documentos a docs/)
+
+Sin commitear ahora mismo:
+  - src/main/java/model/seguridad/Usuario.java   (modificado)
+  - src/main/resources/db/                       (nuevo, sin seguimiento)
+
+Paquetes creados, TODOS en la raiz de src/main/java (ver aviso 7.1):
+  application/  <- aqui esta Proyecto1ErpApplication.java
+  config/  controller/  dao/  document/  dto/  service/   (vacios)
+  model/seguridad/          Usuario, Empleado, Departamento, Rol
+  model/catalogo/           Videojuego, Categoria, Plataforma,
+                            ImagenVideojuego, TipoImagen
+  model/aprovisionamiento/  Proveedor, Compra, LiniaCompra, EstadoCompra
+  model/inventario/         ClaveLicencia, EstadoClave
+  model/ventas/             Cesta, LineaCesta, Pedido, LineaPedido, Factura,
+                            EstadoPedido
+
+Son 21 clases. Solo UNA tiene codigo dentro: Usuario. Las otras 20 son
+plantillas vacias de NetBeans.
+
+
+-------------------------------------------------------------------------------
+3. DECISIONES TOMADAS (se apartan del documento de diseno)
+-------------------------------------------------------------------------------
+
+3.1 Rol pasa a ser un ENUM, no una entidad.
+    Valores: CLIENTE, GESTOR_PRODUCTOS, GESTOR_CLIENTES, GESTOR_INVENTARIO,
+    ADMIN. Se guarda como texto en la tabla usuario_rol via
+    @ElementCollection. Motivo: cinco roles fijos, una tabla no aportaba nada.
+
+3.2 NO hay tabla de permisos. Se elimina la entidad Permiso entera.
+    El acceso se decide mirando el ROL, no un permiso fino.
+    Esto invalida la Decision 3 del documento, que argumenta lo contrario.
+
+3.3 El control de acceso se declara, no se escribe con if a mano:
+      - reglas por URL en SeguridadConfig (SecurityFilterChain)
+      - @PreAuthorize con hasRole en metodos concretos
+      - sec:authorize en las plantillas para esconder el menu
+    Motivo: el requisito 3.7 pide expresamente Spring Security; un if dentro
+    del metodo funciona pero no es control de acceso con Spring Security, y
+    si te olvidas de uno el agujero no avisa.
+
+3.4 PerfilCliente ELIMINADO. Sus campos se funden en Usuario.
+    Motivo: casi todos los usuarios son clientes, los nulos serian la
+    excepcion y no la regla.
+
+3.5 PerfilEmpleado se queda, RENOMBRADO a Empleado.
+    Motivo: el CRUD de Empleados-Departamentos que pide el enunciado necesita
+    departamento_id, y ahi van el NIF y el IBAN cifrados del requisito 3.7.
+    Si estuvieran en Usuario, cada cliente tendria 5 columnas a nulo.
+
+3.6 Desarrollador ELIMINADO como entidad (decision de Aleix).
+    Solo se buscara por categoria y plataforma.
+    PENDIENTE de decidir si el estudio sobrevive como String en Videojuego
+    (ver 6.2).
+
+3.7 Estructura de paquetes: plana por capas, con model subdividido por
+    modulos. Las capas en ingles, las clases y los modulos en espanol.
+
+
+-------------------------------------------------------------------------------
+4. CONVENCIONES DE CODIGO ACORDADAS
+-------------------------------------------------------------------------------
+
+- Lombok @Getter @Setter. NUNCA @Data en una entidad: genera toString con la
+  contrasena dentro y rompe equals/hashCode.
+- IDs: Long con @GeneratedValue(strategy = GenerationType.IDENTITY), que es
+  lo que corresponde al AUTO_INCREMENT de MySQL.
+- Tablas y columnas en snake_case espanol, declaradas a mano con @Table y
+  @Column para no depender de como las traduzca Hibernate.
+- Las validaciones (@NotBlank, @Email...) van en los DTO, no en las
+  entidades. En la entidad van nullable, unique y length.
+- Relaciones siempre LAZY. Unica excepcion: los roles del Usuario son EAGER,
+  porque se necesitan en cada peticion para autorizar.
+- Los enums que se persisten, SIEMPRE con @Enumerated(EnumType.STRING).
+  Con ordinal, reordenar el enum convertiria a los clientes en
+  administradores.
+- Inyeccion por CONSTRUCTOR con @RequiredArgsConstructor de Lombok.
+  No usar @Autowired sobre el campo.
+- Usuario no tiene relaciones JPA hacia Empleado, Cesta ni Pedido. Se
+  consulta con empleadoRepositorio.findByUsuario(u) y
+  pedidoRepositorio.findByUsuario(u, pageable). Motivo: un @OneToMany de
+  pedidos invita a cargar 300 filas de golpe, y el @OneToOne del lado inverso
+  ignora el LAZY y provoca el N+1 que el parrafo 4 del documento dice evitar.
+- Migraciones: UNA POR MODULO, y el nombre tiene que llevar la V y los DOS
+  guiones bajos o Flyway lo ignora en silencio.
+      V1__Seguridad.sql          usuario, usuario_rol, departamento, empleado
+      V2__Catalogo.sql           videojuego, categoria, plataforma,
+                                 imagen_videojuego y las dos tablas N:M
+      V3__Aprovisionamiento.sql  proveedor, compra, linea_compra
+      V4__Inventario.sql         clave_licencia
+      V5__Ventas.sql             cesta, linea_cesta, pedido, linea_pedido,
+                                 factura
+      V6__DatosIniciales.sql     usuario administrador y datos de prueba
+
+
+-------------------------------------------------------------------------------
+5. HECHO HASTA AHORA
+-------------------------------------------------------------------------------
+
+5.1 Entidad Usuario, completa.
+    Campos: id, email (unico, 180), passwordHash (60, el tamano exacto de un
+    hash BCrypt), roles (Set de Rol, EAGER), nombre, apellidos, activo (true
+    por defecto), fechaAlta, telefono, pais, fechaNacimiento.
+    Metodo alCrear() con @PrePersist: pone fechaAlta si viene a nulo.
+    @PrePersist NO es el constructor: corre justo antes del INSERT y solo la
+    primera vez que esa fila se guarda. Al cargar una fila existente el
+    constructor si corre, pero alCrear() no. Su hermano @PreUpdate se usara
+    en Cesta para fecha_modificacion.
+
+    Aleix quito de la version inicial: ultimo_acceso, direccion, ciudad,
+    codigo_postal y acepta_boletin. acepta_boletin estaba bien quitado porque
+    duplicaba preferencias_usuario.notificaciones.ofertas de MongoDB.
+
+5.2 src/main/resources/db/migration/V1__Seguridad.sql
+    Tablas usuario y usuario_rol, ya sincronizadas con la entidad recortada.
+    El fichero SIGUE ABIERTO: faltan departamento y empleado.
+
+
+-------------------------------------------------------------------------------
+6. DECISIONES ABIERTAS (hay que contestarlas para seguir)
+-------------------------------------------------------------------------------
+
+6.1 ciudad y ultimo_acceso: recuperarlos o limpiar el prototipo.
+    Donde aparecen hoy en docs/prototipo.html:
+      linea 1142       perfil muestra "Ultimo acceso: hoy, 08:12"
+      linea 1680       la factura dice "Barcelona, Espana" en "Facturar a"
+      linea 1753       la ficha de cliente muestra "Carrer Gran 14, Barcelona"
+      lineas 1023-1024 la pantalla de pago tiene Direccion y Ciudad EDITABLES
+    Recomendacion dada: recuperar ciudad (un VARCHAR(80)) y asi la factura y
+    la ficha siguen funcionando como estan disenadas. direccion y
+    codigo_postal si se pueden quedar fuera: es producto digital, no hay
+    envio, y para ventas pequenas basta una factura simplificada. El pais, que
+    es el que determina el IVA, ya esta conservado.
+
+6.2 Desarrollador: dejarlo como String estudio en Videojuego, o fuera del
+    todo. Si va fuera del todo hay que limpiar 7 sitios del prototipo:
+    DEVS (583), columna Estudio del listado (1188), select obligatorio del
+    formulario (1222), ficha del juego (963), los dos buscadores (789, 895),
+    el nombre de la pantalla de clasificacion (1965) y el subtitulo del CRUD
+    (1169).
+    Recomendacion dada: String estudio. Te quedas sin tabla, sin FK y sin
+    CRUD, y la interfaz sigue pudiendo mostrarlo.
+
+6.3 Mover todos los paquetes bajo cat/luduserp. NO HECHO. Ver aviso 7.1.
+
+6.4 El documento de diseno, esta ya entregado o se puede tocar? De eso
+    depende si se redibujan las figuras o se vive con la incoherencia.
+
+6.5 Queda un push pendiente a master: Usuario y db/migration sin commitear.
+
+
+-------------------------------------------------------------------------------
+7. AVISOS IMPORTANTES
+-------------------------------------------------------------------------------
+
+7.1 FALTA EL PAQUETE BASE. Es lo mas urgente.
+    Hoy los paquetes cuelgan de la raiz y la clase @SpringBootApplication esta
+    dentro de application/. Spring escanea DESDE el paquete de la clase
+    principal hacia abajo, asi que no vera nada de controller/, service/,
+    dao/ ni model/: la aplicacion arrancara sin errores y sin una sola
+    pantalla.
+    Solucion: mover todo bajo cat/luduserp/ con Proyecto1ErpApplication.java
+    en la raiz de ese paquete. Usar el refactor del IDE (NetBeans: clic
+    derecho, Refactor, Move), NO arrastrar carpetas.
+    Y despues actualizar nbactions.xml, que menciona
+    application.Proyecto1ErpApplication en TRES sitios; si no, el boton de
+    Run deja de funcionar.
+    Hacerlo YA: con 21 ficheros casi vacios son dos minutos.
+
+7.2 NO ARRANCAR LA APLICACION todavia.
+    V1__Seguridad.sql esta incompleto (faltan departamento y empleado). En
+    cuanto arranques, Flyway marca la version 1 como aplicada y le guarda una
+    huella; si luego editas el fichero, la aplicacion se niega a arrancar con
+    un error de checksum.
+    Si llega a pasar: docker compose down -v (borra los volumenes) y de nuevo.
+
+7.3 Docker Desktop tiene que estar arrancado. Con
+    spring.docker.compose.enabled=true la aplicacion no levanta sin el. En
+    esta sesion no estaba en marcha.
+
+7.4 ddl-auto=validate: Hibernate no toca el esquema, solo comprueba que las
+    entidades cuadren con las tablas, y se niega a arrancar si no cuadran.
+    Por eso la entidad y la migracion tienen que ir siempre a la par.
+
+7.5 No hay maven wrapper (mvnw) y mvn no esta en el PATH. Se compila desde
+    NetBeans, que trae su propio Maven. Anadir el wrapper con
+    mvn -N wrapper:wrapper seria recomendable en un proyecto de grupo.
+
+
+-------------------------------------------------------------------------------
+8. ORDEN DE TRABAJO PENDIENTE
+-------------------------------------------------------------------------------
+
+Siguiente paso inmediato: Departamento, y despues Empleado (en ese orden, por
+la clave ajena). Al acabar, V1__Seguridad.sql queda cerrado.
+
+Luego, modulo a modulo, en este orden, que es el que hace que cada clase nueva
+solo apunte a clases que ya existen:
+    seguridad -> catalogo -> aprovisionamiento -> inventario -> ventas
+
+Metodo que estamos usando: Aleix dice una clase, y se le devuelve
+  (1) la clase lista para pegar,
+  (2) las relaciones, con el lado dueno explicado,
+  (3) el trozo de SQL de la migracion correspondiente.
+
+
+-------------------------------------------------------------------------------
+9. DEUDA DETECTADA EN LA REVISION INICIAL (sin arreglar)
+-------------------------------------------------------------------------------
+
+En el codigo:
+  - LiniaCompra.java tiene un typo: deberia ser LineaCompra. En ventas si esta
+    bien escrito (LineaCesta, LineaPedido).
+  - Los 21 ficheros llevan la cabecera de plantilla de NetBeans
+    ("Click nbfs://nbhost/... to change this license") y @author PC. Cambiar
+    la plantilla en Tools > Templates y poner los nombres reales.
+  - Sobra src/test/java/com/example/demo, vacio, del generador.
+  - No hay ni un test, pero el pom declara 8 starters de test.
+  - compose.yaml: el healthcheck de MySQL usa forma exec, que no pasa por un
+    shell, asi que la variable de la contrasena llega literal. Pasa el
+    healthcheck de casualidad porque mysqladmin ping devuelve 0 aunque la
+    autenticacion falle. Deberia ser CMD-SHELL.
+  - nbactions.xml lleva -noverify, flag obsoleta desde JDK 13.
+  - El pom arrastra license, developer, scm y description vacios.
+
+Incoherencias del documento con la realidad:
+  - El parrafo 4 dice "Spring Boot 3"; el pom es 4.1.1, que trae Spring
+    Security 7 e Hibernate 7. Revisar tambien la promesa de SockJS del 3.5.
+  - El parrafo 4 promete MapStruct: no esta en el pom.
+  - El parrafo 4 promete Bootstrap 5: el prototipo es CSS propio, tema oscuro.
+  - Flyway no aparece en el documento, y application.properties esta montado
+    entero a su alrededor.
+  - El parrafo 4 exige nombres de clases en INGLES, los diagramas estan en
+    catalan, y el codigo se esta escribiendo en espanol. Hay que elegir.
+
+Huecos de diseno que habra que resolver al llegar a ventas:
+  - CONTRADICCION IMPORTANTE: la figura 13 dice que la clave solo se reserva
+    al confirmar el pago, pero el apartado 3.6 tiene un trabajo que "libera
+    las reservas de claves de cestas inactivas mas de 7 dias". Si no se
+    reserva en la cesta, no hay nada que purgar. Y linia_cistella no tiene
+    columna de reserva. Decidir: reservar al INICIAR EL PAGO con caducidad
+    corta (15 min) y que el trabajo purgue pagos empezados y no terminados.
+    Esto determina todo el bloqueo pesimista del modulo de ventas.
+  - linea_pedido no tiene cantidad (1 linea = 1 clave), pero linea_cesta si.
+    Hay que dejar escrito que una linea de cesta con cantidad 2 se expande en
+    DOS lineas de pedido.
+  - ClaveLicencia.anular(String motivo) no tiene donde guardar el motivo:
+    falta la columna motivo_anulacion, y una fecha_anulacion.
+  - La limitacion de intentos de login del apartado 3.7 no esta modelada en
+    ningun sitio.
+  - No hay decision sobre donde se guardan los ficheros: factura.ruta_pdf y
+    las imagenes de los juegos.
+
+
+-------------------------------------------------------------------------------
+10. FIGURAS DEL PDF POR REDIBUJAR ANTES DE ENTREGAR
+-------------------------------------------------------------------------------
+
+  Figura 3        quitar el caso de uso P5 "CRUD desenvolupadors"
+  Figura 9        clase Usuari sin los campos quitados; fuera Permis y
+                  PerfilClient; PerfilEmpleat pasa a Empleado
+  Figura 10       fuera la clase Desenvolupador
+  Figura 15       tabla usuari sin los campos quitados; fuera permis y
+                  rol_permis
+  Figura 16       fuera la tabla desenvolupador y el desenvolupador_id de
+                  videojoc
+  Figuras 15-20   estan en catalan y las tablas reales iran en espanol
+
+  Y en el texto: el apartado 2.2 (la matriz pasa a ser roles por
+  funcionalidad, sin columna de permisos), la Decision 2 y la Decision 3 del
+  apartado 1.4 (argumentan lo contrario de lo que se va a hacer), y las
+  menciones de los apartados 1.3, 2.1, 3.1 y 3.2.
+
+  La portada tiene "Grup: ____" sin rellenar y el apartado 11 los cinco
+  nombres en blanco.
+
+===============================================================================
