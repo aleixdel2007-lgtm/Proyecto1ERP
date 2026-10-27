@@ -1,13 +1,33 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package model.catalogo;
 
-/**
- *
- * @author PC
- */
+import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
+
+@Entity
+@Table(name = "imagen_videojuego")
+@Getter
+@Setter
 public class ImagenVideojuego {
-    
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "videojuego_id", nullable = false)
+    private Videojuego videojuego;
+
+    @Column(nullable = false, length = 255)
+    private String ruta;
+
+    @Column(name = "texto_alternativo", length = 160)
+    private String textoAlternativo;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    private TipoImagen tipo;
+
+    @Column(nullable = false)
+    private int orden;
 }
