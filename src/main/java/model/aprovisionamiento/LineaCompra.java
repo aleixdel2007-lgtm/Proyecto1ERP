@@ -25,12 +25,12 @@ public class LineaCompra {
     @JoinColumn(name = "videojuego_id", nullable = false)
     private Videojuego videojuego;
 
-    @Column(nullable = false)
-    private int cantidad;
+    @Column(name = "cantidad")
+    private Integer cantidad;
 
     @Column(name = "cantidad_recibida")
     private Integer cantidadRecibida;
 
     @Column(name = "coste_unitario", nullable = false, precision = 10, scale = 2)
-    private BigDecimal costeUnitario;
+    private BigDecimal costeUnitario = BigDecimal.ZERO;
 }

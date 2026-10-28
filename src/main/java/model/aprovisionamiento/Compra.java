@@ -3,7 +3,7 @@ package model.aprovisionamiento;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-import model.seguridad.Empleado;
+import model.seguridad.Trabajador;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -20,7 +20,7 @@ public class Compra {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true, length = 20)
+    @Column(name = "numero", nullable = false, unique = true, length = 20)
     private String numero;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
@@ -28,17 +28,17 @@ public class Compra {
     private Proveedor proveedor;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "empleado_id", nullable = false)
-    private Empleado empleado;
+    @JoinColumn(name = "trabajador_id", nullable = false)
+    private Trabajador trabajador;
 
-    @Column(nullable = false)
+    @Column(name = "fecha", nullable = false)
     private LocalDate fecha;
 
     @Column(name = "fecha_recepcion")
     private LocalDate fechaRecepcion;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 20)
+    @Column(name = "estado", nullable = false, length = 20)
     private EstadoCompra estado = EstadoCompra.BORRADOR;
 
     @Column(name = "total_coste", nullable = false, precision = 12, scale = 2)
@@ -47,7 +47,7 @@ public class Compra {
     @Column(name = "numero_albaran", length = 40)
     private String numeroAlbaran;
 
-    @Column(columnDefinition = "TEXT")
+    @Column(name = "observaciones", columnDefinition = "TEXT")
     private String observaciones;
 
     @OneToMany(mappedBy = "compra", cascade = CascadeType.ALL, orphanRemoval = true)

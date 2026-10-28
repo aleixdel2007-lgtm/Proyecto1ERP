@@ -1,8 +1,10 @@
 package model.aprovisionamiento;
 
+import config.CifradoAesConverter;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import model.seguridad.CuentaProveedor;
 
 @Entity
 @Table(name = "proveedor")
@@ -20,21 +22,34 @@ public class Proveedor {
     @Column(name = "razon_social", nullable = false, length = 150)
     private String razonSocial;
 
-    @Column(nullable = false, unique = true, length = 20)
+    @Enumerated(EnumType.STRING)
+    @Column(name = "tipo", nullable = false, length = 20)
+    private TipoProveedor tipo;
+
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "cuenta_id", unique = true)
+    private CuentaProveedor cuenta;
+
+    @Convert(converter = CifradoAesConverter.class)
+    @Column(name = "cif", nullable = false, length = 128)
     private String cif;
 
-    @Column(length = 34)
+    @Column(name = "cif_hash", nullable = false, unique = true, length = 64)
+    private String cifHash;
+
+    @Convert(converter = CifradoAesConverter.class)
+    @Column(name = "iban", length = 128)
     private String iban;
 
-    @Column(nullable = false, length = 180)
+    @Column(name = "email", nullable = false, length = 180)
     private String email;
 
-    @Column(length = 20)
+    @Column(name = "telefono", length = 20)
     private String telefono;
 
-    @Column(length = 60)
+    @Column(name = "pais", length = 60)
     private String pais;
 
-    @Column(nullable = false)
+    @Column(name = "activo", nullable = false)
     private boolean activo = true;
 }
