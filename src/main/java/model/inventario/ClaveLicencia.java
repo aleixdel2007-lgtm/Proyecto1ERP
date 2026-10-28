@@ -4,7 +4,7 @@ import config.CifradoAesConverter;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-import model.aprovisionamiento.LiniaCompra;
+import model.aprovisionamiento.LineaCompra;
 import model.catalogo.Videojuego;
 import model.seguridad.Cliente;
 import model.ventas.LineaPedido;
@@ -27,7 +27,7 @@ public class ClaveLicencia {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "linea_compra_id", nullable = false)
-    private LiniaCompra lineaCompra;
+    private LineaCompra lineaCompra;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "cliente_id")
