@@ -1,10 +1,11 @@
 ===============================================================================
 MEMORIA DE TRABAJO - LudusERP (repositorio Proyecto1ERP)
-Sesion del 26 de octubre de 2026
+Ultima actualizacion: 28 de octubre de 2026
 ===============================================================================
 
 Para que sirve este fichero: retomar el trabajo sin tener que volver a explicar
 nada. Si abres una sesion nueva de Claude Code, pasale este fichero primero.
+Si algo de aqui choca con el PDF de diseno, manda este fichero.
 
 
 -------------------------------------------------------------------------------
@@ -13,11 +14,12 @@ nada. Si abres una sesion nueva de Claude Code, pasale este fichero primero.
 
 Proyecto Spring Boot:
   C:\Users\PC\Documents\ExempleProgramming\Proyecto1ERP
-  Rama master, remoto origin -> github.com/aleixdel2007-lgtm/Proyecto1ERP
+  Remoto origin -> github.com/aleixdel2007-lgtm/Proyecto1ERP
 
 Entregables, dentro del repo:
-  docs\prototipo.html            maqueta navegable, 32 vistas, sin logica
+  docs\prototipo.html            maqueta navegable, 38 vistas, sin logica
   docs\LudusERP-Disseny-UML.pdf  documento de diseno, 36 paginas, v1.2
+  docs\memoriaClaudeByAleix.txt  este fichero
 
 Fuente del PDF, FUERA del repo (no esta versionada):
   C:\Users\PC\Desktop\ERP-Videojuegos-UML\erp-luduserp-disseny.html
@@ -27,349 +29,459 @@ Fuente del PDF, FUERA del repo (no esta versionada):
 
 
 -------------------------------------------------------------------------------
-2. ESTADO DEL CODIGO
+2. EL NUEVO PLANTEAMIENTO (28 de octubre)
 -------------------------------------------------------------------------------
 
-Commits: 1600306 y 60acd10 (base), 0a8bbfc (objetos vacios),
-         fb6ea94 (documentos a docs/)
+Esto es lo que cambia el proyecto de sitio y hay que leerlo antes que nada.
+
+El profesor ha pedido que la aplicacion este EN PRODUCCION, porque los juegos
+que hagan los companeros en el tercer proyecto se publicaran en ella. Tambien
+ha pedido Stripe para los pagos.
+
+Consecuencias que ya estan acordadas:
+
+2.1 Aparece un actor nuevo y real: el PROVEEDOR. Es un estudio que entra con su
+    usuario, envia una solicitud con un juego y espera que se le acepte o se le
+    deniegue. Antes el proveedor era solo papeleo que rellenaba un empleado.
+
+2.2 Las cuentas de proveedor las crea el ERP. Nadie se registra como proveedor.
+    Se le entrega un correo y una contrasena inicial, y en el primer acceso la
+    aplicacion le obliga a cambiarla (campo Usuario.debeCambiarPassword).
+
+2.3 Un trabajador revisa cada solicitud y la ACEPTA, PIDE CAMBIOS o DENIEGA, con
+    motivo obligatorio en los dos ultimos casos.
+
+2.4 Al aceptar una solicitud, en una sola transaccion: se crea la ficha del
+    videojuego, se crea una COMPRA a ese proveedor con COSTE 0 y su linea de
+    compra. Asi la trazabilidad clave -> linea de compra -> proveedor se
+    mantiene igual que con un distribuidor de verdad, y el margen de un juego
+    gratis es cero y de uno de pago es el precio integro.
+
+2.5 Las claves de un juego publicado aqui se ACUNAN AL COMPRAR, no al aprobar,
+    porque un juego de un companero no se agota. Esa clave nace VENDIDA y nunca
+    pasa por DISPONIBLE. Para las ordenes a distribuidores no cambia nada.
+
+2.6 Solo se puede descargar lo que esta en la biblioteca. La CLAVE es la prueba
+    de titularidad, tambien cuando el juego es gratis.
+
+2.7 Entrega del ejecutable: OPCION A, el estudio sube un ZIP al ERP y lo sirve
+    un controlador nuestro que antes comprueba que la clave es de ese usuario y
+    esta VENDIDA. Es la unica de las tres que cumple 2.6. Se descarto el enlace
+    externo a Drive o Dropbox, porque el enlace circula y se lo baja quien no lo
+    tiene en la biblioteca, y porque el dia que el estudio borre la carpeta el
+    juego desaparece del catalogo sin avisar.
+
+2.8 Usuario pasa a ser una CLASE ABSTRACTA con Cliente y Trabajador colgando.
+    Falta Proveedor como tercera cara (ver 7.1).
+
+
+-------------------------------------------------------------------------------
+3. ESTADO DEL CODIGO
+-------------------------------------------------------------------------------
+
+Rama de trabajo: ModificacionObjetosInventarioYCatalogoMasSQL
+  b6b0107  Merge branch 'master' (trae aprovisionamiento y ventas del grupo)
+  fb71a6b  Seguridad con herencia, rol PROVEEDOR, cliente_id y zona de proveedor
+
+master local y origin/master estan los dos en b2ad6a8, ya fusionado en la rama.
 
 Sin commitear ahora mismo:
-  - src/main/java/model/seguridad/Usuario.java   (modificado)
-  - src/main/resources/db/                       (nuevo, sin seguimiento)
+  src/main/java/model/aprovisionamiento/Compra.java
+  src/main/java/model/aprovisionamiento/LineaCompra.java
 
-Paquetes creados, TODOS en la raiz de src/main/java (ver aviso 7.1):
-  application/  <- aqui esta Proyecto1ErpApplication.java
-  config/  controller/  dao/  document/  dto/  service/   (vacios)
-  model/seguridad/          Usuario, Empleado, Departamento, Rol
-  model/catalogo/           Videojuego, Categoria, Plataforma,
-                            ImagenVideojuego, TipoImagen
-  model/aprovisionamiento/  Proveedor, Compra, LiniaCompra, EstadoCompra
-  model/inventario/         ClaveLicencia, EstadoClave
-  model/ventas/             Cesta, LineaCesta, Pedido, LineaPedido, Factura,
-                            EstadoPedido
+Por modulo:
 
-Son 21 clases. Las CUATRO de seguridad ya tienen codigo (ver 5.3). Las otras
-17 siguen siendo plantillas vacias de NetBeans.
+  seguridad       CERRADO. Usuario abstracta (JOINED), Cliente, Trabajador,
+                  Departamento y Rol con seis valores. V1__Seguridad.sql
+                  reescrito con usuario, cliente, departamento y trabajador.
+
+  catalogo        Las cuatro entidades y el enum los escribio el grupo y estan
+                  bien. NO TIENEN MIGRACION. Falta el indicador de "no se
+                  agota" que necesita 2.5.
+
+  aprovisionamiento  Compra y LineaCompra cerradas hoy. Proveedor sin tocar, es
+                  el grueso que queda. EstadoCompra solo necesita que le quiten
+                  la cabecera de NetBeans. Sin migracion.
+
+  inventario      ClaveLicencia con cliente_id. V2__Inventario.sql existe pero
+                  NO PUEDE EJECUTARSE y hay que renumerarlo a V4 (ver 8.3).
+
+  ventas          Las seis las escribio el grupo y no estan revisadas. Dos
+                  problemas conocidos, en el apartado 9. Sin migracion.
+
+  publicacion     No existe todavia. Es el paquete nuevo de 2.3.
+
+El prototipo tiene las 38 pantallas, incluida toda la zona de proveedor, la cola
+de revision, el alta de cuentas y la biblioteca con descarga. En la barra lateral
+del panel, debajo de "Ver la tienda", hay un enlace "Vista proveedor".
 
 
 -------------------------------------------------------------------------------
-3. DECISIONES TOMADAS (se apartan del documento de diseno)
+4. DECISIONES TOMADAS (se apartan del documento de diseno)
 -------------------------------------------------------------------------------
 
-3.1 Rol pasa a ser un ENUM, no una entidad.
-    Valores: CLIENTE, GESTOR_PRODUCTOS, GESTOR_CLIENTES, GESTOR_INVENTARIO,
-    ADMIN. Se guarda como texto en la tabla usuario_rol via
-    @ElementCollection. Motivo: cinco roles fijos, una tabla no aportaba nada.
+4.1 Rol es un ENUM, no una entidad. Valores: CLIENTE, GESTOR_PRODUCTOS,
+    GESTOR_CLIENTES, GESTOR_INVENTARIO, ADMIN y PROVEEDOR.
+    Un usuario tiene UN SOLO rol, en la columna usuario.rol. No hay tabla
+    usuario_rol. Esto se acordo con Didac.
 
-3.2 NO hay tabla de permisos. Se elimina la entidad Permiso entera.
-    El acceso se decide mirando el ROL, no un permiso fino.
-    Esto invalida la Decision 3 del documento, que argumenta lo contrario.
+4.2 NO hay tabla de permisos. Se elimina la entidad Permiso entera. El acceso se
+    decide mirando el ROL. Esto invalida la Decision 3 del documento.
 
-3.3 El control de acceso se declara, no se escribe con if a mano:
+4.3 El control de acceso se declara, no se escribe con if a mano:
       - reglas por URL en SeguridadConfig (SecurityFilterChain)
       - @PreAuthorize con hasRole en metodos concretos
       - sec:authorize en las plantillas para esconder el menu
-    Motivo: el requisito 3.7 pide expresamente Spring Security; un if dentro
-    del metodo funciona pero no es control de acceso con Spring Security, y
-    si te olvidas de uno el agujero no avisa.
 
-3.4 PerfilCliente ELIMINADO. Sus campos se funden en Usuario.
-    Motivo: casi todos los usuarios son clientes, los nulos serian la
-    excepcion y no la regla.
+4.4 Usuario ABSTRACTA con herencia JOINED. Una tabla usuario con lo comun y una
+    tabla por subclase que comparte la clave primaria. Al compartir la clave, la
+    relacion 1:1 no se puede romper y desaparecen los @OneToOne de perfil.
+    Esto sustituye a la decision anterior de fundir PerfilCliente en Usuario.
 
-3.5 PerfilEmpleado se queda, RENOMBRADO a Empleado.
-    Motivo: el CRUD de Empleados-Departamentos que pide el enunciado necesita
-    departamento_id, y ahi van el NIF y el IBAN cifrados del requisito 3.7.
-    Si estuvieran en Usuario, cada cliente tendria 5 columnas a nulo.
+4.5 PerfilEmpleado pasa a ser Trabajador y hereda de Usuario. Lleva
+    departamento, cargo, NIF cifrado, nif_hash e IBAN cifrado.
 
-3.6 Desarrollador ELIMINADO como entidad (decision de Aleix).
-    Solo se buscara por categoria y plataforma.
-    PENDIENTE de decidir si el estudio sobrevive como String en Videojuego
-    (ver 6.2).
+4.6 Desarrollador ELIMINADO como entidad. El estudio es un String en Videojuego.
 
-3.7 Estructura de paquetes: plana por capas, con model subdividido por
-    modulos. Las capas en ingles, las clases y los modulos en espanol.
+4.7 Estructura de paquetes: plana por capas, con model subdividido por modulos.
+    Las capas en ingles, las clases y los modulos en espanol.
+
+4.8 La relacion clave <-> linea de pedido vive en clave_licencia
+    (linea_pedido_id, UNIQUE). Es lo que dibuja la figura 19 del PDF y deja todo
+    el estado de la clave en la misma fila. LineaPedido NO debe mapear el lado
+    inverso: se consulta con claveRepositorio.findByLineaPedido(lp), porque un
+    @OneToOne inverso ignora el LAZY y trae la clave en cada linea que se lea.
+
+4.9 LineaCompra.cantidad admite nulo, y nulo significa ILIMITADA. Es la linea de
+    la compra automatica de 2.4: no se compraron unidades por adelantado. Un 0
+    seria mentira porque de esa linea colgaran todas las claves acunadas.
+
+4.10 Compra.trabajador sigue siendo OBLIGATORIO. La compra automatica tambien
+    tiene responsable: el trabajador que acepto la solicitud. Asi no hay clave
+    ajena nula y queda registrado quien metio cada juego al catalogo.
 
 
 -------------------------------------------------------------------------------
-4. CONVENCIONES DE CODIGO ACORDADAS
+5. CONVENCIONES DE CODIGO ACORDADAS
 -------------------------------------------------------------------------------
 
+- EL CODIGO VA SIN COMENTARIOS. Ni javadoc, ni comentarios explicativos, ni
+  cabeceras. Aleix los pondra el mismo cuando esten terminados todos los
+  objetos. Si una decision necesita justificarse, se explica al entregar el
+  cambio o se escribe aqui, no dentro del fichero.
 - Lombok @Getter @Setter. NUNCA @Data en una entidad: genera toString con la
   contrasena dentro y rompe equals/hashCode.
-- IDs: Long con @GeneratedValue(strategy = GenerationType.IDENTITY), que es
-  lo que corresponde al AUTO_INCREMENT de MySQL.
+- IDs: Long con @GeneratedValue(strategy = GenerationType.IDENTITY). En las
+  tablas hijas de la herencia NO hay AUTO_INCREMENT: su id es la del usuario.
 - Tablas y columnas en snake_case espanol, declaradas a mano con @Table y
-  @Column para no depender de como las traduzca Hibernate.
-- Las validaciones (@NotBlank, @Email...) van en los DTO, no en las
-  entidades. En la entidad van nullable, unique y length.
-- Relaciones siempre LAZY. Unica excepcion: los roles del Usuario son EAGER,
-  porque se necesitan en cada peticion para autorizar.
-- Los enums que se persisten, SIEMPRE con @Enumerated(EnumType.STRING).
-  Con ordinal, reordenar el enum convertiria a los clientes en
-  administradores.
-- Inyeccion por CONSTRUCTOR con @RequiredArgsConstructor de Lombok.
-  No usar @Autowired sobre el campo.
-- Usuario no tiene relaciones JPA hacia Empleado, Cesta ni Pedido. Se
-  consulta con empleadoRepositorio.findByUsuario(u) y
-  pedidoRepositorio.findByUsuario(u, pageable). Motivo: un @OneToMany de
-  pedidos invita a cargar 300 filas de golpe, y el @OneToOne del lado inverso
-  ignora el LAZY y provoca el N+1 que el parrafo 4 del documento dice evitar.
-- Migraciones: UNA POR MODULO, y el nombre tiene que llevar la V y los DOS
-  guiones bajos o Flyway lo ignora en silencio.
-      V1__Seguridad.sql          usuario, usuario_rol, departamento, empleado
+  @Column(name = ...) para no depender de como las traduzca Hibernate.
+- Las validaciones (@NotBlank, @Email...) van en los DTO, no en las entidades.
+  En la entidad van nullable, unique y length.
+- Relaciones siempre LAZY, sin excepciones ahora que el rol es una columna.
+- Los enums que se persisten, SIEMPRE con @Enumerated(EnumType.STRING). Con
+  ordinal, reordenar el enum convertiria a los clientes en administradores.
+- Inyeccion por CONSTRUCTOR con @RequiredArgsConstructor. No @Autowired a campo.
+- Nada de @OneToMany de colecciones grandes (pedidos, claves) colgando del
+  usuario: se consulta por repositorio con paginacion. La unica coleccion
+  prevista es la biblioteca del cliente, y es a proposito (ver 7.3).
+- Migraciones: UNA POR MODULO, con la V y los DOS guiones bajos o Flyway lo
+  ignora en silencio.
+      V1__Seguridad.sql          usuario, cliente, departamento, trabajador
       V2__Catalogo.sql           videojuego, categoria, plataforma,
                                  imagen_videojuego y las dos tablas N:M
       V3__Aprovisionamiento.sql  proveedor, compra, linea_compra
-      V4__Inventario.sql         clave_licencia
+      V4__Inventario.sql         clave_licencia  (hoy esta como V2, renumerar)
       V5__Ventas.sql             cesta, linea_cesta, pedido, linea_pedido,
                                  factura
-      V6__DatosIniciales.sql     usuario administrador y datos de prueba
+      V6__Publicacion.sql        solicitud_publicacion, version_juego
+      V7__DatosIniciales.sql     usuario administrador y datos de prueba
 
 
 -------------------------------------------------------------------------------
-5. HECHO HASTA AHORA
+6. HECHO EL 28 DE OCTUBRE
 -------------------------------------------------------------------------------
 
-5.1 Entidad Usuario, completa.
-    Campos: id, email (unico, 180), passwordHash (60, el tamano exacto de un
-    hash BCrypt), roles (Set de Rol, EAGER), nombre, apellidos, activo (true
-    por defecto), fechaAlta, telefono, pais, fechaNacimiento.
-    Metodo alCrear() con @PrePersist: pone fechaAlta si viene a nulo.
-    @PrePersist NO es el constructor: corre justo antes del INSERT y solo la
-    primera vez que esa fila se guarda. Al cargar una fila existente el
-    constructor si corre, pero alCrear() no. Su hermano @PreUpdate se usara
-    en Cesta para fecha_modificacion.
+6.1 PROTOTIPO. Siete pantallas nuevas y una rehecha, todas dentro del mismo
+    fichero y con las piezas que ya existian:
+      proveedor/panel, proveedor/juegos, proveedor/solicitud, proveedor/cuenta
+      catalogo/solicitudes   (cola de revision, con el detalle y los 3 botones)
+      admin/proveedores, admin/proveedor  (cuentas de proveedor)
+      tienda/biblioteca     rehecha: distingue el juego publicado aqui, que se
+                            descarga, del comprado a distribuidor, que no
+    shellPanel es consciente del rol: con una ruta de proveedor cambia el menu y
+    la identidad de arriba a la derecha. Es la misma plantilla, no una aparte.
+    Lo que falta por decidir esta marcado en naranja con la pieza abierta().
 
-    Aleix quito de la version inicial: ultimo_acceso, direccion, ciudad,
-    codigo_postal y acepta_boletin. acepta_boletin estaba bien quitado porque
-    duplicaba preferencias_usuario.notificaciones.ofertas de MongoDB.
+6.2 SEGURIDAD, modulo cerrado.
+    Usuario abstracta con @Inheritance(JOINED). Se queda con id, email,
+    passwordHash, rol, nombre, apellidos, activo, debeCambiarPassword y
+    fechaAlta, mas el @PrePersist que rellena la fecha.
+    apellidos ADMITE NULO a proposito: un proveedor es un estudio y no tiene
+    apellidos. La obligatoriedad para el cliente va en su DTO.
+    Cliente nuevo, con telefono, direccion, ciudad, pais y fechaNacimiento. Su
+    constructor ya se pone el rol CLIENTE.
+    Trabajador nuevo (antes Empleado), con departamento, cargo, nif, nif_hash,
+    iban y fechaContratacion. Empleado.java borrado.
+    Departamento apunta a Trabajador; la coleccion es trabajadores y el metodo
+    numeroTrabajadores().
+    Rol gana PROVEEDOR.
+    V1__Seguridad.sql reescrito: usuario, cliente, departamento, trabajador. La
+    tabla empleado desaparece. El ciclo departamento <-> trabajador se cierra
+    con el ALTER del final.
 
-5.2 src/main/resources/db/migration/V1__Seguridad.sql
-    Tablas usuario y usuario_rol, ya sincronizadas con la entidad recortada.
-    El fichero SIGUE ABIERTO: faltan departamento y empleado.
+6.3 INVENTARIO. ClaveLicencia gana el @ManyToOne a Cliente con columna
+    cliente_id, nula mientras no se ha vendido, y V2__Inventario.sql gana esa
+    columna, su clave ajena contra cliente(id) y el indice
+    (cliente_id, estado), que es el de la biblioteca y el de autorizar la
+    descarga. El tipo es Cliente y no Usuario a proposito: asi la base de datos
+    impide que una clave acabe en manos de un trabajador o de un proveedor.
 
-5.3 AÑADIDO EL 27 DE OCTUBRE, rama ModificacionObjetosSeguridadMasSQL.
-    Didac (didaclopezz) subio el commit bfff1ca con las cuatro clases de
-    seguridad escritas contra el PDF, es decir en catalan y sin saber nada de
-    las decisiones del apartado 3. Se han alineado con este documento:
-      - tablas, columnas, campos y valores del enum pasados a castellano
-      - int id -> Long id en las tres entidades
-      - @Data sustituido por @Getter @Setter en todas (@Data en Departamento
-        provocaba un StackOverflowError por el ciclo con Empleado, y en
-        Usuario metia el hash de la contrasena en el toString)
-      - Empleado no tenia ninguna anotacion de Lombok aplicada, asi que no
-        tenia getters ni setters: ahora si
-      - recuperados telefono, pais y fechaNacimiento en Usuario, que se
-        habian quedado sin sitio al eliminar PerfilCliente
-      - recuperados el Set<Rol> con la tabla usuario_rol y el @PrePersist de
-        fechaAlta
-      - nombreEmpleados() renombrado a numeroEmpleados(): "nombre" en catalan
-        es "numero", y en castellano se leia como el nombre de los empleados
-      - V1__Seguridad.sql completado con las tablas departamento y empleado,
-        asi que el modulo de seguridad ya esta cerrado
-    PENDIENTE DE ACORDAR CON DIDAC: el idioma (el decidio catalan por el PDF)
-    y si el usuario tiene uno o varios roles (el puso uno solo). Lo que hay
-    ahora en la rama es castellano y varios roles.
-
-
--------------------------------------------------------------------------------
-6. DECISIONES ABIERTAS (hay que contestarlas para seguir)
--------------------------------------------------------------------------------
-
-6.1 ciudad y ultimo_acceso: recuperarlos o limpiar el prototipo.
-    Donde aparecen hoy en docs/prototipo.html:
-      linea 1142       perfil muestra "Ultimo acceso: hoy, 08:12"
-      linea 1680       la factura dice "Barcelona, Espana" en "Facturar a"
-      linea 1753       la ficha de cliente muestra "Carrer Gran 14, Barcelona"
-      lineas 1023-1024 la pantalla de pago tiene Direccion y Ciudad EDITABLES
-    Recomendacion dada: recuperar ciudad (un VARCHAR(80)) y asi la factura y
-    la ficha siguen funcionando como estan disenadas. direccion y
-    codigo_postal si se pueden quedar fuera: es producto digital, no hay
-    envio, y para ventas pequenas basta una factura simplificada. El pais, que
-    es el que determina el IVA, ya esta conservado.
-
-6.2 Desarrollador: dejarlo como String estudio en Videojuego, o fuera del
-    todo. Si va fuera del todo hay que limpiar 7 sitios del prototipo:
-    DEVS (583), columna Estudio del listado (1188), select obligatorio del
-    formulario (1222), ficha del juego (963), los dos buscadores (789, 895),
-    el nombre de la pantalla de clasificacion (1965) y el subtitulo del CRUD
-    (1169).
-    Recomendacion dada: String estudio. Te quedas sin tabla, sin FK y sin
-    CRUD, y la interfaz sigue pudiendo mostrarlo.
-
-6.3 Mover todos los paquetes bajo cat/luduserp. NO HECHO. Ver aviso 7.1.
-
-6.4 El documento de diseno, esta ya entregado o se puede tocar? De eso
-    depende si se redibujan las figuras o se vive con la incoherencia.
-
-6.5 Queda un push pendiente a master: Usuario y db/migration sin commitear.
+6.4 APROVISIONAMIENTO. Merge de master, que trajo Proveedor, Compra,
+    LineaCompra y las seis de ventas escritas por el grupo, mas el renombrado
+    LiniaCompra -> LineaCompra.
+    Compra: columna empleado_id renombrada a trabajador_id y los cinco @Column
+    que iban implicitos declarados a mano.
+    LineaCompra: cantidad pasa a Integer que admite nulo (ver 4.9) y
+    costeUnitario arranca en BigDecimal.ZERO.
 
 
 -------------------------------------------------------------------------------
-7. AVISOS IMPORTANTES
+7. DECISIONES ABIERTAS (hay que contestarlas para seguir)
 -------------------------------------------------------------------------------
 
-7.1 FALTA EL PAQUETE BASE. Es lo mas urgente.
-    Hoy los paquetes cuelgan de la raiz y la clase @SpringBootApplication esta
+7.1 PROVEEDOR: cuenta de acceso para todos, o solo para los estudios?
+    ESTO BLOQUEA EL SIGUIENTE OBJETO. Si Proveedor hereda de Usuario, TODO
+    proveedor necesita correo y contrasena, y los distribuidores de siempre
+    (Nordic Keys, Iberia Digital) no tienen login ni deben tenerlo. Como Compra
+    tiene que poder apuntar igual a un distribuidor que a un estudio, no pueden
+    ser dos clases distintas.
+    Recomendacion dada: Proveedor NO hereda; lleva un @OneToOne opcional a un
+    Usuario con rol PROVEEDOR, nulo para los distribuidores. Y un indicador para
+    distinguir distribuidor de estudio, porque de eso depende si tiene cuenta,
+    si se le crean ordenes a mano y si puede enviar solicitudes.
+
+7.2 DONDE SE DESPLIEGA EN PRODUCCION. Decide si el ZIP de 2.7 va a una carpeta
+    del servidor o a un almacenamiento aparte tipo S3: si el disco del hosting
+    se borra en cada despliegue, la carpeta no sirve.
+
+7.3 La BIBLIOTECA del cliente: Cliente necesita el
+    @OneToMany(mappedBy = "cliente") contra ClaveLicencia. El lado dueno ya esta
+    puesto, solo falta declararla. Pendiente de hacer.
+
+7.4 Quien pone el PRECIO, el estudio o nosotros. Si lo pone el estudio, un
+    trabajador tendria que poder cambiarlo al aprobar, porque la tienda es
+    nuestra.
+
+7.5 Si las dos pantallas de proveedor se FUSIONAN: admin/proveedores (cuentas) y
+    compras/proveedores (papeleo) hablan del mismo estudio.
+
+7.6 Donde se cuentan las DESCARGAS. El panel del proveedor muestra "184
+    descargas" y no hay donde guardar ese numero: o un contador en la clave, o
+    se cuenta desde logs_activitat de MongoDB.
+
+7.7 Si en el catalogo CONVIVEN los juegos de distribuidor (clave para canjear
+    fuera, sin descarga) y los publicados aqui, o si a partir de ahora solo se
+    publican juegos propios.
+
+7.8 Si el estudio ve QUIEN ha descargado su juego, o solo cuantos. Lo razonable
+    es solo cuantos: son datos de clientes nuestros.
+
+7.9 El documento de diseno, esta ya entregado o se puede tocar? De eso depende
+    si se redibujan las figuras o se vive con la incoherencia.
+
+
+-------------------------------------------------------------------------------
+8. AVISOS IMPORTANTES
+-------------------------------------------------------------------------------
+
+8.1 FALTA EL PAQUETE BASE. Sigue sin hacer y cada dia sale mas caro.
+    Los paquetes cuelgan de la raiz y la clase @SpringBootApplication esta
     dentro de application/. Spring escanea DESDE el paquete de la clase
-    principal hacia abajo, asi que no vera nada de controller/, service/,
-    dao/ ni model/: la aplicacion arrancara sin errores y sin una sola
-    pantalla.
-    Solucion: mover todo bajo cat/luduserp/ con Proyecto1ErpApplication.java
-    en la raiz de ese paquete. Usar el refactor del IDE (NetBeans: clic
-    derecho, Refactor, Move), NO arrastrar carpetas.
+    principal hacia abajo, asi que no vera nada de controller/, service/, dao/
+    ni model/. Y como el escaneo de entidades sale del mismo sitio, HIBERNATE NO
+    ENCONTRARA NI UNA @Entity: no es que no haya pantallas, es que no hay JPA.
+    Solucion: mover todo bajo cat/luduserp/ con Proyecto1ErpApplication.java en
+    la raiz de ese paquete. Usar el refactor del IDE (NetBeans: clic derecho,
+    Refactor, Move), NO arrastrar carpetas.
     Y despues actualizar nbactions.xml, que menciona
-    application.Proyecto1ErpApplication en TRES sitios; si no, el boton de
-    Run deja de funcionar.
-    Hacerlo YA: con 21 ficheros casi vacios son dos minutos.
+    application.Proyecto1ErpApplication en TRES sitios.
 
-7.2 NO ARRANCAR LA APLICACION todavia.
-    V1__Seguridad.sql esta incompleto (faltan departamento y empleado). En
-    cuanto arranques, Flyway marca la version 1 como aplicada y le guarda una
-    huella; si luego editas el fichero, la aplicacion se niega a arrancar con
-    un error de checksum.
+8.2 NO ARRANCAR LA APLICACION todavia. Faltan tres migraciones y V2 no puede
+    ejecutarse. En cuanto arranques, Flyway marca lo que haya como aplicado y le
+    guarda una huella; si luego editas el fichero, la aplicacion se niega a
+    arrancar con un error de checksum.
     Si llega a pasar: docker compose down -v (borra los volumenes) y de nuevo.
+    Mientras no se arranque, V1 se puede seguir reescribiendo sin coste.
 
-7.3 Docker Desktop tiene que estar arrancado. Con
-    spring.docker.compose.enabled=true la aplicacion no levanta sin el. En
-    esta sesion no estaba en marcha.
+8.3 V2__Inventario.sql NO PUEDE EJECUTARSE. Sus claves ajenas apuntan a
+    videojuego, linea_compra y linea_pedido, y ninguna migracion crea esas
+    tablas. Hay que renumerarlo a V4 y escribir antes V2 catalogo y V3
+    aprovisionamiento.
 
-7.4 ddl-auto=validate: Hibernate no toca el esquema, solo comprueba que las
-    entidades cuadren con las tablas, y se niega a arrancar si no cuadran.
-    Por eso la entidad y la migracion tienen que ir siempre a la par.
+8.4 Docker Desktop tiene que estar arrancado. Con
+    spring.docker.compose.enabled=true la aplicacion no levanta sin el.
 
-7.5 No hay maven wrapper (mvnw) y mvn no esta en el PATH. Se compila desde
-    NetBeans, que trae su propio Maven. Anadir el wrapper con
-    mvn -N wrapper:wrapper seria recomendable en un proyecto de grupo.
+8.5 ddl-auto=validate: Hibernate no toca el esquema, solo comprueba que las
+    entidades cuadren con las tablas, y se niega a arrancar si no cuadran. Por
+    eso la entidad y la migracion tienen que ir siempre a la par.
 
-7.6 CIFRADO AES: hecho para nif, iban y el codigo de la clave de licencia.
-    config/CifradoAesConverter.java cifra con AES-256-GCM y se aplica con
-    @Convert sobre el campo. Es transparente: en Java el campo siempre tiene
-    el dato en claro, y el cifrado pasa al entrar y salir de la base de datos,
-    asi que ni el servicio ni el controlador se enteran.
-    Las columnas cifradas son VARCHAR(128) y no VARBINARY porque se guarda el
-    resultado en Base64, con el vector de inicializacion delante.
-    FALTA aplicarlo al CIF y al IBAN del proveedor, cuando se escriba esa
-    entidad. Esas columnas tambien tendran que medir 128.
+8.6 COMO COMPROBAR SIN MAVEN. No hay wrapper y mvn no esta en el PATH, pero
+    javac 21 si, y los jars estan en el repositorio local. Para saber en treinta
+    segundos si el modelo compila, desde la raiz del proyecto y con Git Bash:
 
-    LA CLAVE MAESTRA se lee de la variable de entorno LUDUSERP_AES_KEY: 32
-    bytes en Base64, que se generan con openssl rand -base64 32. NO va en
-    application.properties ni en nbactions.xml, que estan versionados.
-    Tiene que ser la MISMA para los cinco si os pasais volcados de datos.
-    Y hay que reiniciar NetBeans entero despues de crearla: las variables de
-    entorno se leen al arrancar el proceso.
+      CP="C:/Users/PC/.m2/repository/org/projectlombok/lombok/1.18.46/lombok-1.18.46.jar;C:/Users/PC/.m2/repository/jakarta/persistence/jakarta.persistence-api/3.2.0/jakarta.persistence-api-3.2.0.jar"
+      javac -proc:full -cp "$CP" -d /tmp/clases $(find src/main/java/config src/main/java/model -name "*.java")
 
-7.6.1 POR QUE EL NIF TIENE UN HASH Y EL IBAN NO.
+    Es lo que se ha usado todo el dia. Anadir el wrapper con
+    mvn -N wrapper:wrapper seguiria siendo recomendable.
+
+8.7 CIFRADO AES. Hecho para nif, iban del trabajador y el codigo de la clave de
+    licencia. config/CifradoAesConverter.java cifra con AES-256-GCM y se aplica
+    con @Convert sobre el campo. Es transparente: en Java el campo siempre tiene
+    el dato en claro. Las columnas cifradas son VARCHAR(128) y no VARBINARY
+    porque se guarda el resultado en Base64, con el vector de inicializacion
+    delante.
+    FALTA aplicarlo al CIF y al IBAN del proveedor, que hoy estan en texto plano
+    con longitudes 20 y 34. Tienen que medir 128.
+    LA CLAVE MAESTRA se lee de la variable de entorno LUDUSERP_AES_KEY: 32 bytes
+    en Base64, que se generan con openssl rand -base64 32. NO va en
+    application.properties ni en nbactions.xml, que estan versionados. Tiene que
+    ser la MISMA para los cinco si os pasais volcados de datos. Y hay que
+    reiniciar NetBeans entero despues de crearla: las variables de entorno se
+    leen al arrancar el proceso.
+
+8.8 POR QUE EL NIF TIENE UN HASH Y EL IBAN NO.
     AES-GCM no es determinista: el mismo NIF cifrado dos veces da dos textos
-    distintos. Consecuencia: sobre una columna cifrada NO se puede poner un
-    UNIQUE que funcione, ni buscar, ni ordenar, ni hacer LIKE.
-    Como el NIF tiene que ser unico entre empleados (y el proyecto tiene que
-    escalar a mas de cinco), se usa un INDICE CIEGO: la columna nif_hash,
-    con UNIQUE, que rellena el servicio con config/IndiceCiego.hash(nif).
-    Es un HMAC-SHA256 con la clave maestra, no un hash pelado: un SHA-256 de
-    un NIF se rompe por fuerza bruta en segundos porque solo hay unos 100
-    millones de NIF posibles, pero sin la clave no se puede construir esa
-    tabla. Es determinista, asi que el UNIQUE si funciona.
-    El IBAN no lleva hash porque no necesita ser unico ni buscable.
+    distintos. Sobre una columna cifrada NO se puede poner un UNIQUE que
+    funcione, ni buscar, ni ordenar, ni hacer LIKE. Por eso nif_hash, con
+    UNIQUE, que rellena el servicio con config/IndiceCiego.hash(nif). Es un
+    HMAC-SHA256 con la clave maestra, no un hash pelado: sin la clave no se
+    puede construir la tabla de fuerza bruta. Es determinista, asi que el UNIQUE
+    si funciona. El IBAN no lleva hash porque no necesita ser unico ni buscable.
     IMPORTANTE: el nif_hash NO se calcula solo. El servicio tiene que hacer
-    empleado.setNifHash(IndiceCiego.hash(nif)) al guardar.
-    ClaveLicencia.codigoHash es el mismo patron, y conviene calcularlo
-    tambien con IndiceCiego para que el proyecto sea coherente.
+    trabajador.setNifHash(IndiceCiego.hash(nif)) al guardar.
+    El CIF del proveedor necesitara exactamente lo mismo: cif_hash.
+    OJO: IndiceCiego.hash() hace trim().toUpperCase(). Para el NIF esta bien,
+    pero para un codigo de licencia podria juntar dos claves distintas si alguna
+    vez distinguen mayusculas.
 
-7.7 AVISO para quien escriba DetallesUsuarioServicio: hasRole('ADMIN') busca
-    la autoridad ROLE_ADMIN, con prefijo. Al convertir el enum Rol en
-    authorities hay que anadir "ROLE_" delante. Si se olvida, no salta ningun
-    error: simplemente nadie tiene permiso para nada, y encontrarlo cuesta un
-    par de horas. La alternativa es usar hasAuthority('ADMIN'), que no anade
-    prefijo, pero entonces hay que ser consistente en todo el proyecto.
-
-
--------------------------------------------------------------------------------
-8. ORDEN DE TRABAJO PENDIENTE
--------------------------------------------------------------------------------
-
-Siguiente paso inmediato: Departamento, y despues Empleado (en ese orden, por
-la clave ajena). Al acabar, V1__Seguridad.sql queda cerrado.
-
-Luego, modulo a modulo, en este orden, que es el que hace que cada clase nueva
-solo apunte a clases que ya existen:
-    seguridad -> catalogo -> aprovisionamiento -> inventario -> ventas
-
-Metodo que estamos usando: Aleix dice una clase, y se le devuelve
-  (1) la clase lista para pegar,
-  (2) las relaciones, con el lado dueno explicado,
-  (3) el trozo de SQL de la migracion correspondiente.
+8.9 AVISO para quien escriba DetallesUsuarioServicio: hasRole('ADMIN') busca la
+    autoridad ROLE_ADMIN, con prefijo. Al convertir el enum Rol en authorities
+    hay que anadir "ROLE_" delante. Si se olvida, no salta ningun error:
+    simplemente nadie tiene permiso para nada, y encontrarlo cuesta un par de
+    horas. La alternativa es hasAuthority('ADMIN'), que no anade prefijo, pero
+    entonces hay que ser consistente en todo el proyecto.
 
 
 -------------------------------------------------------------------------------
-9. DEUDA DETECTADA EN LA REVISION INICIAL (sin arreglar)
+9. ORDEN DE TRABAJO PENDIENTE
+-------------------------------------------------------------------------------
+
+Siguiente, en aprovisionamiento:
+  - Proveedor, EN CUANTO SE CONTESTE 7.1. Reescribirlo con el cifrado del CIF y
+    el IBAN, el cif_hash, las longitudes a 128, los seis @Column(name = ...) que
+    quedan implicitos y la distincion distribuidor / estudio.
+  - EstadoCompra: quitarle la cabecera de NetBeans. Un minuto.
+  - V3__Aprovisionamiento.sql.
+
+Luego, modulo a modulo:
+  catalogo     el indicador de "no se agota" que necesita 2.5, y
+               V2__Catalogo.sql, que es lo que desbloquea las otras
+               migraciones.
+  inventario   la biblioteca de 7.3 y renumerar la migracion a V4.
+  ventas       revisar las seis del grupo. Dos problemas ya detectados: Cesta y
+               Pedido apuntan a Usuario, que ahora es abstracta, y deberian
+               apuntar a Cliente; y LineaPedido trae la relacion duplicada con
+               la clave, que hay que quitar por 4.8. Mas V5__Ventas.sql.
+  publicacion  SolicitudPublicacion, EstadoSolicitud y VersionJuego, mas su
+               migracion. Es el corazon de 2.3.
+
+Y en paralelo, cuando se pueda: el paquete base de 8.1 y rehacer la pantalla de
+pago del prototipo para Stripe, que hoy tiene campos de tarjeta propios y el
+distintivo "Simulado". Con Stripe esos campos nunca son nuestros: el cliente los
+teclea en una pagina de Stripe o en un recuadro suyo incrustado.
+
+Metodo que estamos usando: Aleix dice una clase o una carpeta, y se le devuelve
+primero lo que falta y despues el codigo, para que de el visto bueno antes de
+tocar nada.
+
+
+-------------------------------------------------------------------------------
+10. DEUDA DETECTADA (sin arreglar)
 -------------------------------------------------------------------------------
 
 En el codigo:
-  - LiniaCompra.java tiene un typo: deberia ser LineaCompra. En ventas si esta
-    bien escrito (LineaCesta, LineaPedido).
-  - Los 21 ficheros llevan la cabecera de plantilla de NetBeans
-    ("Click nbfs://nbhost/... to change this license") y @author PC. Cambiar
-    la plantilla en Tools > Templates y poner los nombres reales.
+  - Tres ficheros siguen con la cabecera de plantilla de NetBeans y @author PC:
+    aprovisionamiento/EstadoCompra, catalogo/TipoImagen y ventas/EstadoPedido.
+  - Proveedor es el unico de todo el modelo con @Column sin name explicito.
+  - src/main/java/service/implements/ NO PUEDE COMPILAR: implements es palabra
+    reservada de Java y no puede ser un segmento de paquete. Renombrarlo a impl
+    antes de meter la primera clase. Hoy esta vacio, asi que es gratis.
   - Sobra src/test/java/com/example/demo, vacio, del generador.
   - No hay ni un test, pero el pom declara 8 starters de test.
   - compose.yaml: el healthcheck de MySQL usa forma exec, que no pasa por un
-    shell, asi que la variable de la contrasena llega literal. Pasa el
-    healthcheck de casualidad porque mysqladmin ping devuelve 0 aunque la
-    autenticacion falle. Deberia ser CMD-SHELL.
+    shell, asi que la variable de la contrasena llega literal. Pasa de
+    casualidad porque mysqladmin ping devuelve 0 aunque la autenticacion falle.
+    Deberia ser CMD-SHELL.
   - nbactions.xml lleva -noverify, flag obsoleta desde JDK 13.
-  - El pom arrastra license, developer, scm y description vacios.
+  - El pom arrastra artifactId "demo", groupId com.example y license, developer,
+    scm y description vacios.
 
 Incoherencias del documento con la realidad:
-  - El parrafo 4 dice "Spring Boot 3"; el pom es 4.1.1, que trae Spring
-    Security 7 e Hibernate 7. Revisar tambien la promesa de SockJS del 3.5.
+  - El parrafo 4 dice "Spring Boot 3"; el pom es 4.1.1, que trae Spring Security
+    7 e Hibernate 7.
   - El parrafo 4 promete MapStruct: no esta en el pom.
   - El parrafo 4 promete Bootstrap 5: el prototipo es CSS propio, tema oscuro.
   - Flyway no aparece en el documento, y application.properties esta montado
     entero a su alrededor.
   - El parrafo 4 exige nombres de clases en INGLES, los diagramas estan en
-    catalan, y el codigo se esta escribiendo en espanol. Hay que elegir.
+    catalan y el codigo esta en espanol. Hay que elegir.
+  - El apartado 1.5 dice como no-objetivo que el pago se simula y que "integrar
+    Stripe o Redsys queda fuera". El profesor le ha dado la vuelta.
+  - La figura 10 promete una sola imagen PORTADA por videojuego "garantizado por
+    una restriccion unica". En MySQL eso no sale con un UNIQUE normal: hace
+    falta un trigger o validarlo en el servicio.
 
 Huecos de diseno que habra que resolver al llegar a ventas:
-  - CONTRADICCION IMPORTANTE: la figura 13 dice que la clave solo se reserva
-    al confirmar el pago, pero el apartado 3.6 tiene un trabajo que "libera
-    las reservas de claves de cestas inactivas mas de 7 dias". Si no se
-    reserva en la cesta, no hay nada que purgar. Y linia_cistella no tiene
-    columna de reserva. Decidir: reservar al INICIAR EL PAGO con caducidad
-    corta (15 min) y que el trabajo purgue pagos empezados y no terminados.
-    Esto determina todo el bloqueo pesimista del modulo de ventas.
-  - linea_pedido no tiene cantidad (1 linea = 1 clave), pero linea_cesta si.
-    Hay que dejar escrito que una linea de cesta con cantidad 2 se expande en
-    DOS lineas de pedido.
-  - ClaveLicencia.anular(String motivo) no tiene donde guardar el motivo:
-    falta la columna motivo_anulacion, y una fecha_anulacion.
-  - La limitacion de intentos de login del apartado 3.7 no esta modelada en
-    ningun sitio.
-  - No hay decision sobre donde se guardan los ficheros: factura.ruta_pdf y
-    las imagenes de los juegos.
+  - linea_pedido no tiene cantidad (1 linea = 1 clave), pero linea_cesta si. Una
+    linea de cesta con cantidad 2 se expande en DOS lineas de pedido.
+  - La limitacion de intentos de login del apartado 3.7 no esta modelada.
+  - El trabajo que "libera las reservas de claves de cestas inactivas mas de 7
+    dias" se resuelve reservando al INICIAR EL PAGO con caducidad corta y
+    purgando pagos empezados y no terminados. ClaveLicencia ya tiene
+    fecha_reserva para eso.
+  - No hay decision sobre donde se guardan factura.ruta_pdf y las imagenes de
+    los juegos. Ahora se suma el ZIP de los juegos (ver 7.2).
 
 
 -------------------------------------------------------------------------------
-10. FIGURAS DEL PDF POR REDIBUJAR ANTES DE ENTREGAR
+11. FIGURAS Y TEXTO DEL PDF POR REHACER ANTES DE ENTREGAR
 -------------------------------------------------------------------------------
 
+De la revision anterior:
   Figura 3        quitar el caso de uso P5 "CRUD desenvolupadors"
-  Figura 9        clase Usuari sin los campos quitados; fuera Permis y
-                  PerfilClient; PerfilEmpleat pasa a Empleado
   Figura 10       fuera la clase Desenvolupador
-  Figura 15       tabla usuari sin los campos quitados; fuera permis y
-                  rol_permis
-  Figura 16       fuera la tabla desenvolupador y el desenvolupador_id de
-                  videojoc
+  Figura 15       fuera permis y rol_permis
+  Figura 16       fuera la tabla desenvolupador y el desenvolupador_id
   Figuras 15-20   estan en catalan y las tablas reales iran en espanol
+  Apartado 2.2    la matriz pasa a ser roles por funcionalidad, sin permisos
+  Decisiones 2 y 3 del apartado 1.4 argumentan lo contrario de lo que se hace
 
-  Y en el texto: el apartado 2.2 (la matriz pasa a ser roles por
-  funcionalidad, sin columna de permisos), la Decision 2 y la Decision 3 del
-  apartado 1.4 (argumentan lo contrario de lo que se va a hacer), y las
-  menciones de los apartados 1.3, 2.1, 3.1 y 3.2.
+Nuevo, por el planteamiento del apartado 2:
+  Figura 9        la jerarquia Usuari abstracta -> Client, Treballador y
+                  Proveidor, en vez de los perfiles 1:1
+  Figura 15       tablas cliente y trabajador compartiendo la clave primaria de
+                  usuario; fuera perfil_client y perfil_empleat
+  Figuras 1 a 7   falta el actor PROVEEDOR entero: entrar, cambiar contrasena,
+                  enviar solicitud y seguir su estado. Y al gestor de productos
+                  le falta revisar solicitudes
+  Figura 11       la compra puede nacer a coste 0 generada por el sistema
+  Figura 19       la clave puede acunarse en el momento de la venta
+  Apartado 1.5    el pago ya no se simula: Stripe
+  Apartado 2.1    son SEIS roles, no cinco
+  Apartado 3.7    el cifrado cubre tambien el CIF y el IBAN del proveedor
 
-  La portada tiene "Grup: ____" sin rellenar y el apartado 11 los cinco
-  nombres en blanco.
+  La portada tiene "Grup: ____" sin rellenar y el apartado 11 los cinco nombres
+  en blanco.
 
 ===============================================================================
