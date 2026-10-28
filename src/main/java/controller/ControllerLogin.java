@@ -8,13 +8,23 @@ import org.springframework.web.bind.annotation.GetMapping;
 public class ControllerLogin {
 
     // El POST a /login lo procesa Spring Security (SecurityConfig).
+    @GetMapping("/")
+    public String index() {
+        if (SecurityContextHolder.getContext().getAuthentication() != null) {
+            return "redirect:/home";
+        }else{
+            return "login/login";
+        }
+    }
+
     @GetMapping("/login")
     public String login() {
         return "login/login";
     }
+
     @GetMapping("/logout")
     public String logout() {
-        SecurityContextHolder.clearContext();
+        SecurityContextHolder.getContext().setAuthentication(null);
         return "redirect:/login";
     }
 }
