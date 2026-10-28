@@ -54,18 +54,16 @@ public class Videojuego {
     @Column(name = "umbral_stock_bajo", nullable = false)
     private int umbralStockBajo = 10;
 
-    @ElementCollection(fetch = FetchType.LAZY)
-    @CollectionTable(name = "videojuego_categoria",
-            joinColumns = @JoinColumn(name = "videojuego_id"))
-    @Enumerated(EnumType.STRING)
-    @Column(name = "categoria", nullable = false, length = 30)
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(name = "videojuego_categoria",
+            joinColumns = @JoinColumn(name = "videojuego_id"),
+            inverseJoinColumns = @JoinColumn(name = "categoria_id"))
     private Set<Categoria> categorias = new HashSet<>();
 
-    @ElementCollection(fetch = FetchType.LAZY)
-    @CollectionTable(name = "videojuego_plataforma",
-            joinColumns = @JoinColumn(name = "videojuego_id"))
-    @Enumerated(EnumType.STRING)
-    @Column(name = "plataforma", nullable = false, length = 20)
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(name = "videojuego_plataforma",
+            joinColumns = @JoinColumn(name = "videojuego_id"),
+            inverseJoinColumns = @JoinColumn(name = "plataforma_id"))
     private Set<Plataforma> plataformas = new HashSet<>();
 
     @OneToMany(mappedBy = "videojuego")
