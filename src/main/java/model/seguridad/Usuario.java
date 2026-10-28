@@ -1,24 +1,17 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package model.seguridad;
 
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-import java.time.LocalDate;
+
 import java.time.LocalDateTime;
 
-/**
- *
- * @author PC
- */
 @Entity
 @Table(name = "usuario")
+@Inheritance(strategy = InheritanceType.JOINED)
 @Getter
 @Setter
-public class Usuario {
+public abstract class Usuario {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -32,34 +25,22 @@ public class Usuario {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "rol", nullable = false, length = 30)
-    private Rol rol = Rol.CLIENTE;
+    private Rol rol;
 
     @Column(name = "nombre", nullable = false, length = 80)
     private String nombre;
 
-    @Column(name = "apellidos", nullable = false, length = 120)
+    @Column(name = "apellidos", length = 120)
     private String apellidos;
 
     @Column(name = "activo", nullable = false)
     private boolean activo = true;
 
+    @Column(name = "debe_cambiar_password", nullable = false)
+    private boolean debeCambiarPassword = false;
+
     @Column(name = "fecha_alta", nullable = false)
     private LocalDateTime fechaAlta;
-
-    @Column(name = "telefono", length = 20)
-    private String telefono;
-
-    @Column(name = "direccion", length = 160)
-    private String direccion;
-
-    @Column(name = "ciudad", length = 80)
-    private String ciudad;
-
-    @Column(name = "pais", length = 60)
-    private String pais;
-
-    @Column(name = "fecha_nacimiento")
-    private LocalDate fechaNacimiento;
 
     @PrePersist
     private void alCrear() {

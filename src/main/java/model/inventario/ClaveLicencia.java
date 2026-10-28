@@ -1,10 +1,13 @@
 package model.inventario;
 
+import config.CifradoAesConverter;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import model.aprovisionamiento.LiniaCompra;
 import model.catalogo.Videojuego;
+import model.seguridad.Cliente;
+import model.ventas.LineaPedido;
 
 import java.time.LocalDateTime;
 
@@ -18,14 +21,23 @@ public class ClaveLicencia {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(optional = false)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "videojuego_id", nullable = false)
     private Videojuego videojuego;
 
-    @ManyToOne(optional = false)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "linea_compra_id", nullable = false)
     private LiniaCompra lineaCompra;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "cliente_id")
+    private Cliente cliente;
+
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "linea_pedido_id", unique = true)
+    private LineaPedido lineaPedido;
+
+    @Convert(converter = CifradoAesConverter.class)
     @Column(name = "codigo_cifrado", nullable = false, length = 128)
     private String codigo;
 
@@ -33,7 +45,7 @@ public class ClaveLicencia {
     private String codigoHash;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 20)
+    @Column(name = "estado", nullable = false, length = 20)
     private EstadoClave estado = EstadoClave.DISPONIBLE;
 
     @Column(name = "fecha_alta", nullable = false)

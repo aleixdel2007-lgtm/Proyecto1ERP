@@ -1,7 +1,3 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package model.seguridad;
 
 import jakarta.persistence.*;
@@ -11,10 +7,6 @@ import lombok.Setter;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- *
- * @author PC
- */
 @Entity
 @Table(name = "departamento")
 @Getter
@@ -33,12 +25,12 @@ public class Departamento {
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "responsable_id", unique = true)
-    private Empleado responsable;
+    private Trabajador responsable;
 
     @OneToMany(mappedBy = "departamento")
-    private List<Empleado> empleados = new ArrayList<>();
+    private List<Trabajador> trabajadores = new ArrayList<>();
 
-    public int numeroEmpleados() {
-        return empleados.size();
+    public int numeroTrabajadores() {
+        return trabajadores.size();
     }
 }

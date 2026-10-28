@@ -552,6 +552,9 @@ const BADGE = {
   PUBLICADA:"b-good", OCULTA:"b-mute",
   BAJA:"b-mute", NORMAL:"b-info", ALTA:"b-serious", URGENTE:"b-crit",
   ACTIVO:"b-good", INACTIVO:"b-mute", OK:"b-good", ERROR:"b-crit", AGOTADO:"b-crit",
+  PENDIENTE_REVISION:"b-warn", CAMBIOS_PEDIDOS:"b-serious", APROBADA:"b-good",
+  DENEGADA:"b-crit", PUBLICADO:"b-good", SIN_ENVIAR:"b-mute",
+  GRATIS:"b-info", DE_PAGO:"b-purple", SIN_CAMBIAR:"b-warn",
 };
 const badge = (txt, kind) => `<span class="badge ${kind || BADGE[txt] || ""}">${esc(String(txt).replace(/_/g," "))}</span>`;
 
@@ -681,6 +684,28 @@ const TOP10 = [
   ["Orbital Foundry",47,1644.53],["Last Signal",41,1229.59],["Neon Drifter",38,949.62],
   ["Ironline Tactics",29,1159.71],
 ];
+/* Cuentas de proveedor: las crea el ERP, el estudio no se registra solo. */
+const CUENTAS_PROV = [
+  {id:1, nom:"Taller 3r DAM A", mail:"taller3a@luduserp.cat", jocs:"1 publicado · 1 en revision", alta:"2026-10-12", pwd:"ACTIVO",      act:1},
+  {id:2, nom:"Taller 3r DAM B", mail:"taller3b@luduserp.cat", jocs:"1 publicado",                 alta:"2026-10-12", pwd:"ACTIVO",      act:1},
+  {id:3, nom:"Grup Pixelat",    mail:"pixelat@luduserp.cat",  jocs:"1 denegada",                  alta:"2026-10-09", pwd:"ACTIVO",      act:1},
+  {id:4, nom:"Estudi Cinque",   mail:"cinque@luduserp.cat",   jocs:"1 en revision",               alta:"2026-10-26", pwd:"SIN_CAMBIAR", act:1},
+];
+/* Solicitudes de publicacion que llegan de los estudios. */
+const SOLICITUDES = [
+  {id:"SOL-2026-0034", joc:"Hollow Transit", prov:"Taller 3r DAM A", env:"2026-10-27", cat:"Indie",    plat:"PC", pegi:7,  p:0,    ver:"1.0.0", entrega:"ARCHIVO", peso:"412 MB", est:"PENDIENTE_REVISION", motivo:""},
+  {id:"SOL-2026-0033", joc:"Cinder Loop",    prov:"Estudi Cinque",   env:"2026-10-26", cat:"Puzzle",   plat:"PC", pegi:3,  p:0,    ver:"0.9.2", entrega:"ENLACE",  peso:"—",      est:"PENDIENTE_REVISION", motivo:""},
+  {id:"SOL-2026-0032", joc:"Vector Bloom",   prov:"Grup Pixelat",    env:"2026-10-25", cat:"Accion",   plat:"PC", pegi:12, p:4.99, ver:"1.0.0", entrega:"ARCHIVO", peso:"1,2 GB", est:"PENDIENTE_REVISION", motivo:""},
+  {id:"SOL-2026-0030", joc:"Hollow Transit", prov:"Taller 3r DAM A", env:"2026-10-20", cat:"Indie",    plat:"PC", pegi:7,  p:0,    ver:"0.8.0", entrega:"ARCHIVO", peso:"398 MB", est:"CAMBIOS_PEDIDOS",    motivo:"Falta la imagen de portada y la sinopsis esta vacia."},
+  {id:"SOL-2026-0028", joc:"Dust Harbour",   prov:"Taller 3r DAM B", env:"2026-10-14", cat:"Aventura", plat:"PC", pegi:12, p:0,    ver:"1.1.0", entrega:"ARCHIVO", peso:"1,1 GB", est:"APROBADA",           motivo:""},
+  {id:"SOL-2026-0026", joc:"Rust & Ruin",    prov:"Grup Pixelat",    env:"2026-10-09", cat:"Terror",   plat:"PC", pegi:18, p:0,    ver:"1.0.0", entrega:"ARCHIVO", peso:"880 MB", est:"DENEGADA",           motivo:"El ejecutable no arranca en Windows 11."},
+];
+/* Los juegos del estudio que esta mirando su propio panel. */
+const MIS_JUEGOS = [
+  {id:901, t:"Dust Harbour",   est:"PUBLICADO",          p:0,    plat:"PC", cat:"Aventura", ver:"1.1.0", alta:"2026-10-15", biblio:184, entrega:"Archivo · 1,1 GB"},
+  {id:902, t:"Hollow Transit", est:"PENDIENTE_REVISION", p:0,    plat:"PC", cat:"Indie",    ver:"1.0.0", alta:"—",          biblio:0,   entrega:"Archivo · 412 MB"},
+  {id:903, t:"Nightjar",       est:"SIN_ENVIAR",         p:2.99, plat:"PC", cat:"Puzzle",   ver:"0.4.0", alta:"—",          biblio:0,   entrega:"sin subir"},
+];
 </script>
 <script>
 /* ===========================================================================
@@ -711,6 +736,7 @@ const NAV = [
   {g:"Catalogo", items:[
     {k:"catalogo/videojuegos",   t:"Videojuegos", i:"game"},
     {k:"catalogo/clasificacion", t:"Clasificacion", i:"tag"},
+    {k:"catalogo/solicitudes",   t:"Solicitudes de publicacion", i:"upload", tag:"3"},
   ]},
   {g:"Aprovisionamiento", items:[
     {k:"compras/proveedores", t:"Proveedores", i:"truck"},
@@ -727,16 +753,37 @@ const NAV = [
   {g:"Administracion", items:[
     {k:"admin/empleados",    t:"Empleados", i:"badge2"},
     {k:"admin/departamentos",t:"Departamentos", i:"dept"},
+    {k:"admin/proveedores",  t:"Cuentas de proveedor", i:"truck"},
     {k:"admin/config",       t:"Configuracion", i:"cog"},
     {k:"admin/jobs",         t:"Trabajos en segundo plano", i:"clock"},
+  ]},
+];
+
+/* El proveedor entra al mismo panel, pero su menu solo tiene su estudio: no ve
+   compras, ni claves, ni clientes, ni el resto del ERP. Es la misma plantilla
+   con sec:authorize, no una aplicacion aparte. */
+const NAV_PROV = [
+  {g:"Mi estudio", items:[
+    {k:"proveedor/panel",     t:"Panel", i:"panel"},
+    {k:"proveedor/juegos",    t:"Mis juegos", i:"game"},
+    {k:"proveedor/solicitud", t:"Publicar un juego", i:"upload"},
+  ]},
+  {g:"Cuenta", items:[
+    {k:"proveedor/cuenta", t:"Mi cuenta y acceso", i:"lock"},
   ]},
 ];
 
 /* ===========================================================================
    6. ENVOLTORIOS
    =========================================================================== */
+/* El mismo envoltorio sirve para el trabajador y para el estudio que publica:
+   cambian el menu de la izquierda y quien aparece arriba a la derecha. */
 function shellPanel(view, route){
-  const nav = NAV.map(sec => `
+  const prov = route.startsWith("proveedor");
+  const quien = prov
+    ? {ini:"T3", nom:"Taller 3r DAM A", rol:"PROVEEDOR · estudio externo", ruta:"proveedor/cuenta"}
+    : {ini:"AD", nom:"Aleix Delgado",   rol:"ADMIN · Direccion",           ruta:"perfil"};
+  const nav = (prov?NAV_PROV:NAV).map(sec => `
     <div class="nav-group">${sec.g}</div>
     ${sec.items.map(it => `
       <a class="nav-item ${route.startsWith(it.k)?"on":""}" href="#/${it.k}">
@@ -753,7 +800,10 @@ function shellPanel(view, route){
         ${nav}
         <div class="nav-group">Prototipo</div>
         <a class="nav-item ${route==="mapa"?"on":""}" href="#/mapa"><span class="ic">${ICONS.panel}</span>Mapa de vistas</a>
-        <a class="nav-item" href="#/tienda"><span class="ic">${ICONS.shop}</span>Ver la tienda</a>
+        ${prov
+          ? `<a class="nav-item" href="#/panel"><span class="ic">${ICONS.back}</span>Volver al ERP</a>`
+          : `<a class="nav-item" href="#/tienda"><span class="ic">${ICONS.shop}</span>Ver la tienda</a>
+             <a class="nav-item" href="#/proveedor/panel"><span class="ic">${ICONS.truck}</span>Vista proveedor</a>`}
       </div>
       <div class="side-foot">
         <a class="nav-item" href="#/login"><span class="ic">${ICONS.back}</span>Cerrar sesion</a>
@@ -762,14 +812,15 @@ function shellPanel(view, route){
     <div class="main">
       <header class="top">
         <div class="crumb">${(view.crumb||[]).map(c=>`<b>${c}</b>`).join(" &rsaquo; ")}</div>
-        <div class="top-search">${ICONS.search}<input placeholder="Buscar en todo el ERP..."></div>
+        <div class="top-search">${ICONS.search}
+          <input placeholder="${prov?"Buscar en mis juegos...":"Buscar en todo el ERP..."}"></div>
         <button class="icon-btn" title="Notificaciones">${ICONS.bell}<span class="dot"></span></button>
         <select class="lang" title="Idioma de la interfaz">
           <option>ES</option><option>CA</option><option>EN</option>
         </select>
-        <a class="who" href="#/perfil" style="text-decoration:none;color:inherit">
-          <div class="avatar">AD</div>
-          <div class="who-txt"><b>Aleix Delgado</b><span>ADMIN · Direccion</span></div>
+        <a class="who" href="#/${quien.ruta}" style="text-decoration:none;color:inherit">
+          <div class="avatar">${quien.ini}</div>
+          <div class="who-txt"><b>${quien.nom}</b><span>${quien.rol}</span></div>
         </a>
       </header>
       <div class="canvas">${view.body()}</div>
@@ -811,6 +862,9 @@ function head(title, sub, actions){
 const backTo = (href, txt) =>
   `<a class="btn btn-ghost btn-sm" href="${href}" style="margin-bottom:12px">${ICONS.back} ${txt}</a>`;
 const note = txt => `<div class="note-box">${ICONS.warn}<div>${txt}</div></div>`;
+/* Igual que note(), pero para lo que el grupo todavia no ha decidido. */
+const abierta = txt => `<div class="note-box" style="background:rgba(240,136,62,.1);
+  border-color:rgba(240,136,62,.45)">${ICONS.warn}<div><b>Decision abierta:</b> ${txt}</div></div>`;
 </script>
 <script>
 /* ===========================================================================
@@ -1059,29 +1113,61 @@ VIEWS["tienda/pago"] = { shell:"shop", body:()=>`
     </div>
   </div>`};
 
-VIEWS["tienda/biblioteca"] = { shell:"shop", body:()=>`
+VIEWS["tienda/biblioteca"] = { shell:"shop", body:()=>{
+  /* Dos tipos de fila conviven: el juego publicado en LudusERP, que se descarga
+     aqui, y la clave comprada a un distribuidor, que se canjea fuera. */
+  const BIBLIO = [
+    {t:"Dust Harbour",     est:"Taller 3r DAM B",    plat:"PC",  fecha:"16/10/2026", ped:"C-2026-1871",
+     cod:"DSTH-4K2P-88QW-ZC19", pub:1, peso:"1,1 GB", pago:"Gratis"},
+    {t:"Eclipse Protocol", est:"Larian Studios",     plat:"PC",  fecha:"22/10/2026", ped:"C-2026-1884",
+     cod:CLAVES[1].cod, pub:0, peso:"", pago:eur(44.99)+" · Stripe"},
+    {t:"Mycelium",         est:"Team Cherry",        plat:"NSW", fecha:"22/10/2026", ped:"C-2026-1884",
+     cod:CLAVES[3].cod, pub:0, peso:"", pago:eur(19.99)+" · Stripe"},
+    {t:"Glasswork",        est:"Supergiant Games",   plat:"PC",  fecha:"19/10/2026", ped:"C-2026-1879",
+     cod:CLAVES[7].cod, pub:0, peso:"", pago:eur(9.99)+" · Stripe"},
+  ];
+  return `
   <div class="spread" style="margin-bottom:18px">
     <div><h1 style="font-size:22px">Mi biblioteca</h1>
-      <p class="muted" style="margin:4px 0 0;font-size:13px">4 claves · ligadas a tu cuenta para siempre</p></div>
+      <p class="muted" style="margin:4px 0 0;font-size:13px">4 claves · la clave es la prueba de que
+      el juego es tuyo, y es lo que deja descargarlo</p></div>
     <a class="btn" href="#/tienda/pedidos">Ver mis pedidos</a>
   </div>
   <div class="grid g2">
-    ${[GAMES[0],GAMES[3],GAMES[9],GAMES[11]].map((g,i)=>`
-      <div class="card"><div class="card-body row" style="gap:14px;align-items:flex-start">
-        <div style="width:74px;flex:0 0 auto">${cover(g.t)}</div>
-        <div style="flex:1 1 auto;min-width:0" class="stack">
-          <div>
-            <div class="t-main">${g.t}</div>
-            <div class="t-sub">${g.plat} · comprado el 22/10/2026</div>
+    ${BIBLIO.map((b,i)=>`
+      <div class="card">
+        <div class="card-head"><h3>${b.t}</h3>
+          <span class="right">${b.pub?badge("PUBLICADO"):badge("DE_PAGO","b-purple")}</span></div>
+        <div class="card-body row" style="gap:14px;align-items:flex-start">
+          <div style="width:74px;flex:0 0 auto">${cover(b.t)}</div>
+          <div style="flex:1 1 auto;min-width:0" class="stack">
+            <dl class="kv" style="grid-template-columns:86px 1fr;font-size:12.5px;gap:5px 12px">
+              <dt>Estudio</dt><dd>${b.est}</dd>
+              <dt>Adquirido</dt><dd>${b.fecha}</dd>
+              <dt>Pedido</dt><dd><a class="mono" href="#/tienda/pedidos">${b.ped}</a></dd>
+              <dt>Pagado</dt><dd>${b.pago}</dd>
+            </dl>
+            <div class="keybox ${i?"hidden":""}">
+              ${ICONS.key}<span class="k">${b.cod}</span>
+              <button class="btn btn-sm btn-ghost" style="margin-left:auto">${i?"Revelar":"Copiar"}</button>
+            </div>
+            <div class="row wrap">
+              ${b.pub
+                ? `<button class="btn btn-primary btn-sm">${ICONS.down} Descargar (${b.peso})</button>`
+                : `<button class="btn btn-sm" disabled>${ICONS.down} Sin descarga</button>`}
+              <a class="btn btn-sm" href="#/ventas/factura">${ICONS.file} Factura</a>
+            </div>
           </div>
-          <div class="keybox ${i?"hidden":""}">
-            ${ICONS.key}<span class="k">${CLAVES[i].cod}</span>
-            <button class="btn btn-sm btn-ghost" style="margin-left:auto">${i?"Revelar":"Copiar"}</button>
-          </div>
-          <div class="row"><a class="hint" href="#/tienda/pedidos">${ICONS.down} Factura</a></div>
         </div>
-      </div></div>`).join("")}
-  </div>`};
+      </div>`).join("")}
+  </div>
+  <div class="grid g2" style="margin-top:16px">
+    ${note(`La descarga no es un enlace suelto: antes de servir el archivo, el ERP comprueba que esa
+      clave es de este usuario y esta <b>VENDIDA</b>. Un enlace copiado a un amigo no sirve.`)}
+    ${abierta(`un juego comprado a un distribuidor es una clave para canjear fuera: no hay nada que
+      descargar. Uno publicado aqui si. Hay que decidir si los dos tipos conviven en el catalogo o si
+      a partir de ahora solo se publican juegos propios.`)}
+  </div>`;}};
 
 VIEWS["tienda/pedidos"] = { shell:"shop", body:()=>`
   <h1 style="font-size:22px;margin-bottom:18px">Mis pedidos</h1>
@@ -1953,7 +2039,370 @@ VIEWS["admin/jobs"] = { shell:"panel", crumb:["Administracion","Trabajos en segu
     </div>
   </div>`};
 
-/* --- 10. Mapa de vistas del prototipo ------------------------------------- */
+/* --- 10. Proveedor y publicacion de juegos -------------------------------- */
+/* El proveedor ya no es papeleo: es un estudio con cuenta propia que envia un
+   juego para publicarlo, y un trabajador lo acepta o lo deniega. */
+
+VIEWS["proveedor/panel"] = { shell:"panel", crumb:["Mi estudio","Panel"], body:()=>`
+  ${head("Taller 3r DAM A",
+    "Lo que ve un estudio al entrar. Mismo login y mismo panel que un trabajador: lo que cambia es el rol.")}
+
+  <div class="grid g4" style="margin-bottom:16px">
+    ${kpi("Juegos publicados","1","<span>de 3 fichas</span>","accent")}
+    ${kpi("En revision","1","<span>enviada ayer</span>")}
+    ${kpi("En bibliotecas", num(184), "<span>clientes con el juego</span>")}
+    ${kpi("Descargas", num(184), "<span>desde el 15/10</span>")}
+  </div>
+
+  <div class="card">
+    <div class="card-head"><h3>Mis juegos</h3>
+      <span class="right"><a class="btn btn-primary btn-sm" href="#/proveedor/solicitud">
+        ${ICONS.plus} Publicar un juego</a></span></div>
+    <div class="card-body tight">
+      ${table([{t:"Juego"},{t:"Estado"},{t:"Precio",cls:"num"},{t:"Version"},
+               {t:"En bibliotecas",cls:"num"},{t:"",cls:"acts"}],
+        MIS_JUEGOS.map(j=>[
+          `<div class="row"><div style="width:30px;flex:0 0 auto">${cover(j.t)}</div>
+             <div><div class="t-main">${j.t}</div><div class="t-sub">${j.cat} · ${j.plat}</div></div></div>`,
+          badge(j.est),
+          j.p===0?badge("GRATIS"):`<b>${eur(j.p)}</b>`,
+          `<span class="mono">${j.ver}</span>`,
+          j.biblio,
+          acts([{i:"eye",t:"Ver ficha"},{i:"edit",t:"Editar"}])]))}
+    </div>
+  </div>
+  <div style="margin-top:14px">
+    ${abierta(`si el estudio ve cuanta gente ha descargado su juego, hay que decidir si tambien ve
+      <b>quien</b>. Lo razonable es que no: son datos de clientes vuestros.`)}
+  </div>`};
+
+VIEWS["proveedor/juegos"] = { shell:"panel", crumb:["Mi estudio","Mis juegos"], body:()=>`
+  ${head("Mis juegos","Tres fichas en tres estados: publicada, en revision y borrador sin enviar.",
+    `<a class="btn btn-primary" href="#/proveedor/solicitud">${ICONS.plus} Publicar un juego</a>`)}
+  <div class="card">
+    <div class="card-body tight">
+      ${table([{t:"Juego"},{t:"Estado"},{t:"Entrega"},{t:"Precio",cls:"num"},{t:"Version"},
+               {t:"Alta"},{t:"",cls:"acts"}],
+        MIS_JUEGOS.map(j=>[
+          `<div><div class="t-main">${j.t}</div>
+             <div class="t-sub">${j.cat} · ${j.plat} · PEGI ${j.id===901?12:j.id===902?7:3}</div></div>`,
+          badge(j.est),
+          j.entrega==="sin subir"?`<span class="muted">sin subir</span>`:`<span class="mono">${j.entrega}</span>`,
+          j.p===0?badge("GRATIS"):`<b>${eur(j.p)}</b>`,
+          `<span class="mono">${j.ver}</span>`, j.alta,
+          acts(j.est==="PUBLICADO"
+            ? [{i:"eye",t:"Ver en la tienda"},{i:"edit",t:"Editar ficha"},{i:"upload",t:"Subir version nueva"}]
+            : j.est==="SIN_ENVIAR"
+            ? [{i:"edit",t:"Seguir editando"},{i:"upload",t:"Enviar a revision",cls:"btn-primary"},
+               {i:"trash",t:"Borrar borrador",cls:"btn-danger"}]
+            : [{i:"eye",t:"Ver la solicitud"}])]))}
+    </div>
+  </div>
+  <div style="margin-top:14px">
+    ${note(`Mientras una ficha esta <b>pendiente de revision</b> el estudio no la puede tocar: si
+      pudiera, el trabajador estaria revisando una cosa distinta de la que aprueba.`)}
+  </div>`};
+
+VIEWS["proveedor/solicitud"] = { shell:"panel", crumb:["Mi estudio","Publicar un juego"], body:()=>`
+  ${backTo("#/proveedor/juegos","Volver a mis juegos")}
+  ${head("Publicar un juego","Al enviarlo, la ficha se bloquea y entra en la cola de revision.")}
+  <div class="steps" style="max-width:720px">
+    <div class="step on"><i>1</i>Ficha</div><div class="step-sep"></div>
+    <div class="step"><i>2</i>Imagenes</div><div class="step-sep"></div>
+    <div class="step"><i>3</i>El juego</div><div class="step-sep"></div>
+    <div class="step"><i>4</i>Enviar</div>
+  </div>
+  <div class="grid g-2-1">
+    <div class="stack">
+      <div class="card">
+        <div class="card-head"><h3>Ficha del juego</h3></div>
+        <div class="card-body"><div class="form-grid">
+          <div class="frow wide"><label>Titulo <span class="req">*</span></label>
+            <input class="inp" value="Hollow Transit"></div>
+          <div class="frow wide"><label>Sinopsis <span class="req">*</span></label>
+            <textarea class="inp">Un metro abandonado, una linterna y catorce minutos de bateria.</textarea></div>
+          <div class="frow"><label>Categoria <span class="req">*</span></label>
+            <select class="inp">${CATS.map(c=>`<option ${c==="Indie"?"selected":""}>${c}</option>`).join("")}</select></div>
+          <div class="frow"><label>Plataforma <span class="req">*</span></label>
+            <select class="inp">${PLATS.map(p=>`<option>${p[0]}</option>`).join("")}</select></div>
+          <div class="frow"><label>Clasificacion PEGI <span class="req">*</span></label>
+            <select class="inp"><option>3</option><option selected>7</option><option>12</option>
+              <option>16</option><option>18</option></select></div>
+          <div class="frow"><label>Version <span class="req">*</span></label>
+            <input class="inp mono" value="1.0.0"></div>
+          <div class="frow"><label>Precio</label><input class="inp" value="0,00" disabled></div>
+          <div class="frow"><label>&nbsp;</label>
+            <label class="cbx" style="margin-top:6px"><input type="checkbox" checked> Publicar gratis</label></div>
+          <div class="frow wide"><label>Notas para quien lo revise</label>
+            <textarea class="inp" placeholder="Mandos soportados, bugs conocidos, como probarlo..."></textarea></div>
+        </div></div>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><h3>El juego</h3>
+          <span class="right">${badge("RECOMENDADA LA A","b-good")}</span></div>
+        <div class="card-body stack">
+          <p class="hint" style="margin:0">Las tres formas de entregar el ejecutable, con lo que gana
+          y lo que pierde cada una.</p>
+          <label class="cbx" style="align-items:flex-start">
+            <input type="radio" name="entrega" checked>
+            <span><b>A &middot; Subir el archivo al ERP.</b> Un ZIP que guardais vosotros y sirve
+            vuestro propio controlador, que antes comprueba la clave. Es la <b>unica</b> que cumple
+            la regla: sin biblioteca no hay descarga. Cuesta espacio y obliga a poner un limite de
+            tamano.</span>
+          </label>
+          <label class="cbx" style="align-items:flex-start">
+            <input type="radio" name="entrega">
+            <span><b>B &middot; Enlace externo</b> a Drive, Dropbox o itch.io. Cero espacio y cero
+            coste, pero regala el control: el enlace circula y se lo baja quien no lo tiene en la
+            biblioteca. Y el dia que el estudio borre la carpeta, el juego desaparece del catalogo
+            sin avisar.</span>
+          </label>
+          <label class="cbx" style="align-items:flex-start">
+            <input type="radio" name="entrega">
+            <span><b>C &middot; Las dos.</b> Dos caminos de codigo, dos pantallas y el agujero de la
+            B intacto: basta con que un estudio elija enlace para que ese juego quede sin puerta.</span>
+          </label>
+          <div class="form-grid" style="margin-top:4px">
+            <div class="frow wide"><label>Archivo del juego (ZIP, maximo 2 GB)</label>
+              <div class="row"><button class="btn">${ICONS.upload} Elegir archivo</button>
+                <span class="muted mono">hollow-transit-1.0.0.zip · 412 MB</span></div></div>
+            <div class="frow wide"><label>Enlace externo</label>
+              <input class="inp" placeholder="https://drive.google.com/..." disabled>
+              <span class="hint">Deshabilitado con la opcion A.</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><h3>Imagenes</h3>
+          <span class="sub">una portada obligatoria y hasta cinco capturas</span></div>
+        <div class="card-body">
+          <div class="grid" style="grid-template-columns:repeat(4,1fr);gap:12px">
+            ${cover("Hollow Transit","wide",`<span class="pegi">PORTADA</span>`)}
+            ${cover("Transit captura 1","wide")}
+            ${cover("Transit captura 2","wide")}
+            <div style="border:1.5px dashed var(--line-strong);border-radius:var(--r-sm);
+              display:grid;place-items:center;color:var(--muted);aspect-ratio:16/9">
+              ${ICONS.plus}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="stack">
+      <div class="card"><div class="card-body stack">
+        <h3 style="font-size:14px">Antes de enviar</h3>
+        <dl class="kv" style="grid-template-columns:100px 1fr">
+          <dt>Titulo</dt><dd>Hollow Transit</dd>
+          <dt>Precio</dt><dd>Gratis</dd>
+          <dt>Entrega</dt><dd>Archivo · 412 MB</dd>
+          <dt>Portada</dt><dd>Si</dd>
+          <dt>Capturas</dt><dd>2</dd>
+        </dl>
+        <button class="btn btn-primary" style="justify-content:center">${ICONS.upload} Enviar a revision</button>
+        <button class="btn" style="justify-content:center">Guardar borrador</button>
+        <p class="hint" style="margin:0">Al enviar le llega un aviso al gestor de productos. Si piden
+        cambios, la ficha se vuelve a abrir con el motivo escrito.</p>
+      </div></div>
+      ${abierta(`el precio lo pone el estudio o lo poneis vosotros. Si lo pone el estudio, un
+        trabajador tendria que poder cambiarlo al aprobar, porque la tienda es vuestra.`)}
+      ${abierta(`con la opcion A, <b>donde viven esos GB</b>: una carpeta del servidor o un
+        almacenamiento aparte. Si el disco del hosting se borra en cada despliegue, la carpeta no
+        sirve.`)}
+    </div>
+  </div>`};
+
+VIEWS["proveedor/cuenta"] = { shell:"panel", crumb:["Cuenta","Mi cuenta y acceso"], body:()=>`
+  ${head("Mi cuenta y acceso",
+    "La cuenta la crea el ERP y le pasa el correo y la contrasena. Aqui el estudio solo cambia su contrasena.")}
+  <div class="grid g-1-2">
+    <div class="stack">
+      <div class="card">
+        <div class="card-head"><h3>Datos del estudio</h3>
+          <span class="right">${badge("Solo lectura","b-mute")}</span></div>
+        <div class="card-body"><dl class="kv" style="grid-template-columns:120px 1fr">
+          <dt>Estudio</dt><dd>Taller 3r DAM A</dd>
+          <dt>Correo</dt><dd class="mono">taller3a@luduserp.cat</dd>
+          <dt>Rol</dt><dd>${badge("PROVEEDOR","b-purple")}</dd>
+          <dt>Pais</dt><dd>Espana</dd>
+          <dt>Alta</dt><dd>12/10/2026</dd>
+          <dt>Estado</dt><dd>${badge("ACTIVO")}</dd>
+        </dl></div>
+      </div>
+      ${note(`El nombre, el correo y el estado los cambia un administrador desde
+        <a href="#/admin/proveedores">Cuentas de proveedor</a>.`)}
+    </div>
+    <div class="card">
+      <div class="card-head"><h3>Cambiar la contrasena</h3></div>
+      <div class="card-body stack">
+        ${note(`<b>Primer acceso.</b> Hasta que no la cambie, el ERP le devuelve a esta pantalla y no
+          le deja ir a ningun otro sitio.`)}
+        <div class="form-grid">
+          <div class="frow wide"><label>Contrasena actual <span class="req">*</span></label>
+            <input class="inp" type="password" value="12345678"></div>
+          <div class="frow"><label>Contrasena nueva <span class="req">*</span></label>
+            <input class="inp" type="password" value="123456789012"></div>
+          <div class="frow"><label>Repetir la nueva <span class="req">*</span></label>
+            <input class="inp" type="password" value="123456789012"></div>
+        </div>
+        <p class="hint" style="margin:0">Se guarda con BCrypt, igual que la de cualquier otro usuario:
+        no hay una tabla de contrasenas aparte para proveedores.</p>
+      </div>
+      <div class="form-foot">
+        <span class="note">Un proveedor no tiene NIF ni IBAN cifrados: no cobra nomina.</span>
+        <button class="btn btn-primary">${ICONS.lock} Guardar contrasena</button>
+      </div>
+    </div>
+  </div>`};
+
+VIEWS["catalogo/solicitudes"] = { shell:"panel", crumb:["Catalogo","Solicitudes de publicacion"], body:()=>`
+  ${head("Solicitudes de publicacion",
+    "Lo que llega de los estudios. Aceptar una es lo que la convierte en un juego del catalogo.")}
+  <div class="card">
+    <div class="filters">
+      <div class="fld"><label>Buscar</label>
+        <div class="search-inp">${ICONS.search}<input placeholder="Juego o estudio"></div></div>
+      <div class="fld"><label>Estado</label><select class="inp">
+        <option>Todos</option><option selected>PENDIENTE_REVISION</option>
+        <option>CAMBIOS_PEDIDOS</option><option>APROBADA</option><option>DENEGADA</option></select></div>
+      <div class="fld"><label>Entrega</label><select class="inp">
+        <option>Todas</option><option>ARCHIVO</option><option>ENLACE</option></select></div>
+      <div class="fld"><label>&nbsp;</label><button class="btn btn-primary">Filtrar</button></div>
+    </div>
+    <div class="card-body tight">
+      ${table([{t:"Solicitud"},{t:"Juego"},{t:"Estudio"},{t:"Enviada"},{t:"Entrega"},
+               {t:"Precio",cls:"num"},{t:"Estado"},{t:"",cls:"acts"}],
+        SOLICITUDES.map(s=>[
+          `<span class="mono">${s.id}</span>`,
+          `<div><div class="t-main">${s.joc}</div>
+             <div class="t-sub">${s.cat} · ${s.plat} · PEGI ${s.pegi} · v${s.ver}</div></div>`,
+          s.prov, s.env,
+          s.entrega==="ARCHIVO"?`<span class="mono">Archivo ${s.peso}</span>`:`<span class="mono">Enlace</span>`,
+          s.p===0?badge("GRATIS"):`<b>${eur(s.p)}</b>`,
+          badge(s.est)+(s.motivo?`<div class="t-sub">${esc(s.motivo)}</div>`:""),
+          acts([{i:"eye",t:"Revisar",cls:"btn-primary"}])]))}
+    </div>
+    ${pager(6,6,1,1)}
+  </div>
+
+  <div class="card" style="margin-top:16px">
+    <div class="card-head"><h3>SOL-2026-0034 · Hollow Transit</h3>
+      <span class="right">${badge("PENDIENTE_REVISION")}</span></div>
+    <div class="card-body"><div class="grid g-2-1">
+      <div class="stack">
+        <dl class="kv" style="grid-template-columns:130px 1fr">
+          <dt>Estudio</dt><dd>Taller 3r DAM A</dd>
+          <dt>Enviada</dt><dd>27/10/2026 18:42</dd>
+          <dt>Version</dt><dd class="mono">1.0.0</dd>
+          <dt>Entrega</dt><dd>Archivo · hollow-transit-1.0.0.zip · 412 MB</dd>
+          <dt>Precio propuesto</dt><dd>Gratis</dd>
+          <dt>Historial</dt><dd>2.º envio; el 1.º volvio con cambios</dd>
+        </dl>
+        <div class="grid" style="grid-template-columns:repeat(3,1fr);gap:12px">
+          ${cover("Hollow Transit","wide",`<span class="pegi">7</span>`)}
+          ${cover("Transit captura 1","wide")}
+          ${cover("Transit captura 2","wide")}
+        </div>
+        <p class="hint" style="margin:0"><b>Notas del estudio:</b> se juega con teclado; el nivel 3
+        tarda en cargar la primera vez.</p>
+      </div>
+      <div class="stack">
+        <div class="card"><div class="card-body stack">
+          <h3 style="font-size:14px">Decidir</h3>
+          <button class="btn btn-primary" style="justify-content:center">${ICONS.check} Aceptar y publicar</button>
+          <button class="btn" style="justify-content:center">${ICONS.warn} Pedir cambios</button>
+          <button class="btn btn-danger" style="justify-content:center">${ICONS.x} Denegar</button>
+          <div class="frow"><label>Motivo</label>
+            <textarea class="inp" placeholder="Obligatorio si pide cambios o deniega. El estudio lo leera."></textarea></div>
+          <button class="btn" style="justify-content:center">${ICONS.down} Descargar el ZIP y probarlo</button>
+        </div></div>
+        ${note(`<b>Al aceptar, en una sola transaccion:</b> se crea la ficha del videojuego, se genera
+          una orden de compra a ese proveedor con <b>coste 0</b> y de su linea de compra cuelgan las
+          claves. La trazabilidad clave &rarr; linea de compra &rarr; proveedor queda igual que con un
+          distribuidor de verdad.`)}
+        ${abierta(`cuantas claves se generan al aceptar. Lo propuesto: ninguna, y se crea una clave
+          en el momento en que alguien lo adquiere, porque un juego publicado aqui no se agota. La
+          alternativa es que el estudio declare un numero de copias.`)}
+      </div>
+    </div></div>
+  </div>`};
+
+VIEWS["admin/proveedores"] = { shell:"panel", crumb:["Administracion","Cuentas de proveedor"], body:()=>`
+  ${head("Cuentas de proveedor",
+    "Nadie se registra como proveedor: la cuenta se crea aqui y se le pasan el correo y la contrasena.",
+    `<a class="btn btn-primary" href="#/admin/proveedor">${ICONS.plus} Crear cuenta</a>`)}
+  <div class="card">
+    <div class="card-body tight">
+      ${table([{t:"Estudio"},{t:"Correo de acceso"},{t:"Juegos"},{t:"Alta"},
+               {t:"Contrasena"},{t:"Estado"},{t:"",cls:"acts"}],
+        CUENTAS_PROV.map(c=>[
+          `<div class="row"><div class="avatar" style="width:28px;height:28px;font-size:11px">
+             ${c.nom.split(" ").map(x=>x[0]).join("").slice(0,2)}</div>
+           <div><div class="t-main">${c.nom}</div><div class="t-sub">#${c.id}</div></div></div>`,
+          `<span class="mono">${c.mail}</span>`,
+          `<span class="muted">${c.jocs}</span>`, c.alta,
+          c.pwd==="ACTIVO"?badge("ACTIVO"):badge("SIN_CAMBIAR"),
+          badge(c.act?"ACTIVO":"INACTIVO"),
+          acts([{i:"edit",t:"Editar"},{i:"mail",t:"Reenviar contrasena"},
+                {i:"x",t:"Desactivar",cls:"btn-danger"}])]))}
+    </div>
+    ${pager(4,4,1,1)}
+  </div>
+  <div style="margin-top:14px">
+    ${abierta(`esta pantalla y <a href="#/compras/proveedores">Proveedores</a> de aprovisionamiento
+      hablan del mismo estudio. O se fusionan, o la ficha de papeleo se queda para los distribuidores
+      de verdad y esta solo para los estudios que publican.`)}
+  </div>`};
+
+VIEWS["admin/proveedor"] = { shell:"panel", crumb:["Administracion","Cuentas de proveedor","Nueva"], body:()=>`
+  ${backTo("#/admin/proveedores","Volver al listado")}
+  ${head("Crear cuenta de proveedor",
+    "Mismo patron que el alta de empleado: crea el usuario, le pone el rol y le manda la contrasena por correo.")}
+  <div class="grid g-2-1">
+    <div class="card">
+      <div class="card-body stack">
+        <div class="sect-label">Datos del estudio</div>
+        <div class="form-grid">
+          <div class="frow"><label>Nombre del estudio <span class="req">*</span></label>
+            <input class="inp" placeholder="Taller 3r DAM C"></div>
+          <div class="frow"><label>Pais</label><select class="inp">
+            <option>Espana</option><option>Francia</option><option>Italia</option></select></div>
+          <div class="frow wide"><label>Correo de acceso <span class="req">*</span></label>
+            <input class="inp" type="email" placeholder="taller3c@luduserp.cat">
+            <span class="hint">Sera su identificador de acceso, igual que para cualquier usuario.</span></div>
+        </div>
+        <div class="sect-label">Acceso</div>
+        <div class="form-grid">
+          <div class="frow"><label>Rol</label><input class="inp perm" value="PROVEEDOR" disabled>
+            <span class="hint">Esta pantalla solo crea proveedores: el rol no se elige.</span></div>
+          <div class="frow"><label>Estado</label>
+            <label class="switch" style="margin-top:6px"><input type="checkbox" checked><i></i> Activo</label></div>
+          <div class="frow wide"><label>Contrasena inicial</label>
+            <div class="row"><input class="inp mono" value="Tr3sDAM-9f4k" style="flex:1 1 auto">
+              <button class="btn">Generar otra</button></div>
+            <span class="hint">Se guarda cifrada con BCrypt. Se ve en claro solo ahora.</span></div>
+        </div>
+        <div class="row wrap" style="gap:20px">
+          <label class="cbx"><input type="checkbox" checked> Obligar a cambiarla en el primer acceso</label>
+          <label class="cbx"><input type="checkbox" checked> Enviarsela por correo</label>
+        </div>
+      </div>
+      <div class="form-foot">
+        <span class="note">Una cuenta con juegos publicados no se puede borrar, solo desactivar.</span>
+        <a class="btn" href="#/admin/proveedores">Cancelar</a>
+        <button class="btn btn-primary">${ICONS.check} Crear la cuenta</button>
+      </div>
+    </div>
+    <div class="stack">
+      ${note(`Un proveedor es una fila mas de <code>usuario</code>, como el cliente y el empleado:
+        lo que cambia es el rol y lo que le cuelga.`)}
+      ${abierta(`el rol nuevo son <b>seis</b> roles en total. Hay que decidir si PROVEEDOR entra en el
+        mismo enum <code>Rol</code> que los otros cinco.`)}
+    </div>
+  </div>`};
+
+/* --- 11. Mapa de vistas del prototipo ------------------------------------- */
 const MAPA = [
   ["Acceso", [["login","Inicio de sesion"],["registro","Registro de cliente"]]],
   ["Tienda", [["tienda","Catalogo"],["tienda/ficha","Ficha de videojuego"]]],
@@ -1962,7 +2411,8 @@ const MAPA = [
   ["Panel", [["panel","Panel de control"],["perfil","Mi perfil y preferencias"]]],
   ["Catalogo", [["catalogo/videojuegos","Listado de videojuegos"],
     ["catalogo/videojuego","Alta / edicion de videojuego"],["catalogo/imagenes","Imagenes y portada"],
-    ["catalogo/clasificacion","Categorias, plataformas y estudios"]]],
+    ["catalogo/clasificacion","Categorias, plataformas y estudios"],
+    ["catalogo/solicitudes","Solicitudes de publicacion"]]],
   ["Aprovisionamiento", [["compras/proveedores","Listado de proveedores"],
     ["compras/proveedor","Alta de proveedor"],["compras/ordenes","Ordenes de compra"],
     ["compras/orden","Detalle de una orden"],["compras/recepcion","Recepcion de mercancia"],
@@ -1971,8 +2421,11 @@ const MAPA = [
     ["ventas/documentos","Facturas emitidas"],["ventas/factura","Previsualizacion de factura"]]],
   ["Clientes", [["clientes/lista","Listado de clientes"],["clientes/ficha","Ficha de cliente"]]],
   ["Administracion", [["admin/empleados","Empleados"],["admin/empleado","Alta de empleado"],
-    ["admin/departamentos","Departamentos"],
+    ["admin/departamentos","Departamentos"],["admin/proveedores","Cuentas de proveedor"],
+    ["admin/proveedor","Crear cuenta de proveedor"],
     ["admin/config","Configuracion"],["admin/jobs","Trabajos en segundo plano"]]],
+  ["Proveedor", [["proveedor/panel","Panel del estudio"],["proveedor/juegos","Mis juegos"],
+    ["proveedor/solicitud","Publicar un juego"],["proveedor/cuenta","Mi cuenta y acceso"]]],
 ];
 VIEWS["mapa"] = { shell:"panel", crumb:["Prototipo","Mapa de vistas"], body:()=>`
   ${head("Mapa de vistas",

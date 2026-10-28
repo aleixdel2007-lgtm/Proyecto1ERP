@@ -243,14 +243,39 @@ Son 21 clases. Las CUATRO de seguridad ya tienen codigo (ver 5.3). Las otras
     NetBeans, que trae su propio Maven. Anadir el wrapper con
     mvn -N wrapper:wrapper seria recomendable en un proyecto de grupo.
 
-7.6 PENDIENTE: cifrar el NIF y el IBAN del empleado con AES.
-    El requisito 3.7 lo pide y el documento nombra justo esos dos campos (mas
-    el CIF y el IBAN del proveedor, y el codigo de la clave de licencia). Hoy
-    estan en texto plano porque el conversor no existe todavia.
-    Cuando se escriba CifradoAesConverter: @Convert sobre el campo, y las
-    columnas pasan de VARCHAR a VARBINARY, lo que exigira una migracion nueva
-    si V1 ya se ha aplicado. La clave maestra se lee de una variable de
-    entorno y NO se versiona.
+7.6 CIFRADO AES: hecho para nif, iban y el codigo de la clave de licencia.
+    config/CifradoAesConverter.java cifra con AES-256-GCM y se aplica con
+    @Convert sobre el campo. Es transparente: en Java el campo siempre tiene
+    el dato en claro, y el cifrado pasa al entrar y salir de la base de datos,
+    asi que ni el servicio ni el controlador se enteran.
+    Las columnas cifradas son VARCHAR(128) y no VARBINARY porque se guarda el
+    resultado en Base64, con el vector de inicializacion delante.
+    FALTA aplicarlo al CIF y al IBAN del proveedor, cuando se escriba esa
+    entidad. Esas columnas tambien tendran que medir 128.
+
+    LA CLAVE MAESTRA se lee de la variable de entorno LUDUSERP_AES_KEY: 32
+    bytes en Base64, que se generan con openssl rand -base64 32. NO va en
+    application.properties ni en nbactions.xml, que estan versionados.
+    Tiene que ser la MISMA para los cinco si os pasais volcados de datos.
+    Y hay que reiniciar NetBeans entero despues de crearla: las variables de
+    entorno se leen al arrancar el proceso.
+
+7.6.1 POR QUE EL NIF TIENE UN HASH Y EL IBAN NO.
+    AES-GCM no es determinista: el mismo NIF cifrado dos veces da dos textos
+    distintos. Consecuencia: sobre una columna cifrada NO se puede poner un
+    UNIQUE que funcione, ni buscar, ni ordenar, ni hacer LIKE.
+    Como el NIF tiene que ser unico entre empleados (y el proyecto tiene que
+    escalar a mas de cinco), se usa un INDICE CIEGO: la columna nif_hash,
+    con UNIQUE, que rellena el servicio con config/IndiceCiego.hash(nif).
+    Es un HMAC-SHA256 con la clave maestra, no un hash pelado: un SHA-256 de
+    un NIF se rompe por fuerza bruta en segundos porque solo hay unos 100
+    millones de NIF posibles, pero sin la clave no se puede construir esa
+    tabla. Es determinista, asi que el UNIQUE si funciona.
+    El IBAN no lleva hash porque no necesita ser unico ni buscable.
+    IMPORTANTE: el nif_hash NO se calcula solo. El servicio tiene que hacer
+    empleado.setNifHash(IndiceCiego.hash(nif)) al guardar.
+    ClaveLicencia.codigoHash es el mismo patron, y conviene calcularlo
+    tambien con IndiceCiego para que el proyecto sea coherente.
 
 7.7 AVISO para quien escriba DetallesUsuarioServicio: hasRole('ADMIN') busca
     la autoridad ROLE_ADMIN, con prefijo. Al convertir el enum Rol en
