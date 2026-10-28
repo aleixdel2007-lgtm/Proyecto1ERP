@@ -1,7 +1,7 @@
 -- Modulo de seguridad: usuarios, sus caras y los departamentos.
 --
 -- Usuario es una clase abstracta con estrategia JOINED. Esta tabla guarda lo
--- comun a todos, y cliente y trabajador guardan lo suyo compartiendo la MISMA
+-- comun a todos, y cada cara guarda lo suyo compartiendo la MISMA
 -- clave primaria. Por eso sus id no son AUTO_INCREMENT: son la id del usuario y
 -- a la vez la clave ajena que apunta a el, y esa doble condicion es la que hace
 -- que la relacion 1:1 no pueda romperse.
@@ -29,6 +29,13 @@ CREATE TABLE cliente (
     fecha_nacimiento DATE         NULL,
     PRIMARY KEY (id),
     CONSTRAINT fk_cliente_usuario
+        FOREIGN KEY (id) REFERENCES usuario (id)
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4;
+
+CREATE TABLE cuenta_proveedor (
+    id BIGINT NOT NULL,
+    PRIMARY KEY (id),
+    CONSTRAINT fk_cuenta_proveedor_usuario
         FOREIGN KEY (id) REFERENCES usuario (id)
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4;
 
