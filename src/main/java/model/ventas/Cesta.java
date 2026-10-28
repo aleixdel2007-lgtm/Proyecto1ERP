@@ -3,7 +3,7 @@ package model.ventas;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-import model.seguridad.Usuario;
+import model.seguridad.Cliente;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -20,8 +20,8 @@ public class Cesta {
     private Long id;
 
     @OneToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "usuario_id", nullable = false, unique = true)
-    private Usuario usuario;
+    @JoinColumn(name = "cliente_id", nullable = false, unique = true)
+    private Cliente cliente;
 
     @Column(name = "fecha_creacion", nullable = false)
     private LocalDateTime fechaCreacion;

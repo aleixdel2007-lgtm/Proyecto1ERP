@@ -20,7 +20,7 @@ public class Factura {
     @JoinColumn(name = "pedido_id", nullable = false, unique = true)
     private Pedido pedido;
 
-    @Column(nullable = false, unique = true, length = 20)
+    @Column(name = "numero", nullable = false, unique = true, length = 20)
     private String numero;
 
     @Column(name = "fecha_emision", nullable = false)

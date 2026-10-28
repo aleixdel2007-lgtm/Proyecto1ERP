@@ -4,7 +4,6 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import model.catalogo.Videojuego;
-import model.inventario.ClaveLicencia;
 
 import java.math.BigDecimal;
 
@@ -26,13 +25,9 @@ public class LineaPedido {
     @JoinColumn(name = "videojuego_id", nullable = false)
     private Videojuego videojuego;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "clave_licencia_id", nullable = false)
-    private ClaveLicencia claveLicencia;
-
     @Column(name = "precio_unitario", nullable = false, precision = 10, scale = 2)
     private BigDecimal precioUnitario;
 
-    @Column(nullable = false, precision = 10, scale = 2)
+    @Column(name = "descuento", nullable = false, precision = 10, scale = 2)
     private BigDecimal descuento = BigDecimal.ZERO;
 }

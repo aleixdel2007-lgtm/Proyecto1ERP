@@ -25,6 +25,6 @@ public class LineaCesta {
     @JoinColumn(name = "videojuego_id", nullable = false)
     private Videojuego videojuego;
 
-    @Column(nullable = false)
+    @Column(name = "cantidad", nullable = false)
     private int cantidad = 1;
 }

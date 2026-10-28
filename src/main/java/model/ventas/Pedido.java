@@ -3,7 +3,7 @@ package model.ventas;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-import model.seguridad.Usuario;
+import model.seguridad.Cliente;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -20,29 +20,31 @@ public class Pedido {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true, length = 20)
+    @Column(name = "numero", nullable = false, unique = true, length = 20)
     private String numero;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "usuario_id", nullable = false)
-    private Usuario usuario;
+    @JoinColumn(name = "cliente_id", nullable = false)
+    private Cliente cliente;
 
-    @Column(nullable = false)
+    @Column(name = "fecha", nullable = false)
     private LocalDateTime fecha;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 20)
+    @Column(name = "estado", nullable = false, length = 20)
     private EstadoPedido estado = EstadoPedido.PENDIENTE_PAGO;
 
     @Column(name = "base_imponible", nullable = false, precision = 10, scale = 2)
     private BigDecimal baseImponible;
 
-    @Column(nullable = false, precision = 10, scale = 2)
+    @Column(name = "iva", nullable = false, precision = 10, scale = 2)
     private BigDecimal iva = BigDecimal.ZERO;
 
-    @Column(nullable = false, precision = 10, scale = 2)
+    @Column(name = "total", nullable = false, precision = 10, scale = 2)
     private BigDecimal total;
 
+    // ToDo Stripe: guardar aqui la referencia del pago (payment intent) para poder
+    // conciliar y reembolsar. metodoPago se queda provisional.
     @Column(name = "metodo_pago", length = 30)
     private String metodoPago;
 
