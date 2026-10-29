@@ -1,0 +1,12 @@
+@import "navbar.css";
+
+
+.home-message-container{
+    height: 90vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    & h2{
+        color: var(--purple-light);
+    }
+}

@@ -1,6 +1,7 @@
 package config;
 
 import dao.UsuarioDao;
+import model.seguridad.Rol;
 import model.seguridad.Usuario;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -48,7 +49,12 @@ public class SecurityConfig {
                 )
                 .formLogin(form -> form
                         .loginPage("/login")
-                        .defaultSuccessUrl("/home", true) // Redirige a "/home"
+                        // Los clientes van a la tienda; el resto de roles, a "/home"
+                        .successHandler((request, response, authentication) -> {
+                            boolean esCliente = authentication.getAuthorities().stream()
+                                    .anyMatch(a -> a.getAuthority().equals("ROLE_" + Rol.CLIENTE.name()));
+                            response.sendRedirect(request.getContextPath() + (esCliente ? "/tienda" : "/home"));
+                        })
                         .permitAll()
                 )
                 .logout(logout -> logout
