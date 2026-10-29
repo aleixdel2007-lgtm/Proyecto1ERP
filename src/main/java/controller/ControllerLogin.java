@@ -17,6 +17,11 @@ public class ControllerLogin {
         }
     }
 
+    @GetMapping("/registro")
+    public String registro() {
+        return "login/crearCuenta";
+    }
+
     @GetMapping("/login")
     public String login() {
         return "login/login";
@@ -27,4 +32,5 @@ public class ControllerLogin {
         SecurityContextHolder.getContext().setAuthentication(null);
         return "redirect:/login";
     }
+
 }
