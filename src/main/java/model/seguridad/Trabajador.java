@@ -28,7 +28,7 @@ public class Trabajador extends Usuario {
     private String nifHash;
 
     @Convert(converter = CifradoAesConverter.class)
-    @Column(name = "iban", length = 128)
+    @Column(name = "iban", length = 128) 
     private String iban;
 
     @Column(name = "fecha_contratacion")

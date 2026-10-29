@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<!--
+Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+Click nbfs://nbhost/SystemFileSystem/Templates/Other/html.html to edit this template
+-->
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+    <head>
+        <title>Departamentos</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    </head>
+    <body>
+
+        <h1>Departamentos</h1>
+
+        <a th:href="@{/departamentos/nuevo}">+ Nuevo departamento</a>
+
+        <table>
+            <tr>
+                <th>Nombre</th>
+                <th>Descripción</th>
+                <th>Acciones</th>
+            </tr>
+
+            <tr th:each="dep : ${departamentos}">
+                <td th:text="${dep.nombre}"></td>
+                <td th:text="${dep.descripcion}"></td>
+
+                <td>
+                    <a th:href="@{/departamentos/editar/{id}(id=${dep.id})}">
+                        Editar
+                    </a>
+
+                    <form th:action="@{/departamentos/eliminar/{id}(id=${dep.id})}"
+                          method="post"
+                          onsubmit="return confirm('¿Estás seguro de que quieres eliminar este departamento?');">
+
+                        <button type="submit">Eliminar</button>
+                    </form>
+                </td>
+            </tr>
+        </table>
+
+    </body>
+</html>

@@ -11,6 +11,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
  *
  * @author Sandy
  */
-public interface DepartamentoDAO extends JpaRepository<Departamento, Long> {
+public interface DepartamentoDao extends JpaRepository<Departamento, Long> {
 
 }

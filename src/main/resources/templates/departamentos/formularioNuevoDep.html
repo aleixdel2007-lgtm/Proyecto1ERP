@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<!--
+Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+Click nbfs://nbhost/SystemFileSystem/Templates/Other/html.html to edit this template
+-->
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+    <head>
+        <title>Nuevo departamento</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    </head>
+    <body>
+
+        <h1>Crear departamento</h1>
+
+        <form th:action="@{/departamentos/guardar}" th:object="${departamento}" method="post">
+
+            <label>Nombre:</label>
+            <input type="text" th:field="*{nombre}" maxlength="80" required>
+
+            <label>Descripción:</label>
+            <input type="text" th:field="*{descripcion}" maxlength="255">
+
+            <label>Responsable:</label>
+            <select name="responsableId">
+                <option value="">Sin responsable</option>
+
+                <option th:each="trabajador : ${trabajadores}"
+                        th:value="${trabajador.id}"
+                        th:text="${trabajador.nombre}">
+                </option>
+            </select>
+            <button type="submit">Guardar departamento</button>
+
+        </form>
+
+    </body>
+</html>
+
+

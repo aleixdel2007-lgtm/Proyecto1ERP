@@ -4,14 +4,16 @@
  */
 package service.implement;
 
-import dao.DepartamentoDAO;
+import dao.TrabajadorDao;
 import jakarta.persistence.EntityNotFoundException;
 import java.util.List;
 import model.seguridad.Departamento;
+import model.seguridad.Trabajador;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import service.interfaces.DepartamentoService;
+import dao.DepartamentoDao;
 
 /**
  *
@@ -21,17 +23,20 @@ import service.interfaces.DepartamentoService;
 public class DepartamentoServiceImpl implements DepartamentoService {
 
     @Autowired
-    private DepartamentoDAO departamentoDAO;
+    private DepartamentoDao departamentoDao;
+
+    @Autowired
+    private TrabajadorDao trabajadorDao;
 
     @Override
     public List<Departamento> listarDepartamentos() {
-        return departamentoDAO.findAll();
+        return departamentoDao.findAll();
     }
 
     @Override
     public Departamento buscarDepartamentoXId(Long id) {
 
-        Departamento departamento = departamentoDAO.findById(id).orElse(null);
+        Departamento departamento = departamentoDao.findById(id).orElse(null);
 
         if (departamento == null) {
             throw new EntityNotFoundException("El departamento no existe");
@@ -40,39 +45,79 @@ public class DepartamentoServiceImpl implements DepartamentoService {
     }
 
     @Override
-    public Departamento guardarDepartamento(Departamento departamento) { //para modificar tambien 
+    public Departamento guardarDepartamento(Departamento departamento, Long responsableId) {
+
+        validarNombre(departamento);
+        validarNombreRepetido(departamento);
+        asignarResponsable(departamento, responsableId);
+
+        return departamentoDao.save(departamento);
+    }
+
+    private void validarNombre(Departamento departamento) {
+
         if (departamento.getNombre() == null || departamento.getNombre().isBlank()) {
             throw new IllegalArgumentException("El nombre es obligatorio");
         }
-        if (departamento.getNombre().length() > 80) {
-            throw new IllegalArgumentException(
-                    "El nombre no puede superar los 80 caracteres");
-        }
 
-        List<Departamento> departamentos = departamentoDAO.findAll(); //los listo todos
+        if (departamento.getNombre().length() > 80) {
+            throw new IllegalArgumentException("El nombre no puede superar los 80 caracteres");
+        }
+    }
+
+    private void validarNombreRepetido(Departamento departamento) {
+
+        List<Departamento> departamentos = departamentoDao.findAll();
 
         for (Departamento dep : departamentos) {
 
-            if (dep.getNombre().equalsIgnoreCase(departamento.getNombre()) //comparo por nombre y por id 
-                    && !dep.getId().equals(departamento.getId())) { //si el nombre es igual, pero el id no es igual no se puede pq ya existiria
+            if (dep.getNombre().equalsIgnoreCase(departamento.getNombre())
+                    && !dep.getId().equals(departamento.getId())) {
+
                 throw new IllegalArgumentException("Ya existe un departamento con ese nombre");
             }
-
         }
-        return departamentoDAO.save(departamento);
     }
 
-    @Transactional
-    @Override
-    public void eliminarDepartamento(Long id) { //delete 
-        Departamento departamento = buscarDepartamentoXId(id); //lo busco por id
+    private void asignarResponsable(Departamento departamento, Long responsableId) {
 
-        if (!departamento.getTrabajadores().isEmpty()) { //si ese id tiene trabajadores, no se puede borrar
+        if (responsableId != null) {
+
+            Trabajador responsable = trabajadorDao.findById(responsableId).orElse(null);
+
+            if (responsable == null) {
+                throw new IllegalArgumentException("El responsable no existe");
+            }
+
+            departamento.setResponsable(responsable);
+
+        } else {
+            departamento.setResponsable(null);
+        }
+    }
+
+    @Override
+    @Transactional
+    public void eliminarDepartamento(Long id) {
+
+        Departamento departamento = buscarDepartamentoXId(id);
+
+        validarTrabajadoresAsociados(departamento);
+
+        departamentoDao.delete(departamento);
+    }
+
+    private void validarTrabajadoresAsociados(Departamento departamento) {
+
+        if (!departamento.getTrabajadores().isEmpty()) {
             throw new IllegalStateException(
                     "No se puede eliminar un departamento con trabajadores asociados"
             );
-
         }
-        departamentoDAO.delete(departamento);
+    }
+
+    @Override
+    public List<Trabajador> listarTrabajadores() { //para listar los responsables 
+        return trabajadorDao.findAll();
     }
 }
