@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<body>
+
+<header class="top" th:fragment="navbar">
+    <a class="top-brand" th:href="@{/home}" href="#">
+        <div class="brand-mark">L</div>
+        <div class="brand-name">Ludus<span>ERP</span></div>
+    </a>
+    <th:block th:if="${#authentication.authorities[0].authority != 'ROLE_ADMIN'}">
+        <div class="top-search">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/>
+            </svg>
+            <input placeholder="Buscar en todo el catalogo...">
+        </div>
+
+        <select class="lang" title="Idioma de la interfaz">
+            <option>ES</option>
+            <option>CA</option>
+            <option>EN</option>
+        </select>
+    </th:block>
+    <div class="who">
+        <div class="avatar"
+             th:text="${#strings.toUpperCase(#strings.substring(#authentication.name, 0, 2))}">AD</div>
+        <div class="who-txt">
+            <b th:text="${#authentication.name}">admin@luduserp.cat</b>
+            <span th:text="${#strings.replace(#authentication.authorities[0].authority, 'ROLE_', '')}">ADMIN</span>
+        </div>
+    </div>
+
+    <a class="top-logout" th:href="@{/logout}" href="#">Cerrar sesión</a>
+</header>
+
+</body>
+</html>
