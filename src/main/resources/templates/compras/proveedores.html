@@ -1,15 +1,152 @@
-<!DOCTYPE html>
-<!--
-Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
-Click nbfs://nbhost/SystemFileSystem/Templates/Other/html.html to edit this template
--->
-<html>
-    <head>
-        <title>TODO supply a title</title>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    </head>
-    <body>
-        <div>TODO write content</div>
-    </body>
+<!doctype html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Proveedores · LudusERP</title>
+    <link rel="stylesheet" th:href="@{/css/panel.css}">
+</head>
+<body>
+
+<div class="app">
+
+    <aside th:replace="~{fragments/panel :: menu('proveedores')}"></aside>
+
+    <div class="main">
+
+        <header th:replace="~{fragments/panel :: barra('Aprovisionamiento', 'Proveedores')}"></header>
+
+        <main class="canvas">
+
+            <div class="alert alert-ok" th:if="${mensaje}" th:text="${mensaje}"></div>
+
+            <div class="page-head">
+                <div>
+                    <h1>Proveedores</h1>
+                    <p>CRUD de proveedores. El CIF y el IBAN se guardan cifrados con AES-256-GCM
+                        mediante un <code>AttributeConverter</code> de JPA.</p>
+                </div>
+                <div class="page-actions">
+                    <a class="btn btn-primary" th:href="@{/compras/proveedores/nuevo}">
+                        <svg th:replace="~{fragments/iconos :: plus}"></svg> Nuevo proveedor</a>
+                </div>
+            </div>
+
+            <div class="card">
+
+                <div class="filters">
+                    <div class="fld">
+                        <label>Buscar</label>
+                        <div class="search-inp">
+                            <svg th:replace="~{fragments/iconos :: search}"></svg>
+                            <input placeholder="Nombre comercial o CIF" disabled>
+                        </div>
+                    </div>
+                    <div class="fld">
+                        <label>País</label>
+                        <select class="inp" disabled>
+                            <option>Todos</option>
+                            <option>Espana</option>
+                            <option>Suecia</option>
+                            <option>Alemania</option>
+                        </select>
+                    </div>
+                    <div class="fld">
+                        <label>Estado</label>
+                        <select class="inp" disabled>
+                            <option>Todos</option>
+                            <option>Activo</option>
+                            <option>Inactivo</option>
+                        </select>
+                    </div>
+                    <div class="fld">
+                        <label>&nbsp;</label>
+                        <button class="btn btn-primary" disabled>Filtrar</button>
+                    </div>
+                </div>
+
+                <div class="card-body tight">
+
+                    <div class="empty" th:if="${#lists.isEmpty(proveedores)}">
+                        <h4>Todavía no hay proveedores</h4>
+                        <p class="hint">Crea el primero con el botón «Nuevo proveedor».</p>
+                    </div>
+
+                    <div class="tbl-wrap" th:unless="${#lists.isEmpty(proveedores)}">
+                        <table class="tbl">
+                            <thead>
+                            <tr>
+                                <th>Proveedor</th>
+                                <th>CIF</th>
+                                <th>País</th>
+                                <th>Contacto</th>
+                                <th class="num">Total comprado</th>
+                                <th>Estado</th>
+                                <th class="acts"></th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="p : ${proveedores}">
+                                <td>
+                                    <div>
+                                        <div class="t-main" th:text="${p.nombreComercial}">Nombre comercial</div>
+                                        <div class="t-sub" th:text="${p.razonSocial}">Razón social</div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="enc" th:text="${p.cif}">B12345678</span>
+                                    <span class="enc-tag">AES-256</span>
+                                </td>
+                                <td th:text="${p.pais}">Espana</td>
+                                <td>
+                                    <a th:href="'mailto:' + ${p.email}" th:text="${p.email}">correo@ejemplo.com</a>
+                                </td>
+                                <td class="num"><span class="muted" title="Pendiente del SUM sobre compra">—</span></td>
+                                <td>
+                                    <span class="badge" th:classappend="${p.activo} ? 'b-good' : 'b-mute'"
+                                          th:text="${p.activo} ? 'ACTIVO' : 'INACTIVO'">ACTIVO</span>
+                                </td>
+                                <td class="acts">
+                                    <button type="button" class="btn btn-sm btn-ghost" title="Ver" disabled>
+                                        <svg th:replace="~{fragments/iconos :: eye}"></svg>
+                                    </button>
+                                    <a class="btn btn-sm btn-ghost" title="Editar"
+                                       th:href="@{/compras/proveedores/{id}/editar(id=${p.id})}">
+                                        <svg th:replace="~{fragments/iconos :: edit}"></svg>
+                                    </a>
+                                    <form th:action="@{/compras/proveedores/{id}/activo(id=${p.id})}" method="post">
+                                        <input type="hidden" name="activo" th:value="${!p.activo}">
+                                        <button type="submit" class="btn btn-sm btn-danger" title="Dar de baja"
+                                                th:if="${p.activo}">
+                                            <svg th:replace="~{fragments/iconos :: trash}"></svg>
+                                        </button>
+                                        <button type="submit" class="btn btn-sm btn-ghost" title="Reactivar"
+                                                th:unless="${p.activo}">
+                                            <svg th:replace="~{fragments/iconos :: check}"></svg>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="pager" th:unless="${#lists.isEmpty(proveedores)}">
+                    <span>Mostrando <b th:text="${#lists.size(proveedores)}">0</b>
+                        de <b th:text="${#lists.size(proveedores)}">0</b> registros</span>
+                    <div class="pages">
+                        <button class="pg" disabled>&lsaquo;</button>
+                        <button class="pg on" disabled>1</button>
+                        <button class="pg" disabled>&rsaquo;</button>
+                    </div>
+                </div>
+
+            </div>
+
+        </main>
+    </div>
+</div>
+
+</body>
 </html>

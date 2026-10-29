@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<body>
+
+<aside class="side" th:fragment="menu(activo)">
+    <div class="brand">
+        <div class="brand-mark">L</div>
+        <div class="brand-name">Ludus<span>ERP</span></div>
+    </div>
+
+    <div class="side-scroll">
+        <div class="nav-group">General</div>
+        <a class="nav-item" th:classappend="${activo == 'inicio'} ? 'on' : ''"
+           th:href="@{/home}">Inicio</a>
+
+        <div class="nav-group">Aprovisionamiento</div>
+        <a class="nav-item" th:classappend="${activo == 'proveedores'} ? 'on' : ''"
+           th:href="@{/compras/proveedores}">Proveedores</a>
+    </div>
+
+    <div class="side-foot">
+        <form th:action="@{/logout}" method="post">
+            <button type="submit" class="btn btn-ghost btn-block">Cerrar sesión</button>
+        </form>
+    </div>
+</aside>
+
+<header class="top" th:fragment="barra(seccion, titulo)">
+    <div class="crumb">
+        <span th:text="${seccion}">Aprovisionamiento</span>
+        <span>/</span>
+        <b th:text="${titulo}">Proveedores</b>
+    </div>
+    <div class="who">
+        <div class="avatar"
+             th:text="${#strings.toUpperCase(#strings.substring(#authentication.name, 0, 1))}">A</div>
+        <div class="who-txt">
+            <b sec:authentication="name">usuario@luduserp.cat</b>
+            <span sec:authentication="principal.authorities">ROLE_ADMIN</span>
+        </div>
+    </div>
+</header>
+
+</body>
+</html>

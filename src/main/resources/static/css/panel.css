@@ -128,6 +128,7 @@ button,input,select,textarea{font-family:inherit;font-size:inherit}
 .btn-danger{color:#ffb4ae;border-color:rgba(248,81,73,.35);background:rgba(248,81,73,.1)}
 .btn-danger:hover{background:rgba(248,81,73,.18);border-color:rgba(248,81,73,.5)}
 .btn-sm{padding:4px 9px;font-size:12px}
+.btn-block{width:100%;justify-content:center}
 .btn[disabled]{opacity:.45;pointer-events:none}
 
 /* --- tarjetas ------------------------------------------------------------- */
@@ -242,8 +243,8 @@ textarea.inp{resize:vertical;min-height:84px;line-height:1.55}
     border-radius:50%;background:#8b8b93;transition:.15s;
 }
 .switch input{display:none}
-.switch input:checked + i{background:var(--purple);border-color:var(--purple)}
-.switch input:checked + i::after{left:17px;background:#fff}
+.switch input:checked ~ i{background:var(--purple);border-color:var(--purple)}
+.switch input:checked ~ i::after{left:17px;background:#fff}
 .cbx{display:inline-flex;align-items:center;gap:8px;font-size:13px;color:var(--ink-2);cursor:pointer}
 .cbx input{accent-color:var(--purple);width:15px;height:15px}
 .form-foot{
@@ -256,9 +257,17 @@ textarea.inp{resize:vertical;min-height:84px;line-height:1.55}
 .alert{border-radius:var(--r-sm);padding:9px 12px;font-size:12.5px;border:1px solid;margin-bottom:16px}
 .alert-err{color:#ffb4ae;background:rgba(248,81,73,.1);border-color:rgba(248,81,73,.35)}
 .alert-ok{color:var(--good);background:rgba(86,211,100,.1);border-color:rgba(86,211,100,.28)}
-.note{
+.note-box{
     border-radius:var(--r-sm);padding:11px 13px;font-size:12.5px;color:var(--ink-2);
     background:var(--purple-dim);border:1px solid rgba(139,92,246,.28);
+    display:flex;gap:9px;align-items:flex-start;
 }
-.empty{padding:34px 16px;text-align:center}
-.empty h4{font-size:14px;margin-bottom:5px}
+.empty{padding:38px 20px;text-align:center;color:var(--muted)}
+.empty h4{font-size:14px;color:var(--ink-2);margin-bottom:5px}
+.note-box svg{color:var(--purple-light);flex:0 0 auto;margin-top:1px}
+.search-inp{
+    display:flex;align-items:center;gap:7px;background:var(--surface-2);
+    border:1px solid var(--line);border-radius:var(--r-sm);padding:6px 10px;
+}
+.search-inp input{background:none;border:none;outline:none;color:var(--ink);width:190px}
+.search-inp svg{color:var(--muted);flex:0 0 auto}
