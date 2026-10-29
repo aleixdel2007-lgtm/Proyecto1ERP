@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Iniciar sesión · LudusERP</title>
+    <link rel="stylesheet" th:href="@{/css/login.css}" href="../static/css/login.css">
+</head>
+<body>
+
+<main class="auth">
+    <div class="auth-box">
+
+        <div class="auth-brand">
+            <div class="brand-mark">L</div>
+            <div class="brand-name">Ludus<span>ERP</span></div>
+        </div>
+
+        <div class="card">
+            <form class="card-body stack" th:action="@{/login}" method="post">
+
+                <div>
+                    <h2 class="auth-title">Iniciar sesión</h2>
+                    <p class="hint auth-sub">Un único formulario para clientes y empleados: lo que cambia es el rol.</p>
+                </div>
+
+                <!-- Mensajes de Spring Security -->
+                <div class="alert alert-err" th:if="${param.error}">
+                    Correo electrónico o contraseña incorrectos.
+                </div>
+                <div class="alert alert-ok" th:if="${param.logout}">
+                    Has cerrado sesión correctamente.
+                </div>
+
+                <div class="frow">
+                    <label for="username">Correo electrónico <span class="req">*</span></label>
+                    <input class="inp" type="email" id="username" name="username"
+                           th:value="${param.username}" autocomplete="username" required autofocus>
+                </div>
+
+                <div class="frow">
+                    <label for="password">Contraseña <span class="req">*</span></label>
+                    <input class="inp" type="password" id="password" name="password"
+                           autocomplete="current-password" required>
+                </div>
+
+                <div class="spread">
+                    <label class="cbx"><input type="checkbox" name="remember-me"> Recordarme</label>
+                    <a th:href="@{/recuperar-contrasena}" href="#" class="hint">He olvidado la contraseña</a>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-block">Entrar</button>
+
+                <div class="sep"></div>
+
+                <p class="hint auth-foot">
+                    ¿No tienes cuenta? <a th:href="@{/registro}" href="#">Crear una cuenta</a>
+                </p>
+            </form>
+        </div>
+
+    </div>
+</main>
+
+</body>
+</html>
