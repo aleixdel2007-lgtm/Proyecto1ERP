@@ -1,0 +1,292 @@
+===============================================================================
+LudusERP - INFORMACION PARA EL GRUPO
+Que hay, como se pone en marcha, que deberias ver y que falta
+Ultima actualizacion: 28 de octubre de 2026
+===============================================================================
+
+Este fichero es para cualquiera del grupo que se siente delante del proyecto.
+Si buscas el historial de decisiones y el porque de cada cosa, eso esta en
+docs\memoriaClaudeByAleix.txt, que es el que manda si algo se contradice.
+
+
+-------------------------------------------------------------------------------
+1. QUE ES Y QUE HAY EN EL REPOSITORIO
+-------------------------------------------------------------------------------
+
+LudusERP es el ERP de una tienda de videojuegos digitales: catalogo, claves de
+licencia, compras a proveedores, ventas y facturacion. Spring Boot 4.1.1 con
+Java 21, MySQL para lo transaccional y MongoDB para traducciones, preferencias,
+configuracion, auditoria y cache.
+
+  docs\prototipo.html            maqueta navegable, 39 pantallas, sin logica
+  docs\LudusERP-Disseny-UML.pdf  documento de diseno entregable
+  docs\memoriaClaudeByAleix.txt  decisiones y estado del trabajo
+  docs\informacion.txt           este fichero
+
+  src\main\java\application\     la clase principal, y solo ella
+  src\main\java\model\           las entidades, divididas en seis modulos
+  src\main\java\config\          seguridad, cifrado y datos de prueba
+  src\main\java\controller\      los controladores web
+  src\main\java\dao\             repositorios            (vacio)
+  src\main\java\service\         servicios               (vacio)
+  src\main\java\dto\             objetos de formulario   (vacio)
+  src\main\java\document\        documentos de MongoDB   (vacio)
+  src\main\resources\db\migration\   las seis migraciones de Flyway
+  src\main\resources\templates\      las plantillas de Thymeleaf
+
+
+-------------------------------------------------------------------------------
+2. COMO DEJARLO FUNCIONANDO, EN ESTE ORDEN
+-------------------------------------------------------------------------------
+
+2.1 ABRE DOCKER DESKTOP. La aplicacion levanta MySQL y MongoDB ella sola
+    leyendo compose.yaml, pero sin Docker arrancando no puede, y falla.
+
+2.2 CREA LA VARIABLE DE ENTORNO LUDUSERP_AES_KEY. Son 32 bytes en Base64:
+
+        openssl rand -base64 32
+
+    Se guarda como variable de entorno del sistema, NO en application.properties
+    ni en nbactions.xml, que estan en git. Tiene que ser LA MISMA para los cinco
+    si os pasais volcados de datos, porque es la que descifra los NIF, los IBAN
+    y los codigos de las claves de licencia.
+
+    Despues de crearla, REINICIA NETBEANS ENTERO. Las variables de entorno se
+    leen al arrancar el proceso, no al ejecutar el proyecto.
+
+2.3 SI YA HABIAS ARRANCADO EL PROYECTO ALGUNA VEZ, borra las bases:
+
+        docker compose down -v
+
+    La -v es lo importante: borra los volumenes. Sin ella los contenedores se
+    van pero los datos se quedan, y el problema del apartado 5.1 sigue ahi.
+
+2.4 ARRANCA desde NetBeans con Run.
+
+
+-------------------------------------------------------------------------------
+3. QUE DEBERIAS VER SI VA BIEN
+-------------------------------------------------------------------------------
+
+3.1 EN LA CONSOLA, en este orden:
+
+    - spring-boot-docker-compose levantando los dos contenedores y esperando a
+      que pasen el healthcheck
+    - Flyway migrando seis veces, de la V1 a la V6
+    - Hibernate validando el esquema, en silencio si todo cuadra
+    - Started Proyecto1ErpApplication in X seconds
+
+    Si Flyway o Hibernate se quejan, la aplicacion NO arranca. Mirate el
+    apartado 5.
+
+3.2 EN DBEAVER. Ojo con esto, que es donde se pierde todo el mundo: los puertos
+    NO son los estandar, para no chocar con un MySQL que ya tengas instalado.
+
+        Host        localhost
+        Puerto      3307          <-- no 3306
+        Base        luduserp
+        Usuario     luduserp      (o root)
+        Password    luduserp      (o root)
+
+    MongoDB va en el 27018, usuario y password luduserp.
+
+    Deberias ver 24 tablas: las 23 del modelo mas flyway_schema_history. Y en
+    esa ultima, seis filas con success = 1.
+
+3.3 LOS DATOS DE PRUEBA. config\DatosIniciales.java se ejecuta al arrancar y
+    siembra 10 usuarios, 4 departamentos y 2 estudios. Si la tabla usuario ya
+    tiene a alguien, no hace nada: es idempotente a proposito, porque los
+    contenedores sobreviven a los reinicios.
+
+    Solo se ejecuta con el perfil dev activo, que es lo que hay puesto hoy en
+    application.properties. En produccion no se ejecutara.
+
+
+-------------------------------------------------------------------------------
+4. USUARIOS DE PRUEBA
+-------------------------------------------------------------------------------
+
+La contrasena es la misma para todos: luduserp
+
+  ROL                 CORREO
+  ADMIN               admin@luduserp.cat
+  GESTOR_PRODUCTOS    producto@luduserp.cat
+  GESTOR_CLIENTES     clientes@luduserp.cat
+  GESTOR_INVENTARIO   inventario@luduserp.cat
+  CLIENTE             ana.torres@example.com
+  CLIENTE             bruno.gil@example.com
+  CLIENTE             carla.ruiz@example.com
+  CLIENTE             diego.mas@example.com
+  PROVEEDOR           taller3dam@example.com
+  PROVEEDOR           contacto@pixelforge.dev
+
+Las dos cuentas de proveedor nacen con debe_cambiar_password = true, porque a un
+estudio se le entrega una contrasena inicial y la aplicacion tiene que obligarle
+a cambiarla en el primer acceso. Eso todavia no esta programado.
+
+Nadie se registra como proveedor: esas cuentas las crea el ERP.
+
+
+-------------------------------------------------------------------------------
+5. COSAS QUE ROMPEN, Y COMO SALIR
+-------------------------------------------------------------------------------
+
+5.1 Migration checksum mismatch for migration version N
+
+    Es el error mas habitual y el mas confuso, porque la aplicacion no arranca
+    pero los contenedores siguen vivos, asi que parece que todo va bien y la
+    base de datos simplemente no cambia.
+
+    Pasa porque Flyway guarda una huella del contenido de cada migracion que ha
+    aplicado. Si alguien edita una migracion ya aplicada, la huella deja de
+    cuadrar y Flyway se niega a seguir.
+
+    Solucion: docker compose down -v, y arrancar otra vez.
+
+    REGLA: mientras no esteis en produccion, editar una migracion es gratis,
+    pero obliga a borrar los volumenes. En produccion NO se edita una migracion
+    nunca: se escribe una nueva.
+
+5.2 Falta la variable de entorno LUDUSERP_AES_KEY
+
+    No la has creado, o la creaste sin reiniciar NetBeans. Apartado 2.2.
+
+5.3 La aplicacion no levanta y habla de Docker
+
+    Docker Desktop no esta arrancado. Apartado 2.1.
+
+5.4 Hibernate se queja de que una columna no cuadra
+
+    Con ddl-auto=validate, Hibernate no toca el esquema: solo comprueba que las
+    entidades y las tablas digan lo mismo, y se niega a arrancar si no. Es a
+    proposito. Si sale, hay que corregir la entidad o la migracion y volver al
+    5.1. Los sospechosos habituales son BOOLEAN contra TINYINT(1), las columnas
+    TEXT y las tablas de coleccion del catalogo.
+
+5.5 Entras a cualquier pagina y salta un error 500
+
+    Falta la plantilla templates\login\login.html. Los controladores devuelven
+    esa vista y el fichero no existe todavia, asi que ahora mismo no se puede
+    llegar a ninguna pagina. Es un fichero que falta, nada mas.
+
+5.6 Escribes una clase nueva y Spring la ignora sin decir nada
+
+    El escaneo de Spring no sale de la raiz del proyecto, sale del paquete donde
+    esta la clase principal. Como esa clase vive en application\, hay una lista
+    escrita a mano en Proyecto1ErpApplication que dice que paquetes escanear:
+
+        application, model, config, service, controller, dao
+
+    SI CREAS UN PAQUETE NUEVO EN LA RAIZ Y NO LO ANADES A ESA LISTA, tu codigo
+    no existe para Spring y no hay ningun aviso. Es la trampa numero uno del
+    proyecto ahora mismo. El arreglo definitivo es mover todo bajo un paquete
+    base unico, y esta sin decidir.
+
+5.7 No tienes Maven en el PATH
+
+    No hay wrapper. Para comprobar en treinta segundos si el modelo compila, con
+    Git Bash desde la raiz del proyecto, poniendo los dos jars en el classpath:
+    el de Lombok y el de jakarta.persistence-api, que estan en tu carpeta .m2.
+    Se compilan las carpetas config y model con javac y la opcion -proc:full,
+    que es la que hace que Lombok genere los getters.
+
+    Para compilar el proyecto entero hacen falta todos los jars de .m2 en el
+    classpath, asi que para eso es mas comodo el Build de NetBeans.
+
+
+-------------------------------------------------------------------------------
+6. QUE ESTA HECHO Y QUE FALTA
+-------------------------------------------------------------------------------
+
+EL MODELO ESTA COMPLETO. Seis modulos, 23 tablas, y esta verificado que todas
+las claves ajenas resuelven en el orden en que Flyway las ejecuta.
+
+  MODULO             ENTIDADES   MIGRACION
+  seguridad          hecho       V1__Seguridad.sql
+  catalogo           hecho       V2__Catalogo.sql
+  aprovisionamiento  hecho       V3__Aprovisionamiento.sql
+  ventas             hecho       V4__Ventas.sql
+  inventario         hecho       V5__Inventario.sql
+  publicacion        hecho       V6__Publicacion.sql
+
+LO QUE FALTA, de mas urgente a menos:
+
+  - la plantilla login\login.html, que hoy bloquea la aplicacion entera
+  - decidir la estructura de paquetes (5.6) antes de seguir anadiendo clases
+  - los repositorios de dao\, uno por entidad
+  - los servicios, empezando por el que autentique contra la tabla usuario en
+    vez de los usuarios en memoria que hay hoy
+  - los DTO, que es donde van las validaciones
+  - los controladores, y pasar las 39 pantallas del prototipo a Thymeleaf
+  - los cinco documentos de MongoDB
+  - Stripe, que sustituye el pago simulado del prototipo
+  - renombrar service\implements a impl: implements es palabra reservada de Java
+    y ese paquete no puede contener ni una clase
+
+
+-------------------------------------------------------------------------------
+7. REGLAS AL ESCRIBIR CODIGO
+-------------------------------------------------------------------------------
+
+Esto no son gustos, son acuerdos del grupo. El detalle y el porque estan en el
+apartado 5 de memoriaClaudeByAleix.txt.
+
+  - El codigo va SIN COMENTARIOS. Los pone Aleix al terminar los objetos.
+  - Lombok Getter y Setter. NUNCA Data en una entidad: genera un toString con la
+    contrasena dentro y rompe equals y hashCode.
+  - Las tablas y columnas, en snake_case y declaradas a mano con Table y Column,
+    con el nombre explicito. No se depende de como las traduzca Hibernate.
+  - Las validaciones (NotBlank, Email) van en los DTO, no en las entidades. En
+    la entidad van nullable, unique y length.
+  - Las relaciones, SIEMPRE LAZY. Sin excepciones.
+  - Los enums que se guardan, SIEMPRE como texto con EnumType.STRING. Con
+    ordinal, reordenar un enum convertiria a los clientes en administradores.
+  - Inyeccion por CONSTRUCTOR con RequiredArgsConstructor. Nunca Autowired en un
+    campo.
+  - Una migracion por modulo, con la V y los DOS guiones bajos, o Flyway la
+    ignora en silencio.
+  - El control de acceso se declara, no se escribe con if: reglas por URL en la
+    configuracion de seguridad, PreAuthorize en los metodos y sec:authorize en
+    las plantillas.
+
+Y un aviso para quien toque la seguridad: pedir el rol ADMIN busca la autoridad
+ROLE_ADMIN, con prefijo. Al convertir el enum Rol en authorities hay que poner
+ROLE_ delante. Si se olvida no salta ningun error: simplemente nadie tiene
+permiso para nada, y encontrarlo cuesta un par de horas.
+
+
+-------------------------------------------------------------------------------
+8. LOS SEIS ROLES
+-------------------------------------------------------------------------------
+
+  CLIENTE            compra, biblioteca de claves y facturas
+  GESTOR_PRODUCTOS   catalogo, precios y revisar solicitudes de publicacion
+  GESTOR_CLIENTES    fichas de clientes, pedidos y reembolsos
+  GESTOR_INVENTARIO  claves de licencia y aprovisionamiento
+  ADMIN              todo, mas cuentas y configuracion
+  PROVEEDOR          un estudio: envia juegos y sigue su estado
+
+Un usuario tiene UN SOLO rol, en la columna usuario.rol. No hay tabla de
+permisos: el acceso se decide mirando el rol.
+
+Usuario es una clase abstracta con herencia JOINED, y tiene tres caras que
+comparten su clave primaria: Cliente, Trabajador y CuentaProveedor.
+
+
+-------------------------------------------------------------------------------
+9. DECISIONES QUE SIGUEN ABIERTAS
+-------------------------------------------------------------------------------
+
+  - La estructura de paquetes del 5.6. Bloquea cada clase nueva.
+  - Donde se guardan los ZIP de los juegos, los PDF de las facturas y las
+    imagenes: una carpeta del servidor o un almacenamiento aparte. Si el disco
+    del hosting se borra en cada despliegue, la carpeta no sirve.
+  - Una sola imagen PORTADA por juego, y una sola version activa por juego. En
+    MySQL un UNIQUE normal no lo expresa: o se valida en el servicio, o hace
+    falta un trigger. Hay que decidir las dos igual.
+  - Si umbral_stock_bajo manda por juego, o manda el valor global de MongoDB.
+  - Donde se cuentan las descargas que muestra el panel del proveedor.
+  - Si en el catalogo conviven los juegos de distribuidor, que son una clave
+    para canjear fuera, con los publicados aqui, que se descargan.
+
+===============================================================================
