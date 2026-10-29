@@ -33,19 +33,25 @@ CREATE TABLE solicitud_publicacion (
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4;
 
 CREATE TABLE solicitud_categoria (
-    solicitud_id BIGINT      NOT NULL,
-    categoria    VARCHAR(30) NOT NULL,
-    PRIMARY KEY (solicitud_id, categoria),
+    solicitud_id BIGINT NOT NULL,
+    categoria_id BIGINT NOT NULL,
+    PRIMARY KEY (solicitud_id, categoria_id),
     CONSTRAINT fk_solicitud_categoria_solicitud
-        FOREIGN KEY (solicitud_id) REFERENCES solicitud_publicacion (id)
+        FOREIGN KEY (solicitud_id) REFERENCES solicitud_publicacion (id),
+    CONSTRAINT fk_solicitud_categoria_categoria
+        FOREIGN KEY (categoria_id) REFERENCES categoria (id),
+    INDEX idx_solicitud_categoria_filtro (categoria_id)
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4;
 
 CREATE TABLE solicitud_plataforma (
-    solicitud_id BIGINT      NOT NULL,
-    plataforma   VARCHAR(20) NOT NULL,
-    PRIMARY KEY (solicitud_id, plataforma),
+    solicitud_id  BIGINT NOT NULL,
+    plataforma_id BIGINT NOT NULL,
+    PRIMARY KEY (solicitud_id, plataforma_id),
     CONSTRAINT fk_solicitud_plataforma_solicitud
-        FOREIGN KEY (solicitud_id) REFERENCES solicitud_publicacion (id)
+        FOREIGN KEY (solicitud_id) REFERENCES solicitud_publicacion (id),
+    CONSTRAINT fk_solicitud_plataforma_plataforma
+        FOREIGN KEY (plataforma_id) REFERENCES plataforma (id),
+    INDEX idx_solicitud_plataforma_filtro (plataforma_id)
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4;
 
 CREATE TABLE imagen_solicitud (

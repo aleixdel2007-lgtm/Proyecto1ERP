@@ -46,18 +46,16 @@ public class SolicitudPublicacion {
     @Column(name = "pegi", nullable = false)
     private int pegi;
 
-    @ElementCollection(fetch = FetchType.LAZY)
-    @CollectionTable(name = "solicitud_categoria",
-            joinColumns = @JoinColumn(name = "solicitud_id"))
-    @Enumerated(EnumType.STRING)
-    @Column(name = "categoria", nullable = false, length = 30)
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(name = "solicitud_categoria",
+            joinColumns = @JoinColumn(name = "solicitud_id"),
+            inverseJoinColumns = @JoinColumn(name = "categoria_id"))
     private Set<Categoria> categorias = new HashSet<>();
 
-    @ElementCollection(fetch = FetchType.LAZY)
-    @CollectionTable(name = "solicitud_plataforma",
-            joinColumns = @JoinColumn(name = "solicitud_id"))
-    @Enumerated(EnumType.STRING)
-    @Column(name = "plataforma", nullable = false, length = 20)
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(name = "solicitud_plataforma",
+            joinColumns = @JoinColumn(name = "solicitud_id"),
+            inverseJoinColumns = @JoinColumn(name = "plataforma_id"))
     private Set<Plataforma> plataformas = new HashSet<>();
 
     @Column(name = "precio_propuesto", precision = 10, scale = 2)
