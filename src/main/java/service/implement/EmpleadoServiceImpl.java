@@ -5,6 +5,7 @@ import dao.DepartamentoDao;
 import dao.EmpleadoDao;
 import dao.UsuarioDao;
 import exception.EmailDuplicadoException;
+import exception.EmpleadoConReferenciasException;
 import exception.EmpleadoNoEncontradoException;
 import exception.NifDuplicadoException;
 import java.util.List;
@@ -12,6 +13,7 @@ import model.seguridad.Departamento;
 import model.seguridad.Empleado;
 import model.seguridad.Rol;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import service.interfaces.EmpleadoService;
@@ -92,6 +94,7 @@ public class EmpleadoServiceImpl implements EmpleadoService {
         existente.setNifHash(hashDelNif(empleado.getNif()));
         existente.setIban(empleado.getIban());
         existente.setFechaContratacion(empleado.getFechaContratacion());
+        existente.setActivo(empleado.isActivo());
         existente.setDepartamento(buscarDepartamento(departamentoId));
 
         if (password != null && !password.isBlank()) {
@@ -170,10 +173,15 @@ public class EmpleadoServiceImpl implements EmpleadoService {
     }
 
     @Override
-    public void cambiarActivo(Long id, boolean activo) {
+    public void eliminarEmpleado(Long id) {
 
         Empleado empleado = buscarEmpleadoXId(id);
-        empleado.setActivo(activo);
-        empleadoDao.save(empleado);
+
+        try {
+            empleadoDao.delete(empleado);
+
+        } catch (DataIntegrityViolationException e) {
+            throw new EmpleadoConReferenciasException();
+        }
     }
 }

@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Mi perfil · LudusERP</title>
+    <link rel="stylesheet" th:href="@{/css/navbar.css}" href="../../static/css/navbar.css">
+    <link rel="stylesheet" th:href="@{/css/configuracionUsuario.css}" href="../../static/css/configuracionUsuario.css">
+</head>
+<body>
+
+<div th:replace="~{fragments/navbar :: navbar}"></div>
+
+<main class="canvas">
+
+    <div class="page-head">
+        <div>
+            <h1>Mi perfil</h1>
+            <p>Consulta y actualiza tus datos personales y de contacto.</p>
+        </div>
+    </div>
+
+    <div class="grid g-1-2">
+
+        <!-- Tarjeta de perfil -->
+        <div class="card">
+            <div class="card-body stack profile">
+                <div class="avatar avatar-lg"
+                     th:text="${#strings.toUpperCase(#strings.substring(usuario.nombre, 0, 1) + (#strings.isEmpty(usuario.apellidos) ? '' : #strings.substring(usuario.apellidos, 0, 1)))}">LF</div>
+                <div>
+                    <div class="t-main profile-name"
+                         th:text="${usuario.nombre + ' ' + (usuario.apellidos ?: '')}">Lucía Fernández</div>
+                    <div class="t-sub" th:text="${usuario.email}">lucia.f@example.com</div>
+                </div>
+                <div class="row wrap">
+                    <span class="badge b-purple" th:text="${usuario.rol}">CLIENTE</span>
+                    <span class="badge" th:classappend="${usuario.activo} ? 'b-good' : 'b-mute'"
+                          th:text="${usuario.activo ? 'ACTIVO' : 'INACTIVO'}">ACTIVO</span>
+                </div>
+                <div class="sep"></div>
+                <dl class="kv">
+                    <dt>Alta</dt>
+                    <dd th:text="${#temporals.format(usuario.fechaAlta, 'dd/MM/yyyy')}"></dd>
+                </dl>
+            </div>
+        </div>
+
+        <!-- Datos del usuario -->
+        <div class="card">
+            <form>
+                <div class="card-head"><h3>Mis datos</h3></div>
+                <div class="card-body">
+                    <div class="form-grid">
+
+                        <div class="frow wide"><div class="sect-label">Datos personales</div></div>
+
+                        <div class="frow">
+                            <label for="nombre">Nombre <span class="req">*</span></label>
+                            <input class="inp" type="text" id="nombre" name="nombre" autocomplete="given-name"
+                                   th:value="${usuario.nombre}" required>
+                        </div>
+
+                        <div class="frow">
+                            <label for="apellidos">Apellidos</label>
+                            <input class="inp" type="text" id="apellidos" name="apellidos" autocomplete="family-name"
+                                   th:value="${usuario.apellidos}">
+                        </div>
+
+                        <div class="frow wide">
+                            <label for="email">Correo electrónico</label>
+                            <input class="inp" type="email" id="email" name="email"
+                                   th:value="${usuario.email}" readonly>
+                            <span class="hint">Es tu identificador de acceso y no se puede cambiar.</span>
+                        </div>
+
+                        <div class="frow">
+                            <label for="fechaNacimiento">Fecha de nacimiento</label>
+                            <input class="inp" type="date" id="fechaNacimiento" name="fechaNacimiento"
+                                   th:value="${cliente?.fechaNacimiento}">
+                        </div>
+
+                        <div class="frow">
+                            <label for="pais">País</label>
+                            <input class="inp" type="text" id="pais" name="pais" autocomplete="country-name"
+                                   th:value="${cliente?.pais}">
+                        </div>
+
+                        <div class="frow wide"><div class="sect-label">Datos de contacto</div></div>
+
+                        <div class="frow">
+                            <label for="telefono">Teléfono</label>
+                            <input class="inp" type="tel" id="telefono" name="telefono" autocomplete="tel"
+                                   th:value="${cliente?.telefono}">
+                        </div>
+
+                        <div class="frow">
+                            <label for="ciudad">Ciudad</label>
+                            <input class="inp" type="text" id="ciudad" name="ciudad" autocomplete="address-level2"
+                                   th:value="${cliente?.ciudad}">
+                        </div>
+
+                        <div class="frow wide">
+                            <label for="direccion">Dirección</label>
+                            <input class="inp" type="text" id="direccion" name="direccion" autocomplete="street-address"
+                                   th:value="${cliente?.direccion}">
+                        </div>
+
+                    </div>
+                </div>
+                <div class="form-foot">
+                    <button type="reset" class="btn">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Guardar</button>
+                </div>
+            </form>
+        </div>
+
+    </div>
+</main>
+
+</body>
+</html>

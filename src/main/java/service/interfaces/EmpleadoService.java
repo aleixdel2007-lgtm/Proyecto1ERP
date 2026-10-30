@@ -8,6 +8,6 @@ public interface EmpleadoService {
     List<Empleado> listarEmpleados();
     Empleado buscarEmpleadoXId(Long id);
     Empleado guardarEmpleado(Empleado empleado,Long departamentoId,String password);
-    void cambiarActivo(Long id, boolean activo);
+    void eliminarEmpleado(Long id);
     List<Departamento> listarDepartamentos();
 }

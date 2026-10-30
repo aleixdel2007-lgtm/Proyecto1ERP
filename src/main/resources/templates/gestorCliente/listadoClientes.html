@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<!--
+Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+Click nbfs://nbhost/SystemFileSystem/Templates/Other/html.html to edit this template
+-->
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+    <head>
+        <title>Listado Clientes</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    </head>
+    <body>
+
+        <div class="app">
+
+            <aside th:replace="~{fragments/panel :: menu('clientes')}"></aside>
+
+            <div class="main">
+
+                <header th:replace="~{fragments/panel :: barra('Clientes', 'Listado')}"></header>
+
+                <main class="canvas">
+
+                    <div class="alert alert-err" th:if="${error}" th:text="${error}"></div>
+
+                    <div class="page-head">
+                        <div>
+                            <h1>Clientes</h1>
+                            <p>El gestor de clientes tiene solo lectura: puede consultar e historiar, pero no crear
+                                ni borrar.</p>
+                        </div>
+                    </div>
+
+                    <div class="card">
+
+                        <form class="filters" method="get" th:action="@{/clientes}">
+                            <div class="fld">
+                                <label>Buscar</label>
+                                <div class="search-inp">
+                                    <svg th:replace="~{fragments/iconos :: search}"></svg>
+                                    <input name="buscar" th:value="${buscar}" placeholder="Correo o nombre">
+                                </div>
+                            </div>
+                            <div class="fld">
+                                <label>País</label>
+                                <select class="inp" disabled>
+                                    <option>Todos</option>
+                                    <option>Espana</option>
+                                    <option>Francia</option>
+                                    <option>Italia</option>
+                                </select>
+                            </div>
+                            <div class="fld">
+                                <label>Alta desde</label>
+                                <input class="inp" type="date" disabled>
+                            </div>
+                            <div class="fld">
+                                <label>&nbsp;</label>
+                                <button type="submit" class="btn btn-primary">Filtrar</button>
+                            </div>
+                        </form>
+
+                        <div class="card-body tight">
+
+                            <div class="empty" th:if="${#lists.isEmpty(clientes)}">
+                                <h4>No hay clientes</h4>
+                                <p class="hint">Todavía no se ha registrado ninguno, o la búsqueda no coincide.</p>
+                            </div>
+
+                            <div class="tbl-wrap" th:unless="${#lists.isEmpty(clientes)}">
+                                <table class="tbl">
+                                    <thead>
+                                        <tr>
+                                            <th>Cliente</th>
+                                            <th>Correo</th>
+                                            <th>País</th>
+                                            <th>Alta</th>
+                                            <th class="num">Pedidos</th>
+                                            <th class="num">Gasto total</th>
+                                            <th class="acts"></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr th:each="c : ${clientes}">
+                                            <td>
+                                                <div style="display:flex;align-items:center;gap:10px">
+                                                    <div class="avatar" style="width:28px;height:28px;font-size:11px"
+                                                         th:text="${#strings.toUpperCase(#strings.substring(c.nombre, 0, 1))}">M</div>
+                                                    <div>
+                                                        <div class="t-main"
+                                                             th:text="${c.apellidos != null ? c.nombre + ' ' + c.apellidos : c.nombre}">Marta Ribas</div>
+                                                        <div class="t-sub" th:text="'#' + ${c.id}">#1042</div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <a th:href="'mailto:' + ${c.email}" th:text="${c.email}">correo@ejemplo.com</a>
+                                            </td>
+                                            <td th:text="${c.pais != null ? c.pais : '—'}">Espana</td>
+                                            <td th:text="${#temporals.format(c.fechaAlta, 'dd/MM/yyyy')}">11/02/2025</td>
+                                            <td class="num"><span class="muted" title="Pendiente de los pedidos">—</span></td>
+                                            <td class="num"><span class="muted" title="Pendiente de los pedidos">—</span></td>
+                                            <td class="acts">
+                                                <button type="button" class="btn btn-sm btn-ghost" title="Ver ficha" disabled>
+                                                    <svg th:replace="~{fragments/iconos :: eye}"></svg>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div class="pager" th:unless="${#lists.isEmpty(clientes)}">
+                            <span>Mostrando <b th:text="${#lists.size(clientes)}">0</b>
+                                de <b th:text="${#lists.size(clientes)}">0</b> registros</span>
+                            <div class="pages">
+                                <button class="pg" disabled>&lsaquo;</button>
+                                <button class="pg on" disabled>1</button>
+                                <button class="pg" disabled>&rsaquo;</button>
+                            </div>
+                        </div>
+
+                    </div>
+
+                </main>
+            </div>
+        </div>
+
+    </body>
+</html>

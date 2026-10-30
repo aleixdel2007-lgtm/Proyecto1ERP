@@ -19,6 +19,7 @@
         <main class="canvas">
 
             <div class="alert alert-ok" th:if="${mensaje}" th:text="${mensaje}"></div>
+            <div class="alert alert-err" th:if="${error}" th:text="${error}"></div>
 
             <div class="page-head">
                 <div>
@@ -114,15 +115,10 @@
                                        th:href="@{/compras/proveedores/{id}/editar(id=${p.id})}">
                                         <svg th:replace="~{fragments/iconos :: edit}"></svg>
                                     </a>
-                                    <form th:action="@{/compras/proveedores/{id}/activo(id=${p.id})}" method="post">
-                                        <input type="hidden" name="activo" th:value="${!p.activo}">
-                                        <button type="submit" class="btn btn-sm btn-danger" title="Dar de baja"
-                                                th:if="${p.activo}">
+                                    <form th:action="@{/compras/proveedores/{id}/eliminar(id=${p.id})}" method="post"
+                                          onsubmit="return confirm('¿Seguro que quieres eliminar este proveedor? No se puede deshacer.');">
+                                        <button type="submit" class="btn btn-sm btn-danger" title="Eliminar">
                                             <svg th:replace="~{fragments/iconos :: trash}"></svg>
-                                        </button>
-                                        <button type="submit" class="btn btn-sm btn-ghost" title="Reactivar"
-                                                th:unless="${p.activo}">
-                                            <svg th:replace="~{fragments/iconos :: check}"></svg>
                                         </button>
                                     </form>
                                 </td>

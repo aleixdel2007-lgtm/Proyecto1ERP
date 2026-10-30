@@ -1,10 +1,13 @@
 package config;
 
 import dao.UsuarioDao;
+import jakarta.servlet.http.HttpServletResponse;
 import model.seguridad.Rol;
 import model.seguridad.Usuario;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -22,7 +25,7 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 
-    // Carga los usuarios desde la base de datos; el "username" del login es el email
+    // Carga los usuarios desde la base de datos, el "username" del login es el email
     @Bean
     public UserDetailsService userDetailsService(UsuarioDao usuarioDao) {
         return email -> {
@@ -45,19 +48,35 @@ public class SecurityConfig {
                         .requestMatchers("/registro").permitAll()
                         .requestMatchers("/departamentos/**").hasRole("ADMIN")
                         .requestMatchers("/empleados/**").hasRole("ADMIN")
+                        .requestMatchers("/compras/**").hasRole("ADMIN")
+                        .requestMatchers("/home").hasRole("ADMIN")
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         .requestMatchers("/user/**").hasAnyRole("CLIENTE", "ADMIN")
                         .anyRequest().authenticated()
                 )
                 .formLogin(form -> form
                         .loginPage("/login")
-                        // Los clientes van a la tienda; el resto de roles, a "/home"
+                        // Los clientes van a la tienda, el resto de roles, a "/home"
                         .successHandler((request, response, authentication) -> {
                             boolean esCliente = authentication.getAuthorities().stream()
                                     .anyMatch(a -> a.getAuthority().equals("ROLE_" + Rol.CLIENTE.name()));
                             response.sendRedirect(request.getContextPath() + (esCliente ? "/tienda" : "/home"));
                         })
                         .permitAll()
+                )
+                .exceptionHandling(ex -> ex
+                        // Un cliente que escribe /home a mano va a su pagina de inicio, no al 403
+                        .accessDeniedHandler((request, response, denied) -> {
+                            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+                            boolean esCliente = auth != null && auth.getAuthorities().stream()
+                                    .anyMatch(a -> a.getAuthority().equals("ROLE_" + Rol.CLIENTE.name()));
+                            String ruta = request.getRequestURI().substring(request.getContextPath().length());
+                            if (esCliente && ruta.equals("/home")) {
+                                response.sendRedirect(request.getContextPath() + "/tienda");
+                            } else {
+                                response.sendError(HttpServletResponse.SC_FORBIDDEN);
+                            }
+                        })
                 )
                 .logout(logout -> logout
                         .logoutUrl("/logout")

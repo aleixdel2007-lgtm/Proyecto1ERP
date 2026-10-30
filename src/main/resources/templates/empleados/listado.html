@@ -107,15 +107,10 @@
                                        th:href="@{/empleados/editar/{id}(id=${e.id})}">
                                         <svg th:replace="~{fragments/iconos :: edit}"></svg>
                                     </a>
-                                    <form th:action="@{/empleados/activo/{id}(id=${e.id})}" method="post">
-                                        <input type="hidden" name="activo" th:value="${!e.activo}">
-                                        <button type="submit" class="btn btn-sm btn-danger" title="Dar de baja"
-                                                th:if="${e.activo}">
+                                    <form th:action="@{/empleados/eliminar/{id}(id=${e.id})}" method="post"
+                                          onsubmit="return confirm('¿Seguro que quieres eliminar este empleado? No se puede deshacer.');">
+                                        <button type="submit" class="btn btn-sm btn-danger" title="Eliminar">
                                             <svg th:replace="~{fragments/iconos :: trash}"></svg>
-                                        </button>
-                                        <button type="submit" class="btn btn-sm btn-ghost" title="Reactivar"
-                                                th:unless="${e.activo}">
-                                            <svg th:replace="~{fragments/iconos :: check}"></svg>
                                         </button>
                                     </form>
                                 </td>

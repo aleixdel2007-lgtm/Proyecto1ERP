@@ -1,6 +1,7 @@
 package controller;
 
 import exception.EmailDuplicadoException;
+import exception.EmpleadoConReferenciasException;
 import exception.NifDuplicadoException;
 import java.util.List;
 import model.seguridad.Departamento;
@@ -88,19 +89,18 @@ public class ControllerEmpleado {
         return "redirect:/empleados";
     }
 
-    @PostMapping("/empleados/activo/{id}")
-    public String cambiarActivo(
-            @PathVariable Long id,
-            @RequestParam boolean activo,
-            RedirectAttributes flash) {
+    @PostMapping("/empleados/eliminar/{id}")
+    public String eliminarEmpleado(@PathVariable Long id, RedirectAttributes flash) {
 
-        empleadoService.cambiarActivo(id, activo);
+        try {
+            empleadoService.eliminarEmpleado(id);
 
-        if (activo) {
-            flash.addFlashAttribute("mensaje", "Empleado dado de alta");
-        } else {
-            flash.addFlashAttribute("mensaje", "Empleado dado de baja");
+        } catch (EmpleadoConReferenciasException e) {
+            flash.addFlashAttribute("error", e.getMessage());
+            return "redirect:/empleados";
         }
+
+        flash.addFlashAttribute("mensaje", "Empleado eliminado correctamente");
 
         return "redirect:/empleados";
     }

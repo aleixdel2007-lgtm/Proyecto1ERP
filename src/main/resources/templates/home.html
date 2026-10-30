@@ -3,13 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Pagina principal · LudusERP</title>
-    <link rel="stylesheet" th:href="@{/css/home.css}" href="../static/css/home.css">
+    <title>Panel de control · LudusERP</title>
+    <link rel="stylesheet" th:href="@{/css/panel.css}">
+    <link rel="stylesheet" th:href="@{/css/home.css}">
 </head>
 <body>
-<div th:replace="~{fragments/navbar :: navbar}"></div>
-<div class="home-message-container">
-    <h2>Bienvenido, <span th:text="${nombre}">usuario</span>.</h2>
+
+<div class="app">
+
+    <aside th:replace="~{fragments/panel :: menu('inicio')}"></aside>
+
+    <div class="main">
+
+        <header th:replace="~{fragments/panel :: barra('General', 'Panel de control')}"></header>
+
+        <main class="canvas">
+
+            <div class="page-head">
+                <div>
+                    <h1>Panel de control</h1>
+                    <p>Bienvenido, <span th:text="${usuario.nombre}">usuario</span>.
+                </div>
+            </div>
+        </main>
+
+    </div>
 </div>
+
 </body>
 </html>

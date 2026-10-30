@@ -3,10 +3,13 @@ package service.implement;
 import config.IndiceCiego;
 import dao.ProveedorDao;
 import exception.CifDuplicadoException;
+import exception.ProveedorConCuentaException;
+import exception.ProveedorConReferenciasException;
 import exception.ProveedorNoEncontradoException;
 import java.util.List;
 import model.aprovisionamiento.Proveedor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import service.interfaces.ProveedorService;
 
@@ -77,9 +80,19 @@ public class ProveedorServiceImpl implements ProveedorService {
     }
 
     @Override
-    public void cambiarActivo(Long id, boolean activo) {
+    public void eliminarProveedor(Long id) {
+
         Proveedor proveedor = buscarProveedorXId(id);
-        proveedor.setActivo(activo);
-        proveedorDao.save(proveedor);
+
+        if (proveedor.getCuenta() != null) {
+            throw new ProveedorConCuentaException();
+        }
+
+        try {
+            proveedorDao.delete(proveedor);
+
+        } catch (DataIntegrityViolationException e) {
+            throw new ProveedorConReferenciasException();
+        }
     }
 }

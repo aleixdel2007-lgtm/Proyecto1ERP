@@ -9,8 +9,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 @EntityScan("model")
 @EnableJpaRepositories("dao")
 public class Proyecto1ErpApplication {
-
-	public static void main(String[] args) {
-		SpringApplication.run(Proyecto1ErpApplication.class, args);
-	}
+    public static void main(String[] args) {
+	SpringApplication.run(Proyecto1ErpApplication.class, args);
+    }
 }

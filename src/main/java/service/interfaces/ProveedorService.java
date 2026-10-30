@@ -11,5 +11,5 @@ public interface ProveedorService {
 
     Proveedor guardarProveedor(Proveedor proveedor);
 
-    void cambiarActivo(Long id, boolean activo);
+    void eliminarProveedor(Long id);
 }

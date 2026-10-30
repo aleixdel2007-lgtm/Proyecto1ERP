@@ -25,7 +25,7 @@
             <div class="page-head">
                 <div>
                     <h1>Editar empleado</h1>
-                    <p>El estado de alta o baja se cambia desde el listado, no desde aquí.</p>
+                    <p>El estado de alta o baja se cambia aquí, en el apartado de acceso.</p>
                 </div>
             </div>
 
@@ -125,12 +125,20 @@
                                     <span class="hint">Si pones una, el empleado tendrá que cambiarla al entrar.</span>
                                 </div>
 
+                                <div class="frow">
+                                    <label>Estado</label>
+                                    <label class="switch" style="margin-top:6px">
+                                        <input type="checkbox" th:field="*{activo}"><i></i> Activo
+                                    </label>
+                                    <span class="hint">Si lo desmarcas, el empleado no podrá iniciar sesión.</span>
+                                </div>
+
                             </div>
 
                         </div>
 
                         <div class="form-foot">
-                            <span class="note">La fecha de alta del usuario no se modifica nunca.</span>
+                            <span class="note">La fecha de alta del usuario no se modifica nunca. Para borrarlo, usa la papelera del listado.</span>
                             <a class="btn" th:href="@{/empleados}">Cancelar</a>
                             <button type="submit" class="btn btn-primary">Guardar cambios</button>
                         </div>
@@ -141,9 +149,9 @@
                 <div class="stack">
                     <div class="note-box">
                         <svg th:replace="~{fragments/iconos :: warn}"></svg>
-                        <div>Un empleado no se borra: se da de baja desde el listado. Puede ser responsable
-                            de un departamento o tener compras a su nombre, y esas referencias deben
-                            seguir existiendo.</div>
+                        <div>Desmarcar <b>Activo</b> le quita el acceso pero conserva su ficha y su historial.
+                            Eliminarlo desde la papelera del listado lo borra de la base de datos, y solo
+                            es posible si no es responsable de un departamento ni tiene compras a su nombre.</div>
                     </div>
                 </div>
 
