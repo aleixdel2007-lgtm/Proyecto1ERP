@@ -7,12 +7,16 @@ package service.implement;
 import dao.ClienteDao;
 import java.util.List;
 import model.seguridad.Cliente;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import service.interfaces.ClienteService;
 
 /**
  *
  * @author Sandy
  */
+@Service
+@Transactional(readOnly = true)
 public class ClienteServiceImpl implements ClienteService {
 
     private ClienteDao clienteDao;
