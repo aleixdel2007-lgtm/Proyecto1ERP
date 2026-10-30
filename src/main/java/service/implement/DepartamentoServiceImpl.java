@@ -1,7 +1,6 @@
 package service.implement;
 
 import dao.DepartamentoDao;
-import dao.TrabajadorDao;
 import exception.DepartamentoConTrabajadoresException;
 import exception.DepartamentoNoEncontradoException;
 import exception.NombreDepartamentoDuplicadoException;
@@ -13,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import service.interfaces.DepartamentoService;
+import dao.EmpleadoDao;
 
 @Service
 public class DepartamentoServiceImpl implements DepartamentoService {
@@ -21,7 +21,7 @@ public class DepartamentoServiceImpl implements DepartamentoService {
     private DepartamentoDao departamentoDao;
 
     @Autowired
-    private TrabajadorDao trabajadorDao;
+    private EmpleadoDao trabajadorDao;
 
     @Override
     public List<Departamento> listarDepartamentos() {
