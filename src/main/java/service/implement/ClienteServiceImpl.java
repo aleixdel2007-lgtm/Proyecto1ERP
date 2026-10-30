@@ -17,6 +17,7 @@ import service.interfaces.ClienteService;
  */
 @Service
 @Transactional(readOnly = true)
+@RequiredArgsConstructor
 public class ClienteServiceImpl implements ClienteService {
 
     private ClienteDao clienteDao;
