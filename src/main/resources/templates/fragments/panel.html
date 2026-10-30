@@ -17,6 +17,12 @@
         <div class="nav-group">Aprovisionamiento</div>
         <a class="nav-item" th:classappend="${activo == 'proveedores'} ? 'on' : ''"
            th:href="@{/compras/proveedores}">Proveedores</a>
+
+        <th:block sec:authorize="hasRole('ADMIN')">
+            <div class="nav-group">Administración</div>
+            <a class="nav-item" th:classappend="${activo == 'departamentos'} ? 'on' : ''"
+               th:href="@{/departamentos}">Departamentos</a>
+        </th:block>
     </div>
 
     <div class="side-foot">

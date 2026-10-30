@@ -1,45 +1,126 @@
-<!DOCTYPE html>
-<!--
-Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
-Click nbfs://nbhost/SystemFileSystem/Templates/Other/html.html to edit this template
--->
+<!doctype html>
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
-    <head>
-        <title>Departamentos</title>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    </head>
-    <body>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Departamentos · LudusERP</title>
+    <link rel="stylesheet" th:href="@{/css/panel.css}">
+    <link rel="stylesheet" th:href="@{/css/departamentos.css}">
+</head>
+<body>
 
-        <h1>Departamentos</h1>
+<div class="app">
 
-        <a th:href="@{/departamentos/nuevo}">+ Nuevo departamento</a>
+    <aside th:replace="~{fragments/panel :: menu('departamentos')}"></aside>
 
-        <table>
-            <tr>
-                <th>Nombre</th>
-                <th>Descripción</th>
-                <th>Acciones</th>
-            </tr>
+    <div class="main">
 
-            <tr th:each="dep : ${departamentos}">
-                <td th:text="${dep.nombre}"></td>
-                <td th:text="${dep.descripcion}"></td>
+        <header th:replace="~{fragments/panel :: barra('Administración', 'Departamentos')}"></header>
 
-                <td>
-                    <a th:href="@{/departamentos/editar/{id}(id=${dep.id})}">
-                        Editar
-                    </a>
+        <main class="canvas">
 
-                    <form th:action="@{/departamentos/eliminar/{id}(id=${dep.id})}"
-                          method="post"
-                          onsubmit="return confirm('¿Estás seguro de que quieres eliminar este departamento?');">
+            <div class="alert alert-ok" th:if="${mensaje}" th:text="${mensaje}"></div>
+            <div class="alert alert-err" th:if="${error}" th:text="${error}"></div>
 
-                        <button type="submit">Eliminar</button>
-                    </form>
-                </td>
-            </tr>
-        </table>
+            <div class="page-head">
+                <div>
+                    <h1>Departamentos</h1>
+                    <p>Tabla relacionada con el perfil de empleado en 1:N. Cada trabajador pertenece a un
+                        departamento, y un departamento tiene como máximo un responsable.</p>
+                </div>
+                <div class="page-actions">
+                    <a class="btn btn-primary" th:href="@{/departamentos/nuevo}">
+                        <svg th:replace="~{fragments/iconos :: plus}"></svg> Nuevo departamento</a>
+                </div>
+            </div>
 
-    </body>
+            <div class="grid g-2-1">
+
+                <div class="card">
+
+                    <div class="card-body tight">
+
+                        <div class="empty" th:if="${#lists.isEmpty(departamentos)}">
+                            <h4>Todavía no hay departamentos</h4>
+                            <p class="hint">Crea el primero con el botón «Nuevo departamento».</p>
+                        </div>
+
+                        <div class="tbl-wrap" th:unless="${#lists.isEmpty(departamentos)}">
+                            <table class="tbl">
+                                <thead>
+                                <tr>
+                                    <th>Departamento</th>
+                                    <th class="num">Trabajadores</th>
+                                    <th>Responsable</th>
+                                    <th class="acts"></th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr th:each="d : ${departamentos}">
+                                    <td>
+                                        <div>
+                                            <div class="t-main" th:text="${d.nombre}">Dirección</div>
+                                            <div class="t-sub" th:if="${d.descripcion}" th:text="${d.descripcion}">
+                                                Gerencia y administración del sistema</div>
+                                        </div>
+                                    </td>
+                                    <td class="num" th:text="${#lists.size(d.trabajadores)}">0</td>
+                                    <td>
+                                        <span th:if="${d.responsable}" th:text="${d.responsable.apellidos != null ? d.responsable.nombre + ' ' + d.responsable.apellidos : d.responsable.nombre}">Aleix Delgado</span>
+                                        <span class="dep-vacio" th:unless="${d.responsable}">Sin asignar</span>
+                                    </td>
+                                    <td class="acts">
+                                        <a class="btn btn-sm btn-ghost" title="Editar"
+                                           th:href="@{/departamentos/editar/{id}(id=${d.id})}">
+                                            <svg th:replace="~{fragments/iconos :: edit}"></svg>
+                                        </a>
+                                        <form th:action="@{/departamentos/eliminar/{id}(id=${d.id})}" method="post"
+                                              onsubmit="return confirm('¿Seguro que quieres eliminar este departamento?');">
+                                            <button type="submit" class="btn btn-sm btn-danger" title="Eliminar">
+                                                <svg th:replace="~{fragments/iconos :: trash}"></svg>
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="pager" th:unless="${#lists.isEmpty(departamentos)}">
+                        <span>Mostrando <b th:text="${#lists.size(departamentos)}">0</b>
+                            de <b th:text="${#lists.size(departamentos)}">0</b> registros</span>
+                        <div class="pages">
+                            <button class="pg" disabled>&lsaquo;</button>
+                            <button class="pg on" disabled>1</button>
+                            <button class="pg" disabled>&rsaquo;</button>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="card">
+                    <div class="card-head"><h3>Cómo funciona</h3></div>
+                    <div class="card-body stack">
+                        <div class="note-box">
+                            <svg th:replace="~{fragments/iconos :: warn}"></svg>
+                            <div>No se puede borrar un departamento con trabajadores dentro: el validador de
+                                negocio lo impide antes de tocar la base.</div>
+                        </div>
+                        <div class="sep"></div>
+                        <div class="dep-reglas">
+                            <p class="hint">El nombre es único en la tabla.</p>
+                            <p class="hint">Un trabajador solo puede ser responsable de un departamento.</p>
+                            <p class="hint">El responsable es opcional: un departamento puede quedar sin asignar.</p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+        </main>
+    </div>
+</div>
+
+</body>
 </html>

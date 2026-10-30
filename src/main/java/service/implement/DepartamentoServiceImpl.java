@@ -1,11 +1,11 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package service.implement;
 
+import dao.DepartamentoDao;
 import dao.TrabajadorDao;
-import jakarta.persistence.EntityNotFoundException;
+import exception.DepartamentoConTrabajadoresException;
+import exception.DepartamentoNoEncontradoException;
+import exception.NombreDepartamentoDuplicadoException;
+import exception.ResponsableOcupadoException;
 import java.util.List;
 import model.seguridad.Departamento;
 import model.seguridad.Trabajador;
@@ -13,12 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import service.interfaces.DepartamentoService;
-import dao.DepartamentoDao;
 
-/**
- *
- * @author Sandy
- */
 @Service
 public class DepartamentoServiceImpl implements DepartamentoService {
 
@@ -30,7 +25,7 @@ public class DepartamentoServiceImpl implements DepartamentoService {
 
     @Override
     public List<Departamento> listarDepartamentos() {
-        return departamentoDao.findAll();
+        return departamentoDao.listarConDetalle();
     }
 
     @Override
@@ -39,7 +34,7 @@ public class DepartamentoServiceImpl implements DepartamentoService {
         Departamento departamento = departamentoDao.findById(id).orElse(null);
 
         if (departamento == null) {
-            throw new EntityNotFoundException("El departamento no existe");
+            throw new DepartamentoNoEncontradoException(id);
         }
         return departamento;
     }
@@ -47,35 +42,45 @@ public class DepartamentoServiceImpl implements DepartamentoService {
     @Override
     public Departamento guardarDepartamento(Departamento departamento, Long responsableId) {
 
-        validarNombre(departamento);
         validarNombreRepetido(departamento);
+        validarResponsableLibre(departamento, responsableId);
         asignarResponsable(departamento, responsableId);
 
         return departamentoDao.save(departamento);
     }
 
-    private void validarNombre(Departamento departamento) {
+    private void validarNombreRepetido(Departamento departamento) {
 
-        if (departamento.getNombre() == null || departamento.getNombre().isBlank()) {
-            throw new IllegalArgumentException("El nombre es obligatorio");
+        boolean repetido;
+
+        if (departamento.getId() == null) {
+            repetido = departamentoDao.existsByNombreIgnoreCase(departamento.getNombre());
+        } else {
+            repetido = departamentoDao.existsByNombreIgnoreCaseAndIdNot(
+                    departamento.getNombre(), departamento.getId());
         }
 
-        if (departamento.getNombre().length() > 80) {
-            throw new IllegalArgumentException("El nombre no puede superar los 80 caracteres");
+        if (repetido) {
+            throw new NombreDepartamentoDuplicadoException();
         }
     }
 
-    private void validarNombreRepetido(Departamento departamento) {
+    private void validarResponsableLibre(Departamento departamento, Long responsableId) {
 
-        List<Departamento> departamentos = departamentoDao.findAll();
+        if (responsableId == null) {
+            return;
+        }
 
-        for (Departamento dep : departamentos) {
+        boolean ocupado;
 
-            if (dep.getNombre().equalsIgnoreCase(departamento.getNombre())
-                    && !dep.getId().equals(departamento.getId())) {
+        if (departamento.getId() == null) {
+            ocupado = departamentoDao.existsByResponsableId(responsableId);
+        } else {
+            ocupado = departamentoDao.existsByResponsableIdAndIdNot(responsableId, departamento.getId());
+        }
 
-                throw new IllegalArgumentException("Ya existe un departamento con ese nombre");
-            }
+        if (ocupado) {
+            throw new ResponsableOcupadoException();
         }
     }
 
@@ -110,14 +115,12 @@ public class DepartamentoServiceImpl implements DepartamentoService {
     private void validarTrabajadoresAsociados(Departamento departamento) {
 
         if (!departamento.getTrabajadores().isEmpty()) {
-            throw new IllegalStateException(
-                    "No se puede eliminar un departamento con trabajadores asociados"
-            );
+            throw new DepartamentoConTrabajadoresException();
         }
     }
 
     @Override
-    public List<Trabajador> listarTrabajadores() { //para listar los responsables 
+    public List<Trabajador> listarTrabajadores() {
         return trabajadorDao.findAll();
     }
 }

@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title th:text="${formulario.id} == null ? 'Nuevo proveedor · LudusERP' : 'Editar proveedor · LudusERP'">Proveedor · LudusERP</title>
+    <title th:text="${proveedor.id} == null ? 'Nuevo proveedor · LudusERP' : 'Editar proveedor · LudusERP'">Proveedor · LudusERP</title>
     <link rel="stylesheet" th:href="@{/css/panel.css}">
 </head>
 <body>
@@ -23,14 +23,16 @@
 
             <div class="page-head">
                 <div>
-                    <h1 th:text="${formulario.id} == null ? 'Nuevo proveedor' : 'Editar proveedor'">Nuevo proveedor</h1>
+                    <h1 th:text="${proveedor.id} == null ? 'Nuevo proveedor' : 'Editar proveedor'">Nuevo proveedor</h1>
                 </div>
             </div>
+
+            <div class="alert alert-err" th:if="${error}" th:text="${error}"></div>
 
             <div class="grid g-2-1">
 
                 <div class="card">
-                    <form th:action="@{/compras/proveedores}" method="post" th:object="${formulario}">
+                    <form th:action="@{/compras/proveedores}" method="post" th:object="${proveedor}">
 
                         <input type="hidden" th:field="*{id}">
 
@@ -39,74 +41,54 @@
 
                                 <div class="frow">
                                     <label for="nombreComercial">Nombre comercial <span class="req">*</span></label>
-                                    <input class="inp" type="text" th:field="*{nombreComercial}"
-                                           th:classappend="${#fields.hasErrors('nombreComercial')} ? 'bad' : ''"
-                                           placeholder="Nordic Keys Distribution">
-                                    <span class="hint err" th:if="${#fields.hasErrors('nombreComercial')}"
-                                          th:errors="*{nombreComercial}"></span>
+                                    <input class="inp" type="text" th:field="*{nombreComercial}" maxlength="120"
+                                           placeholder="Nordic Keys Distribution" required>
                                 </div>
 
                                 <div class="frow">
                                     <label for="razonSocial">Razón social <span class="req">*</span></label>
-                                    <input class="inp" type="text" th:field="*{razonSocial}"
-                                           th:classappend="${#fields.hasErrors('razonSocial')} ? 'bad' : ''"
-                                           placeholder="Nordic Keys AB">
-                                    <span class="hint err" th:if="${#fields.hasErrors('razonSocial')}"
-                                          th:errors="*{razonSocial}"></span>
+                                    <input class="inp" type="text" th:field="*{razonSocial}" maxlength="150"
+                                           placeholder="Nordic Keys AB" required>
                                 </div>
 
                                 <div class="frow">
                                     <label for="tipo">Tipo <span class="req">*</span></label>
-                                    <select class="inp" th:field="*{tipo}"
-                                            th:classappend="${#fields.hasErrors('tipo')} ? 'bad' : ''">
+                                    <select class="inp" th:field="*{tipo}" required>
                                         <option value="">Selecciona un tipo</option>
                                         <option th:each="t : ${tipos}" th:value="${t}" th:text="${t}">DISTRIBUIDOR</option>
                                     </select>
-                                    <span class="hint err" th:if="${#fields.hasErrors('tipo')}" th:errors="*{tipo}"></span>
-                                    <span class="hint" th:unless="${#fields.hasErrors('tipo')}">
-                                        ESTUDIO publica sus juegos aquí; DISTRIBUIDOR vende claves.</span>
+                                    <span class="hint">ESTUDIO publica sus juegos aquí; DISTRIBUIDOR vende claves.</span>
                                 </div>
 
                                 <div class="frow">
                                     <label for="cif">CIF / VAT <span class="req">*</span></label>
-                                    <input class="inp" type="text" th:field="*{cif}"
-                                           th:classappend="${#fields.hasErrors('cif')} ? 'bad' : ''"
-                                           placeholder="SE556000-0000">
-                                    <span class="hint err" th:if="${#fields.hasErrors('cif')}" th:errors="*{cif}"></span>
-                                    <span class="hint" th:unless="${#fields.hasErrors('cif')}">
-                                        Se almacena cifrado; en el volcado de la base no es legible.</span>
+                                    <input class="inp" type="text" th:field="*{cif}" maxlength="20"
+                                           placeholder="SE556000-0000" required>
+                                    <span class="hint">Se almacena cifrado; en el volcado de la base no es legible.</span>
                                 </div>
 
                                 <div class="frow">
                                     <label for="iban">IBAN</label>
-                                    <input class="inp" type="text" th:field="*{iban}"
-                                           th:classappend="${#fields.hasErrors('iban')} ? 'bad' : ''"
+                                    <input class="inp" type="text" th:field="*{iban}" maxlength="34"
                                            placeholder="SE00 0000 0000 0000 0000 0000">
-                                    <span class="hint err" th:if="${#fields.hasErrors('iban')}" th:errors="*{iban}"></span>
-                                    <span class="hint" th:unless="${#fields.hasErrors('iban')}">También cifrado.</span>
+                                    <span class="hint">También cifrado.</span>
                                 </div>
 
                                 <div class="frow">
                                     <label for="email">Correo de pedidos <span class="req">*</span></label>
-                                    <input class="inp" type="email" th:field="*{email}"
-                                           th:classappend="${#fields.hasErrors('email')} ? 'bad' : ''"
-                                           placeholder="pedidos@proveedor.com">
-                                    <span class="hint err" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></span>
+                                    <input class="inp" type="email" th:field="*{email}" maxlength="180"
+                                           placeholder="pedidos@proveedor.com" required>
                                 </div>
 
                                 <div class="frow">
                                     <label for="telefono">Teléfono</label>
-                                    <input class="inp" type="text" th:field="*{telefono}"
-                                           th:classappend="${#fields.hasErrors('telefono')} ? 'bad' : ''"
+                                    <input class="inp" type="text" th:field="*{telefono}" maxlength="20"
                                            placeholder="+46 ...">
-                                    <span class="hint err" th:if="${#fields.hasErrors('telefono')}"
-                                          th:errors="*{telefono}"></span>
                                 </div>
 
                                 <div class="frow">
                                     <label for="pais">País</label>
-                                    <select class="inp" th:field="*{pais}"
-                                            th:classappend="${#fields.hasErrors('pais')} ? 'bad' : ''">
+                                    <select class="inp" th:field="*{pais}">
                                         <option value="">Sin indicar</option>
                                         <option value="Espana">Espana</option>
                                         <option value="Suecia">Suecia</option>
@@ -114,7 +96,6 @@
                                         <option value="Reino Unido">Reino Unido</option>
                                         <option value="Paises Bajos">Paises Bajos</option>
                                     </select>
-                                    <span class="hint err" th:if="${#fields.hasErrors('pais')}" th:errors="*{pais}"></span>
                                 </div>
 
                                 <div class="frow">
@@ -131,7 +112,7 @@
                             <span class="note">Un proveedor con ordenes de compra no se puede borrar, solo desactivar.</span>
                             <a class="btn" th:href="@{/compras/proveedores}">Cancelar</a>
                             <button type="submit" class="btn btn-primary"
-                                    th:text="${formulario.id} == null ? 'Crear proveedor' : 'Guardar cambios'">Crear proveedor</button>
+                                    th:text="${proveedor.id} == null ? 'Crear proveedor' : 'Guardar cambios'">Crear proveedor</button>
                         </div>
 
                     </form>

@@ -29,8 +29,4 @@ public class Departamento {
 
     @OneToMany(mappedBy = "departamento")
     private List<Trabajador> trabajadores = new ArrayList<>();
-
-    public int numeroTrabajadores() {
-        return trabajadores.size();
-    }
 }

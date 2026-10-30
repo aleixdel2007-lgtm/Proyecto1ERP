@@ -1,0 +1,10 @@
+/* ===========================================================================
+   LudusERP — estilos propios de las vistas de departamentos
+   Se carga DESPUES de panel.css, que es quien trae el panel entero.
+   =========================================================================== */
+
+.sep{height:1px;background:var(--line);margin:4px 0}
+
+.dep-vacio{color:var(--muted)}
+
+.dep-reglas{display:flex;flex-direction:column;gap:6px}

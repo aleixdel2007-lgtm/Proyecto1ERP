@@ -1,40 +1,94 @@
-<!DOCTYPE html>
-<!--
-Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
-Click nbfs://nbhost/SystemFileSystem/Templates/Other/html.html to edit this template
--->
+<!doctype html>
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
-    <head>
-        <title>Nuevo departamento</title>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    </head>
-    <body>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Nuevo departamento · LudusERP</title>
+    <link rel="stylesheet" th:href="@{/css/panel.css}">
+    <link rel="stylesheet" th:href="@{/css/departamentos.css}">
+</head>
+<body>
 
-        <h1>Crear departamento</h1>
+<div class="app">
 
-        <form th:action="@{/departamentos/guardar}" th:object="${departamento}" method="post">
+    <aside th:replace="~{fragments/panel :: menu('departamentos')}"></aside>
 
-            <label>Nombre:</label>
-            <input type="text" th:field="*{nombre}" maxlength="80" required>
+    <div class="main">
 
-            <label>Descripción:</label>
-            <input type="text" th:field="*{descripcion}" maxlength="255">
+        <header th:replace="~{fragments/panel :: barra('Administración', 'Departamentos')}"></header>
 
-            <label>Responsable:</label>
-            <select name="responsableId">
-                <option value="">Sin responsable</option>
+        <main class="canvas">
 
-                <option th:each="trabajador : ${trabajadores}"
-                        th:value="${trabajador.id}"
-                        th:text="${trabajador.nombre}">
-                </option>
-            </select>
-            <button type="submit">Guardar departamento</button>
+            <a class="btn btn-ghost btn-sm" th:href="@{/departamentos}">
+                <svg th:replace="~{fragments/iconos :: back}"></svg> Volver al listado</a>
 
-        </form>
+            <div class="page-head">
+                <div>
+                    <h1>Nuevo departamento</h1>
+                </div>
+            </div>
 
-    </body>
+            <div class="alert alert-err" th:if="${error}" th:text="${error}"></div>
+
+            <div class="grid g-2-1">
+
+                <div class="card">
+                    <form th:action="@{/departamentos/guardar}" method="post" th:object="${departamento}">
+
+                        <div class="card-body">
+                            <div class="form-grid">
+
+                                <div class="frow">
+                                    <label for="nombre">Nombre <span class="req">*</span></label>
+                                    <input class="inp" type="text" th:field="*{nombre}" maxlength="80"
+                                           placeholder="Marketing" required>
+                                    <span class="hint">Único en la tabla.</span>
+                                </div>
+
+                                <div class="frow">
+                                    <label for="responsableId">Responsable</label>
+                                    <select class="inp" name="responsableId">
+                                        <option value="">Sin asignar</option>
+                                        <option th:each="trabajador : ${trabajadores}"
+                                                th:value="${trabajador.id}"
+                                                th:text="${trabajador.nombre} + ' ' + ${trabajador.apellidos}">
+                                            Aleix Delgado</option>
+                                    </select>
+                                    <span class="hint">Se puede dejar sin asignar y decidirlo más tarde.</span>
+                                </div>
+
+                                <div class="frow wide">
+                                    <label for="descripcion">Descripción</label>
+                                    <input class="inp" type="text" th:field="*{descripcion}" maxlength="255"
+                                           placeholder="Qué se hace en este departamento">
+                                </div>
+
+                            </div>
+                        </div>
+
+                        <div class="form-foot">
+                            <span class="note">Un departamento con trabajadores dentro ya no se podrá borrar.</span>
+                            <a class="btn" th:href="@{/departamentos}">Cancelar</a>
+                            <button type="submit" class="btn btn-primary">Crear departamento</button>
+                        </div>
+
+                    </form>
+                </div>
+
+                <div class="stack">
+                    <div class="note-box">
+                        <svg th:replace="~{fragments/iconos :: warn}"></svg>
+                        <div>El responsable es un trabajador ya dado de alta, y solo puede dirigir un
+                            departamento: la tabla lo garantiza con un <code>UNIQUE</code> sobre
+                            <code>responsable_id</code>.</div>
+                    </div>
+                </div>
+
+            </div>
+
+        </main>
+    </div>
+</div>
+
+</body>
 </html>
-
-

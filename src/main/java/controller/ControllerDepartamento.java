@@ -1,9 +1,8 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package controller;
 
+import exception.DepartamentoConTrabajadoresException;
+import exception.NombreDepartamentoDuplicadoException;
+import exception.ResponsableOcupadoException;
 import java.util.List;
 import model.seguridad.Departamento;
 import model.seguridad.Trabajador;
@@ -15,12 +14,9 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import service.interfaces.DepartamentoService;
 
-/**
- *
- * @author Sandy
- */
 @Controller
 public class ControllerDepartamento {
 
@@ -39,7 +35,7 @@ public class ControllerDepartamento {
     @GetMapping("/departamentos/nuevo")
     public String nuevoDepartamento(Model model) {
 
-        Departamento departamento = new Departamento();//creo uno vacio para que el usuario lo llene 
+        Departamento departamento = new Departamento();
         model.addAttribute("departamento", departamento);
 
         List<Trabajador> trabajadores = departamentoService.listarTrabajadores();
@@ -51,9 +47,22 @@ public class ControllerDepartamento {
     @PostMapping("/departamentos/guardar")
     public String guardarDepartamento(
             @ModelAttribute("departamento") Departamento departamento,
-            @RequestParam(required = false) Long responsableId) { //el required pq no es obligatorio tener responsable, peude ser null 
+            @RequestParam(required = false) Long responsableId,
+            Model model) {
 
-        departamentoService.guardarDepartamento(departamento, responsableId);
+        try {
+            departamentoService.guardarDepartamento(departamento, responsableId);
+
+        } catch (NombreDepartamentoDuplicadoException | ResponsableOcupadoException e) {
+
+            model.addAttribute("error", e.getMessage());
+            model.addAttribute("trabajadores", departamentoService.listarTrabajadores());
+
+            if (departamento.getId() == null) {
+                return "departamentos/formularioNuevoDep";
+            }
+            return "departamentos/formularioEditarDep";
+        }
 
         return "redirect:/departamentos";
     }
@@ -62,22 +71,24 @@ public class ControllerDepartamento {
     public String editarDepartamento(@PathVariable Long id, Model model) {
 
         Departamento departamento = departamentoService.buscarDepartamentoXId(id);
-
         model.addAttribute("departamento", departamento);
 
         List<Trabajador> trabajadores = departamentoService.listarTrabajadores();
         model.addAttribute("trabajadores", trabajadores);
 
         return "departamentos/formularioEditarDep";
-
     }
 
     @PostMapping("/departamentos/eliminar/{id}")
-    public String eliminarDepartamento(@PathVariable Long id) {
+    public String eliminarDepartamento(@PathVariable Long id, RedirectAttributes flash) {
 
-        departamentoService.eliminarDepartamento(id);
+        try {
+            departamentoService.eliminarDepartamento(id);
+
+        } catch (DepartamentoConTrabajadoresException e) {
+            flash.addFlashAttribute("error", e.getMessage());
+        }
 
         return "redirect:/departamentos";
     }
-
 }

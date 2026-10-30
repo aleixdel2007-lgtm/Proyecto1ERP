@@ -1,84 +1,85 @@
-
 package service.implement;
 
 import config.IndiceCiego;
 import dao.ProveedorDao;
-import dto.ProveedorFormulario;
 import exception.CifDuplicadoException;
 import exception.ProveedorNoEncontradoException;
 import java.util.List;
-import lombok.RequiredArgsConstructor;
 import model.aprovisionamiento.Proveedor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import service.interfaces.ProveedorService;;
+import service.interfaces.ProveedorService;
 
 @Service
-@Transactional(readOnly = true)
-@RequiredArgsConstructor
-public class ProveedorServiceImpl implements ProveedorService{
-    
-    private final ProveedorDao proveedorDao;
-    
+public class ProveedorServiceImpl implements ProveedorService {
+
+    @Autowired
+    private ProveedorDao proveedorDao;
+
     @Override
-    public List<Proveedor> listar() {
+    public List<Proveedor> listarProveedores() {
         return proveedorDao.findAllByOrderByNombreComercialAsc();
     }
 
     @Override
-    public ProveedorFormulario buscarFormulario(Long id) {
-        Proveedor proveedor = proveedorDao.findById(id).orElseThrow(() -> new ProveedorNoEncontradoException(id));
-        return aFormulario(proveedor);
-    }
-    
-    @Override
-    public ProveedorFormulario aFormulario(Proveedor p) {
-        ProveedorFormulario f = new ProveedorFormulario();
-        
-        f.setId(p.getId());
-        f.setNombreComercial(p.getNombreComercial());
-        f.setRazonSocial(p.getRazonSocial());
-        f.setTipo(p.getTipo());
-        f.setCif(p.getCif());
-        f.setIban(p.getIban());
-        f.setEmail(p.getEmail());
-        f.setTelefono(p.getTelefono());
-        f.setPais(p.getPais());
-        f.setActivo(p.isActivo());
-        return f;
-    }
-   
-    
-    @Override
-    @Transactional
-    public void guardarProveedor(ProveedorFormulario formulario) {
-        String hash = IndiceCiego.hash(formulario.getCif());
-        
-        boolean duplicado = formulario.getId() == null ? proveedorDao.existsByCifHash(hash) : proveedorDao.existsByCifHashAndIdNot(hash,formulario.getId());
-        
-        if(duplicado){
-            throw new CifDuplicadoException();
+    public Proveedor buscarProveedorXId(Long id) {
+
+        Proveedor proveedor = proveedorDao.findById(id).orElse(null);
+
+        if (proveedor == null) {
+            throw new ProveedorNoEncontradoException(id);
         }
-        Proveedor proveedor = formulario.getId() == null ? new Proveedor() : proveedorDao.findById(formulario.getId()).orElseThrow(() -> new ProveedorNoEncontradoException(formulario.getId()));
-    
-        proveedor.setNombreComercial(formulario.getNombreComercial());
-        proveedor.setRazonSocial(formulario.getRazonSocial());
-        proveedor.setTipo(formulario.getTipo());
-        proveedor.setCif(formulario.getCif());
-        proveedor.setCifHash(hash);
-        proveedor.setIban(formulario.getIban());
-        proveedor.setEmail(formulario.getEmail());
-        proveedor.setTelefono(formulario.getTelefono());
-        proveedor.setPais(formulario.getPais());
-        proveedor.setActivo(formulario.isActivo());
-        
-        proveedorDao.save(proveedor);
-    }   
+        return proveedor;
+    }
 
     @Override
-    @Transactional
+    public Proveedor guardarProveedor(Proveedor proveedor) {
+        validarCifRepetido(proveedor);
+
+        if (proveedor.getId() == null) {
+            proveedor.setCifHash(IndiceCiego.hash(proveedor.getCif()));
+            return proveedorDao.save(proveedor);
+        }
+
+        Proveedor existente = buscarProveedorXId(proveedor.getId());
+
+        copiarDatos(proveedor, existente);
+
+        return proveedorDao.save(existente);
+    }
+
+    private void validarCifRepetido(Proveedor proveedor) {
+        String hash = IndiceCiego.hash(proveedor.getCif());
+        boolean repetido;
+
+        if (proveedor.getId() == null) {
+            repetido = proveedorDao.existsByCifHash(hash);
+        } else {
+            repetido = proveedorDao.existsByCifHashAndIdNot(hash, proveedor.getId());
+        }
+
+        if (repetido) {
+            throw new CifDuplicadoException();
+        }
+    }
+
+    private void copiarDatos(Proveedor origen, Proveedor destino) {
+        destino.setNombreComercial(origen.getNombreComercial());
+        destino.setRazonSocial(origen.getRazonSocial());
+        destino.setTipo(origen.getTipo());
+        destino.setCif(origen.getCif());
+        destino.setCifHash(IndiceCiego.hash(origen.getCif()));
+        destino.setIban(origen.getIban());
+        destino.setEmail(origen.getEmail());
+        destino.setTelefono(origen.getTelefono());
+        destino.setPais(origen.getPais());
+        destino.setActivo(origen.isActivo());
+    }
+
+    @Override
     public void cambiarActivo(Long id, boolean activo) {
-        Proveedor proveedor = proveedorDao.findById(id).orElseThrow(() -> new ProveedorNoEncontradoException(id));
+        Proveedor proveedor = buscarProveedorXId(id);
         proveedor.setActivo(activo);
+        proveedorDao.save(proveedor);
     }
 }
