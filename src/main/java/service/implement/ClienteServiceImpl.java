@@ -6,9 +6,8 @@ package service.implement;
 
 import dao.ClienteDao;
 import java.util.List;
-
-import lombok.RequiredArgsConstructor;
 import model.seguridad.Cliente;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import service.interfaces.ClienteService;
@@ -19,9 +18,9 @@ import service.interfaces.ClienteService;
  */
 @Service
 @Transactional(readOnly = true)
-@RequiredArgsConstructor
 public class ClienteServiceImpl implements ClienteService {
 
+    @Autowired
     private ClienteDao clienteDao;
 
     @Override
