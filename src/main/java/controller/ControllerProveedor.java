@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import service.interfaces.ProveedorService;
@@ -29,8 +30,19 @@ public class ControllerProveedor {
     }
 
     @GetMapping
-    public String listarProveedores(Model model) {
-        model.addAttribute("proveedores", proveedorService.listarProveedores());
+    public String listarProveedores(
+            @RequestParam(required = false) String texto,
+            @RequestParam(required = false) String pais,
+            @RequestParam(required = false) Boolean activo,
+            Model model) {
+
+        model.addAttribute("proveedores", proveedorService.listarProveedores(texto, pais, activo));
+        model.addAttribute("paises", proveedorService.listarPaises());
+
+        model.addAttribute("texto", texto);
+        model.addAttribute("pais", pais);
+        model.addAttribute("activo", activo);
+
         return "compras/proveedores";
     }
 

@@ -35,36 +35,41 @@
 
             <div class="card">
 
-                <div class="filters">
+                <form class="filters" method="get" th:action="@{/compras/proveedores}">
                     <div class="fld">
                         <label>Buscar</label>
                         <div class="search-inp">
                             <svg th:replace="~{fragments/iconos :: search}"></svg>
-                            <input placeholder="Nombre comercial o CIF" disabled>
+                            <input name="texto" th:value="${texto}" placeholder="Nombre comercial o razón social">
                         </div>
                     </div>
                     <div class="fld">
                         <label>País</label>
-                        <select class="inp" disabled>
-                            <option>Todos</option>
-                            <option>Espana</option>
-                            <option>Suecia</option>
-                            <option>Alemania</option>
+                        <select class="inp" name="pais">
+                            <option value="">Todos</option>
+                            <option th:each="p : ${paises}"
+                                    th:value="${p}"
+                                    th:text="${p}"
+                                    th:selected="${pais != null and pais == p}">España</option>
                         </select>
                     </div>
                     <div class="fld">
                         <label>Estado</label>
-                        <select class="inp" disabled>
-                            <option>Todos</option>
-                            <option>Activo</option>
-                            <option>Inactivo</option>
+                        <select class="inp" name="activo">
+                            <option value="">Todos</option>
+                            <option value="true" th:selected="${activo != null and activo}">Activo</option>
+                            <option value="false" th:selected="${activo != null and !activo}">Inactivo</option>
                         </select>
                     </div>
                     <div class="fld">
                         <label>&nbsp;</label>
-                        <button class="btn btn-primary" disabled>Filtrar</button>
+                        <button type="submit" class="btn btn-primary">Filtrar</button>
                     </div>
-                </div>
+                    <div class="fld">
+                        <label>&nbsp;</label>
+                        <a class="btn" th:href="@{/compras/proveedores}">Limpiar</a>
+                    </div>
+                </form>
 
                 <div class="card-body tight">
 

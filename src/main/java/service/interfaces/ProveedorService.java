@@ -5,7 +5,9 @@ import model.aprovisionamiento.Proveedor;
 
 public interface ProveedorService {
 
-    List<Proveedor> listarProveedores();
+    List<Proveedor> listarProveedores(String texto, String pais, Boolean activo);
+
+    List<String> listarPaises();
 
     Proveedor buscarProveedorXId(Long id);
 

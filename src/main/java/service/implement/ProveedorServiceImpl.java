@@ -20,8 +20,13 @@ public class ProveedorServiceImpl implements ProveedorService {
     private ProveedorDao proveedorDao;
 
     @Override
-    public List<Proveedor> listarProveedores() {
-        return proveedorDao.findAllByOrderByNombreComercialAsc();
+    public List<Proveedor> listarProveedores(String texto, String pais, Boolean activo) {
+        return proveedorDao.listarFiltrado(normalizarTexto(texto), normalizarTexto(pais), activo);
+    }
+
+    @Override
+    public List<String> listarPaises() {
+        return proveedorDao.listarPaises();
     }
 
     @Override
@@ -49,6 +54,14 @@ public class ProveedorServiceImpl implements ProveedorService {
         copiarDatos(proveedor, existente);
 
         return proveedorDao.save(existente);
+    }
+
+    private String normalizarTexto(String texto) {
+
+        if (texto == null || texto.isBlank()) {
+            return null;
+        }
+        return texto.trim();
     }
 
     private void validarCifRepetido(Proveedor proveedor) {
