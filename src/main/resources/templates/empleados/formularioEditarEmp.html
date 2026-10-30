@@ -113,7 +113,7 @@
                                     <label for="rol">Rol <span class="req">*</span></label>
                                     <select class="inp" th:field="*{rol}" required>
                                         <option value="">Selecciona un rol</option>
-                                        <option th:each="r : ${roles}" th:value="${r}" th:text="${r}">ADMIN</option>
+                                        <option th:each="r : ${rolesDisponibles}" th:value="${r}" th:text="${r}">ADMIN</option>
                                     </select>
                                     <span class="hint">Un empleado tiene un solo rol, y de él dependen sus permisos.</span>
                                 </div>
