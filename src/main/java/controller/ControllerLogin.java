@@ -22,8 +22,7 @@ public class ControllerLogin {
 
     private final UsuarioDao usuarioDao;
     private final PasswordEncoder codificador;
-
-    // El POST a /login lo procesa Spring Security (SecurityConfig).
+    
     @GetMapping("/")
     public String index() {
         if (SecurityContextHolder.getContext().getAuthentication() != null) {

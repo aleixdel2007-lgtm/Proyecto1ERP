@@ -22,7 +22,7 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 
-    // Carga los usuarios desde la base de datos; el "username" del login es el email
+    // Carga los usuarios desde la base de datos, el "username" del login es el email
     @Bean
     public UserDetailsService userDetailsService(UsuarioDao usuarioDao) {
         return email -> {
@@ -50,7 +50,7 @@ public class SecurityConfig {
                 )
                 .formLogin(form -> form
                         .loginPage("/login")
-                        // Los clientes van a la tienda; el resto de roles, a "/home"
+                        // Los clientes van a la tienda, el resto de roles, a "/home"
                         .successHandler((request, response, authentication) -> {
                             boolean esCliente = authentication.getAuthorities().stream()
                                     .anyMatch(a -> a.getAuthority().equals("ROLE_" + Rol.CLIENTE.name()));

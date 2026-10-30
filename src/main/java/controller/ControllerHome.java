@@ -3,6 +3,7 @@ package controller;
 
 import dao.UsuarioDao;
 import lombok.RequiredArgsConstructor;
+import model.seguridad.Cliente;
 import model.seguridad.Usuario;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
@@ -25,5 +26,13 @@ public class ControllerHome {
     @GetMapping("/tienda")
     public String tienda() {
         return "client/tienda";
+    }
+
+    @GetMapping("/user/profile")
+    public String profile(Authentication authentication, Model model) {
+        Usuario usuario = usuarioDao.findByEmail(authentication.getName()).orElse(null);
+        model.addAttribute("usuario", usuario);
+        model.addAttribute("cliente", usuario instanceof Cliente c ? c : null);
+        return "clients/configuracionUsuario";
     }
 }
