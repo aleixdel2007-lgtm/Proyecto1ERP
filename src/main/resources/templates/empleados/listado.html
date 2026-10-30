@@ -36,31 +36,43 @@
 
             <div class="card">
 
-                <div class="filters">
+                <form class="filters" method="get" th:action="@{/empleados}">
                     <div class="fld">
                         <label>Buscar</label>
                         <div class="search-inp">
                             <svg th:replace="~{fragments/iconos :: search}"></svg>
-                            <input placeholder="Nombre o correo" disabled>
+                            <input name="texto" th:value="${texto}" placeholder="Nombre o correo">
                         </div>
                     </div>
                     <div class="fld">
                         <label>Departamento</label>
-                        <select class="inp" disabled>
-                            <option>Todos</option>
+                        <select class="inp" name="departamentoId">
+                            <option value="">Todos</option>
+                            <option th:each="d : ${departamentos}"
+                                    th:value="${d.id}"
+                                    th:text="${d.nombre}"
+                                    th:selected="${departamentoId != null and departamentoId == d.id}">Dirección</option>
                         </select>
                     </div>
                     <div class="fld">
                         <label>Rol</label>
-                        <select class="inp" disabled>
-                            <option>Todos</option>
+                        <select class="inp" name="rol">
+                            <option value="">Todos</option>
+                            <option th:each="r : ${rolesDisponibles}"
+                                    th:value="${r}"
+                                    th:text="${r}"
+                                    th:selected="${rol != null and rol == r}">ADMIN</option>
                         </select>
                     </div>
                     <div class="fld">
                         <label>&nbsp;</label>
-                        <button class="btn btn-primary" disabled>Filtrar</button>
+                        <button type="submit" class="btn btn-primary">Filtrar</button>
                     </div>
-                </div>
+                    <div class="fld">
+                        <label>&nbsp;</label>
+                        <a class="btn" th:href="@{/empleados}">Limpiar</a>
+                    </div>
+                </form>
 
                 <div class="card-body tight">
 

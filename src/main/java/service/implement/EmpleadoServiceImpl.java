@@ -34,8 +34,8 @@ public class EmpleadoServiceImpl implements EmpleadoService {
     private PasswordEncoder codificador;
 
     @Override
-    public List<Empleado> listarEmpleados() {
-        return empleadoDao.listarConDepartamento();
+    public List<Empleado> listarEmpleados(String texto, Long departamentoId, Rol rol) {
+        return empleadoDao.listarFiltrado(normalizarTexto(texto), departamentoId, rol);
     }
 
     @Override
@@ -148,6 +148,14 @@ public class EmpleadoServiceImpl implements EmpleadoService {
         if (repetido) {
             throw new NifDuplicadoException();
         }
+    }
+
+    private String normalizarTexto(String texto) {
+
+        if (texto == null || texto.isBlank()) {
+            return null;
+        }
+        return texto.trim();
     }
 
     private String hashDelNif(String nif) {

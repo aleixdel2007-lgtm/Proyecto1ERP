@@ -30,10 +30,19 @@ public class ControllerEmpleado {
     }
 
     @GetMapping("/empleados")
-    public String listarEmpleados(Model model) {
+    public String listarEmpleados(
+            @RequestParam(required = false) String texto,
+            @RequestParam(required = false) Long departamentoId,
+            @RequestParam(required = false) Rol rol,
+            Model model) {
 
-        List<Empleado> lista = empleadoService.listarEmpleados();
+        List<Empleado> lista = empleadoService.listarEmpleados(texto, departamentoId, rol);
         model.addAttribute("empleados", lista);
+        model.addAttribute("departamentos", empleadoService.listarDepartamentos());
+
+        model.addAttribute("texto", texto);
+        model.addAttribute("departamentoId", departamentoId);
+        model.addAttribute("rol", rol);
 
         return "empleados/listado";
     }
