@@ -6,6 +6,8 @@ package service.implement;
 
 import dao.ClienteDao;
 import java.util.List;
+
+import lombok.RequiredArgsConstructor;
 import model.seguridad.Cliente;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

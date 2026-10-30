@@ -4,10 +4,17 @@
  */
 package service.interfaces;
 
+import model.seguridad.Cliente;
+
+import java.util.List;
+
 /**
  *
  * @author Sandy
  */
 public interface ClienteService {
-    
+
+    List<Cliente> listar();
+
+    List<Cliente> buscarFiltrado(String texto);
 }
