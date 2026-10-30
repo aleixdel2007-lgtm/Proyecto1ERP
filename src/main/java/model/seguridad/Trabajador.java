@@ -13,6 +13,7 @@ import java.time.LocalDate;
 @Setter
 public class Trabajador extends Usuario {
 
+    //cada trabajador pertenece a un departamento
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "departamento_id", nullable = false)
     private Departamento departamento;

@@ -1,6 +1,5 @@
 package service.implement;
 
-import dao.DepartamentoDao;
 import dao.TrabajadorDao;
 import exception.DepartamentoConTrabajadoresException;
 import exception.DepartamentoNoEncontradoException;
@@ -13,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import service.interfaces.DepartamentoService;
+import dao.DepartamentoDao;
 
 @Service
 public class DepartamentoServiceImpl implements DepartamentoService {
