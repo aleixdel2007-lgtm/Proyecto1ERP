@@ -1,10 +1,13 @@
 package config;
 
 import dao.UsuarioDao;
+import jakarta.servlet.http.HttpServletResponse;
 import model.seguridad.Rol;
 import model.seguridad.Usuario;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -44,6 +47,8 @@ public class SecurityConfig {
                         .requestMatchers("/css/**", "/js/**", "/img/**", "/images/**", "/webjars/**").permitAll()
                         .requestMatchers("/registro").permitAll()
                         .requestMatchers("/departamentos/**").hasRole("ADMIN")
+                        .requestMatchers("/compras/**").hasRole("ADMIN")
+                        .requestMatchers("/home").hasRole("ADMIN")
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         .requestMatchers("/user/**").hasAnyRole("CLIENTE", "ADMIN")
                         .anyRequest().authenticated()
@@ -57,6 +62,20 @@ public class SecurityConfig {
                             response.sendRedirect(request.getContextPath() + (esCliente ? "/tienda" : "/home"));
                         })
                         .permitAll()
+                )
+                .exceptionHandling(ex -> ex
+                        // Un cliente que escribe /home a mano va a su pagina de inicio, no al 403
+                        .accessDeniedHandler((request, response, denied) -> {
+                            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+                            boolean esCliente = auth != null && auth.getAuthorities().stream()
+                                    .anyMatch(a -> a.getAuthority().equals("ROLE_" + Rol.CLIENTE.name()));
+                            String ruta = request.getRequestURI().substring(request.getContextPath().length());
+                            if (esCliente && ruta.equals("/home")) {
+                                response.sendRedirect(request.getContextPath() + "/tienda");
+                            } else {
+                                response.sendError(HttpServletResponse.SC_FORBIDDEN);
+                            }
+                        })
                 )
                 .logout(logout -> logout
                         .logoutUrl("/logout")

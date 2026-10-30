@@ -1,5 +1,6 @@
 <!doctype html>
-<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<html lang="es" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -25,7 +26,8 @@
                     <p class="hint auth-sub error-text">La dirección que buscas no existe o se ha movido a otro sitio.</p>
                 </div>
                 <div class="error-actions">
-                    <a class="btn btn-primary" th:href="@{/home}" href="#">Volver al inicio</a>
+                    <a class="btn btn-primary" sec:authorize="hasRole('CLIENTE')" th:href="@{/tienda}" href="#">Volver al inicio</a>
+                    <a class="btn btn-primary" sec:authorize="!hasRole('CLIENTE')" th:href="@{/home}" href="#">Volver al inicio</a>
                 </div>
             </div>
         </div>
