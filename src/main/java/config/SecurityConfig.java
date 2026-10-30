@@ -44,6 +44,7 @@ public class SecurityConfig {
                         .requestMatchers("/css/**", "/js/**", "/img/**", "/images/**", "/webjars/**").permitAll()
                         .requestMatchers("/registro").permitAll()
                         .requestMatchers("/departamentos/**").hasRole("ADMIN")
+                        .requestMatchers("/empleados/**").hasRole("ADMIN")
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         .requestMatchers("/user/**").hasAnyRole("CLIENTE", "ADMIN")
                         .anyRequest().authenticated()

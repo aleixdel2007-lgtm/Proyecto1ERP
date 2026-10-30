@@ -25,8 +25,8 @@ public class Departamento {
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "responsable_id", unique = true)
-    private Trabajador responsable;
+    private Empleado responsable;
 
     @OneToMany(mappedBy = "departamento")
-    private List<Trabajador> trabajadores = new ArrayList<>();
+    private List<Empleado> trabajadores = new ArrayList<>();
 }

@@ -8,10 +8,10 @@ import lombok.Setter;
 import java.time.LocalDate;
 
 @Entity
-@Table(name = "trabajador")
+@Table(name = "empleado")
 @Getter
 @Setter
-public class Trabajador extends Usuario {
+public class Empleado extends Usuario {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "departamento_id", nullable = false)

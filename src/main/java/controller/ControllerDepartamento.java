@@ -5,7 +5,7 @@ import exception.NombreDepartamentoDuplicadoException;
 import exception.ResponsableOcupadoException;
 import java.util.List;
 import model.seguridad.Departamento;
-import model.seguridad.Trabajador;
+import model.seguridad.Empleado;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -38,7 +38,7 @@ public class ControllerDepartamento {
         Departamento departamento = new Departamento();
         model.addAttribute("departamento", departamento);
 
-        List<Trabajador> trabajadores = departamentoService.listarTrabajadores();
+        List<Empleado> trabajadores = departamentoService.listarTrabajadores();
         model.addAttribute("trabajadores", trabajadores);
 
         return "departamentos/formularioNuevoDep";
@@ -73,7 +73,7 @@ public class ControllerDepartamento {
         Departamento departamento = departamentoService.buscarDepartamentoXId(id);
         model.addAttribute("departamento", departamento);
 
-        List<Trabajador> trabajadores = departamentoService.listarTrabajadores();
+        List<Empleado> trabajadores = departamentoService.listarTrabajadores();
         model.addAttribute("trabajadores", trabajadores);
 
         return "departamentos/formularioEditarDep";

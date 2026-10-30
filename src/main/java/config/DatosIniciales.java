@@ -8,7 +8,7 @@ import model.seguridad.Cliente;
 import model.seguridad.CuentaProveedor;
 import model.seguridad.Departamento;
 import model.seguridad.Rol;
-import model.seguridad.Trabajador;
+import model.seguridad.Empleado;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Profile;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -40,16 +40,16 @@ public class DatosIniciales implements CommandLineRunner {
         Departamento atencion = departamento("Atencion al cliente", "Soporte, pedidos y reembolsos");
         Departamento almacen = departamento("Almacen", "Claves de licencia y aprovisionamiento");
 
-        Trabajador admin = trabajador("admin@luduserp.cat", "Aleix", "Delgado", Rol.ADMIN,
+        Empleado admin = trabajador("admin@luduserp.cat", "Aleix", "Delgado", Rol.ADMIN,
                 direccion, "Administrador del sistema", "12345678Z",
                 "ES9121000418450200051332", LocalDate.of(2024, 9, 2));
-        Trabajador gestorProductos = trabajador("producto@luduserp.cat", "Marta", "Ferrer", Rol.GESTOR_PRODUCTOS,
+        Empleado gestorProductos = trabajador("producto@luduserp.cat", "Marta", "Ferrer", Rol.GESTOR_PRODUCTOS,
                 producto, "Gestora de productos", "23456789A",
                 "ES7100302053091234567895", LocalDate.of(2025, 1, 13));
-        Trabajador gestorClientes = trabajador("clientes@luduserp.cat", "Oriol", "Serra", Rol.GESTOR_CLIENTES,
+        Empleado gestorClientes = trabajador("clientes@luduserp.cat", "Oriol", "Serra", Rol.GESTOR_CLIENTES,
                 atencion, "Gestor de clientes", "34567890B",
                 "ES2200492352082414205416", LocalDate.of(2025, 3, 3));
-        Trabajador gestorInventario = trabajador("inventario@luduserp.cat", "Nuria", "Pons", Rol.GESTOR_INVENTARIO,
+        Empleado gestorInventario = trabajador("inventario@luduserp.cat", "Nuria", "Pons", Rol.GESTOR_INVENTARIO,
                 almacen, "Gestora de inventario", "45678901C",
                 "ES6000491500051234567892", LocalDate.of(2025, 6, 16));
 
@@ -84,10 +84,10 @@ public class DatosIniciales implements CommandLineRunner {
         return d;
     }
 
-    private Trabajador trabajador(String email, String nombre, String apellidos, Rol rol,
+    private Empleado trabajador(String email, String nombre, String apellidos, Rol rol,
                                   Departamento departamento, String cargo, String nif,
                                   String iban, LocalDate fechaContratacion) {
-        Trabajador t = new Trabajador();
+        Empleado t = new Empleado();
         t.setEmail(email);
         t.setPasswordHash(codificador.encode(PASSWORD_INICIAL));
         t.setRol(rol);

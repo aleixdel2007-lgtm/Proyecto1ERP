@@ -22,6 +22,8 @@
             <div class="nav-group">Administración</div>
             <a class="nav-item" th:classappend="${activo == 'departamentos'} ? 'on' : ''"
                th:href="@{/departamentos}">Departamentos</a>
+            <a class="nav-item" th:classappend="${activo == 'empleados'} ? 'on' : ''"
+               th:href="@{/empleados}">Empleados</a>
         </th:block>
     </div>
 

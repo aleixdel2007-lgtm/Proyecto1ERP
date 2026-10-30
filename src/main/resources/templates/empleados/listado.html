@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Empleados · LudusERP</title>
+    <link rel="stylesheet" th:href="@{/css/panel.css}">
+    <link rel="stylesheet" th:href="@{/css/empleados.css}">
+</head>
+<body>
+
+<div class="app">
+
+    <aside th:replace="~{fragments/panel :: menu('empleados')}"></aside>
+
+    <div class="main">
+
+        <header th:replace="~{fragments/panel :: barra('Administración', 'Empleados')}"></header>
+
+        <main class="canvas">
+
+            <div class="alert alert-ok" th:if="${mensaje}" th:text="${mensaje}"></div>
+            <div class="alert alert-err" th:if="${error}" th:text="${error}"></div>
+
+            <div class="page-head">
+                <div>
+                    <h1>Empleados</h1>
+                    <p>Dar de alta un empleado crea su usuario en la misma operación, con un rol y una
+                        contraseña inicial. El NIF y el IBAN se guardan cifrados.</p>
+                </div>
+                <div class="page-actions">
+                    <a class="btn btn-primary" th:href="@{/empleados/nuevo}">
+                        <svg th:replace="~{fragments/iconos :: plus}"></svg> Nuevo empleado</a>
+                </div>
+            </div>
+
+            <div class="card">
+
+                <div class="filters">
+                    <div class="fld">
+                        <label>Buscar</label>
+                        <div class="search-inp">
+                            <svg th:replace="~{fragments/iconos :: search}"></svg>
+                            <input placeholder="Nombre o correo" disabled>
+                        </div>
+                    </div>
+                    <div class="fld">
+                        <label>Departamento</label>
+                        <select class="inp" disabled>
+                            <option>Todos</option>
+                        </select>
+                    </div>
+                    <div class="fld">
+                        <label>Rol</label>
+                        <select class="inp" disabled>
+                            <option>Todos</option>
+                        </select>
+                    </div>
+                    <div class="fld">
+                        <label>&nbsp;</label>
+                        <button class="btn btn-primary" disabled>Filtrar</button>
+                    </div>
+                </div>
+
+                <div class="card-body tight">
+
+                    <div class="empty" th:if="${#lists.isEmpty(empleados)}">
+                        <h4>Todavía no hay empleados</h4>
+                        <p class="hint">Crea el primero con el botón «Nuevo empleado».</p>
+                    </div>
+
+                    <div class="tbl-wrap" th:unless="${#lists.isEmpty(empleados)}">
+                        <table class="tbl">
+                            <thead>
+                            <tr>
+                                <th>Empleado</th>
+                                <th>Departamento</th>
+                                <th>Cargo</th>
+                                <th>Rol</th>
+                                <th>Contratación</th>
+                                <th>Estado</th>
+                                <th class="acts"></th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="e : ${empleados}">
+                                <td>
+                                    <div class="row">
+                                        <div class="avatar emp-avatar"
+                                             th:text="${#strings.toUpperCase(#strings.substring(e.nombre, 0, 1))}">A</div>
+                                        <div>
+                                            <div class="t-main" th:text="${e.nombre} + ' ' + ${e.apellidos}">Aleix Delgado</div>
+                                            <div class="t-sub" th:text="${e.email}">admin@luduserp.cat</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td><span class="chip" th:text="${e.departamento.nombre}">Dirección</span></td>
+                                <td th:text="${e.cargo}">Administrador del sistema</td>
+                                <td><span class="badge b-purple" th:text="${e.rol}">ADMIN</span></td>
+                                <td th:text="${e.fechaContratacion}">2024-09-02</td>
+                                <td>
+                                    <span class="badge" th:classappend="${e.activo} ? 'b-good' : 'b-mute'"
+                                          th:text="${e.activo} ? 'ACTIVO' : 'INACTIVO'">ACTIVO</span>
+                                </td>
+                                <td class="acts">
+                                    <a class="btn btn-sm btn-ghost" title="Editar"
+                                       th:href="@{/empleados/editar/{id}(id=${e.id})}">
+                                        <svg th:replace="~{fragments/iconos :: edit}"></svg>
+                                    </a>
+                                    <form th:action="@{/empleados/activo/{id}(id=${e.id})}" method="post">
+                                        <input type="hidden" name="activo" th:value="${!e.activo}">
+                                        <button type="submit" class="btn btn-sm btn-danger" title="Dar de baja"
+                                                th:if="${e.activo}">
+                                            <svg th:replace="~{fragments/iconos :: trash}"></svg>
+                                        </button>
+                                        <button type="submit" class="btn btn-sm btn-ghost" title="Reactivar"
+                                                th:unless="${e.activo}">
+                                            <svg th:replace="~{fragments/iconos :: check}"></svg>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="pager" th:unless="${#lists.isEmpty(empleados)}">
+                    <span>Mostrando <b th:text="${#lists.size(empleados)}">0</b>
+                        de <b th:text="${#lists.size(empleados)}">0</b> registros</span>
+                    <div class="pages">
+                        <button class="pg" disabled>&lsaquo;</button>
+                        <button class="pg on" disabled>1</button>
+                        <button class="pg" disabled>&rsaquo;</button>
+                    </div>
+                </div>
+
+            </div>
+
+        </main>
+    </div>
+</div>
+
+</body>
+</html>

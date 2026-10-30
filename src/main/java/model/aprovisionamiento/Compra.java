@@ -3,7 +3,7 @@ package model.aprovisionamiento;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-import model.seguridad.Trabajador;
+import model.seguridad.Empleado;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -28,8 +28,8 @@ public class Compra {
     private Proveedor proveedor;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "trabajador_id", nullable = false)
-    private Trabajador trabajador;
+    @JoinColumn(name = "empleado_id", nullable = false)
+    private Empleado empleado;
 
     @Column(name = "fecha", nullable = false)
     private LocalDate fecha;
