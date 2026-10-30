@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Página no encontrada · LudusERP</title>
+    <link rel="stylesheet" th:href="@{/css/login.css}" href="../../static/css/login.css">
+    <link rel="stylesheet" th:href="@{/css/error.css}" href="../../static/css/error.css">
+</head>
+<body>
+
+<main class="auth">
+    <div class="auth-box">
+
+        <div class="auth-brand">
+            <div class="brand-mark">L</div>
+            <div class="brand-name">Ludus<span>ERP</span></div>
+        </div>
+
+        <div class="card">
+            <div class="card-body stack error-card">
+                <div class="error-code">404</div>
+                <div>
+                    <h2 class="error-title">Página no encontrada</h2>
+                    <p class="hint auth-sub error-text">La dirección que buscas no existe o se ha movido a otro sitio.</p>
+                </div>
+                <div class="error-actions">
+                    <a class="btn btn-primary" th:href="@{/home}" href="#">Volver al inicio</a>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</main>
+
+</body>
+</html>
