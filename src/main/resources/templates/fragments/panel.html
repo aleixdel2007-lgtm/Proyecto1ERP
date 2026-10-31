@@ -12,18 +12,22 @@
     <div class="side-scroll">
         <div class="nav-group">General</div>
         <a class="nav-item" th:classappend="${activo == 'inicio'} ? 'on' : ''"
-           th:href="@{/home}">Inicio</a>
+           th:href="@{/home}">
+            <span class="ic"><svg th:replace="~{fragments/iconos :: panel}"></svg></span>Inicio</a>
 
         <div class="nav-group">Aprovisionamiento</div>
         <a class="nav-item" th:classappend="${activo == 'proveedores'} ? 'on' : ''"
-           th:href="@{/compras/proveedores}">Proveedores</a>
+           th:href="@{/compras/proveedores}">
+            <span class="ic"><svg th:replace="~{fragments/iconos :: truck}"></svg></span>Proveedores</a>
 
         <th:block sec:authorize="hasRole('ADMIN')">
             <div class="nav-group">Administración</div>
-            <a class="nav-item" th:classappend="${activo == 'departamentos'} ? 'on' : ''"
-               th:href="@{/departamentos}">Departamentos</a>
             <a class="nav-item" th:classappend="${activo == 'empleados'} ? 'on' : ''"
-               th:href="@{/empleados}">Empleados</a>
+               th:href="@{/empleados}">
+                <span class="ic"><svg th:replace="~{fragments/iconos :: badge2}"></svg></span>Empleados</a>
+            <a class="nav-item" th:classappend="${activo == 'departamentos'} ? 'on' : ''"
+               th:href="@{/departamentos}">
+                <span class="ic"><svg th:replace="~{fragments/iconos :: dept}"></svg></span>Departamentos</a>
         </th:block>
     </div>
 
