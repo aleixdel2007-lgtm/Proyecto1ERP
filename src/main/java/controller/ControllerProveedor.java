@@ -1,6 +1,7 @@
 package controller;
 
 import exception.CifDuplicadoException;
+import exception.CifInvalidoException;
 import exception.ProveedorConCuentaException;
 import exception.ProveedorConReferenciasException;
 import lombok.RequiredArgsConstructor;
@@ -65,7 +66,7 @@ public class ControllerProveedor {
         try {
             proveedorService.guardarProveedor(proveedor);
 
-        } catch (CifDuplicadoException e) {
+        } catch (CifInvalidoException | CifDuplicadoException e) {
             model.addAttribute("error", e.getMessage());
             return "compras/proveedor";
         }

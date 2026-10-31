@@ -1,8 +1,10 @@
 package service.implement;
 
 import config.IndiceCiego;
+import config.ValidadorCif;
 import dao.ProveedorDao;
 import exception.CifDuplicadoException;
+import exception.CifInvalidoException;
 import exception.ProveedorConCuentaException;
 import exception.ProveedorConReferenciasException;
 import exception.ProveedorNoEncontradoException;
@@ -42,6 +44,7 @@ public class ProveedorServiceImpl implements ProveedorService {
 
     @Override
     public Proveedor guardarProveedor(Proveedor proveedor) {
+        validarCifFormato(proveedor);
         validarCifRepetido(proveedor);
 
         if (proveedor.getId() == null) {
@@ -62,6 +65,14 @@ public class ProveedorServiceImpl implements ProveedorService {
             return null;
         }
         return texto.trim();
+    }
+
+    private void validarCifFormato(Proveedor proveedor) {
+
+        if (!ValidadorCif.esValido(proveedor.getCif())) {
+            throw new CifInvalidoException();
+        }
+        proveedor.setCif(ValidadorCif.normalizar(proveedor.getCif()));
     }
 
     private void validarCifRepetido(Proveedor proveedor) {

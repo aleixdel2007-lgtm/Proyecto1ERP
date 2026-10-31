@@ -70,9 +70,9 @@ public class DatosIniciales implements CommandLineRunner {
         CuentaProveedor cuentaTaller = cuentaProveedor("taller3dam@example.com", "Taller 3r DAM A");
         CuentaProveedor cuentaPixel = cuentaProveedor("contacto@pixelforge.dev", "Pixel Forge");
 
-        estudio("Taller 3r DAM A", "Taller 3r DAM A SCCL", "B12345678",
+        estudio("Taller 3r DAM A", "Taller 3r DAM A SCCL", "B12345674",
                 "ES9420805801101234567891", "taller3dam@example.com", cuentaTaller);
-        estudio("Pixel Forge", "Pixel Forge Studio SL", "B87654321",
+        estudio("Pixel Forge", "Pixel Forge Studio SL", "B87654323",
                 "ES1000492352082414205400", "contacto@pixelforge.dev", cuentaPixel);
     }
 
