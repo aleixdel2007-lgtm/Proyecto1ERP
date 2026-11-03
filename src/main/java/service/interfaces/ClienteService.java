@@ -4,6 +4,7 @@
  */
 package service.interfaces;
 
+import java.time.LocalDate;
 import model.seguridad.Cliente;
 
 import java.util.List;
@@ -14,7 +15,7 @@ import java.util.List;
  */
 public interface ClienteService {
 
-    List<Cliente> listar();
+List<Cliente> buscarFiltrado(String texto, String pais, LocalDate desde);
 
-    List<Cliente> buscarFiltrado(String texto);
+List<String> listarPaises();
 }

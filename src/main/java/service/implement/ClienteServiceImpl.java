@@ -5,6 +5,8 @@
 package service.implement;
 
 import dao.ClienteDao;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import model.seguridad.Cliente;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,16 +26,16 @@ public class ClienteServiceImpl implements ClienteService {
     private ClienteDao clienteDao;
 
     @Override
-    public List<Cliente> listar() {
-        return clienteDao.findAll();
-    }
+    public List<Cliente> buscarFiltrado(String texto, String pais, LocalDate desde) {
+        String textoLimpio = (texto == null || texto.isBlank()) ? null : texto.trim();
+        String paisLimpio = (pais == null || pais.isBlank()) ? null : pais;
+        LocalDateTime desdeFecha = (desde == null) ? null : desde.atStartOfDay(); //El atStartOfDay() es porque el usuario elige un día (LocalDate)
+        return clienteDao.buscarFiltrado(textoLimpio, paisLimpio, desdeFecha);    // pero en la base de datos la fecha de alta lleva hora (LocalDateTime). 
+    }                                                                             //Convierte “03/11” en “03/11 a las 00:00”
 
     @Override
-    public List<Cliente> buscarFiltrado(String texto) {
-        if (texto == null || texto.isBlank()) { //si el texto es en blanco, es que no hay filtrado
-            return clienteDao.findAll(); // y retorno la lista normal
-        }
-        return clienteDao.buscarFiltrado(texto.trim());
+    public List<String> listarPaises() {
+        return clienteDao.listarPaises();
     }
 
 }

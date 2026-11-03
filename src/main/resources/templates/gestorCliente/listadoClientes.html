@@ -44,16 +44,15 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Other/html.html to edit this temp
                             </div>
                             <div class="fld">
                                 <label>País</label>
-                                <select class="inp" disabled>
-                                    <option>Todos</option>
-                                    <option>Espana</option>
-                                    <option>Francia</option>
-                                    <option>Italia</option>
+                                <select class="inp" name="pais">
+                                    <option value="">Todos</option>
+                                    <option th:each="p : ${paises}" th:value="${p}" th:text="${p}"
+                                            th:selected="${p == pais}"></option>
                                 </select>
                             </div>
                             <div class="fld">
                                 <label>Alta desde</label>
-                                <input class="inp" type="date" disabled>
+                                <input class="inp" type="date" name="desde" th:value="${desde}">
                             </div>
                             <div class="fld">
                                 <label>&nbsp;</label>

@@ -4,9 +4,11 @@
  */
 package controller;
 
+import java.time.LocalDate;
 import java.util.List;
 import model.seguridad.Cliente;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -24,10 +26,16 @@ public class ControllerCliente {
     private ClienteService clienteService;
 
     @GetMapping("/clientes")
-    public String listarClientes(@RequestParam(required = false) String buscar, Model model) {
-        List<Cliente> lista = clienteService.buscarFiltrado(buscar);
-        model.addAttribute("clientes", lista);
+    public String listarClientes(@RequestParam(required = false) String buscar,
+            @RequestParam(required = false) String pais,
+            @RequestParam(required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate desde,
+            Model model) {
+        model.addAttribute("clientes", clienteService.buscarFiltrado(buscar, pais, desde));
+        model.addAttribute("paises", clienteService.listarPaises());
         model.addAttribute("buscar", buscar);
+        model.addAttribute("pais", pais);
+        model.addAttribute("desde", desde);
         return "gestorCliente/listadoClientes";
     }
 
