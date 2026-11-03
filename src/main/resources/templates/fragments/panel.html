@@ -18,8 +18,15 @@
         <div class="nav-group">Aprovisionamiento</div>
         <a class="nav-item" th:classappend="${activo == 'proveedores'} ? 'on' : ''"
            th:href="@{/compras/proveedores}">
+            
             <span class="ic"><svg th:replace="~{fragments/iconos :: truck}"></svg></span>Proveedores</a>
-
+        <th:block sec:authorize="hasAnyRole('GESTOR_CLIENTES', 'ADMIN')">
+            <div class="nav-group">Ventas</div>
+            <a class="nav-item" th:classappend="${activo == 'clientes'} ? 'on' : ''"
+               th:href="@{/clientes}">
+                <span class="ic"><svg th:replace="~{fragments/iconos :: users}"></svg></span>Clientes</a>
+        </th:block>
+        
         <th:block sec:authorize="hasRole('ADMIN')">
             <div class="nav-group">Administración</div>
             <a class="nav-item" th:classappend="${activo == 'empleados'} ? 'on' : ''"
