@@ -1,12 +1,17 @@
 package service.implement;
 
 import config.IndiceCiego;
+import config.ValidadorCif;
 import dao.ProveedorDao;
 import exception.CifDuplicadoException;
+import exception.CifInvalidoException;
+import exception.ProveedorConCuentaException;
+import exception.ProveedorConReferenciasException;
 import exception.ProveedorNoEncontradoException;
 import java.util.List;
 import model.aprovisionamiento.Proveedor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import service.interfaces.ProveedorService;
 
@@ -17,8 +22,13 @@ public class ProveedorServiceImpl implements ProveedorService {
     private ProveedorDao proveedorDao;
 
     @Override
-    public List<Proveedor> listarProveedores() {
-        return proveedorDao.findAllByOrderByNombreComercialAsc();
+    public List<Proveedor> listarProveedores(String texto, String pais, Boolean activo) {
+        return proveedorDao.listarFiltrado(normalizarTexto(texto), normalizarTexto(pais), activo);
+    }
+
+    @Override
+    public List<String> listarPaises() {
+        return proveedorDao.listarPaises();
     }
 
     @Override
@@ -34,6 +44,7 @@ public class ProveedorServiceImpl implements ProveedorService {
 
     @Override
     public Proveedor guardarProveedor(Proveedor proveedor) {
+        validarCifFormato(proveedor);
         validarCifRepetido(proveedor);
 
         if (proveedor.getId() == null) {
@@ -46,6 +57,22 @@ public class ProveedorServiceImpl implements ProveedorService {
         copiarDatos(proveedor, existente);
 
         return proveedorDao.save(existente);
+    }
+
+    private String normalizarTexto(String texto) {
+
+        if (texto == null || texto.isBlank()) {
+            return null;
+        }
+        return texto.trim();
+    }
+
+    private void validarCifFormato(Proveedor proveedor) {
+
+        if (!ValidadorCif.esValido(proveedor.getCif())) {
+            throw new CifInvalidoException();
+        }
+        proveedor.setCif(ValidadorCif.normalizar(proveedor.getCif()));
     }
 
     private void validarCifRepetido(Proveedor proveedor) {
@@ -77,9 +104,19 @@ public class ProveedorServiceImpl implements ProveedorService {
     }
 
     @Override
-    public void cambiarActivo(Long id, boolean activo) {
+    public void eliminarProveedor(Long id) {
+
         Proveedor proveedor = buscarProveedorXId(id);
-        proveedor.setActivo(activo);
-        proveedorDao.save(proveedor);
+
+        if (proveedor.getCuenta() != null) {
+            throw new ProveedorConCuentaException();
+        }
+
+        try {
+            proveedorDao.delete(proveedor);
+
+        } catch (DataIntegrityViolationException e) {
+            throw new ProveedorConReferenciasException();
+        }
     }
 }

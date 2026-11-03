@@ -1,18 +1,18 @@
 package service.implement;
 
 import dao.DepartamentoDao;
+import dao.EmpleadoDao;
 import exception.DepartamentoConTrabajadoresException;
 import exception.DepartamentoNoEncontradoException;
 import exception.NombreDepartamentoDuplicadoException;
 import exception.ResponsableOcupadoException;
 import java.util.List;
 import model.seguridad.Departamento;
-import model.seguridad.Trabajador;
+import model.seguridad.Empleado;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import service.interfaces.DepartamentoService;
-import dao.EmpleadoDao;
 
 @Service
 public class DepartamentoServiceImpl implements DepartamentoService {
@@ -21,7 +21,7 @@ public class DepartamentoServiceImpl implements DepartamentoService {
     private DepartamentoDao departamentoDao;
 
     @Autowired
-    private EmpleadoDao trabajadorDao;
+    private EmpleadoDao empleadoDao;
 
     @Override
     public List<Departamento> listarDepartamentos() {
@@ -88,7 +88,7 @@ public class DepartamentoServiceImpl implements DepartamentoService {
 
         if (responsableId != null) {
 
-            Trabajador responsable = trabajadorDao.findById(responsableId).orElse(null);
+            Empleado responsable = empleadoDao.findById(responsableId).orElse(null);
 
             if (responsable == null) {
                 throw new IllegalArgumentException("El responsable no existe");
@@ -120,7 +120,7 @@ public class DepartamentoServiceImpl implements DepartamentoService {
     }
 
     @Override
-    public List<Trabajador> listarTrabajadores() {
-        return trabajadorDao.findAll();
+    public List<Empleado> listarTrabajadores() {
+        return empleadoDao.findAll();
     }
 }

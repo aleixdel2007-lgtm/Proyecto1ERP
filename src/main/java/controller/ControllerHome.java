@@ -4,6 +4,7 @@ package controller;
 import dao.UsuarioDao;
 import lombok.RequiredArgsConstructor;
 import model.seguridad.Cliente;
+import model.seguridad.Rol;
 import model.seguridad.Usuario;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
@@ -18,8 +19,12 @@ public class ControllerHome {
 
     @GetMapping("/home")
     public String home(Authentication authentication, Model model) {
-        Usuario usuario = usuarioDao.findByEmail(authentication.getName()).orElse(null);
-        model.addAttribute("nombre", usuario.getNombre());
+        Usuario usuario = usuarioDao.findByEmail(authentication.getName()).orElseThrow();
+
+        if (usuario.getRol() == Rol.CLIENTE) {
+            return "redirect:/tienda";
+        }
+        model.addAttribute("usuario", usuario);
         return "home";
     }
 

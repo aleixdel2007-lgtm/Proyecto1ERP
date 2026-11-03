@@ -5,13 +5,15 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import org.springframework.format.annotation.DateTimeFormat;
+
 import java.time.LocalDate;
 
 @Entity
-@Table(name = "trabajador")
+@Table(name = "empleado")
 @Getter
 @Setter
-public class Trabajador extends Usuario {
+public class Empleado extends Usuario {
 
     //cada trabajador pertenece a un departamento
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
@@ -33,5 +35,6 @@ public class Trabajador extends Usuario {
     private String iban;
 
     @Column(name = "fecha_contratacion")
+    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
     private LocalDate fechaContratacion;
 }

@@ -1,6 +1,9 @@
 package controller;
 
 import exception.CifDuplicadoException;
+import exception.CifInvalidoException;
+import exception.ProveedorConCuentaException;
+import exception.ProveedorConReferenciasException;
 import lombok.RequiredArgsConstructor;
 import model.aprovisionamiento.Proveedor;
 import model.aprovisionamiento.TipoProveedor;
@@ -10,8 +13,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import service.interfaces.ProveedorService;
 
@@ -28,8 +31,19 @@ public class ControllerProveedor {
     }
 
     @GetMapping
-    public String listarProveedores(Model model) {
-        model.addAttribute("proveedores", proveedorService.listarProveedores());
+    public String listarProveedores(
+            @RequestParam(required = false) String texto,
+            @RequestParam(required = false) String pais,
+            @RequestParam(required = false) Boolean activo,
+            Model model) {
+
+        model.addAttribute("proveedores", proveedorService.listarProveedores(texto, pais, activo));
+        model.addAttribute("paises", proveedorService.listarPaises());
+
+        model.addAttribute("texto", texto);
+        model.addAttribute("pais", pais);
+        model.addAttribute("activo", activo);
+
         return "compras/proveedores";
     }
 
@@ -52,7 +66,7 @@ public class ControllerProveedor {
         try {
             proveedorService.guardarProveedor(proveedor);
 
-        } catch (CifDuplicadoException e) {
+        } catch (CifInvalidoException | CifDuplicadoException e) {
             model.addAttribute("error", e.getMessage());
             return "compras/proveedor";
         }
@@ -61,12 +75,19 @@ public class ControllerProveedor {
         return "redirect:/compras/proveedores";
     }
 
-    @PostMapping("/{id}/activo")
-    public String cambiarActivo(@PathVariable Long id, @RequestParam boolean activo,
-                                RedirectAttributes flash) {
+    @PostMapping("/{id}/eliminar")
+    public String eliminarProveedor(@PathVariable Long id, RedirectAttributes flash) {
 
-        proveedorService.cambiarActivo(id, activo);
-        flash.addFlashAttribute("mensaje", activo ? "Proveedor reactivado" : "Proveedor dado de baja");
+        try {
+            proveedorService.eliminarProveedor(id);
+
+        } catch (ProveedorConCuentaException | ProveedorConReferenciasException e) {
+            flash.addFlashAttribute("error", e.getMessage());
+            return "redirect:/compras/proveedores";
+        }
+
+        flash.addFlashAttribute("mensaje", "Proveedor eliminado");
+
         return "redirect:/compras/proveedores";
     }
 }

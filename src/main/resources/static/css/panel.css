@@ -81,6 +81,8 @@ button,input,select,textarea{font-family:inherit;font-size:inherit}
     background:var(--purple-dim);color:#fff;font-weight:550;
     box-shadow:inset 0 0 0 1px rgba(139,92,246,.3);
 }
+.nav-item .ic{flex:0 0 auto;color:#7d7d88;display:grid;place-items:center}
+.nav-item.on .ic{color:var(--purple-light)}
 .side-foot{border-top:1px solid var(--line);padding:10px;flex:0 0 auto}
 
 /* --- barra superior ------------------------------------------------------- */

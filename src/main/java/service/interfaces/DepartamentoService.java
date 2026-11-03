@@ -2,7 +2,7 @@ package service.interfaces;
 
 import java.util.List;
 import model.seguridad.Departamento;
-import model.seguridad.Trabajador;
+import model.seguridad.Empleado;
 
 public interface DepartamentoService {
 
@@ -14,5 +14,5 @@ public interface DepartamentoService {
 
     void eliminarDepartamento(Long id);
 
-    List<Trabajador> listarTrabajadores();
+    List<Empleado> listarTrabajadores();
 }

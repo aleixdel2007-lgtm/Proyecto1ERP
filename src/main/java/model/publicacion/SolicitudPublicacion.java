@@ -7,7 +7,7 @@ import model.aprovisionamiento.Proveedor;
 import model.catalogo.Categoria;
 import model.catalogo.Plataforma;
 import model.catalogo.Videojuego;
-import model.seguridad.Trabajador;
+import model.seguridad.Empleado;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -86,8 +86,8 @@ public class SolicitudPublicacion {
     private LocalDateTime fechaEnvio;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "trabajador_id")
-    private Trabajador trabajador;
+    @JoinColumn(name = "empleado_id")
+    private Empleado empleado;
 
     @Column(name = "fecha_revision")
     private LocalDateTime fechaRevision;

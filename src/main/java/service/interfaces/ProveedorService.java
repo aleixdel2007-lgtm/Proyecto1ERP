@@ -5,11 +5,13 @@ import model.aprovisionamiento.Proveedor;
 
 public interface ProveedorService {
 
-    List<Proveedor> listarProveedores();
+    List<Proveedor> listarProveedores(String texto, String pais, Boolean activo);
+
+    List<String> listarPaises();
 
     Proveedor buscarProveedorXId(Long id);
 
     Proveedor guardarProveedor(Proveedor proveedor);
 
-    void cambiarActivo(Long id, boolean activo);
+    void eliminarProveedor(Long id);
 }
