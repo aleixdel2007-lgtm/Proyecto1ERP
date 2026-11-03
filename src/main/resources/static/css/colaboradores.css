@@ -1,0 +1,23 @@
+/* ===========================================================================
+   LudusERP — estilos propios de las vistas de colaboradores
+   Se carga DESPUES de panel.css, que es quien trae el panel entero.
+   =========================================================================== */
+
+.row{display:flex;gap:10px;align-items:center}
+
+.col-avatar{width:28px;height:28px;font-size:11px}
+
+/* Ficha de solo lectura: etiqueta a la izquierda, valor a la derecha */
+.kv{display:grid;grid-template-columns:130px 1fr;gap:7px 12px;margin:0;font-size:13px}
+.kv dt{color:var(--muted)}
+.kv dd{margin:0;color:var(--ink-2)}
+
+/* El distintivo de la contrasena, alineado con la altura de los campos */
+.col-estado-pwd{margin-top:6px}
+
+/* Campos que el formulario muestra pero no deja tocar */
+.col-fijo:disabled{
+    color:var(--muted);background:rgba(0,0,0,.18);border-style:dashed;cursor:not-allowed;
+}
+
+.col-avisos{margin-top:16px}

@@ -4,7 +4,6 @@ import config.CifradoAesConverter;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-import model.seguridad.CuentaProveedor;
 
 @Entity
 @Table(name = "proveedor")
@@ -21,14 +20,6 @@ public class Proveedor {
 
     @Column(name = "razon_social", nullable = false, length = 150)
     private String razonSocial;
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "tipo", nullable = false, length = 20)
-    private TipoProveedor tipo;
-
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "cuenta_id", unique = true)
-    private CuentaProveedor cuenta;
 
     @Convert(converter = CifradoAesConverter.class)
     @Column(name = "cif", nullable = false, length = 128)

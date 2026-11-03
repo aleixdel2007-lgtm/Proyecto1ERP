@@ -2,11 +2,9 @@ package controller;
 
 import exception.CifDuplicadoException;
 import exception.CifInvalidoException;
-import exception.ProveedorConCuentaException;
 import exception.ProveedorConReferenciasException;
 import lombok.RequiredArgsConstructor;
 import model.aprovisionamiento.Proveedor;
-import model.aprovisionamiento.TipoProveedor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -24,11 +22,6 @@ import service.interfaces.ProveedorService;
 public class ControllerProveedor {
 
     private final ProveedorService proveedorService;
-
-    @ModelAttribute("tipos")
-    public TipoProveedor[] tipos() {
-        return TipoProveedor.values();
-    }
 
     @GetMapping
     public String listarProveedores(
@@ -81,7 +74,7 @@ public class ControllerProveedor {
         try {
             proveedorService.eliminarProveedor(id);
 
-        } catch (ProveedorConCuentaException | ProveedorConReferenciasException e) {
+        } catch (ProveedorConReferenciasException e) {
             flash.addFlashAttribute("error", e.getMessage());
             return "redirect:/compras/proveedores";
         }

@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Editar colaborador · LudusERP</title>
+    <link rel="stylesheet" th:href="@{/css/panel.css}">
+    <link rel="stylesheet" th:href="@{/css/colaboradores.css}">
+</head>
+<body>
+
+<div class="app">
+
+    <aside th:replace="~{fragments/panel :: menu('colaboradores')}"></aside>
+
+    <div class="main">
+
+        <header th:replace="~{fragments/panel :: barra('Administración', 'Colaboradores')}"></header>
+
+        <main class="canvas">
+
+            <a class="btn btn-ghost btn-sm" th:href="@{/admin/colaboradores}">
+                <svg th:replace="~{fragments/iconos :: back}"></svg> Volver al listado</a>
+
+            <div class="page-head">
+                <div>
+                    <h1>Editar colaborador</h1>
+                    <p>El estado de alta o baja se cambia aquí, en el apartado de acceso.</p>
+                </div>
+            </div>
+
+            <div class="alert alert-err" th:if="${error}" th:text="${error}"></div>
+
+            <div class="grid g-2-1">
+
+                <div class="card">
+                    <form th:action="@{/admin/colaboradores/guardar}" method="post" th:object="${colaborador}">
+
+                        <input type="hidden" th:field="*{id}">
+
+                        <div class="card-body stack">
+
+                            <div class="sect-label">Datos personales</div>
+                            <div class="form-grid">
+
+                                <div class="frow">
+                                    <label for="nombre">Nombre <span class="req">*</span></label>
+                                    <input class="inp" type="text" th:field="*{nombre}" maxlength="80"
+                                           placeholder="Jordi" required>
+                                </div>
+
+                                <div class="frow">
+                                    <label for="apellidos">Apellidos <span class="req">*</span></label>
+                                    <input class="inp" type="text" th:field="*{apellidos}" maxlength="120"
+                                           placeholder="Bastida" required>
+                                </div>
+
+                                <div class="frow">
+                                    <label for="pais">País</label>
+                                    <select class="inp" th:field="*{pais}">
+                                        <option value="">Sin indicar</option>
+                                        <option value="España">España</option>
+                                        <option value="Suecia">Suecia</option>
+                                        <option value="Alemania">Alemania</option>
+                                        <option value="Reino Unido">Reino Unido</option>
+                                        <option value="Países Bajos">Países Bajos</option>
+                                    </select>
+                                </div>
+
+                            </div>
+
+                            <div class="sect-label">Acceso</div>
+                            <div class="form-grid">
+
+                                <div class="frow wide">
+                                    <label for="email">Correo de acceso <span class="req">*</span></label>
+                                    <input class="inp" type="email" th:field="*{email}" maxlength="180"
+                                           placeholder="jordi.bastida@example.com" required>
+                                    <span class="hint">Si lo cambias, cambia el usuario con el que inicia sesión.</span>
+                                </div>
+
+                                <div class="frow">
+                                    <label>Estado</label>
+                                    <label class="switch" style="margin-top:6px">
+                                        <input type="checkbox" th:field="*{activo}"><i></i> Activo
+                                    </label>
+                                    <span class="hint">Si lo desmarcas, no podrá iniciar sesión, pero sus
+                                        juegos siguen publicados en la tienda.</span>
+                                </div>
+
+                                <div class="frow">
+                                    <label>Contraseña</label>
+                                    <div class="col-estado-pwd">
+                                        <span class="badge"
+                                              th:classappend="${colaborador.debeCambiarPassword} ? 'b-warn' : 'b-good'"
+                                              th:text="${colaborador.debeCambiarPassword} ? 'PENDIENTE DE CAMBIAR' : 'ACTIVA'">ACTIVA</span>
+                                    </div>
+                                    <span class="hint">No se edita desde aquí.</span>
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                        <div class="form-foot">
+                            <span class="note">La fecha de alta del usuario no se modifica nunca.</span>
+                            <a class="btn" th:href="@{/admin/colaboradores}">Cancelar</a>
+                            <button type="submit" class="btn btn-primary">Guardar cambios</button>
+                        </div>
+
+                    </form>
+                </div>
+
+                <div class="stack">
+
+                    <div class="card">
+                        <div class="card-head"><h3>Ficha del colaborador</h3></div>
+                        <div class="card-body">
+                            <dl class="kv">
+                                <dt>Fecha de alta</dt>
+                                <dd th:text="${colaborador.fechaAlta != null
+                                        ? #temporals.format(colaborador.fechaAlta, 'dd/MM/yyyy HH:mm') : '—'}">12/10/2026 18:42</dd>
+                                <dt>Juegos publicados</dt>
+                                <dd th:text="${juegosPublicados}">0</dd>
+                                <dt>Rol</dt>
+                                <dd><span class="badge b-purple" th:text="${colaborador.rol}">COLABORADOR</span></dd>
+                            </dl>
+                        </div>
+                    </div>
+
+                    <div class="note-box">
+                        <svg th:replace="~{fragments/iconos :: warn}"></svg>
+                        <div>Desmarcar <b>Activo</b> le quita el acceso pero conserva su ficha y sus juegos.
+                            Eliminarlo desde la papelera del listado lo borra de la base, y solo es posible
+                            si no tiene ningún juego publicado.</div>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </main>
+    </div>
+</div>
+
+</body>
+</html>

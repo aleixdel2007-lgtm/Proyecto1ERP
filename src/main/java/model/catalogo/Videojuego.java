@@ -3,6 +3,7 @@ package model.catalogo;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import model.seguridad.Colaborador;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -32,6 +33,10 @@ public class Videojuego {
 
     @Column(name = "estudio", length = 120)
     private String estudio;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "colaborador_id")
+    private Colaborador colaborador;
 
     @Column(name = "precio", nullable = false, precision = 10, scale = 2)
     private BigDecimal precio;

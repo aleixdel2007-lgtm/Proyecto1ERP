@@ -109,7 +109,7 @@ public class EmpleadoServiceImpl implements EmpleadoService {
 
         Rol rol = empleado.getRol();
 
-        if (rol == null || rol == Rol.CLIENTE || rol == Rol.PROVEEDOR) {
+        if (rol == null || rol == Rol.CLIENTE || rol == Rol.PROVEEDOR || rol == Rol.COLABORADOR) {
             throw new IllegalArgumentException("Ese rol no es de empleado");
         }
     }

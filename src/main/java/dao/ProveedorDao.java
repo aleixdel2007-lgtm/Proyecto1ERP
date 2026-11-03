@@ -13,8 +13,8 @@ public interface ProveedorDao extends JpaRepository<Proveedor, Long> {
     // buscar porque esta cifrado y en la base no queda texto que comparar
     @Query("select p from Proveedor p "
             + "where (:texto is null "
-            + "       or lower(p.nombreComercial) like lower(concat('%', :texto, '%')) "
-            + "       or lower(p.razonSocial) like lower(concat('%', :texto, '%'))) "
+            + "       or lower(p.nombreComercial) like lower(concat(:texto, '%')) "
+            + "       or lower(p.razonSocial) like lower(concat(:texto, '%'))) "
             + "and (:pais is null or p.pais = :pais) "
             + "and (:activo is null or p.activo = :activo) "
             + "order by p.nombreComercial")

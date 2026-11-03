@@ -52,15 +52,6 @@
                                 </div>
 
                                 <div class="frow">
-                                    <label for="tipo">Tipo <span class="req">*</span></label>
-                                    <select class="inp" th:field="*{tipo}" required>
-                                        <option value="">Selecciona un tipo</option>
-                                        <option th:each="t : ${tipos}" th:value="${t}" th:text="${t}">DISTRIBUIDOR</option>
-                                    </select>
-                                    <span class="hint">ESTUDIO publica sus juegos aquí; DISTRIBUIDOR vende claves.</span>
-                                </div>
-
-                                <div class="frow">
                                     <label for="cif">CIF / VAT <span class="req">*</span></label>
                                     <input class="inp" type="text" th:field="*{cif}" maxlength="20"
                                            placeholder="SE556000-0000" required>
@@ -90,11 +81,11 @@
                                     <label for="pais">País</label>
                                     <select class="inp" th:field="*{pais}">
                                         <option value="">Sin indicar</option>
-                                        <option value="Espana">Espana</option>
+                                        <option value="España">España</option>
                                         <option value="Suecia">Suecia</option>
                                         <option value="Alemania">Alemania</option>
                                         <option value="Reino Unido">Reino Unido</option>
-                                        <option value="Paises Bajos">Paises Bajos</option>
+                                        <option value="Países Bajos">Países Bajos</option>
                                     </select>
                                 </div>
 

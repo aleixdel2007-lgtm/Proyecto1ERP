@@ -3,9 +3,8 @@ package config;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import model.aprovisionamiento.Proveedor;
-import model.aprovisionamiento.TipoProveedor;
 import model.seguridad.Cliente;
-import model.seguridad.CuentaProveedor;
+import model.seguridad.Colaborador;
 import model.seguridad.Departamento;
 import model.seguridad.Rol;
 import model.seguridad.Empleado;
@@ -163,26 +162,21 @@ public class DatosIniciales implements CommandLineRunner {
         cliente("diego.mas@example.com", "Diego", "Mas", "600777888",
                 "Carrer de Colom 9", "Valencia", LocalDate.of(1993, 8, 22));
 
-        proveedor("Taller 3r DAM A", "Taller 3r DAM A SCCL", TipoProveedor.ESTUDIO, "B10000008",
-                "ES9420805801101234567891", "taller3dam@example.com", "Espana");
-        proveedor("Pixel Forge", "Pixel Forge Studio SL", TipoProveedor.ESTUDIO, "A18888883",
-                "ES1000492352082414205400", "contacto@pixelforge.dev", "Espana");
-        proveedor("Nordic Bytes", "Nordic Bytes AB", TipoProveedor.ESTUDIO, "B27777762",
-                "ES1000492352082414205401", "hola@nordicbytes.se", "Suecia");
-        proveedor("Rheinspiel", "Rheinspiel GmbH", TipoProveedor.DISTRIBUIDOR, "A36666642",
+        proveedor("Rheinspiel", "Rheinspiel GmbH", "A36666642",
                 "ES1000492352082414205402", "vertrieb@rheinspiel.de", "Alemania");
-        proveedor("Albion Games", "Albion Games Ltd", TipoProveedor.DISTRIBUIDOR, "F45555521",
+        proveedor("Albion Games", "Albion Games Ltd", "F45555521",
                 "ES1000492352082414205403", "sales@albiongames.co.uk", "Reino Unido");
-        proveedor("Lowlands Interactive", "Lowlands Interactive BV", TipoProveedor.ESTUDIO, "B54444401",
-                "ES1000492352082414205404", "info@lowlands.nl", "Paises Bajos");
-        proveedor("Estudio Mediterraneo", "Estudio Mediterraneo SL", TipoProveedor.ESTUDIO, "A63333280",
-                "ES1000492352082414205405", "contacto@mediterraneo.es", "Espana");
-        proveedor("Distribuciones Iberia", "Distribuciones Iberia SA", TipoProveedor.DISTRIBUIDOR, "Q7222216I",
-                "ES1000492352082414205406", "pedidos@disiberia.es", "Espana");
-        proveedor("Vikingr Studio", "Vikingr Studio AB", TipoProveedor.ESTUDIO, "B81111049",
-                "ES1000492352082414205407", "post@vikingr.se", "Suecia");
-        proveedor("Kanal Publishing", "Kanal Publishing BV", TipoProveedor.DISTRIBUIDOR, "P8999992D",
-                "ES1000492352082414205408", "info@kanalpublishing.nl", "Paises Bajos");
+        proveedor("Distribuciones Iberia", "Distribuciones Iberia SA", "Q7222216I",
+                "ES1000492352082414205406", "pedidos@disiberia.es", "España");
+        proveedor("Kanal Publishing", "Kanal Publishing BV", "P8999992D",
+                "ES1000492352082414205408", "info@kanalpublishing.nl", "Países Bajos");
+
+        colaborador("jordi.bastida@example.com", "Jordi", "Bastida", "España");
+        colaborador("aina.querol@example.com", "Aina", "Querol", "España");
+        colaborador("victor.salas@example.com", "Victor", "Salas", "España");
+        colaborador("lucia.herrero@example.com", "Lucia", "Herrero", "España");
+        colaborador("marc.ibanez@example.com", "Marc", "Ibanez", "España");
+        colaborador("elsa.riquelme@example.com", "Elsa", "Riquelme", "España");
     }
 
     private Departamento departamento(String nombre, String descripcion) {
@@ -222,30 +216,29 @@ public class DatosIniciales implements CommandLineRunner {
         c.setTelefono(telefono);
         c.setDireccion(direccion);
         c.setCiudad(ciudad);
-        c.setPais("Espana");
+        c.setPais("España");
         c.setFechaNacimiento(fechaNacimiento);
         em.persist(c);
         return c;
     }
 
-    private CuentaProveedor cuentaProveedor(String email, String nombre) {
-        CuentaProveedor c = new CuentaProveedor();
+    private Colaborador colaborador(String email, String nombre, String apellidos, String pais) {
+        Colaborador c = new Colaborador();
         c.setEmail(email);
         c.setPasswordHash(codificador.encode(PASSWORD_INICIAL));
         c.setNombre(nombre);
+        c.setApellidos(apellidos);
+        c.setPais(pais);
         c.setDebeCambiarPassword(true);
         em.persist(c);
         return c;
     }
 
-    // Crea el proveedor junto con su cuenta de acceso, que comparte el correo
-    private Proveedor proveedor(String nombreComercial, String razonSocial, TipoProveedor tipo,
+    private Proveedor proveedor(String nombreComercial, String razonSocial,
                                 String cif, String iban, String email, String pais) {
         Proveedor p = new Proveedor();
         p.setNombreComercial(nombreComercial);
         p.setRazonSocial(razonSocial);
-        p.setTipo(tipo);
-        p.setCuenta(cuentaProveedor(email, nombreComercial));
         p.setCif(cif);
         p.setCifHash(IndiceCiego.hash(cif));
         p.setIban(iban);

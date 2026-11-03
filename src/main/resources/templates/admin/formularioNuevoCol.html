@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Nuevo colaborador · LudusERP</title>
+    <link rel="stylesheet" th:href="@{/css/panel.css}">
+    <link rel="stylesheet" th:href="@{/css/colaboradores.css}">
+</head>
+<body>
+
+<div class="app">
+
+    <aside th:replace="~{fragments/panel :: menu('colaboradores')}"></aside>
+
+    <div class="main">
+
+        <header th:replace="~{fragments/panel :: barra('Administración', 'Colaboradores')}"></header>
+
+        <main class="canvas">
+
+            <a class="btn btn-ghost btn-sm" th:href="@{/admin/colaboradores}">
+                <svg th:replace="~{fragments/iconos :: back}"></svg> Volver al listado</a>
+
+            <div class="page-head">
+                <div>
+                    <h1>Nuevo colaborador</h1>
+                    <p>Se crea el usuario con el rol de colaborador y una contraseña inicial que
+                        tendrá que cambiar en su primer acceso.</p>
+                </div>
+            </div>
+
+            <div class="alert alert-err" th:if="${error}" th:text="${error}"></div>
+
+            <div class="grid g-2-1">
+
+                <div class="card">
+                    <form th:action="@{/admin/colaboradores/guardar}" method="post" th:object="${colaborador}">
+
+                        <div class="card-body stack">
+
+                            <div class="sect-label">Datos personales</div>
+                            <div class="form-grid">
+
+                                <div class="frow">
+                                    <label for="nombre">Nombre <span class="req">*</span></label>
+                                    <input class="inp" type="text" th:field="*{nombre}" maxlength="80"
+                                           placeholder="Jordi" required>
+                                    <span class="hint">Aparecerá junto a sus juegos en la tienda.</span>
+                                </div>
+
+                                <div class="frow">
+                                    <label for="apellidos">Apellidos <span class="req">*</span></label>
+                                    <input class="inp" type="text" th:field="*{apellidos}" maxlength="120"
+                                           placeholder="Bastida" required>
+                                </div>
+
+                                <div class="frow">
+                                    <label for="pais">País</label>
+                                    <select class="inp" th:field="*{pais}">
+                                        <option value="">Sin indicar</option>
+                                        <option value="España">España</option>
+                                        <option value="Suecia">Suecia</option>
+                                        <option value="Alemania">Alemania</option>
+                                        <option value="Reino Unido">Reino Unido</option>
+                                        <option value="Países Bajos">Países Bajos</option>
+                                    </select>
+                                </div>
+
+                            </div>
+
+                            <div class="sect-label">Acceso</div>
+                            <div class="form-grid">
+
+                                <div class="frow">
+                                    <label for="email">Correo de acceso <span class="req">*</span></label>
+                                    <input class="inp" type="email" th:field="*{email}" maxlength="180"
+                                           placeholder="jordi.bastida@example.com" required>
+                                    <span class="hint">Es su identificador de acceso. No puede estar en uso
+                                        por ningún otro usuario, ni cliente ni empleado.</span>
+                                </div>
+
+                                <div class="frow">
+                                    <label for="password">Contraseña inicial <span class="req">*</span></label>
+                                    <input class="inp" type="text" id="password" name="password"
+                                           placeholder="La que le entregues" required>
+                                    <span class="hint">No se guarda en claro: la base solo conserva su hash.
+                                        Apúntala al crearla, porque no se vuelve a mostrar.</span>
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                        <div class="form-foot">
+                            <span class="note">Nace activo y con la contraseña marcada como pendiente de cambiar.</span>
+                            <a class="btn" th:href="@{/admin/colaboradores}">Cancelar</a>
+                            <button type="submit" class="btn btn-primary">Crear colaborador</button>
+                        </div>
+
+                    </form>
+                </div>
+
+                <div class="stack">
+                    <div class="note-box">
+                        <svg th:replace="~{fragments/iconos :: warn}"></svg>
+                        <div>Un colaborador y un cliente comparten la tabla <code>usuario</code>: lo que
+                            cambia es la tabla hija que le cuelga, con su misma clave primaria, y el rol
+                            que tiene.</div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-head"><h3>Qué podrá hacer</h3>
+                            <span class="sub">con el rol COLABORADOR</span></div>
+                        <div class="card-body stack">
+                            <p class="hint">Entrar con su correo y subir sus propios juegos, que salen
+                                publicados en el apartado de colaboradores de la tienda.</p>
+                            <p class="hint">No ve compras, ni claves, ni clientes, ni el resto del ERP.
+                                Tampoco se le pide NIF ni IBAN: no se le compra nada.</p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+        </main>
+    </div>
+</div>
+
+</body>
+</html>

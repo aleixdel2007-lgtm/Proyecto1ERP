@@ -25,8 +25,8 @@ public class ClaveLicencia {
     @JoinColumn(name = "videojuego_id", nullable = false)
     private Videojuego videojuego;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "linea_compra_id", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "linea_compra_id")
     private LineaCompra lineaCompra;
 
     @ManyToOne(fetch = FetchType.LAZY)

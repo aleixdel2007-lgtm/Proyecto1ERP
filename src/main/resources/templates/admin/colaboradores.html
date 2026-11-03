@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Colaboradores · LudusERP</title>
+    <link rel="stylesheet" th:href="@{/css/panel.css}">
+    <link rel="stylesheet" th:href="@{/css/colaboradores.css}">
+</head>
+<body>
+
+<div class="app">
+
+    <aside th:replace="~{fragments/panel :: menu('colaboradores')}"></aside>
+
+    <div class="main">
+
+        <header th:replace="~{fragments/panel :: barra('Administración', 'Colaboradores')}"></header>
+
+        <main class="canvas">
+
+            <div class="alert alert-ok" th:if="${mensaje}" th:text="${mensaje}"></div>
+            <div class="alert alert-err" th:if="${error}" th:text="${error}"></div>
+
+            <div class="page-head">
+                <div>
+                    <h1>Colaboradores</h1>
+                    <p>Nadie se registra como colaborador: la cuenta se crea aquí con una contraseña
+                        inicial. Con ella entra y sube sus propios juegos a la tienda.</p>
+                </div>
+                <div class="page-actions">
+                    <a class="btn btn-primary" th:href="@{/admin/colaboradores/nuevo}">
+                        <svg th:replace="~{fragments/iconos :: plus}"></svg> Nuevo colaborador</a>
+                </div>
+            </div>
+
+            <div class="card">
+
+                <form class="filters" method="get" th:action="@{/admin/colaboradores}">
+                    <div class="fld">
+                        <label>Buscar</label>
+                        <div class="search-inp">
+                            <svg th:replace="~{fragments/iconos :: search}"></svg>
+                            <input name="texto" th:value="${texto}" placeholder="Nombre o correo">
+                        </div>
+                    </div>
+                    <div class="fld">
+                        <label>Estado</label>
+                        <select class="inp" name="activo">
+                            <option value="">Todos</option>
+                            <option value="true" th:selected="${activo != null and activo}">Activos</option>
+                            <option value="false" th:selected="${activo != null and !activo}">Inactivos</option>
+                        </select>
+                    </div>
+                    <div class="fld">
+                        <label>&nbsp;</label>
+                        <button type="submit" class="btn btn-primary">Filtrar</button>
+                    </div>
+                    <div class="fld">
+                        <label>&nbsp;</label>
+                        <a class="btn" th:href="@{/admin/colaboradores}">Limpiar</a>
+                    </div>
+                </form>
+
+                <div class="card-body tight">
+
+                    <div class="empty" th:if="${#lists.isEmpty(colaboradores)}">
+                        <h4>Todavía no hay colaboradores</h4>
+                        <p class="hint">Crea el primero con el botón «Nuevo colaborador».</p>
+                    </div>
+
+                    <div class="tbl-wrap" th:unless="${#lists.isEmpty(colaboradores)}">
+                        <table class="tbl">
+                            <thead>
+                            <tr>
+                                <th>Nombre</th>
+                                <th>Correo</th>
+                                <th class="num">Juegos publicados</th>
+                                <th>Fecha de alta</th>
+                                <th>Contraseña</th>
+                                <th>Estado</th>
+                                <th class="acts"></th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="c : ${colaboradores}">
+                                <td>
+                                    <div class="row">
+                                        <div class="avatar col-avatar"
+                                             th:text="${#strings.toUpperCase(#strings.substring(c.nombre, 0, 1))}">T</div>
+                                        <div>
+                                            <div class="t-main"
+                                                 th:text="${c.apellidos != null ? c.nombre + ' ' + c.apellidos : c.nombre}">Jordi Bastida</div>
+                                            <div class="t-sub" th:text="${c.pais != null ? c.pais : '—'}">España</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td><span class="mono" th:text="${c.email}">jordi.bastida@example.com</span></td>
+                                <td class="num" th:text="${juegos[c.id] != null ? juegos[c.id] : 0}">0</td>
+                                <td th:text="${#temporals.format(c.fechaAlta, 'dd/MM/yyyy')}">12/10/2026</td>
+                                <td>
+                                    <span class="badge"
+                                          th:classappend="${c.debeCambiarPassword} ? 'b-warn' : 'b-good'"
+                                          th:text="${c.debeCambiarPassword} ? 'PENDIENTE DE CAMBIAR' : 'ACTIVA'">ACTIVA</span>
+                                </td>
+                                <td>
+                                    <span class="badge" th:classappend="${c.activo} ? 'b-good' : 'b-mute'"
+                                          th:text="${c.activo} ? 'ACTIVO' : 'INACTIVO'">ACTIVO</span>
+                                </td>
+                                <td class="acts">
+                                    <a class="btn btn-sm btn-ghost" title="Editar"
+                                       th:href="@{/admin/colaboradores/editar/{id}(id=${c.id})}">
+                                        <svg th:replace="~{fragments/iconos :: edit}"></svg>
+                                    </a>
+                                    <form th:action="@{/admin/colaboradores/eliminar/{id}(id=${c.id})}" method="post"
+                                          onsubmit="return confirm(&quot;¿Seguro que quieres eliminar este colaborador? No se puede deshacer.&quot;);">
+                                        <button type="submit" class="btn btn-sm btn-danger" title="Eliminar">
+                                            <svg th:replace="~{fragments/iconos :: trash}"></svg>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="pager" th:unless="${#lists.isEmpty(colaboradores)}">
+                    <span>Mostrando <b th:text="${#lists.size(colaboradores)}">0</b>
+                        de <b th:text="${#lists.size(colaboradores)}">0</b> registros</span>
+                    <div class="pages">
+                        <button class="pg" disabled>&lsaquo;</button>
+                        <button class="pg on" disabled>1</button>
+                        <button class="pg" disabled>&rsaquo;</button>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="grid g2 col-avisos">
+                <div class="note-box">
+                    <svg th:replace="~{fragments/iconos :: warn}"></svg>
+                    <div>Un colaborador con juegos publicados no se puede eliminar: esos juegos cuelgan
+                        de él y las claves que se hayan vendido también. Para quitarle el acceso, edítalo
+                        y desmárcalo como activo.</div>
+                </div>
+                <div class="note-box">
+                    <svg th:replace="~{fragments/iconos :: check}"></svg>
+                    <div>Un colaborador es una fila de <code>usuario</code>, igual que un cliente o un
+                        empleado: lo que cambia es el rol y la tabla hija que le cuelga. No se le compra
+                        nada, así que no tiene CIF, ni IBAN, ni ficha de proveedor.</div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+</div>
+
+</body>
+</html>

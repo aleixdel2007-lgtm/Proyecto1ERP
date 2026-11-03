@@ -37,6 +37,9 @@
             <a class="nav-item" th:classappend="${activo == 'departamentos'} ? 'on' : ''"
                th:href="@{/departamentos}">
                 <span class="ic"><svg th:replace="~{fragments/iconos :: dept}"></svg></span>Departamentos</a>
+            <a class="nav-item" th:classappend="${activo == 'colaboradores'} ? 'on' : ''"
+               th:href="@{/admin/colaboradores}">
+                <span class="ic"><svg th:replace="~{fragments/iconos :: users}"></svg></span>Colaboradores</a>
         </th:block>
     </div>
 

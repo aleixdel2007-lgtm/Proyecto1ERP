@@ -6,5 +6,6 @@ public enum Rol {
     GESTOR_CLIENTES,
     GESTOR_INVENTARIO,
     ADMIN,
+    COLABORADOR,
     PROVEEDOR;
 }

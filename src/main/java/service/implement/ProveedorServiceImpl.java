@@ -5,7 +5,6 @@ import config.ValidadorCif;
 import dao.ProveedorDao;
 import exception.CifDuplicadoException;
 import exception.CifInvalidoException;
-import exception.ProveedorConCuentaException;
 import exception.ProveedorConReferenciasException;
 import exception.ProveedorNoEncontradoException;
 import java.util.List;
@@ -93,7 +92,6 @@ public class ProveedorServiceImpl implements ProveedorService {
     private void copiarDatos(Proveedor origen, Proveedor destino) {
         destino.setNombreComercial(origen.getNombreComercial());
         destino.setRazonSocial(origen.getRazonSocial());
-        destino.setTipo(origen.getTipo());
         destino.setCif(origen.getCif());
         destino.setCifHash(IndiceCiego.hash(origen.getCif()));
         destino.setIban(origen.getIban());
@@ -107,10 +105,6 @@ public class ProveedorServiceImpl implements ProveedorService {
     public void eliminarProveedor(Long id) {
 
         Proveedor proveedor = buscarProveedorXId(id);
-
-        if (proveedor.getCuenta() != null) {
-            throw new ProveedorConCuentaException();
-        }
 
         try {
             proveedorDao.delete(proveedor);

@@ -20,9 +20,10 @@ public interface ClienteDao extends JpaRepository<Cliente, Long> {
     //Cada bloque (:algo is null or ...) significa: si ese filtro viene vacío la condición se cumple siempre y no filtra
     //si tiene valor si se aplcia 
     @Query("select c from Cliente c "
-            + "where (:texto is null or c.nombre like concat('%', :texto, '%') "
-            + "or c.apellidos like concat('%', :texto, '%') "
-            + "or c.email like concat('%', :texto, '%')) "
+            + "where (:texto is null "
+            + "       or lower(c.nombre) like lower(concat(:texto, '%')) "
+            + "       or lower(c.apellidos) like lower(concat(:texto, '%')) "
+            + "       or lower(c.email) like lower(concat(:texto, '%'))) "
             + "and (:pais is null or c.pais = :pais) "
             + "and (:desde is null or c.fechaAlta >= :desde)")
     List<Cliente> buscarFiltrado(@Param("texto") String texto,
