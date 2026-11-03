@@ -21,7 +21,7 @@
             
             <span class="ic"><svg th:replace="~{fragments/iconos :: truck}"></svg></span>Proveedores</a>
         <th:block sec:authorize="hasAnyRole('GESTOR_CLIENTES', 'ADMIN')">
-            <div class="nav-group">Ventas</div>
+            <div class="nav-group">Clientes</div>
             <a class="nav-item" th:classappend="${activo == 'clientes'} ? 'on' : ''"
                th:href="@{/clientes}">
                 <span class="ic"><svg th:replace="~{fragments/iconos :: users}"></svg></span>Clientes</a>
