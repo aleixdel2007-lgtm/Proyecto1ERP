@@ -30,7 +30,10 @@ public class ClienteServiceImpl implements ClienteService {
 
     @Override
     public List<Cliente> buscarFiltrado(String texto) {
-        return clienteDao.buscarFiltrado(texto);
+        if (texto == null || texto.isBlank()) { //si el texto es en blanco, es que no hay filtrado
+            return clienteDao.findAll(); // y retorno la lista normal
+        }
+        return clienteDao.buscarFiltrado(texto.trim());
     }
 
 }
