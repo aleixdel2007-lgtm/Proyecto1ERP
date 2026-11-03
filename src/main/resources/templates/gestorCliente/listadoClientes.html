@@ -1,8 +1,4 @@
 <!DOCTYPE html>
-<!--
-Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
-Click nbfs://nbhost/SystemFileSystem/Templates/Other/html.html to edit this template
--->
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
     <head>
         <title>Listado Clientes</title>
@@ -23,12 +19,11 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Other/html.html to edit this temp
                 <main class="canvas">
 
                     <div class="alert alert-err" th:if="${error}" th:text="${error}"></div>
-
+                    <div class="alert alert-ok" th:if="${mensaje}" th:text="${mensaje}"></div>
                     <div class="page-head">
                         <div>
                             <h1>Clientes</h1>
-                            <p>El gestor de clientes tiene solo lectura: puede consultar e historiar, pero no crear
-                                ni borrar.</p>
+                            <p>El gestor de clientes puede consultar, activar o inactivar clientes, y eliminarlos si no tienen datos asociados.</p>
                         </div>
                     </div>
 
@@ -77,6 +72,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Other/html.html to edit this temp
                                             <th>Alta</th>
                                             <th class="num">Pedidos</th>
                                             <th class="num">Gasto total</th>
+                                            <th>Estado</th>
                                             <th class="acts"></th>
                                         </tr>
                                     </thead>
@@ -100,10 +96,22 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Other/html.html to edit this temp
                                             <td th:text="${#temporals.format(c.fechaAlta, 'dd/MM/yyyy')}">11/02/2025</td>
                                             <td class="num"><span class="muted" title="Pendiente de los pedidos">—</span></td>
                                             <td class="num"><span class="muted" title="Pendiente de los pedidos">—</span></td>
-                                            <td class="acts">
-                                                <button type="button" class="btn btn-sm btn-ghost" title="Ver ficha" disabled>
-                                                    <svg th:replace="~{fragments/iconos :: eye}"></svg>
-                                                </button>
+                                            <td>
+                                                <span class="badge" th:classappend="${c.activo} ? 'b-good' : 'b-mute'"
+                                                      th:text="${c.activo} ? 'ACTIVO' : 'INACTIVO'">ACTIVO</span>
+                                            </td>
+                                            <td class="acts"> <!-- Acciones al final de cada fila,eliminar/desactivar -->
+                                                <form th:action="@{/clientes/{id}/estado(id=${c.id})}" method="post">
+                                                    <input type="hidden" name="activo" th:value="${!c.activo}">
+                                                    <button type="submit" class="btn btn-sm btn-ghost"
+                                                            th:text="${c.activo} ? 'Inactivar' : 'Activar'">Inactivar</button>
+                                                </form>
+                                                <form th:action="@{/clientes/{id}/eliminar(id=${c.id})}" method="post"
+                                                      onsubmit="return confirm('¿Seguro que quieres eliminar este cliente? No se puede deshacer.');">
+                                                    <button type="submit" class="btn btn-sm btn-danger" title="Eliminar">
+                                                        <svg th:replace="~{fragments/iconos :: trash}"></svg>
+                                                    </button>
+                                                </form>
                                             </td>
                                         </tr>
                                     </tbody>

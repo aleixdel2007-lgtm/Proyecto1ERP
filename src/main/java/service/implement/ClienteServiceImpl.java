@@ -5,11 +5,14 @@
 package service.implement;
 
 import dao.ClienteDao;
+import exception.ClienteConDatosAsociadosException;
+import exception.ClienteNoEncontradoException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import model.seguridad.Cliente;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import service.interfaces.ClienteService;
@@ -38,4 +41,34 @@ public class ClienteServiceImpl implements ClienteService {
         return clienteDao.listarPaises();
     }
 
+    @Override
+    public Cliente buscarClienteXId(Long id) {
+        Cliente cliente = clienteDao.findById(id).orElse(null);
+
+        if (cliente == null) {
+            throw new ClienteNoEncontradoException(id);
+        }
+        return cliente;
+    }
+
+    @Override
+    @Transactional
+    public void cambiarEstado(Long id, boolean activo) {
+        Cliente cliente = buscarClienteXId(id);
+        cliente.setActivo(activo); // el boolean llega desde el html: es lo contrario al estado actual
+        clienteDao.save(cliente);
+    }
+
+    @Override
+    @Transactional
+    public void eliminarCliente(Long id) {
+        Cliente cliente = buscarClienteXId(id);
+        try {
+            clienteDao.delete(cliente);
+            clienteDao.flush(); // fuerza a mandar el delete a la bd ya, para que el error salte dentro del try
+        } catch (DataIntegrityViolationException e) {
+            throw new ClienteConDatosAsociadosException();
+        }
+
+    }
 }

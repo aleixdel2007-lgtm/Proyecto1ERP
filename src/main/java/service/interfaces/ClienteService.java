@@ -15,7 +15,13 @@ import java.util.List;
  */
 public interface ClienteService {
 
-List<Cliente> buscarFiltrado(String texto, String pais, LocalDate desde);
+    List<Cliente> buscarFiltrado(String texto, String pais, LocalDate desde);
 
-List<String> listarPaises();
+    List<String> listarPaises();
+
+    Cliente buscarClienteXId(Long id);
+
+    void cambiarEstado(Long id, boolean activo);
+
+    void eliminarCliente(Long id);
 }
