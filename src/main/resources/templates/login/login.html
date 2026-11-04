@@ -31,6 +31,9 @@
                         <div class="alert alert-ok" th:if="${param.logout}">
                             Has cerrado sesión correctamente.
                         </div>
+                        <div class="alert alert-ok" th:if="${param.solicitada}">
+                            Solicitud enviada. Un gestor la revisará pronto.
+                        </div>
 
                         <div class="frow">
                             <label for="username">Correo electrónico <span class="req">*</span></label>
@@ -81,7 +84,11 @@
                 style="border:1px solid #ccc;border-radius:12px;padding:24px;max-width:380px">
             <h3>Cuenta inactiva</h3>
             <p>Tu cuenta está inactiva. Contacta con un gestor de clientes para que la active.</p>
-            <div style="margin-top:16px">
+            <div style="display:flex;gap:8px;margin-top:16px">
+                <form th:action="@{/solicitar-activacion}" method="post">
+                    <input type="hidden" name="email" th:value="${param.email}">
+                    <button type="submit" class="btn btn-primary">Solicitar activación</button>
+                </form>
                 <button type="button" class="btn btn-ghost" onclick="this.closest('dialog').close()">Cerrar</button>
             </div>
         </dialog>

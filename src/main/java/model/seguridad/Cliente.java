@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "cliente")
@@ -30,4 +31,8 @@ public class Cliente extends Usuario {
 
     @Column(name = "fecha_nacimiento")
     private LocalDate fechaNacimiento;
+
+    @Column(name = "fecha_solicitud")
+    private LocalDateTime fechaSolicitud; // si es null, no hay solicitud pendiente
+
 }

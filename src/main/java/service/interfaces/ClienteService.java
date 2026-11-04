@@ -24,4 +24,6 @@ public interface ClienteService {
     void cambiarEstado(Long id, boolean activo);
 
     void eliminarCliente(Long id);
+
+    void solicitarActivacion(String email);
 }

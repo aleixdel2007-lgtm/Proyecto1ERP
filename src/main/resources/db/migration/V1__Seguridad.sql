@@ -27,6 +27,7 @@ CREATE TABLE cliente (
     ciudad           VARCHAR(80)  NULL,
     pais             VARCHAR(60)  NULL,
     fecha_nacimiento DATE         NULL,
+    fecha_solicitud  DATETIME     NULL,
     PRIMARY KEY (id),
     CONSTRAINT fk_cliente_usuario
         FOREIGN KEY (id) REFERENCES usuario (id)

@@ -62,4 +62,11 @@ public class ControllerCliente {
         return "redirect:/clientes";
     }
 
+    // publica: la usa un cliente inactivo desde el pop-up del login
+    @PostMapping("/solicitar-activacion")
+    public String solicitarActivacion(@RequestParam String email) {
+        clienteService.solicitarActivacion(email);
+        return "redirect:/login?solicitada";
+    }
+
 }

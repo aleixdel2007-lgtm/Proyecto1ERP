@@ -56,6 +56,7 @@ public class ClienteServiceImpl implements ClienteService {
     public void cambiarEstado(Long id, boolean activo) {
         Cliente cliente = buscarClienteXId(id);
         cliente.setActivo(activo); // el boolean llega desde el html: es lo contrario al estado actual
+        cliente.setFechaSolicitud(null); // cuando el gestor cambia el estado, la solicitud ya esta atendida
         clienteDao.save(cliente);
     }
 
@@ -70,5 +71,18 @@ public class ClienteServiceImpl implements ClienteService {
             throw new ClienteConDatosAsociadosException();
         }
 
+    }
+
+    @Override
+    @Transactional
+    public void solicitarActivacion(String email) {
+        Cliente cliente = clienteDao.findByEmail(email.trim().toLowerCase()).orElse(null);
+        // solo guardamos la solicitud si el cliente existe, esta inactivo y no tiene ya una pendiente
+        // si no se cumple, no hacemos nada ni avisamos, para no revelar que cuentas existen
+        if (cliente == null || cliente.isActivo() || cliente.getFechaSolicitud() != null) {
+            return;
+        }
+        cliente.setFechaSolicitud(LocalDateTime.now());
+        clienteDao.save(cliente);
     }
 }
