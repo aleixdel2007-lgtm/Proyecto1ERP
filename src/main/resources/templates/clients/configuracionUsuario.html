@@ -25,7 +25,10 @@
         <!-- Tarjeta de perfil -->
         <div class="card">
             <div class="card-body stack profile">
-                <div class="avatar avatar-lg"
+                <img th:if="${imagen != null}" class="avatar avatar-lg"
+                     th:src="@{${imagen.rutaImagen}}" th:alt="${imagen.textoAlternativo}"
+                     style="object-fit:cover">
+                <div th:if="${imagen == null}" class="avatar avatar-lg"
                      th:text="${#strings.toUpperCase(#strings.substring(usuario.nombre, 0, 1) + (#strings.isEmpty(usuario.apellidos) ? '' : #strings.substring(usuario.apellidos, 0, 1)))}">LF</div>
                 <div>
                     <div class="t-main profile-name"
@@ -37,6 +40,33 @@
                     <span class="badge" th:classappend="${usuario.activo} ? 'b-good' : 'b-mute'"
                           th:text="${usuario.activo ? 'ACTIVO' : 'INACTIVO'}">ACTIVO</span>
                 </div>
+                <div class="sep"></div>
+                <form th:action="@{/user/profile/imagen}" method="post" enctype="multipart/form-data" class="stack">
+                    <div class="frow">
+                        <label for="imagen">Foto de perfil</label>
+                        <div class="file-pick">
+                            <input class="file-input" type="file" id="imagen" name="imagen"
+                                   accept="image/png,image/jpeg,image/webp" required>
+                            <label for="imagen" class="btn">Elegir imagen</label>
+                            <span class="hint file-name" id="imagenNombre">Ningún archivo seleccionado</span>
+                        </div>
+                        <script>
+                            document.getElementById("imagen").addEventListener("change", function () {
+                                document.getElementById("imagenNombre").textContent =
+                                    this.files.length ? this.files[0].name : "Ningún archivo seleccionado";
+                            });
+                        </script>
+                    </div>
+                    <div class="frow">
+                        <label for="textoAlternativo">Texto alternativo</label>
+                        <input class="inp" type="text" id="textoAlternativo" name="textoAlternativo"
+                               maxlength="160" placeholder="Describe la imagen"
+                               th:value="${imagen?.textoAlternativo}">
+                    </div>
+                    <span class="hint" th:if="${okImagen}" th:text="${okImagen}"></span>
+                    <span class="hint" th:if="${errorImagen}" th:text="${errorImagen}"></span>
+                    <button type="submit" class="btn btn-primary">Cambiar foto</button>
+                </form>
                 <div class="sep"></div>
                 <dl class="kv">
                     <dt>Alta</dt>
@@ -108,7 +138,7 @@
                     </div>
                 </div>
                 <div class="form-foot">
-                    <button type="reset" class="btn">Cancelar</button>
+                    <a class="btn" th:href="@{/home}" href="#">Cancelar</a>
                     <button type="submit" class="btn btn-primary">Guardar</button>
                 </div>
             </form>

@@ -23,16 +23,22 @@
         </select>
     </th:block>
     <div class="who">
-        <div class="avatar"
-             th:text="${#strings.toUpperCase(#strings.substring(#authentication.name, 0, 2))}">AD</div>
+        <img th:if="${imagenPerfil != null}" class="avatar"
+             th:src="@{${imagenPerfil.rutaImagen}}" th:alt="${imagenPerfil.textoAlternativo}"
+             style="object-fit:cover">
+        <div th:if="${imagenPerfil == null}" class="avatar"
+             th:text="${#strings.toUpperCase(#strings.substring(#authentication.name, 0, 2))}">
+            AD
+        </div>
+
         <div class="who-txt">
             <b th:text="${#authentication.name}">admin@luduserp.cat</b>
-            <span th:text="${#strings.replace(#authentication.authorities[0].authority, 'ROLE_', '')}">ADMIN</span>
+            <span th:text="${#authentication.authorities[0].authority}">ROLE_ADMIN</span>
         </div>
     </div>
 
     <a class="top-logout" th:href="@{/logout}" href="#">Cerrar sesión</a>
+    <script th:src="@{/js/client-profile.js}" src="../static/js/client-profile.js"></script>
 </header>
-
 </body>
 </html>
