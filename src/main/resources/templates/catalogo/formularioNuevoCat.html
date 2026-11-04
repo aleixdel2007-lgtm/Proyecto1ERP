@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Nueva categoría · LudusERP</title>
+    <link rel="stylesheet" th:href="@{/css/panel.css}">
+    <link rel="stylesheet" th:href="@{/css/catalogo.css}">
+</head>
+<body>
+
+<div class="app">
+
+    <aside th:replace="~{fragments/panel :: menu('categorias')}"></aside>
+
+    <div class="main">
+
+        <header th:replace="~{fragments/panel :: barra('Catálogo', 'Categorías')}"></header>
+
+        <main class="canvas">
+
+            <a class="btn btn-ghost btn-sm" th:href="@{/catalogo/categorias}">
+                <svg th:replace="~{fragments/iconos :: back}"></svg> Volver al listado</a>
+
+            <div class="page-head">
+                <div>
+                    <h1>Nueva categoría</h1>
+                </div>
+            </div>
+
+            <div class="alert alert-err" th:if="${error}" th:text="${error}"></div>
+
+            <div class="grid g-2-1">
+
+                <div class="card">
+                    <form th:action="@{/catalogo/categorias/guardar}" method="post" th:object="${categoria}">
+
+                        <div class="card-body">
+                            <div class="form-grid">
+
+                                <div class="frow">
+                                    <label for="nombre">Nombre <span class="req">*</span></label>
+                                    <input class="inp" type="text" th:field="*{nombre}" maxlength="60"
+                                           placeholder="Aventura" required>
+                                    <span class="hint">Es lo que se ve en la tienda. Único en la tabla.</span>
+                                </div>
+
+                                <div class="frow">
+                                    <label for="codigo">Código <span class="req">*</span></label>
+                                    <input class="inp" type="text" th:field="*{codigo}" maxlength="30"
+                                           placeholder="AVENTURA" required>
+                                    <span class="hint">Identificador corto. Se guarda en mayúsculas y
+                                        también es único.</span>
+                                </div>
+
+                            </div>
+                        </div>
+
+                        <div class="form-foot">
+                            <span class="note">Una categoría con juegos asignados ya no se podrá borrar.</span>
+                            <a class="btn" th:href="@{/catalogo/categorias}">Cancelar</a>
+                            <button type="submit" class="btn btn-primary">Crear categoría</button>
+                        </div>
+
+                    </form>
+                </div>
+
+                <div class="stack">
+                    <div class="note-box">
+                        <svg th:replace="~{fragments/iconos :: warn}"></svg>
+                        <div>Las categorías se relacionan con los videojuegos en N:M a través de la
+                            tabla <code>videojuego_categoria</code>: un juego puede tener varias y una
+                            categoría la pueden usar muchos juegos.</div>
+                    </div>
+                </div>
+
+            </div>
+
+        </main>
+    </div>
+</div>
+
+</body>
+</html>

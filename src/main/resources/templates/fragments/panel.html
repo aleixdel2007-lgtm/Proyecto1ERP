@@ -15,6 +15,13 @@
            th:href="@{/home}">
             <span class="ic"><svg th:replace="~{fragments/iconos :: panel}"></svg></span>Inicio</a>
 
+        <th:block sec:authorize="hasAnyRole('GESTOR_PRODUCTOS', 'ADMIN')">
+            <div class="nav-group">Catálogo</div>
+            <a class="nav-item" th:classappend="${activo == 'categorias'} ? 'on' : ''"
+               th:href="@{/catalogo/categorias}">
+                <span class="ic"><svg th:replace="~{fragments/iconos :: tag}"></svg></span>Categorías</a>
+        </th:block>
+
         <th:block sec:authorize="hasAnyRole('ADMIN', 'GESTOR_INVENTARIO')">
         <div class="nav-group">Aprovisionamiento</div>
         <a class="nav-item" th:classappend="${activo == 'proveedores'} ? 'on' : ''"

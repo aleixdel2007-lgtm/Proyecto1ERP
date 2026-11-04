@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Categorías · LudusERP</title>
+    <link rel="stylesheet" th:href="@{/css/panel.css}">
+    <link rel="stylesheet" th:href="@{/css/catalogo.css}">
+</head>
+<body>
+
+<div class="app">
+
+    <aside th:replace="~{fragments/panel :: menu('categorias')}"></aside>
+
+    <div class="main">
+
+        <header th:replace="~{fragments/panel :: barra('Catálogo', 'Categorías')}"></header>
+
+        <main class="canvas">
+
+            <div class="alert alert-ok" th:if="${mensaje}" th:text="${mensaje}"></div>
+            <div class="alert alert-err" th:if="${error}" th:text="${error}"></div>
+
+            <div class="page-head">
+                <div>
+                    <h1>Categorías</h1>
+                    <p>Los géneros con los que se clasifica el catálogo. Un videojuego puede tener
+                        varias, y una categoría la pueden usar muchos juegos.</p>
+                </div>
+                <div class="page-actions">
+                    <a class="btn btn-primary" th:href="@{/catalogo/categorias/nuevo}">
+                        <svg th:replace="~{fragments/iconos :: plus}"></svg> Nueva categoría</a>
+                </div>
+            </div>
+
+            <div class="card">
+
+                <form class="filters" method="get" th:action="@{/catalogo/categorias}">
+                    <div class="fld">
+                        <label>Buscar</label>
+                        <div class="search-inp">
+                            <svg th:replace="~{fragments/iconos :: search}"></svg>
+                            <input name="texto" th:value="${texto}" placeholder="Nombre o código">
+                        </div>
+                    </div>
+                    <div class="fld">
+                        <label>&nbsp;</label>
+                        <button type="submit" class="btn btn-primary">Filtrar</button>
+                    </div>
+                    <div class="fld">
+                        <label>&nbsp;</label>
+                        <a class="btn" th:href="@{/catalogo/categorias}">Limpiar</a>
+                    </div>
+                </form>
+
+                <div class="card-body tight">
+
+                    <div class="empty" th:if="${#lists.isEmpty(categorias)}">
+                        <h4>Todavía no hay categorías</h4>
+                        <p class="hint">Crea la primera con el botón «Nueva categoría».</p>
+                    </div>
+
+                    <div class="tbl-wrap" th:unless="${#lists.isEmpty(categorias)}">
+                        <table class="tbl">
+                            <thead>
+                            <tr>
+                                <th>Nombre</th>
+                                <th>Código</th>
+                                <th class="num">Juegos</th>
+                                <th class="acts"></th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="c : ${categorias}">
+                                <td><span class="t-main" th:text="${c.nombre}">Acción</span></td>
+                                <td><span class="mono" th:text="${c.codigo}">ACCION</span></td>
+                                <td class="num" th:text="${juegos[c.id] != null ? juegos[c.id] : 0}">0</td>
+                                <td class="acts">
+                                    <a class="btn btn-sm btn-ghost" title="Editar"
+                                       th:href="@{/catalogo/categorias/editar/{id}(id=${c.id})}">
+                                        <svg th:replace="~{fragments/iconos :: edit}"></svg>
+                                    </a>
+                                    <form th:action="@{/catalogo/categorias/eliminar/{id}(id=${c.id})}" method="post"
+                                          onsubmit="return confirm(&quot;¿Seguro que quieres eliminar esta categoría? No se puede deshacer.&quot;);">
+                                        <button type="submit" class="btn btn-sm btn-danger" title="Eliminar">
+                                            <svg th:replace="~{fragments/iconos :: trash}"></svg>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="pager" th:unless="${#lists.isEmpty(categorias)}">
+                    <span>Mostrando <b th:text="${#lists.size(categorias)}">0</b>
+                        de <b th:text="${#lists.size(categorias)}">0</b> registros</span>
+                    <div class="pages">
+                        <button class="pg" disabled>&lsaquo;</button>
+                        <button class="pg on" disabled>1</button>
+                        <button class="pg" disabled>&rsaquo;</button>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="grid g2 cat-avisos">
+                <div class="note-box">
+                    <svg th:replace="~{fragments/iconos :: warn}"></svg>
+                    <div>Una categoría que ya tenga juegos asignados no se puede eliminar: la relación
+                        vive en <code>videojuego_categoria</code> y la clave ajena lo impide. Para
+                        quitarla habría que reasignar antes esos juegos.</div>
+                </div>
+                <div class="note-box">
+                    <svg th:replace="~{fragments/iconos :: check}"></svg>
+                    <div>El código es el identificador corto y se guarda en mayúsculas. El nombre es lo
+                        que se ve en la tienda. Los dos son únicos en la tabla.</div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+</div>
+
+</body>
+</html>

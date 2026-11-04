@@ -1,0 +1,13 @@
+/* ===========================================================================
+   LudusERP — estilos propios de las vistas del catalogo
+   Se carga DESPUES de panel.css, que es quien trae el panel entero.
+   Lo comparten categorias y plataformas: son la misma pantalla con otra tabla.
+   =========================================================================== */
+
+/* Ficha de solo lectura: etiqueta a la izquierda, valor a la derecha */
+.kv{display:grid;grid-template-columns:150px 1fr;gap:7px 12px;margin:0;font-size:13px}
+.kv dt{color:var(--muted)}
+.kv dd{margin:0;color:var(--ink-2)}
+
+/* Los dos avisos del pie del listado */
+.cat-avisos{margin-top:16px}

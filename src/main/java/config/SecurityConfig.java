@@ -51,6 +51,7 @@ public class SecurityConfig {
                 .requestMatchers("/login", "/registro", "/solicitar-activacion").permitAll()
                 .requestMatchers("/departamentos/**").hasRole("ADMIN")
                 .requestMatchers("/empleados/**").hasRole("ADMIN")
+                .requestMatchers("/catalogo/categorias/**").hasAnyRole("GESTOR_PRODUCTOS", "ADMIN")
                 .requestMatchers("/compras/**").hasAnyRole("ADMIN", "GESTOR_INVENTARIO")
                 .requestMatchers("/home").hasAnyRole("ADMIN", "GESTOR_CLIENTES", "GESTOR_PRODUCTOS", "GESTOR_INVENTARIO")
                 .requestMatchers("/admin/**").hasRole("ADMIN")

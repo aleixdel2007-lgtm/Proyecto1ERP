@@ -13,4 +13,11 @@ public interface VideojuegoDao extends JpaRepository<Videojuego, Long> {
             + "where v.colaborador is not null "
             + "group by v.colaborador.id")
     List<Object[]> contarPorColaborador();
+
+    long countByCategoriasId(Long categoriaId);
+
+    @Query("select c.id, count(v) from Videojuego v "
+            + "join v.categorias c "
+            + "group by c.id")
+    List<Object[]> contarPorCategoria();
 }
