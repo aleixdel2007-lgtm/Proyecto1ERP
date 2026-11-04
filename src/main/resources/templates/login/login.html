@@ -79,12 +79,12 @@
 
             </div>
         </main>
+
         <!-- Pop-up de cuenta inactiva: solo existe si la URL trae ?inactivo -->
-        <dialog id="dlg-inactivo" th:if="${param.inactivo}"
-                style="border:1px solid #ccc;border-radius:12px;padding:24px;max-width:380px">
+        <dialog id="dlg-inactivo" class="dlg-inactivo" th:if="${param.inactivo}">
             <h3>Cuenta inactiva</h3>
             <p>Tu cuenta está inactiva. Contacta con un gestor de clientes para que la active.</p>
-            <div style="display:flex;gap:8px;margin-top:16px">
+            <div class="dlg-acts">
                 <form th:action="@{/solicitar-activacion}" method="post">
                     <input type="hidden" name="email" th:value="${param.email}">
                     <button type="submit" class="btn btn-primary">Solicitar activación</button>

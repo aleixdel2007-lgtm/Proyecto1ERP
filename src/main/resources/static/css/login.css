@@ -140,3 +140,21 @@ select.inp{
     display:flex;gap:8px;justify-content:flex-end;align-items:center;
     padding:14px 16px;border-top:1px solid var(--line);background:rgba(0,0,0,.14);
 }
+/* --------------- pop-up de cuenta inactiva con colorsito ---------------------------------- */
+.dlg-inactivo{
+    background:var(--surface);color:var(--ink);
+    border:1px solid var(--line-strong);
+    border-top:4px solid var(--crit);            /* franja roja: avisa de que es algo importante */
+    border-radius:var(--r);padding:24px;
+    width:calc(100% - 40px);max-width:380px;
+    box-shadow:0 20px 60px rgba(0,0,0,.6);
+}
+.dlg-inactivo h3{margin:0 0 8px;color:var(--crit);font-size:17px}
+.dlg-inactivo p{color:var(--ink-2)}
+.dlg-inactivo .dlg-acts{display:flex;gap:8px;margin-top:18px}
+
+/* el fondo que queda detras del pop-up: oscuro, con un toque rojo y desenfocado */
+.dlg-inactivo::backdrop{
+    background:radial-gradient(circle at 50% 40%,rgba(248,81,73,.18),rgba(0,0,0,.88) 70%);
+    backdrop-filter:blur(6px);
+}
