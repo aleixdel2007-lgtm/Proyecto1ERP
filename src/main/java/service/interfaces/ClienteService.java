@@ -26,4 +26,6 @@ public interface ClienteService {
     void eliminarCliente(Long id);
 
     void solicitarActivacion(String email);
+    
+    void comprobarCorreoLibre(String email);
 }

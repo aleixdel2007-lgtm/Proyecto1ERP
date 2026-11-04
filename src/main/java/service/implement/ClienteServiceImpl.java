@@ -5,8 +5,10 @@
 package service.implement;
 
 import dao.ClienteDao;
+import dao.UsuarioDao;
 import exception.ClienteConDatosAsociadosException;
 import exception.ClienteNoEncontradoException;
+import exception.CorreoYaRegistradoException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -27,6 +29,9 @@ public class ClienteServiceImpl implements ClienteService {
 
     @Autowired
     private ClienteDao clienteDao;
+
+    @Autowired
+    private UsuarioDao usuarioDao;
 
     @Override
     public List<Cliente> buscarFiltrado(String texto, String pais, LocalDate desde) {
@@ -84,5 +89,13 @@ public class ClienteServiceImpl implements ClienteService {
         }
         cliente.setFechaSolicitud(LocalDateTime.now());
         clienteDao.save(cliente);
+    }
+
+    @Override
+    public void comprobarCorreoLibre(String email) {
+        // miramos en todos los usuarios (clientes, empleados...) porque el correo es unico para todos
+        if (usuarioDao.findByEmail(email).isPresent()) {
+            throw new CorreoYaRegistradoException();
+        }
     }
 }

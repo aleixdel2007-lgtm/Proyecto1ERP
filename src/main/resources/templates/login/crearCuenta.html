@@ -1,101 +1,104 @@
 <!doctype html>
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Crear cuenta · LudusERP</title>
-    <link rel="stylesheet" th:href="@{/css/login.css}" href="../../static/css/login.css">
-</head>
-<body>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Crear cuenta · LudusERP</title>
+        <link rel="stylesheet" th:href="@{/css/login.css}" href="../../static/css/login.css">
+    </head>
+    <body>
 
-<main class="auth">
-    <div class="auth-box auth-box-wide">
+        <main class="auth">
+            <div class="auth-box auth-box-wide">
 
-        <div class="auth-brand">
-            <div class="brand-mark">L</div>
-            <div class="brand-name">Ludus<span>ERP</span></div>
-        </div>
-
-        <div class="card">
-            <form th:action="@{/registro}" method="post">
-
-                <div class="card-head">
-                    <h2 class="auth-title">Crear una cuenta de cliente</h2>
+                <div class="auth-brand">
+                    <div class="brand-mark">L</div>
+                    <div class="brand-name">Ludus<span>ERP</span></div>
                 </div>
 
-                <div class="card-body">
+                <div class="card">
+                    <form th:action="@{/registro}" method="post">
 
-                    <div class="alert alert-err form-alert" th:if="${param.error}">
-                        No se ha podido crear la cuenta. Revisa los datos e inténtalo de nuevo.
-                    </div>
-
-                    <div class="form-grid">
-                        <div class="frow">
-                            <label for="nombre">Nombre <span class="req">*</span></label>
-                            <input class="inp" type="text" id="nombre" name="nombre"
-                                   autocomplete="given-name" required autofocus>
+                        <div class="card-head">
+                            <h2 class="auth-title">Crear una cuenta de cliente</h2>
                         </div>
 
-                        <div class="frow">
-                            <label for="apellidos">Apellidos <span class="req">*</span></label>
-                            <input class="inp" type="text" id="apellidos" name="apellidos"
-                                   autocomplete="family-name" required>
+                        <div class="card-body">
+
+                            <div class="alert alert-err form-alert" th:if="${param.error}">
+                                No se ha podido crear la cuenta. Revisa los datos e inténtalo de nuevo.
+                            </div>
+
+                            <div class="form-grid">
+                                <div class="frow">
+                                    <label for="nombre">Nombre <span class="req">*</span></label>
+                                    <input class="inp" type="text" id="nombre" name="nombre"
+                                           th:value="${nombre}" autocomplete="given-name" required autofocus>
+                                </div>
+
+                                <div class="frow">
+                                    <label for="apellidos">Apellidos <span class="req">*</span></label>
+                                    <input class="inp" type="text" id="apellidos" name="apellidos"
+                                           th:value="${apellidos}" autocomplete="family-name" required>
+                                </div>
+
+                                <div class="frow wide">
+                                    <label for="email">Correo electrónico <span class="req">*</span></label>
+                                    <input class="inp" type="email" id="email" name="email"
+                                           th:value="${email}" autocomplete="email" required>
+                                    <!-- solo sale si el correo ya tiene cuenta -->
+                                    <span class="hint" style="color:var(--crit)" th:if="${errorEmail}" th:text="${errorEmail}"></span>
+                                    <span class="hint">Será tu identificador de acceso.</span>
+                                </div>
+
+                                <div class="frow">
+                                    <label for="password">Contraseña <span class="req">*</span></label>
+                                    <input class="inp" type="password" id="password" name="password"
+                                           autocomplete="new-password" required>
+                                    <span class="hint">Mínimo 8 caracteres, una mayúscula y un número.</span>
+                                </div>
+
+                                <div class="frow">
+                                    <label for="repetirPassword">Repetir contraseña <span class="req">*</span></label>
+                                    <input class="inp" type="password" id="repetirPassword" name="repetirPassword"
+                                           autocomplete="new-password" required>
+                                </div>
+
+                                <div class="frow">
+                                    <label for="pais">País</label>
+                                    <select class="inp" id="pais" name="pais">
+                                        <option value="">Selecciona…</option>
+                                        <option th:selected="${pais == 'España'}">España</option>
+                                        <option th:selected="${pais == 'Francia'}">Francia</option>
+                                        <option th:selected="${pais == 'Italia'}">Italia</option>
+                                    </select>
+                                </div>
+
+                                <div class="frow">
+                                    <label for="fechaNacimiento">Fecha de nacimiento</label>
+                                    <input class="inp" type="date" id="fechaNacimiento" name="fechaNacimiento"
+                                           th:value="${fechaNacimiento}">
+                                </div>
+
+                                <div class="frow wide">
+                                    <label class="cbx">
+                                        <input type="checkbox" name="aceptaCondiciones" required>
+                                        Acepto las condiciones y la política de privacidad
+                                    </label>
+                                </div>
+                            </div>
                         </div>
 
-                        <div class="frow wide">
-                            <label for="email">Correo electrónico <span class="req">*</span></label>
-                            <input class="inp" type="email" id="email" name="email"
-                                   autocomplete="email" required>
-                            <span class="hint">Será tu identificador de acceso.</span>
+                        <div class="form-foot">
+                            <a class="btn" th:href="@{/login}" href="login.html">Cancelar</a>
+                            <button type="submit" class="btn btn-primary">Crear cuenta</button>
                         </div>
 
-                        <div class="frow">
-                            <label for="password">Contraseña <span class="req">*</span></label>
-                            <input class="inp" type="password" id="password" name="password"
-                                   autocomplete="new-password" minlength="8" required>
-                            <span class="hint">Mínimo 8 caracteres, una mayúscula y un número.</span>
-                        </div>
-
-                        <div class="frow">
-                            <label for="repetirPassword">Repetir contraseña <span class="req">*</span></label>
-                            <input class="inp" type="password" id="repetirPassword" name="repetirPassword"
-                                   autocomplete="new-password" minlength="8" required>
-                        </div>
-
-                        <div class="frow">
-                            <label for="pais">País</label>
-                            <select class="inp" id="pais" name="pais">
-                                <option value="">Selecciona…</option>
-                                <option>España</option>
-                                <option>Francia</option>
-                                <option>Italia</option>
-                            </select>
-                        </div>
-
-                        <div class="frow">
-                            <label for="fechaNacimiento">Fecha de nacimiento</label>
-                            <input class="inp" type="date" id="fechaNacimiento" name="fechaNacimiento">
-                        </div>
-
-                        <div class="frow wide">
-                            <label class="cbx">
-                                <input type="checkbox" name="aceptaCondiciones" required>
-                                Acepto las condiciones y la política de privacidad
-                            </label>
-                        </div>
-                    </div>
+                    </form>
                 </div>
 
-                <div class="form-foot">
-                    <a class="btn" th:href="@{/login}" href="login.html">Cancelar</a>
-                    <button type="submit" class="btn btn-primary">Crear cuenta</button>
-                </div>
-
-            </form>
-        </div>
-
-    </div>
-</main>
-
-</body>
+            </div>
+        </main>
+        <script th:src="@{/js/registro.js}" src="../../static/js/registro.js"></script>
+    </body>
 </html>

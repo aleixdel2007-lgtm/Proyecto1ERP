@@ -1,6 +1,7 @@
 package controller;
 
 import dao.UsuarioDao;
+import exception.CorreoYaRegistradoException;
 import lombok.RequiredArgsConstructor;
 import model.seguridad.Cliente;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -12,6 +13,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import java.time.LocalDate;
 import java.util.regex.Pattern;
+import org.springframework.ui.Model;
+import service.interfaces.ClienteService;
 
 @Controller
 @RequiredArgsConstructor
@@ -22,12 +25,13 @@ public class ControllerLogin {
 
     private final UsuarioDao usuarioDao;
     private final PasswordEncoder codificador;
-    
+    private final ClienteService clienteService;
+
     @GetMapping("/")
     public String index() {
         if (SecurityContextHolder.getContext().getAuthentication() != null) {
             return "redirect:/home";
-        }else{
+        } else {
             return "login/login";
         }
     }
@@ -39,14 +43,28 @@ public class ControllerLogin {
 
     @PostMapping("/registro")
     public String crearCuenta(@RequestParam String nombre,
-                              @RequestParam String apellidos,
-                              @RequestParam String email,
-                              @RequestParam String password,
-                              @RequestParam String repetirPassword,
-                              @RequestParam(required = false) String pais,
-                              @RequestParam(required = false) LocalDate fechaNacimiento,
-                              @RequestParam(required = false) String aceptaCondiciones) {
+            @RequestParam String apellidos,
+            @RequestParam String email,
+            @RequestParam String password,
+            @RequestParam String repetirPassword,
+            @RequestParam(required = false) String pais,
+            @RequestParam(required = false) LocalDate fechaNacimiento,
+            @RequestParam(required = false) String aceptaCondiciones,
+            Model model) {
         String correo = email.trim().toLowerCase();
+
+        try {
+            clienteService.comprobarCorreoLibre(correo);
+        } catch (CorreoYaRegistradoException e) {
+            // devolvemos el formulario sin redirect para no perder lo que escribio (las contraseñas no se devuelven)
+            model.addAttribute("errorEmail", e.getMessage());
+            model.addAttribute("nombre", nombre);
+            model.addAttribute("apellidos", apellidos);
+            model.addAttribute("email", email);
+            model.addAttribute("pais", pais);
+            model.addAttribute("fechaNacimiento", fechaNacimiento);
+            return "login/crearCuenta";
+        }
         boolean valido = aceptaCondiciones != null
                 && !nombre.isBlank() && !apellidos.isBlank()
                 && password.equals(repetirPassword)
