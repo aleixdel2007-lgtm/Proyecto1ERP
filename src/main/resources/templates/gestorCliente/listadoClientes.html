@@ -99,6 +99,8 @@
                                             <td>
                                                 <span class="badge" th:classappend="${c.activo} ? 'b-good' : 'b-mute'"
                                                       th:text="${c.activo} ? 'ACTIVO' : 'INACTIVO'">ACTIVO</span>
+                                                <span class="badge b-warn" th:if="${c.fechaSolicitud != null}"
+                                                      th:title="'Solicitada el ' + ${#temporals.format(c.fechaSolicitud, 'dd/MM/yyyy HH:mm')}">Pide activación</span>
                                             </td>
                                             <td class="acts"> <!-- Acciones al final de cada fila,eliminar/desactivar -->
                                                 <form th:action="@{/clientes/{id}/estado(id=${c.id})}" method="post">
