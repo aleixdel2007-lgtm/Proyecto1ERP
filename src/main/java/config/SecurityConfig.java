@@ -2,10 +2,13 @@ package config;
 
 import dao.UsuarioDao;
 import jakarta.servlet.http.HttpServletResponse;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import model.seguridad.Rol;
 import model.seguridad.Usuario;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
@@ -44,44 +47,54 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/css/**", "/js/**", "/img/**", "/images/**", "/webjars/**").permitAll()
-                        .requestMatchers("/registro").permitAll()
-                        .requestMatchers("/departamentos/**").hasRole("ADMIN")
-                        .requestMatchers("/empleados/**").hasRole("ADMIN")
-                        .requestMatchers("/compras/**").hasAnyRole("ADMIN","GESTOR_INVENTARIO")
-                        .requestMatchers("/home").hasAnyRole("ADMIN", "GESTOR_CLIENTES", "GESTOR_PRODUCTOS", "GESTOR_INVENTARIO")
-                        .requestMatchers("/admin/**").hasRole("ADMIN")
-                        .requestMatchers("/user/**").hasAnyRole("CLIENTE", "ADMIN")
-                        .requestMatchers("/clientes/**").hasAnyRole("GESTOR_CLIENTES", "ADMIN")
-                        .anyRequest().authenticated()
+                .requestMatchers("/css/**", "/js/**", "/img/**", "/images/**", "/webjars/**").permitAll()
+                .requestMatchers("/login", "/registro").permitAll()
+                .requestMatchers("/departamentos/**").hasRole("ADMIN")
+                .requestMatchers("/empleados/**").hasRole("ADMIN")
+                .requestMatchers("/compras/**").hasAnyRole("ADMIN", "GESTOR_INVENTARIO")
+                .requestMatchers("/home").hasAnyRole("ADMIN", "GESTOR_CLIENTES", "GESTOR_PRODUCTOS", "GESTOR_INVENTARIO")
+                .requestMatchers("/admin/**").hasRole("ADMIN")
+                .requestMatchers("/user/**").hasAnyRole("CLIENTE", "ADMIN")
+                .requestMatchers("/clientes/**").hasAnyRole("GESTOR_CLIENTES", "ADMIN")
+                .anyRequest().authenticated()
                 )
                 .formLogin(form -> form
-                        .loginPage("/login")
-                        // Los clientes van a la tienda, el resto de roles, a "/home"
-                        .successHandler((request, response, authentication) -> {
-                            boolean esCliente = authentication.getAuthorities().stream()
-                                    .anyMatch(a -> a.getAuthority().equals("ROLE_" + Rol.CLIENTE.name()));
-                            response.sendRedirect(request.getContextPath() + (esCliente ? "/tienda" : "/home"));
-                        })
-                        .permitAll()
+                .loginPage("/login")
+                // Los clientes van a la tienda, el resto de roles, a "/home"
+                .successHandler((request, response, authentication) -> {
+                    boolean esCliente = authentication.getAuthorities().stream()
+                            .anyMatch(a -> a.getAuthority().equals("ROLE_" + Rol.CLIENTE.name()));
+                    response.sendRedirect(request.getContextPath() + (esCliente ? "/tienda" : "/home"));
+                })
+                // si el login falla, miramos por que: si es porque la cuenta esta inactiva, avisamos aparte
+                .failureHandler((request, response, exception) -> {
+                    if (exception instanceof DisabledException) {
+                        // guardamos el email que escribio para poder usarlo luego en la solicitud
+                        String email = URLEncoder.encode(request.getParameter("username"), StandardCharsets.UTF_8);
+                        response.sendRedirect(request.getContextPath() + "/login?inactivo&email=" + email);
+                    } else {
+                        response.sendRedirect(request.getContextPath() + "/login?error");
+                    }
+                })
+                .permitAll()
                 )
                 .exceptionHandling(ex -> ex
-                        // Un cliente que escribe /home a mano va a su pagina de inicio, no al 403
-                        .accessDeniedHandler((request, response, denied) -> {
-                            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-                            boolean esCliente = auth != null && auth.getAuthorities().stream()
-                                    .anyMatch(a -> a.getAuthority().equals("ROLE_" + Rol.CLIENTE.name()));
-                            String ruta = request.getRequestURI().substring(request.getContextPath().length());
-                            if (esCliente && ruta.equals("/home")) {
-                                response.sendRedirect(request.getContextPath() + "/tienda");
-                            } else {
-                                response.sendError(HttpServletResponse.SC_FORBIDDEN);
-                            }
-                        })
+                // Un cliente que escribe /home a mano va a su pagina de inicio, no al 403
+                .accessDeniedHandler((request, response, denied) -> {
+                    Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+                    boolean esCliente = auth != null && auth.getAuthorities().stream()
+                            .anyMatch(a -> a.getAuthority().equals("ROLE_" + Rol.CLIENTE.name()));
+                    String ruta = request.getRequestURI().substring(request.getContextPath().length());
+                    if (esCliente && ruta.equals("/home")) {
+                        response.sendRedirect(request.getContextPath() + "/tienda");
+                    } else {
+                        response.sendError(HttpServletResponse.SC_FORBIDDEN);
+                    }
+                })
                 )
                 .logout(logout -> logout
-                        .logoutUrl("/logout")
-                        .permitAll()
+                .logoutUrl("/logout")
+                .permitAll()
                 );
 
         return http.build();
