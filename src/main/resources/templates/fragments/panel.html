@@ -20,6 +20,9 @@
             <a class="nav-item" th:classappend="${activo == 'categorias'} ? 'on' : ''"
                th:href="@{/catalogo/categorias}">
                 <span class="ic"><svg th:replace="~{fragments/iconos :: tag}"></svg></span>Categorías</a>
+            <a class="nav-item" th:classappend="${activo == 'plataformas'} ? 'on' : ''"
+               th:href="@{/catalogo/plataformas}">
+                <span class="ic"><svg th:replace="~{fragments/iconos :: game}"></svg></span>Plataformas</a>
         </th:block>
 
         <th:block sec:authorize="hasAnyRole('ADMIN', 'GESTOR_INVENTARIO')">
