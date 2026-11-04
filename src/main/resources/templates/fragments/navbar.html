@@ -23,7 +23,10 @@
         </select>
     </th:block>
     <div class="who">
-        <div class="avatar"
+        <img th:if="${imagenPerfil != null}" class="avatar"
+             th:src="@{${imagenPerfil.rutaImagen}}" th:alt="${imagenPerfil.textoAlternativo}"
+             style="object-fit:cover">
+        <div th:if="${imagenPerfil == null}" class="avatar"
              th:text="${#strings.toUpperCase(#strings.substring(#authentication.name, 0, 2))}">
             AD
         </div>

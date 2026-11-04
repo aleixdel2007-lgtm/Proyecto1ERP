@@ -110,5 +110,10 @@ select.inp{
     background:var(--surface-2);color:var(--ink);white-space:nowrap;cursor:pointer;
 }
 .btn:hover{background:var(--surface-3);border-color:rgba(255,255,255,.22)}
+.file-pick{display:flex;align-items:center;gap:10px;min-width:0}
+.file-pick .btn{cursor:pointer;flex-shrink:0}
+.file-input{position:absolute;width:1px;height:1px;opacity:0;overflow:hidden}
+.file-input:focus-visible + .btn{border-color:var(--purple);box-shadow:0 0 0 3px rgba(139,92,246,.18)}
+.file-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .btn-primary{background:var(--purple);border-color:var(--purple);color:#fff}
 .btn-primary:hover{background:var(--purple-light);border-color:var(--purple-light)}
