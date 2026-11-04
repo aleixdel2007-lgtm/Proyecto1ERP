@@ -19,7 +19,4 @@ public class Categoria {
 
     @Column(name = "nombre", nullable = false, unique = true, length = 60)
     private String nombre;
-
-    @Column(name = "activo", nullable = false)
-    private boolean activo = true;
 }

@@ -33,7 +33,6 @@ CREATE TABLE categoria (
     id     BIGINT      NOT NULL AUTO_INCREMENT,
     codigo VARCHAR(30) NOT NULL,
     nombre VARCHAR(60) NOT NULL,
-    activo BOOLEAN     NOT NULL DEFAULT TRUE,
     PRIMARY KEY (id),
     CONSTRAINT uk_categoria_codigo UNIQUE (codigo),
     CONSTRAINT uk_categoria_nombre UNIQUE (nombre)
@@ -43,7 +42,6 @@ CREATE TABLE plataforma (
     id     BIGINT      NOT NULL AUTO_INCREMENT,
     codigo VARCHAR(20) NOT NULL,
     nombre VARCHAR(60) NOT NULL,
-    activo BOOLEAN     NOT NULL DEFAULT TRUE,
     PRIMARY KEY (id),
     CONSTRAINT uk_plataforma_codigo UNIQUE (codigo),
     CONSTRAINT uk_plataforma_nombre UNIQUE (nombre)

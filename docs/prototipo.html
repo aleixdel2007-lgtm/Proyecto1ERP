@@ -547,14 +547,17 @@ function cover(title, cls, extra){
 const BADGE = {
   DISPONIBLE:"b-good", RESERVADA:"b-warn", VENDIDA:"b-mute", ANULADA:"b-crit",
   BORRADOR:"b-mute", CONFIRMADA:"b-info", RECIBIDA:"b-good", CANCELADA:"b-crit",
-  PENDIENTE:"b-warn", PAGADA:"b-good", REEMBOLSADA:"b-serious",
+  /* Los cuatro valores de EstadoPedido, tal como estan escritos en el enum. */
+  PENDIENTE_PAGO:"b-warn", PAGADO:"b-good", CANCELADO:"b-crit", REEMBOLSADO:"b-serious",
   ABIERTO:"b-info", EN_CURSO:"b-warn", RESUELTO:"b-good", CERRADO:"b-mute",
   PUBLICADA:"b-good", OCULTA:"b-mute",
   BAJA:"b-mute", NORMAL:"b-info", ALTA:"b-serious", URGENTE:"b-crit",
   ACTIVO:"b-good", INACTIVO:"b-mute", OK:"b-good", ERROR:"b-crit", AGOTADO:"b-crit",
-  PENDIENTE_REVISION:"b-warn", CAMBIOS_PEDIDOS:"b-serious", APROBADA:"b-good",
-  DENEGADA:"b-crit", PUBLICADO:"b-good", SIN_ENVIAR:"b-mute",
-  GRATIS:"b-info", DE_PAGO:"b-purple", SIN_CAMBIAR:"b-warn",
+  /* Un juego de colaborador solo esta publicado o retirado: no hay revision. */
+  PUBLICADO:"b-good", RETIRADO:"b-mute",
+  /* Estado de la contrasena de una cuenta que crea el ERP. */
+  ACTIVA:"b-good", PENDIENTE_CAMBIAR:"b-warn",
+  GRATIS:"b-info", DE_PAGO:"b-purple",
 };
 const badge = (txt, kind) => `<span class="badge ${kind || BADGE[txt] || ""}">${esc(String(txt).replace(/_/g," "))}</span>`;
 
@@ -582,15 +585,11 @@ const acts = list => list.map(a =>
    pantallas llenas. Los nombres de campo siguen el esquema del documento.
    =========================================================================== */
 const CATS  = ["Accion","Aventura","RPG","Estrategia","Simulacion","Deportes","Terror","Indie","Carreras","Puzzle"];
-const PLATS = [["PC","STEAM"],["PlayStation 5","PS5"],["Xbox Series","XSX"],["Nintendo Switch","NSW"]];
-const DEVS  = [
-  {id:1, nom:"Larian Studios", pais:"Belgica", web:"larian.com", jocs:3},
-  {id:2, nom:"FromSoftware", pais:"Japon", web:"fromsoftware.jp", jocs:4},
-  {id:3, nom:"Hello Games", pais:"Reino Unido", web:"hellogames.org", jocs:1},
-  {id:4, nom:"Supergiant Games", pais:"EE. UU.", web:"supergiantgames.com", jocs:2},
-  {id:5, nom:"Paradox Interactive", pais:"Suecia", web:"paradoxplaza.com", jocs:5},
-  {id:6, nom:"Team Cherry", pais:"Australia", web:"teamcherry.com.au", jocs:1},
-];
+/* Nombre y codigo, los mismos cuatro que inserta V2__Catalogo.sql. */
+const PLATS = [["PC","PC"],["PlayStation 5","PS5"],["Xbox Series","XSX"],["Nintendo Switch","NSW"]];
+/* No hay tabla de desarrolladores: en los juegos de distribuidor el estudio es un
+   String dentro de videojuego, y en los de colaborador el nombre sale del propio
+   colaborador. El campo dev de GAMES es ese String. */
 const GAMES = [
   {id:318,t:"Eclipse Protocol",     dev:"Larian Studios",    cat:"RPG",        plat:"PC",            p:44.99, pa:59.99, pegi:16, st:142, act:1, lanz:"2026-03-14"},
   {id:319,t:"Neon Drifter",         dev:"Hello Games",       cat:"Carreras",   plat:"PC",            p:24.99, pa:0,     pegi:7,  st:38,  act:1, lanz:"2025-11-02"},
@@ -638,30 +637,39 @@ const CLIENTES = [
   {id:1046, nom:"Sofia Greco",    mail:"sofia.greco@example.it",    pais:"Italia",  alta:"2026-04-02", com:5,  gasto:201.45},
   {id:1047, nom:"Hugo Martin",    mail:"hugo.martin@example.fr",    pais:"Francia", alta:"2026-08-30", com:1,  gasto:44.99},
 ];
+/* El pago lo cobra Stripe, asi que el metodo no es una lista nuestra: es lo que
+   el cliente eligio dentro de Stripe y lo que devuelve el payment intent. */
 const PEDIDOS = [
-  {num:"C-2026-1884", cli:"Marta Ribas",    data:"2026-10-22", est:"PAGADA",      base:61.98, iva:13.02, tot:74.99, pago:"Tarjeta", art:2},
-  {num:"C-2026-1883", cli:"Tom Vanderberg", data:"2026-10-22", est:"PAGADA",      base:41.31, iva:8.68,  tot:49.99, pago:"PayPal",  art:1},
-  {num:"C-2026-1882", cli:"Sofia Greco",    data:"2026-10-21", est:"PENDIENTE",   base:57.84, iva:12.15, tot:69.99, pago:"Tarjeta", art:1},
-  {num:"C-2026-1881", cli:"Oriol Camps",    data:"2026-10-21", est:"PAGADA",      base:24.78, iva:5.21,  tot:29.99, pago:"Tarjeta", art:1},
-  {num:"C-2026-1880", cli:"Lucia Fernandez",data:"2026-10-20", est:"REEMBOLSADA", base:16.52, iva:3.47,  tot:19.99, pago:"PayPal",  art:1},
-  {num:"C-2026-1879", cli:"Marta Ribas",    data:"2026-10-19", est:"PAGADA",      base:90.07, iva:18.91, tot:108.98,pago:"Tarjeta", art:3},
-  {num:"C-2026-1878", cli:"Hugo Martin",    data:"2026-10-18", est:"CANCELADA",   base:37.18, iva:7.81,  tot:44.99, pago:"Tarjeta", art:1},
+  {num:"C-2026-1884", cli:"Marta Ribas",    data:"2026-10-22", est:"PAGADO",         base:61.98, iva:13.02, tot:74.99, pago:"Stripe · tarjeta", art:2},
+  {num:"C-2026-1883", cli:"Tom Vanderberg", data:"2026-10-22", est:"PAGADO",         base:41.31, iva:8.68,  tot:49.99, pago:"Stripe · iDEAL",   art:1},
+  {num:"C-2026-1882", cli:"Sofia Greco",    data:"2026-10-21", est:"PENDIENTE_PAGO", base:57.84, iva:12.15, tot:69.99, pago:"Stripe · tarjeta", art:1},
+  {num:"C-2026-1881", cli:"Oriol Camps",    data:"2026-10-21", est:"PAGADO",         base:24.78, iva:5.21,  tot:29.99, pago:"Stripe · tarjeta", art:1},
+  {num:"C-2026-1880", cli:"Lucia Fernandez",data:"2026-10-20", est:"REEMBOLSADO",    base:16.52, iva:3.47,  tot:19.99, pago:"Stripe · tarjeta", art:1},
+  {num:"C-2026-1879", cli:"Marta Ribas",    data:"2026-10-19", est:"PAGADO",         base:90.07, iva:18.91, tot:108.98,pago:"Stripe · tarjeta", art:3},
+  {num:"C-2026-1878", cli:"Hugo Martin",    data:"2026-10-18", est:"CANCELADO",      base:37.18, iva:7.81,  tot:44.99, pago:"Stripe · tarjeta", art:1},
 ];
 const DEPARTAMENTOS = [
   {id:1, nom:"Direccion", emp:2}, {id:2, nom:"Catalogo", emp:4},
   {id:3, nom:"Compras y almacen", emp:3}, {id:4, nom:"Atencion al cliente", emp:5},
   {id:5, nom:"Sistemas", emp:2},
 ];
+/* Un empleado tiene UN SOLO rol, en la columna usuario.rol: no hay tabla
+   usuario_rol y por eso aqui es un campo, no un array. */
 const EMPLEADOS = [
-  {id:1, nom:"Aleix Delgado",  mail:"admin@luduserp.cat",            dept:"Direccion",          carrec:"Administrador", rols:["ADMIN"],             alta:"2024-01-08", act:1},
-  {id:7, nom:"Nuria Soler",    mail:"gestor.productes@luduserp.cat", dept:"Catalogo",           carrec:"Jefa de catalogo", rols:["GESTOR_PRODUCTOS"], alta:"2024-03-15", act:1},
-  {id:8, nom:"Pau Esteve",     mail:"pau.esteve@luduserp.cat",       dept:"Catalogo",           carrec:"Editor de fichas", rols:["GESTOR_PRODUCTOS"], alta:"2025-01-20", act:1},
-  {id:9, nom:"Irene Vidal",    mail:"irene.vidal@luduserp.cat",      dept:"Compras y almacen",  carrec:"Responsable de compras", rols:["GESTOR_INVENTARIO"], alta:"2024-09-01", act:1},
-  {id:10,nom:"Marc Puig",      mail:"marc.puig@luduserp.cat",        dept:"Atencion al cliente",carrec:"Agente de soporte", rols:["GESTOR_CLIENTES"],  alta:"2025-05-12", act:1},
-  {id:11,nom:"Laia Font",      mail:"laia.font@luduserp.cat",        dept:"Atencion al cliente",carrec:"Agente de soporte", rols:["GESTOR_CLIENTES"],  alta:"2026-02-03", act:1},
-  {id:12,nom:"Dani Roca",      mail:"dani.roca@luduserp.cat",        dept:"Sistemas",           carrec:"Tecnico", rols:["GESTOR_INVENTARIO","GESTOR_PRODUCTOS"], alta:"2026-06-11", act:0},
+  {id:1, nom:"Aleix Delgado",  mail:"admin@luduserp.cat",            dept:"Direccion",          carrec:"Administrador", rol:"ADMIN",             alta:"2024-01-08", act:1},
+  {id:7, nom:"Nuria Soler",    mail:"gestor.productes@luduserp.cat", dept:"Catalogo",           carrec:"Jefa de catalogo", rol:"GESTOR_PRODUCTOS", alta:"2024-03-15", act:1},
+  {id:8, nom:"Pau Esteve",     mail:"pau.esteve@luduserp.cat",       dept:"Catalogo",           carrec:"Editor de fichas", rol:"GESTOR_PRODUCTOS", alta:"2025-01-20", act:1},
+  {id:9, nom:"Irene Vidal",    mail:"irene.vidal@luduserp.cat",      dept:"Compras y almacen",  carrec:"Responsable de compras", rol:"GESTOR_INVENTARIO", alta:"2024-09-01", act:1},
+  {id:10,nom:"Marc Puig",      mail:"marc.puig@luduserp.cat",        dept:"Atencion al cliente",carrec:"Agente de soporte", rol:"GESTOR_CLIENTES",  alta:"2025-05-12", act:1},
+  {id:11,nom:"Laia Font",      mail:"laia.font@luduserp.cat",        dept:"Atencion al cliente",carrec:"Agente de soporte", rol:"GESTOR_CLIENTES",  alta:"2026-02-03", act:1},
+  {id:12,nom:"Dani Roca",      mail:"dani.roca@luduserp.cat",        dept:"Sistemas",           carrec:"Tecnico", rol:"GESTOR_INVENTARIO", alta:"2026-06-11", act:0},
 ];
-const ROLES = ["CLIENTE","GESTOR_PRODUCTOS","GESTOR_CLIENTES","GESTOR_INVENTARIO","ADMIN"];
+/* Los siete valores del enum Rol. PROVEEDOR no lo tiene nadie: se queda como
+   adorno del apartado de proveedores y nunca se asigna. */
+const ROLES = ["CLIENTE","GESTOR_PRODUCTOS","GESTOR_CLIENTES","GESTOR_INVENTARIO","ADMIN","COLABORADOR","PROVEEDOR"];
+/* Los que de verdad puede llevar un empleado: ni CLIENTE, ni COLABORADOR, ni
+   PROVEEDOR. Es la misma lista que devuelve ControllerEmpleado.rolesDisponibles(). */
+const ROLES_EMPLEADO = ["GESTOR_PRODUCTOS","GESTOR_CLIENTES","GESTOR_INVENTARIO","ADMIN"];
 const CONFIG = [
   {k:"idioma_por_defecto", v:"ca",            tip:"ENUM",    desc:"Idioma que se aplica cuando el usuario no tiene preferencia"},
   {k:"tipo_iva",           v:"21",            tip:"DECIMAL", desc:"Porcentaje de IVA aplicado a las facturas"},
@@ -684,27 +692,23 @@ const TOP10 = [
   ["Orbital Foundry",47,1644.53],["Last Signal",41,1229.59],["Neon Drifter",38,949.62],
   ["Ironline Tactics",29,1159.71],
 ];
-/* Cuentas de proveedor: las crea el ERP, el estudio no se registra solo. */
-const CUENTAS_PROV = [
-  {id:1, nom:"Taller 3r DAM A", mail:"taller3a@luduserp.cat", jocs:"1 publicado · 1 en revision", alta:"2026-10-12", pwd:"ACTIVO",      act:1},
-  {id:2, nom:"Taller 3r DAM B", mail:"taller3b@luduserp.cat", jocs:"1 publicado",                 alta:"2026-10-12", pwd:"ACTIVO",      act:1},
-  {id:3, nom:"Grup Pixelat",    mail:"pixelat@luduserp.cat",  jocs:"1 denegada",                  alta:"2026-10-09", pwd:"ACTIVO",      act:1},
-  {id:4, nom:"Estudi Cinque",   mail:"cinque@luduserp.cat",   jocs:"1 en revision",               alta:"2026-10-26", pwd:"SIN_CAMBIAR", act:1},
+/* Colaboradores: PERSONAS con cuenta propia que suben sus juegos, normalmente
+   companeros de clase. Las crea el ERP desde admin y nadie se registra. No son
+   empresas: no tienen CIF, ni IBAN, ni ficha de proveedor. */
+const COLABORADORES = [
+  {id:31, nom:"Jordi",  cognoms:"Bastida",   mail:"jordi.bastida@example.com",  pais:"Espana", jocs:2, alta:"2026-10-12", pwd:"ACTIVA",             act:1},
+  {id:32, nom:"Aina",   cognoms:"Querol",    mail:"aina.querol@example.com",    pais:"Espana", jocs:1, alta:"2026-10-12", pwd:"ACTIVA",             act:1},
+  {id:33, nom:"Victor", cognoms:"Salas",     mail:"victor.salas@example.com",   pais:"Espana", jocs:1, alta:"2026-10-09", pwd:"ACTIVA",             act:1},
+  {id:34, nom:"Lucia",  cognoms:"Herrero",   mail:"lucia.herrero@example.com",  pais:"Espana", jocs:0, alta:"2026-10-26", pwd:"PENDIENTE_CAMBIAR", act:1},
+  {id:35, nom:"Marc",   cognoms:"Ibanez",    mail:"marc.ibanez@example.com",    pais:"Espana", jocs:0, alta:"2026-10-26", pwd:"PENDIENTE_CAMBIAR", act:1},
+  {id:36, nom:"Elsa",   cognoms:"Riquelme",  mail:"elsa.riquelme@example.com",  pais:"Espana", jocs:1, alta:"2026-10-02", pwd:"ACTIVA",             act:0},
 ];
-/* Solicitudes de publicacion que llegan de los estudios. */
-const SOLICITUDES = [
-  {id:"SOL-2026-0034", joc:"Hollow Transit", prov:"Taller 3r DAM A", env:"2026-10-27", cat:"Indie",    plat:"PC", pegi:7,  p:0,    ver:"1.0.0", entrega:"ARCHIVO", peso:"412 MB", est:"PENDIENTE_REVISION", motivo:""},
-  {id:"SOL-2026-0033", joc:"Cinder Loop",    prov:"Estudi Cinque",   env:"2026-10-26", cat:"Puzzle",   plat:"PC", pegi:3,  p:0,    ver:"0.9.2", entrega:"ENLACE",  peso:"—",      est:"PENDIENTE_REVISION", motivo:""},
-  {id:"SOL-2026-0032", joc:"Vector Bloom",   prov:"Grup Pixelat",    env:"2026-10-25", cat:"Accion",   plat:"PC", pegi:12, p:4.99, ver:"1.0.0", entrega:"ARCHIVO", peso:"1,2 GB", est:"PENDIENTE_REVISION", motivo:""},
-  {id:"SOL-2026-0030", joc:"Hollow Transit", prov:"Taller 3r DAM A", env:"2026-10-20", cat:"Indie",    plat:"PC", pegi:7,  p:0,    ver:"0.8.0", entrega:"ARCHIVO", peso:"398 MB", est:"CAMBIOS_PEDIDOS",    motivo:"Falta la imagen de portada y la sinopsis esta vacia."},
-  {id:"SOL-2026-0028", joc:"Dust Harbour",   prov:"Taller 3r DAM B", env:"2026-10-14", cat:"Aventura", plat:"PC", pegi:12, p:0,    ver:"1.1.0", entrega:"ARCHIVO", peso:"1,1 GB", est:"APROBADA",           motivo:""},
-  {id:"SOL-2026-0026", joc:"Rust & Ruin",    prov:"Grup Pixelat",    env:"2026-10-09", cat:"Terror",   plat:"PC", pegi:18, p:0,    ver:"1.0.0", entrega:"ARCHIVO", peso:"880 MB", est:"DENEGADA",           motivo:"El ejecutable no arranca en Windows 11."},
-];
-/* Los juegos del estudio que esta mirando su propio panel. */
+/* Los juegos del colaborador que esta mirando su propio panel. No hay revision:
+   lo que sube queda publicado, y el interruptor para retirarlo es videojuego.activo. */
 const MIS_JUEGOS = [
-  {id:901, t:"Dust Harbour",   est:"PUBLICADO",          p:0,    plat:"PC", cat:"Aventura", ver:"1.1.0", alta:"2026-10-15", biblio:184, entrega:"Archivo · 1,1 GB"},
-  {id:902, t:"Hollow Transit", est:"PENDIENTE_REVISION", p:0,    plat:"PC", cat:"Indie",    ver:"1.0.0", alta:"—",          biblio:0,   entrega:"Archivo · 412 MB"},
-  {id:903, t:"Nightjar",       est:"SIN_ENVIAR",         p:2.99, plat:"PC", cat:"Puzzle",   ver:"0.4.0", alta:"—",          biblio:0,   entrega:"sin subir"},
+  {id:901, t:"Dust Harbour",   est:"PUBLICADO", p:0,    plat:"PC", cat:"Aventura", ver:"1.1.0", alta:"2026-10-15", biblio:184, entrega:"ZIP · 1,1 GB"},
+  {id:902, t:"Hollow Transit", est:"PUBLICADO", p:0,    plat:"PC", cat:"Indie",    ver:"1.0.0", alta:"2026-10-27", biblio:12,  entrega:"ZIP · 412 MB"},
+  {id:903, t:"Nightjar",       est:"RETIRADO",  p:2.99, plat:"PC", cat:"Puzzle",   ver:"0.4.0", alta:"2026-09-30", biblio:3,   entrega:"ZIP · 240 MB"},
 ];
 </script>
 <script>
@@ -736,7 +740,6 @@ const NAV = [
   {g:"Catalogo", items:[
     {k:"catalogo/videojuegos",   t:"Videojuegos", i:"game"},
     {k:"catalogo/clasificacion", t:"Clasificacion", i:"tag"},
-    {k:"catalogo/solicitudes",   t:"Solicitudes de publicacion", i:"upload", tag:"3"},
   ]},
   {g:"Aprovisionamiento", items:[
     {k:"compras/proveedores", t:"Proveedores", i:"truck"},
@@ -753,37 +756,37 @@ const NAV = [
   {g:"Administracion", items:[
     {k:"admin/empleados",    t:"Empleados", i:"badge2"},
     {k:"admin/departamentos",t:"Departamentos", i:"dept"},
-    {k:"admin/proveedores",  t:"Cuentas de proveedor", i:"truck"},
+    {k:"admin/colaboradores",t:"Colaboradores", i:"users"},
     {k:"admin/config",       t:"Configuracion", i:"cog"},
     {k:"admin/jobs",         t:"Trabajos en segundo plano", i:"clock"},
   ]},
 ];
 
-/* El proveedor entra al mismo panel, pero su menu solo tiene su estudio: no ve
+/* El colaborador entra al mismo panel, pero su menu solo tiene sus juegos: no ve
    compras, ni claves, ni clientes, ni el resto del ERP. Es la misma plantilla
    con sec:authorize, no una aplicacion aparte. */
-const NAV_PROV = [
-  {g:"Mi estudio", items:[
-    {k:"proveedor/panel",     t:"Panel", i:"panel"},
-    {k:"proveedor/juegos",    t:"Mis juegos", i:"game"},
-    {k:"proveedor/solicitud", t:"Publicar un juego", i:"upload"},
+const NAV_COL = [
+  {g:"Mis juegos", items:[
+    {k:"colaborador/panel",  t:"Panel", i:"panel"},
+    {k:"colaborador/juegos", t:"Mis juegos", i:"game"},
+    {k:"colaborador/nuevo",  t:"Subir un juego", i:"upload"},
   ]},
   {g:"Cuenta", items:[
-    {k:"proveedor/cuenta", t:"Mi cuenta y acceso", i:"lock"},
+    {k:"colaborador/cuenta", t:"Mi cuenta y acceso", i:"lock"},
   ]},
 ];
 
 /* ===========================================================================
    6. ENVOLTORIOS
    =========================================================================== */
-/* El mismo envoltorio sirve para el trabajador y para el estudio que publica:
+/* El mismo envoltorio sirve para el empleado y para el colaborador que publica:
    cambian el menu de la izquierda y quien aparece arriba a la derecha. */
 function shellPanel(view, route){
-  const prov = route.startsWith("proveedor");
-  const quien = prov
-    ? {ini:"T3", nom:"Taller 3r DAM A", rol:"PROVEEDOR · estudio externo", ruta:"proveedor/cuenta"}
-    : {ini:"AD", nom:"Aleix Delgado",   rol:"ADMIN · Direccion",           ruta:"perfil"};
-  const nav = (prov?NAV_PROV:NAV).map(sec => `
+  const col = route.startsWith("colaborador");
+  const quien = col
+    ? {ini:"JB", nom:"Jordi Bastida", rol:"COLABORADOR", ruta:"colaborador/cuenta"}
+    : {ini:"AD", nom:"Aleix Delgado", rol:"ADMIN · Direccion", ruta:"perfil"};
+  const nav = (col?NAV_COL:NAV).map(sec => `
     <div class="nav-group">${sec.g}</div>
     ${sec.items.map(it => `
       <a class="nav-item ${route.startsWith(it.k)?"on":""}" href="#/${it.k}">
@@ -800,10 +803,10 @@ function shellPanel(view, route){
         ${nav}
         <div class="nav-group">Prototipo</div>
         <a class="nav-item ${route==="mapa"?"on":""}" href="#/mapa"><span class="ic">${ICONS.panel}</span>Mapa de vistas</a>
-        ${prov
+        ${col
           ? `<a class="nav-item" href="#/panel"><span class="ic">${ICONS.back}</span>Volver al ERP</a>`
           : `<a class="nav-item" href="#/tienda"><span class="ic">${ICONS.shop}</span>Ver la tienda</a>
-             <a class="nav-item" href="#/proveedor/panel"><span class="ic">${ICONS.truck}</span>Vista proveedor</a>`}
+             <a class="nav-item" href="#/colaborador/panel"><span class="ic">${ICONS.users}</span>Vista colaborador</a>`}
       </div>
       <div class="side-foot">
         <a class="nav-item" href="#/login"><span class="ic">${ICONS.back}</span>Cerrar sesion</a>
@@ -813,7 +816,7 @@ function shellPanel(view, route){
       <header class="top">
         <div class="crumb">${(view.crumb||[]).map(c=>`<b>${c}</b>`).join(" &rsaquo; ")}</div>
         <div class="top-search">${ICONS.search}
-          <input placeholder="${prov?"Buscar en mis juegos...":"Buscar en todo el ERP..."}"></div>
+          <input placeholder="${col?"Buscar en mis juegos...":"Buscar en todo el ERP..."}"></div>
         <button class="icon-btn" title="Notificaciones">${ICONS.bell}<span class="dot"></span></button>
         <select class="lang" title="Idioma de la interfaz">
           <option>ES</option><option>CA</option><option>EN</option>
@@ -1080,21 +1083,21 @@ VIEWS["tienda/pago"] = { shell:"shop", body:()=>`
           </div></div>
         </div>
         <div class="card">
-          <div class="card-head"><h3>Metodo de pago</h3>
-            <span class="right"><span class="badge b-purple">Simulado</span></span></div>
+          <div class="card-head"><h3>Pago</h3>
+            <span class="right"><span class="badge b-purple">Stripe</span></span></div>
           <div class="card-body stack">
-            <div class="row wrap">
-              <label class="cbx"><input type="radio" name="pg" checked> Tarjeta</label>
-              <label class="cbx"><input type="radio" name="pg"> PayPal</label>
-              <label class="cbx"><input type="radio" name="pg"> Transferencia</label>
-            </div>
-            <div class="form-grid">
-              <div class="frow wide"><label>Numero de tarjeta</label><input class="inp" value="4242 4242 4242 4242"></div>
-              <div class="frow"><label>Caducidad</label><input class="inp" value="12/29"></div>
-              <div class="frow"><label>CVC</label><input class="inp" value="123"></div>
-            </div>
-            ${note(`La pasarela es un <b>Strategy</b> intercambiable que devuelve autorizado o rechazado.
-              No hay cobro real y no se integra ninguna pasarela externa.`)}
+            ${note(`Aqui no se teclea ninguna tarjeta. Al pulsar <b>Pagar</b>, el servidor crea un
+              <i>payment intent</i> en Stripe y el cliente introduce los datos de la tarjeta
+              <b>en Stripe</b>, no en un formulario nuestro: asi el numero de tarjeta no pasa en
+              ningun momento por este servidor y queda fuera del alcance de PCI DSS.`)}
+            <dl class="kv" style="grid-template-columns:150px 1fr;font-size:12.5px">
+              <dt>Importe</dt><dd>${eur(64.98)}</dd>
+              <dt>Referencia</dt><dd class="mono">pi_3Qk8xS2eZvKYlo2C...</dd>
+              <dt>Metodos</dt><dd>los que acepte la cuenta de Stripe: tarjeta, Bizum, iDEAL...</dd>
+              <dt>Al volver</dt><dd>Stripe redirige aqui y el <i>webhook</i> confirma el cobro</dd>
+            </dl>
+            <p class="hint" style="margin:0">La referencia del pago se guarda en el pedido, que es lo
+            que despues permite conciliar el cobro y lanzar un reembolso sin pedirle nada al cliente.</p>
           </div>
         </div>
       </div>
@@ -1106,18 +1109,25 @@ VIEWS["tienda/pago"] = { shell:"shop", body:()=>`
           <div class="r"><span>IVA (21%)</span><span>${eur(11.28)}</span></div>
           <div class="r big"><span>Total</span><span>${eur(64.98)}</span></div>
         </div>
-        <a class="btn btn-primary" href="#/tienda/biblioteca" style="justify-content:center">${ICONS.lock} Pagar ${eur(64.98)}</a>
-        <p class="hint" style="margin:0">Al confirmar: se reserva una clave por linea, se emite la
-        factura en PDF y sale un correo de confirmacion en segundo plano.</p>
+        <a class="btn btn-primary" href="#/tienda/biblioteca" style="justify-content:center">${ICONS.lock} Pagar ${eur(64.98)} con Stripe</a>
+        <p class="hint" style="margin:0">Al iniciar el pago se <b>reserva</b> una clave por linea con
+        caducidad corta; al confirmarlo Stripe, la clave pasa a vendida, se emite la factura en PDF y
+        sale un correo en segundo plano.</p>
       </div></div>
+    </div>
+    <div style="margin-top:16px">
+      ${abierta(`esta pantalla pide NIF y direccion de facturacion, pero <code>cliente</code> no tiene
+        NIF y ni el pedido ni la factura guardan una copia de los datos fiscales. Tal como esta, si el
+        cliente se muda, las facturas viejas cambian de direccion. Hay que decidir donde se guarda esa
+        copia antes de emitir la primera factura.`)}
     </div>
   </div>`};
 
 VIEWS["tienda/biblioteca"] = { shell:"shop", body:()=>{
-  /* Dos tipos de fila conviven: el juego publicado en LudusERP, que se descarga
+  /* Dos tipos de fila conviven: el juego de un colaborador, que se descarga
      aqui, y la clave comprada a un distribuidor, que se canjea fuera. */
   const BIBLIO = [
-    {t:"Dust Harbour",     est:"Taller 3r DAM B",    plat:"PC",  fecha:"16/10/2026", ped:"C-2026-1871",
+    {t:"Dust Harbour",     est:"Aina Querol",        plat:"PC",  fecha:"16/10/2026", ped:"C-2026-1871",
      cod:"DSTH-4K2P-88QW-ZC19", pub:1, peso:"1,1 GB", pago:"Gratis"},
     {t:"Eclipse Protocol", est:"Larian Studios",     plat:"PC",  fecha:"22/10/2026", ped:"C-2026-1884",
      cod:CLAVES[1].cod, pub:0, peso:"", pago:eur(44.99)+" · Stripe"},
@@ -1252,7 +1262,7 @@ VIEWS["perfil"] = { shell:"panel", crumb:["Mi perfil"], body:()=>`
 
 /* --- 5. Catalogo ---------------------------------------------------------- */
 VIEWS["catalogo/videojuegos"] = { shell:"panel", crumb:["Catalogo","Videojuegos"], body:()=>`
-  ${head("Videojuegos","CRUD principal del catalogo. Relaciona desarrollador (1:N), categorias y plataformas (N:M) e imagenes (1:N).",
+  ${head("Videojuegos","CRUD principal del catalogo. Relaciona categorias y plataformas (N:M), imagenes (1:N) y, en los juegos subidos aqui, el colaborador que los publico (1:N).",
     `<a class="btn btn-primary" href="#/catalogo/videojuego">${ICONS.plus} Nuevo videojuego</a>`)}
   <div class="card">
     <div class="filters">
@@ -1305,8 +1315,10 @@ VIEWS["catalogo/videojuego"] = { shell:"panel", crumb:["Catalogo","Videojuegos",
           <span class="hint">Unico. Se usa en la URL publica del catalogo.</span></div>
         <div class="frow wide"><label>Sinopsis</label>
           <textarea class="inp">RPG tactico por turnos ambientado en una estacion orbital a la deriva.</textarea></div>
-        <div class="frow"><label>Desarrollador <span class="req">*</span></label>
-          <select class="inp">${DEVS.map(d=>`<option ${d.nom==="Larian Studios"?"selected":""}>${d.nom}</option>`).join("")}</select></div>
+        <div class="frow"><label>Estudio</label>
+          <input class="inp" value="Larian Studios">
+          <span class="hint">Texto libre, no una tabla: no hay entidad de desarrollador. En los juegos
+          de colaborador este campo se queda vacio y el nombre sale del propio colaborador.</span></div>
         <div class="frow"><label>Fecha de lanzamiento</label><input class="inp" type="date" value="2026-03-14"></div>
         <div class="frow"><label>Clasificacion PEGI</label>
           <select class="inp"><option>3</option><option>7</option><option>12</option>
@@ -1320,7 +1332,7 @@ VIEWS["catalogo/videojuego"] = { shell:"panel", crumb:["Catalogo","Videojuegos",
             ${CATS.map(c=>`<span class="chip ${["RPG","Estrategia"].includes(c)?"on":""}">${c}</span>`).join("")}</div></div>
         <div><div class="sect-label">Plataformas (N:M)</div>
           <div class="row wrap" style="margin-top:10px">
-            ${PLATS.map(p=>`<span class="chip ${p[1]==="STEAM"?"on":""}">${p[0]}</span>`).join("")}</div></div>
+            ${PLATS.map(p=>`<span class="chip ${p[1]==="PC"?"on":""}">${p[0]}</span>`).join("")}</div></div>
       </div></div>
       <div class="tab-pane" data-pane="2"><div class="form-grid">
         <div class="frow"><label>Precio de venta <span class="req">*</span></label>
@@ -1388,9 +1400,9 @@ VIEWS["catalogo/clasificacion"] = { shell:"panel", crumb:["Catalogo","Clasificac
       <button class="tab" data-tab="1">Plataformas (${PLATS.length})</button>
     </div>
     <div class="tab-pane on" data-pane="0">
-      ${table([{t:"Nombre"},{t:"Slug"},{t:"Juegos",cls:"num"},{t:"",cls:"acts"}],
+      ${table([{t:"Nombre"},{t:"Codigo"},{t:"Juegos",cls:"num"},{t:"",cls:"acts"}],
         CATS.map((c,i)=>[`<span class="t-main">${c}</span>`,
-          `<span class="mono">${c.toLowerCase()}</span>`, 12+i*3,
+          `<span class="mono">${c.toUpperCase()}</span>`, 12+i*3,
           acts([{i:"edit",t:"Editar"},{i:"trash",t:"Borrar",cls:"btn-danger"}])]))}
     </div>
     <div class="tab-pane" data-pane="1">
@@ -1642,8 +1654,8 @@ VIEWS["ventas/pedidos"] = { shell:"panel", crumb:["Ventas","Pedidos"], body:()=>
       <div class="fld"><label>Buscar</label>
         <div class="search-inp">${ICONS.search}<input placeholder="Numero o cliente"></div></div>
       <div class="fld"><label>Estado</label><select class="inp"><option>Todos</option>
-        <option>PENDIENTE</option><option>PAGADA</option><option>CANCELADA</option>
-        <option>REEMBOLSADA</option></select></div>
+        <option>PENDIENTE_PAGO</option><option>PAGADO</option><option>CANCELADO</option>
+        <option>REEMBOLSADO</option></select></div>
       <div class="fld"><label>Desde</label><input class="inp" type="date" value="2026-10-01"></div>
       <div class="fld"><label>Hasta</label><input class="inp" type="date" value="2026-10-23"></div>
       <div class="fld"><label>&nbsp;</label><button class="btn btn-primary">Filtrar</button></div>
@@ -1662,7 +1674,7 @@ VIEWS["ventas/pedidos"] = { shell:"panel", crumb:["Ventas","Pedidos"], body:()=>
 
 VIEWS["ventas/pedido"] = { shell:"panel", crumb:["Ventas","Pedidos","C-2026-1884"], body:()=>`
   ${backTo("#/ventas/pedidos","Volver a los pedidos")}
-  ${head("Pedido C-2026-1884","Marta Ribas · 22/10/2026 11:48 · pagado con tarjeta",
+  ${head("Pedido C-2026-1884","Marta Ribas · 22/10/2026 11:48 · cobrado por Stripe",
     `<a class="btn" href="#/ventas/factura">${ICONS.file} Ver factura</a>
      <button class="btn">${ICONS.mail} Reenviar correo</button>
      <button class="btn btn-danger">Reembolsar</button>`)}
@@ -1732,7 +1744,7 @@ VIEWS["ventas/pedido"] = { shell:"panel", crumb:["Ventas","Pedidos","C-2026-1884
   </div>`};
 
 VIEWS["ventas/documentos"] = { shell:"panel", crumb:["Ventas","Facturas"], body:()=>`
-  ${head("Facturas","La factura se emite al pasar un pedido a PAGADA: una plantilla Thymeleaf de HTML y CSS que se renderiza con OpenHTMLtoPDF.")}
+  ${head("Facturas","La factura se emite al pasar un pedido a PAGADO: una plantilla Thymeleaf de HTML y CSS que se renderiza con OpenHTMLtoPDF.")}
   <div class="card">
     <div class="card-head"><h3>Facturas emitidas</h3>
       <span class="right"><div class="search-inp">${ICONS.search}<input placeholder="Numero"></div></span></div>
@@ -1766,7 +1778,7 @@ VIEWS["ventas/factura"] = { shell:"panel", crumb:["Ventas","Facturas","F-2026-09
       <div style="display:flex;gap:40px;margin-bottom:6px">
         <div><b>Facturar a</b><br>Marta Ribas<br>
           <span class="muted">marta.ribas@example.com<br>Barcelona, Espana</span></div>
-        <div><b>Metodo de pago</b><br>Tarjeta ****4242<br>
+        <div><b>Metodo de pago</b><br>Stripe &middot; tarjeta ****4242<br>
           <span class="muted">Autorizado el 22/10/2026</span></div>
       </div>
       <table>
@@ -1794,7 +1806,7 @@ VIEWS["ventas/factura"] = { shell:"panel", crumb:["Ventas","Facturas","F-2026-09
 
 /* --- 8. Clientes ---------------------------------------------------------- */
 VIEWS["clientes/lista"] = { shell:"panel", crumb:["Clientes","Listado"], body:()=>`
-  ${head("Clientes","El gestor de clientes tiene solo lectura: puede consultar e historiar, pero no crear ni borrar.")}
+  ${head("Clientes","El gestor de clientes puede consultar, activar o inactivar clientes, y eliminarlos si no tienen datos asociados. No los crea: un cliente se registra el mismo.")}
   <div class="card">
     <div class="filters">
       <div class="fld"><label>Buscar</label>
@@ -1804,19 +1816,28 @@ VIEWS["clientes/lista"] = { shell:"panel", crumb:["Clientes","Listado"], body:()
         <option>Paises Bajos</option></select></div>
       <div class="fld"><label>Alta desde</label><input class="inp" type="date" value="2024-01-01"></div>
       <div class="fld"><label>&nbsp;</label><button class="btn btn-primary">Filtrar</button></div>
+      <div class="fld"><label>&nbsp;</label><button class="btn">Limpiar</button></div>
     </div>
     <div class="card-body tight">
       ${table([{t:"Cliente"},{t:"Correo"},{t:"Pais"},{t:"Alta"},{t:"Pedidos",cls:"num"},
-               {t:"Gasto total",cls:"num"},{t:"",cls:"acts"}],
-        CLIENTES.map(c=>[
+               {t:"Gasto total",cls:"num"},{t:"Estado"},{t:"",cls:"acts"}],
+        CLIENTES.map((c,i)=>[
           `<div class="row"><div class="avatar" style="width:28px;height:28px;font-size:11px">
              ${c.nom.split(" ").map(x=>x[0]).join("")}</div>
            <div><div class="t-main">${c.nom}</div><div class="t-sub">#${c.id}</div></div></div>`,
           `<a href="#/clientes/ficha">${c.mail}</a>`, c.pais, c.alta, c.com,
           `<b>${eur(c.gasto)}</b>`,
-          acts([{i:"eye",t:"Ver ficha"}])]))}
+          badge(i===4?"INACTIVO":"ACTIVO"),
+          `<a class="btn btn-sm btn-ghost" href="#/clientes/ficha" title="Ver ficha">${ICONS.eye}</a>
+           <button class="btn btn-sm btn-ghost">${i===4?"Activar":"Inactivar"}</button>
+           ${acts([{i:"trash",t:"Borrar",cls:"btn-danger"}])}`]))}
     </div>
     ${pager(6,3184,40,1)}
+  </div>
+  <div style="margin-top:14px">
+    ${note(`Eliminar un cliente solo sale bien si no tiene nada colgando: un cliente con pedidos,
+      cesta o claves no se puede borrar, y lo que se hace es <b>inactivarlo</b>, que le quita el acceso
+      y conserva su historial.`)}
   </div>`};
 
 VIEWS["clientes/ficha"] = { shell:"panel", crumb:["Clientes","Marta Ribas"], body:()=>`
@@ -1843,8 +1864,10 @@ VIEWS["clientes/ficha"] = { shell:"panel", crumb:["Clientes","Marta Ribas"], bod
           <dt>Estado</dt><dd>${badge("ACTIVO")}</dd>
         </dl></div>
       </div>
-      ${note(`El perfil del cliente cuelga del usuario en relacion 1:1. Un empleado no tiene
-        <code>perfil_cliente</code> y un cliente no tiene departamento: por eso no hay herencia.`)}
+      ${note(`<code>Usuario</code> es una clase <b>abstracta</b> con herencia JOINED: una tabla
+        <code>usuario</code> con lo comun y una tabla por cara que comparte su clave primaria. Cliente,
+        empleado y colaborador son esas tres caras. Un empleado no tiene telefono de cliente y un
+        cliente no tiene departamento, y con la herencia ninguna fila queda con media tabla vacia.`)}
     </div>
     <div class="card">
       <div class="tabs" data-tabs>
@@ -1871,7 +1894,7 @@ VIEWS["clientes/ficha"] = { shell:"panel", crumb:["Clientes","Marta Ribas"], bod
 <script>
 /* --- 9. Administracion ---------------------------------------------------- */
 VIEWS["admin/empleados"] = { shell:"panel", crumb:["Administracion","Empleados"], body:()=>`
-  ${head("Empleados","CRUD de empleados y departamentos. Dar de alta un empleado crea el usuario, le asigna roles y le envia la contrasena inicial por correo.",
+  ${head("Empleados","Dar de alta un empleado crea su usuario en la misma operacion, con un rol y una contrasena inicial. El NIF y el IBAN se guardan cifrados.",
     `<a class="btn btn-primary" href="#/admin/empleado">${ICONS.plus} Nuevo empleado</a>`)}
   <div class="card">
     <div class="filters">
@@ -1880,27 +1903,28 @@ VIEWS["admin/empleados"] = { shell:"panel", crumb:["Administracion","Empleados"]
       <div class="fld"><label>Departamento</label><select class="inp"><option>Todos</option>
         ${DEPARTAMENTOS.map(d=>`<option>${d.nom}</option>`).join("")}</select></div>
       <div class="fld"><label>Rol</label><select class="inp"><option>Todos</option>
-        ${ROLES.map(r=>`<option>${r}</option>`).join("")}</select></div>
+        ${ROLES_EMPLEADO.map(r=>`<option>${r}</option>`).join("")}</select></div>
       <div class="fld"><label>&nbsp;</label><button class="btn btn-primary">Filtrar</button></div>
+      <div class="fld"><label>&nbsp;</label><button class="btn">Limpiar</button></div>
     </div>
     <div class="card-body tight">
-      ${table([{t:"Empleado"},{t:"Departamento"},{t:"Cargo"},{t:"Roles"},{t:"Alta"},
+      ${table([{t:"Empleado"},{t:"Departamento"},{t:"Cargo"},{t:"Rol"},{t:"Contratacion"},
                {t:"Estado"},{t:"",cls:"acts"}],
         EMPLEADOS.map(e=>[
           `<div class="row"><div class="avatar" style="width:28px;height:28px;font-size:11px">
              ${e.nom.split(" ").map(x=>x[0]).join("")}</div>
            <div><div class="t-main">${e.nom}</div><div class="t-sub">${e.mail}</div></div></div>`,
           `<span class="chip">${e.dept}</span>`, e.carrec,
-          e.rols.map(r=>badge(r,"b-purple")).join(" "), e.alta,
+          badge(e.rol,"b-purple"), e.alta,
           badge(e.act?"ACTIVO":"INACTIVO"),
-          acts([{i:"edit",t:"Editar"},{i:"lock",t:"Roles"},{i:"trash",t:"Borrar",cls:"btn-danger"}])]))}
+          acts([{i:"edit",t:"Editar"},{i:"trash",t:"Borrar",cls:"btn-danger"}])]))}
     </div>
     ${pager(7,16,2,1)}
   </div>`};
 
 VIEWS["admin/empleado"] = { shell:"panel", crumb:["Administracion","Empleados","Nuevo"], body:()=>`
   ${backTo("#/admin/empleados","Volver al listado")}
-  ${head("Nuevo empleado","Se crea el usuario y su perfil de empleado en la misma operacion.")}
+  ${head("Nuevo empleado","Se crea el usuario y su ficha de empleado en la misma operacion.")}
   <div class="grid g-2-1">
     <div class="card">
       <div class="card-body stack">
@@ -1910,9 +1934,10 @@ VIEWS["admin/empleado"] = { shell:"panel", crumb:["Administracion","Empleados","
           <div class="frow"><label>Apellidos <span class="req">*</span></label><input class="inp"></div>
           <div class="frow"><label>Correo corporativo <span class="req">*</span></label>
             <input class="inp" type="email" placeholder="nombre@luduserp.cat"></div>
-          <div class="frow"><label>NIF <span class="req">*</span></label>
+          <div class="frow"><label>NIF</label>
             <input class="inp" placeholder="00000000A">
-            <span class="hint">Se guarda cifrado con AES-256-GCM.</span></div>
+            <span class="hint">Se guarda cifrado con AES-256-GCM. Al lado va un <code>nif_hash</code>,
+            que es lo que sostiene el UNIQUE: sobre la columna cifrada no se puede buscar.</span></div>
           <div class="frow"><label>IBAN</label><input class="inp" placeholder="ES00 ...">
             <span class="hint">Tambien cifrado.</span></div>
           <div class="frow"><label>Fecha de contratacion</label><input class="inp" type="date"></div>
@@ -1923,35 +1948,44 @@ VIEWS["admin/empleado"] = { shell:"panel", crumb:["Administracion","Empleados","
             <select class="inp">${DEPARTAMENTOS.map(d=>`<option>${d.nom}</option>`).join("")}</select></div>
           <div class="frow"><label>Cargo</label><input class="inp" placeholder="Agente de soporte"></div>
         </div>
-        <div class="sect-label">Roles asignados</div>
-        <div class="row wrap">
-          ${ROLES.filter(r=>r!=="CLIENTE").map(r=>`
-            <label class="cbx"><input type="checkbox" ${r==="GESTOR_CLIENTES"?"checked":""}>
-              <span class="perm">${r}</span></label>`).join("")}
+        <div class="sect-label">Acceso</div>
+        <div class="form-grid">
+          <div class="frow"><label>Rol <span class="req">*</span></label>
+            <select class="inp">
+              <option value="">Selecciona un rol</option>
+              ${ROLES_EMPLEADO.map(r=>`<option ${r==="GESTOR_CLIENTES"?"selected":""}>${r}</option>`).join("")}
+            </select>
+            <span class="hint">Un empleado tiene <b>un solo</b> rol, y de el dependen sus permisos.
+            Ni CLIENTE, ni COLABORADOR, ni PROVEEDOR: esos no son roles de empleado.</span></div>
+          <div class="frow"><label>Contrasena inicial <span class="req">*</span></label>
+            <input class="inp" placeholder="La que le entregues">
+            <span class="hint">No se guarda en claro: la base solo conserva su hash.</span></div>
         </div>
       </div>
       <div class="form-foot">
-        <span class="note">Al guardar se envia un correo con la contrasena inicial.</span>
+        <span class="note">El empleado nace activo y marcado para cambiar la contrasena.</span>
         <a class="btn" href="#/admin/empleados">Cancelar</a>
         <button class="btn btn-primary">Crear empleado</button>
       </div>
     </div>
     <div class="stack">
-      ${note(`Un empleado y un cliente son la misma tabla <code>usuario</code>: lo que cambia es
-        el perfil 1:1 que le cuelga y los roles que tiene asignados.`)}
-      <div class="card"><div class="card-head"><h3>Permisos que tendra</h3>
-        <span class="sub">calculado a partir de los roles</span></div>
+      ${note(`Un empleado y un cliente comparten la tabla <code>usuario</code>: lo que cambia es la
+        tabla hija que le cuelga, con su <b>misma clave primaria</b>, y el rol que tiene. Al compartir
+        la clave, la relacion no se puede romper y no hace falta ningun <code>@OneToOne</code>.`)}
+      <div class="card"><div class="card-head"><h3>Que podra hacer</h3>
+        <span class="sub">segun el rol</span></div>
         <div class="card-body stack">
-          ${["CATALOGO_LEER","CLIENTE_LISTAR / LEER"].map(p=>
-            `<div class="row">${ICONS.check}<span class="perm">${p}</span></div>`).join("")}
-          <p class="hint" style="margin:0">Spring Security los carga como authorities al iniciar sesion.</p>
+          <p class="hint" style="margin:0">No hay tabla de permisos: el acceso se decide mirando el
+          <b>rol</b>. Las reglas se declaran por URL en <code>SecurityConfig</code>, con
+          <code>@PreAuthorize</code> en los metodos, y el menu esconde con <code>sec:authorize</code>
+          lo que su rol no permite.</p>
         </div>
       </div>
     </div>
   </div>`};
 
 VIEWS["admin/departamentos"] = { shell:"panel", crumb:["Administracion","Departamentos"], body:()=>`
-  ${head("Departamentos","Tabla relacionada con el perfil de empleado en 1:N.",
+  ${head("Departamentos","Tabla relacionada con el empleado en 1:N. Cada empleado pertenece a un departamento, y un departamento tiene como maximo un responsable.",
     `<button class="btn btn-primary">${ICONS.plus} Nuevo departamento</button>`)}
   <div class="grid g-2-1">
     <div class="card"><div class="card-body tight">
@@ -2039,25 +2073,27 @@ VIEWS["admin/jobs"] = { shell:"panel", crumb:["Administracion","Trabajos en segu
     </div>
   </div>`};
 
-/* --- 10. Proveedor y publicacion de juegos -------------------------------- */
-/* El proveedor ya no es papeleo: es un estudio con cuenta propia que envia un
-   juego para publicarlo, y un trabajador lo acepta o lo deniega. */
+/* --- 10. Colaboradores y publicacion de juegos ---------------------------- */
+/* Un colaborador es una PERSONA con cuenta propia que sube sus juegos a la
+   tienda, normalmente un companero de clase. No se le compra nada, asi que no
+   tiene CIF, ni IBAN, ni ficha de proveedor. Y no hay revision: lo que sube
+   queda publicado, y el interruptor para retirarlo es videojuego.activo. */
 
-VIEWS["proveedor/panel"] = { shell:"panel", crumb:["Mi estudio","Panel"], body:()=>`
-  ${head("Taller 3r DAM A",
-    "Lo que ve un estudio al entrar. Mismo login y mismo panel que un trabajador: lo que cambia es el rol.")}
+VIEWS["colaborador/panel"] = { shell:"panel", crumb:["Mis juegos","Panel"], body:()=>`
+  ${head("Jordi Bastida",
+    "Lo que ve un colaborador al entrar. Mismo login y mismo panel que un empleado: lo que cambia es el rol.")}
 
   <div class="grid g4" style="margin-bottom:16px">
-    ${kpi("Juegos publicados","1","<span>de 3 fichas</span>","accent")}
-    ${kpi("En revision","1","<span>enviada ayer</span>")}
-    ${kpi("En bibliotecas", num(184), "<span>clientes con el juego</span>")}
-    ${kpi("Descargas", num(184), "<span>desde el 15/10</span>")}
+    ${kpi("Juegos publicados","2","<span>de 3 fichas</span>","accent")}
+    ${kpi("Retirados","1","<span>fuera del catalogo</span>")}
+    ${kpi("En bibliotecas", num(199), "<span>clientes con algun juego</span>")}
+    ${kpi("Descargas", num(241), "<span>desde el 15/10</span>")}
   </div>
 
   <div class="card">
     <div class="card-head"><h3>Mis juegos</h3>
-      <span class="right"><a class="btn btn-primary btn-sm" href="#/proveedor/solicitud">
-        ${ICONS.plus} Publicar un juego</a></span></div>
+      <span class="right"><a class="btn btn-primary btn-sm" href="#/colaborador/nuevo">
+        ${ICONS.plus} Subir un juego</a></span></div>
     <div class="card-body tight">
       ${table([{t:"Juego"},{t:"Estado"},{t:"Precio",cls:"num"},{t:"Version"},
                {t:"En bibliotecas",cls:"num"},{t:"",cls:"acts"}],
@@ -2071,47 +2107,46 @@ VIEWS["proveedor/panel"] = { shell:"panel", crumb:["Mi estudio","Panel"], body:(
           acts([{i:"eye",t:"Ver ficha"},{i:"edit",t:"Editar"}])]))}
     </div>
   </div>
-  <div style="margin-top:14px">
-    ${abierta(`si el estudio ve cuanta gente ha descargado su juego, hay que decidir si tambien ve
+  <div class="grid g2" style="margin-top:14px">
+    ${note(`El juego sale publicado en el momento en que se sube: no hay cola de revision ni nadie
+      que lo apruebe. Si algo no deberia estar en la tienda, se retira desmarcandolo como activo.`)}
+    ${abierta(`si el colaborador ve cuanta gente ha descargado su juego, hay que decidir si tambien ve
       <b>quien</b>. Lo razonable es que no: son datos de clientes vuestros.`)}
   </div>`};
 
-VIEWS["proveedor/juegos"] = { shell:"panel", crumb:["Mi estudio","Mis juegos"], body:()=>`
-  ${head("Mis juegos","Tres fichas en tres estados: publicada, en revision y borrador sin enviar.",
-    `<a class="btn btn-primary" href="#/proveedor/solicitud">${ICONS.plus} Publicar un juego</a>`)}
+VIEWS["colaborador/juegos"] = { shell:"panel", crumb:["Mis juegos","Listado"], body:()=>`
+  ${head("Mis juegos","Dos publicados y uno retirado. Lo que se sube queda publicado al momento; retirar es desmarcar el juego como activo.",
+    `<a class="btn btn-primary" href="#/colaborador/nuevo">${ICONS.plus} Subir un juego</a>`)}
   <div class="card">
     <div class="card-body tight">
-      ${table([{t:"Juego"},{t:"Estado"},{t:"Entrega"},{t:"Precio",cls:"num"},{t:"Version"},
-               {t:"Alta"},{t:"",cls:"acts"}],
+      ${table([{t:"Juego"},{t:"Estado"},{t:"Archivo"},{t:"Precio",cls:"num"},{t:"Version"},
+               {t:"Publicado"},{t:"",cls:"acts"}],
         MIS_JUEGOS.map(j=>[
           `<div><div class="t-main">${j.t}</div>
              <div class="t-sub">${j.cat} · ${j.plat} · PEGI ${j.id===901?12:j.id===902?7:3}</div></div>`,
           badge(j.est),
-          j.entrega==="sin subir"?`<span class="muted">sin subir</span>`:`<span class="mono">${j.entrega}</span>`,
+          `<span class="mono">${j.entrega}</span>`,
           j.p===0?badge("GRATIS"):`<b>${eur(j.p)}</b>`,
           `<span class="mono">${j.ver}</span>`, j.alta,
           acts(j.est==="PUBLICADO"
-            ? [{i:"eye",t:"Ver en la tienda"},{i:"edit",t:"Editar ficha"},{i:"upload",t:"Subir version nueva"}]
-            : j.est==="SIN_ENVIAR"
-            ? [{i:"edit",t:"Seguir editando"},{i:"upload",t:"Enviar a revision",cls:"btn-primary"},
-               {i:"trash",t:"Borrar borrador",cls:"btn-danger"}]
-            : [{i:"eye",t:"Ver la solicitud"}])]))}
+            ? [{i:"eye",t:"Ver en la tienda"},{i:"edit",t:"Editar ficha"},
+               {i:"upload",t:"Subir version nueva"},{i:"x",t:"Retirar de la tienda",cls:"btn-danger"}]
+            : [{i:"edit",t:"Editar ficha"},{i:"check",t:"Volver a publicar",cls:"btn-primary"},
+               {i:"trash",t:"Borrar",cls:"btn-danger"}])]))}
     </div>
   </div>
-  <div style="margin-top:14px">
-    ${note(`Mientras una ficha esta <b>pendiente de revision</b> el estudio no la puede tocar: si
-      pudiera, el trabajador estaria revisando una cosa distinta de la que aprueba.`)}
+  <div class="grid g2" style="margin-top:14px">
+    ${note(`Retirar un juego no borra nada: quien ya lo tenga en su biblioteca lo sigue teniendo y lo
+      sigue pudiendo descargar, porque su clave sigue siendo suya. Lo que desaparece es la ficha de la
+      tienda. Borrarlo del todo solo es posible si nadie lo ha adquirido.`)}
+    ${note(`Una version nueva no sustituye a la anterior: se anade otra fila de
+      <code>version_juego</code> y pasa a ser la activa. Solo puede haber una activa por juego, y eso
+      lo garantiza el servicio, no la base.`)}
   </div>`};
 
-VIEWS["proveedor/solicitud"] = { shell:"panel", crumb:["Mi estudio","Publicar un juego"], body:()=>`
-  ${backTo("#/proveedor/juegos","Volver a mis juegos")}
-  ${head("Publicar un juego","Al enviarlo, la ficha se bloquea y entra en la cola de revision.")}
-  <div class="steps" style="max-width:720px">
-    <div class="step on"><i>1</i>Ficha</div><div class="step-sep"></div>
-    <div class="step"><i>2</i>Imagenes</div><div class="step-sep"></div>
-    <div class="step"><i>3</i>El juego</div><div class="step-sep"></div>
-    <div class="step"><i>4</i>Enviar</div>
-  </div>
+VIEWS["colaborador/nuevo"] = { shell:"panel", crumb:["Mis juegos","Subir un juego"], body:()=>`
+  ${backTo("#/colaborador/juegos","Volver a mis juegos")}
+  ${head("Subir un juego","Un solo formulario: al guardarlo, el juego queda publicado en la tienda.")}
   <div class="grid g-2-1">
     <div class="stack">
       <div class="card">
@@ -2130,47 +2165,27 @@ VIEWS["proveedor/solicitud"] = { shell:"panel", crumb:["Mi estudio","Publicar un
               <option>16</option><option>18</option></select></div>
           <div class="frow"><label>Version <span class="req">*</span></label>
             <input class="inp mono" value="1.0.0"></div>
-          <div class="frow"><label>Precio</label><input class="inp" value="0,00" disabled></div>
+          <div class="frow"><label>Precio</label><input class="inp" value="0,00">
+            <span class="hint">Va directo a <code>videojuego.precio</code>, donde <b>0 es gratis</b>.
+            No hay precio propuesto que nadie tenga que aprobar.</span></div>
           <div class="frow"><label>&nbsp;</label>
-            <label class="cbx" style="margin-top:6px"><input type="checkbox" checked> Publicar gratis</label></div>
-          <div class="frow wide"><label>Notas para quien lo revise</label>
-            <textarea class="inp" placeholder="Mandos soportados, bugs conocidos, como probarlo..."></textarea></div>
+            <label class="cbx" style="margin-top:6px"><input type="checkbox" checked> Publicarlo gratis</label></div>
         </div></div>
       </div>
 
       <div class="card">
-        <div class="card-head"><h3>El juego</h3>
-          <span class="right">${badge("RECOMENDADA LA A","b-good")}</span></div>
+        <div class="card-head"><h3>El ejecutable</h3></div>
         <div class="card-body stack">
-          <p class="hint" style="margin:0">Las tres formas de entregar el ejecutable, con lo que gana
-          y lo que pierde cada una.</p>
-          <label class="cbx" style="align-items:flex-start">
-            <input type="radio" name="entrega" checked>
-            <span><b>A &middot; Subir el archivo al ERP.</b> Un ZIP que guardais vosotros y sirve
-            vuestro propio controlador, que antes comprueba la clave. Es la <b>unica</b> que cumple
-            la regla: sin biblioteca no hay descarga. Cuesta espacio y obliga a poner un limite de
-            tamano.</span>
-          </label>
-          <label class="cbx" style="align-items:flex-start">
-            <input type="radio" name="entrega">
-            <span><b>B &middot; Enlace externo</b> a Drive, Dropbox o itch.io. Cero espacio y cero
-            coste, pero regala el control: el enlace circula y se lo baja quien no lo tiene en la
-            biblioteca. Y el dia que el estudio borre la carpeta, el juego desaparece del catalogo
-            sin avisar.</span>
-          </label>
-          <label class="cbx" style="align-items:flex-start">
-            <input type="radio" name="entrega">
-            <span><b>C &middot; Las dos.</b> Dos caminos de codigo, dos pantallas y el agujero de la
-            B intacto: basta con que un estudio elija enlace para que ese juego quede sin puerta.</span>
-          </label>
-          <div class="form-grid" style="margin-top:4px">
-            <div class="frow wide"><label>Archivo del juego (ZIP, maximo 2 GB)</label>
+          <div class="form-grid">
+            <div class="frow wide"><label>Archivo del juego (ZIP) <span class="req">*</span></label>
               <div class="row"><button class="btn">${ICONS.upload} Elegir archivo</button>
-                <span class="muted mono">hollow-transit-1.0.0.zip · 412 MB</span></div></div>
-            <div class="frow wide"><label>Enlace externo</label>
-              <input class="inp" placeholder="https://drive.google.com/..." disabled>
-              <span class="hint">Deshabilitado con la opcion A.</span></div>
+                <span class="muted mono">hollow-transit-1.0.0.zip · 412 MB</span></div>
+              <span class="hint">Se guarda en el ERP y lo sirve un controlador nuestro.</span></div>
           </div>
+          ${note(`La descarga no es un enlace suelto: antes de servir el ZIP, el ERP comprueba que la
+            clave es de quien lo pide y esta <b>VENDIDA</b>. Se descarto el enlace externo porque el
+            enlace circula y se lo baja quien no lo tiene en la biblioteca, y porque el dia que el
+            colaborador borre la carpeta el juego desaparece del catalogo sin avisar.`)}
         </div>
       </div>
 
@@ -2192,52 +2207,56 @@ VIEWS["proveedor/solicitud"] = { shell:"panel", crumb:["Mi estudio","Publicar un
 
     <div class="stack">
       <div class="card"><div class="card-body stack">
-        <h3 style="font-size:14px">Antes de enviar</h3>
+        <h3 style="font-size:14px">Antes de publicar</h3>
         <dl class="kv" style="grid-template-columns:100px 1fr">
           <dt>Titulo</dt><dd>Hollow Transit</dd>
           <dt>Precio</dt><dd>Gratis</dd>
-          <dt>Entrega</dt><dd>Archivo · 412 MB</dd>
+          <dt>Archivo</dt><dd>ZIP · 412 MB</dd>
           <dt>Portada</dt><dd>Si</dd>
           <dt>Capturas</dt><dd>2</dd>
         </dl>
-        <button class="btn btn-primary" style="justify-content:center">${ICONS.upload} Enviar a revision</button>
-        <button class="btn" style="justify-content:center">Guardar borrador</button>
-        <p class="hint" style="margin:0">Al enviar le llega un aviso al gestor de productos. Si piden
-        cambios, la ficha se vuelve a abrir con el motivo escrito.</p>
+        <button class="btn btn-primary" style="justify-content:center">${ICONS.check} Publicar el juego</button>
+        <p class="hint" style="margin:0">Queda visible en la tienda al guardar. Para quitarlo de la
+        tienda mas tarde, se retira desde el listado.</p>
       </div></div>
-      ${abierta(`el precio lo pone el estudio o lo poneis vosotros. Si lo pone el estudio, un
-        trabajador tendria que poder cambiarlo al aprobar, porque la tienda es vuestra.`)}
-      ${abierta(`con la opcion A, <b>donde viven esos GB</b>: una carpeta del servidor o un
-        almacenamiento aparte. Si el disco del hosting se borra en cada despliegue, la carpeta no
-        sirve.`)}
+      ${note(`Las claves de un juego de colaborador no se acunan ahora: se acunan <b>al comprarlo</b>,
+        porque un juego de un companero no se agota. Esa clave nace VENDIDA y nunca pasa por
+        DISPONIBLE, no cuelga de ninguna linea de compra, y el margen es el precio integro.`)}
+      ${abierta(`si al colaborador se le ofrece el campo de precio, como aqui, o si todos sus juegos
+        son gratis por norma. El esquema aguanta las dos: lo que cambia es si este campo se deja
+        editable o se fija a 0.`)}
+      ${abierta(`<b>donde viven esos GB</b>: una carpeta del servidor o un almacenamiento aparte. Si
+        el disco del hosting se borra en cada despliegue, la carpeta no sirve y los juegos desaparecen
+        del catalogo. Esto bloquea la pantalla entera.`)}
+      ${abierta(`si el juego nace <b>activo</b> y se retira despues, como esta dibujado aqui, o si
+        nace inactivo y alguien lo activa. Sin revision, nace activo significa que lo que se sube sale
+        a la tienda sin que nadie lo mire.`)}
     </div>
   </div>`};
 
-VIEWS["proveedor/cuenta"] = { shell:"panel", crumb:["Cuenta","Mi cuenta y acceso"], body:()=>`
+VIEWS["colaborador/cuenta"] = { shell:"panel", crumb:["Cuenta","Mi cuenta y acceso"], body:()=>`
   ${head("Mi cuenta y acceso",
-    "La cuenta la crea el ERP y le pasa el correo y la contrasena. Aqui el estudio solo cambia su contrasena.")}
+    "La cuenta la crea el ERP y le entrega el correo y la contrasena. Aqui el colaborador solo cambia su contrasena.")}
   <div class="grid g-1-2">
     <div class="stack">
       <div class="card">
-        <div class="card-head"><h3>Datos del estudio</h3>
+        <div class="card-head"><h3>Mis datos</h3>
           <span class="right">${badge("Solo lectura","b-mute")}</span></div>
         <div class="card-body"><dl class="kv" style="grid-template-columns:120px 1fr">
-          <dt>Estudio</dt><dd>Taller 3r DAM A</dd>
-          <dt>Correo</dt><dd class="mono">taller3a@luduserp.cat</dd>
-          <dt>Rol</dt><dd>${badge("PROVEEDOR","b-purple")}</dd>
+          <dt>Nombre</dt><dd>Jordi Bastida</dd>
+          <dt>Correo</dt><dd class="mono">jordi.bastida@example.com</dd>
+          <dt>Rol</dt><dd>${badge("COLABORADOR","b-purple")}</dd>
           <dt>Pais</dt><dd>Espana</dd>
           <dt>Alta</dt><dd>12/10/2026</dd>
           <dt>Estado</dt><dd>${badge("ACTIVO")}</dd>
         </dl></div>
       </div>
       ${note(`El nombre, el correo y el estado los cambia un administrador desde
-        <a href="#/admin/proveedores">Cuentas de proveedor</a>.`)}
+        <a href="#/admin/colaboradores">Colaboradores</a>. Aqui no se tocan.`)}
     </div>
     <div class="card">
       <div class="card-head"><h3>Cambiar la contrasena</h3></div>
       <div class="card-body stack">
-        ${note(`<b>Primer acceso.</b> Hasta que no la cambie, el ERP le devuelve a esta pantalla y no
-          le deja ir a ningun otro sitio.`)}
         <div class="form-grid">
           <div class="frow wide"><label>Contrasena actual <span class="req">*</span></label>
             <input class="inp" type="password" value="12345678"></div>
@@ -2247,158 +2266,104 @@ VIEWS["proveedor/cuenta"] = { shell:"panel", crumb:["Cuenta","Mi cuenta y acceso
             <input class="inp" type="password" value="123456789012"></div>
         </div>
         <p class="hint" style="margin:0">Se guarda con BCrypt, igual que la de cualquier otro usuario:
-        no hay una tabla de contrasenas aparte para proveedores.</p>
+        no hay una tabla de contrasenas aparte para colaboradores.</p>
+        ${note(`<b>Esta pantalla todavia no existe.</b> La cuenta nace con
+          <code>debe_cambiar_password</code> a cierto, pero el login no lo comprueba: hoy un
+          colaborador entra con su contrasena inicial y nadie le obliga a cambiarla. Esta aplazado a
+          proposito, no olvidado.`)}
       </div>
       <div class="form-foot">
-        <span class="note">Un proveedor no tiene NIF ni IBAN cifrados: no cobra nomina.</span>
+        <span class="note">Un colaborador no tiene NIF ni IBAN cifrados: no cobra nomina.</span>
         <button class="btn btn-primary">${ICONS.lock} Guardar contrasena</button>
       </div>
     </div>
   </div>`};
 
-VIEWS["catalogo/solicitudes"] = { shell:"panel", crumb:["Catalogo","Solicitudes de publicacion"], body:()=>`
-  ${head("Solicitudes de publicacion",
-    "Lo que llega de los estudios. Aceptar una es lo que la convierte en un juego del catalogo.")}
+VIEWS["admin/colaboradores"] = { shell:"panel", crumb:["Administracion","Colaboradores"], body:()=>`
+  ${head("Colaboradores",
+    "Nadie se registra como colaborador: la cuenta se crea aqui con una contrasena inicial. Con ella entra y sube sus propios juegos a la tienda.",
+    `<a class="btn btn-primary" href="#/admin/colaborador">${ICONS.plus} Nuevo colaborador</a>`)}
   <div class="card">
     <div class="filters">
       <div class="fld"><label>Buscar</label>
-        <div class="search-inp">${ICONS.search}<input placeholder="Juego o estudio"></div></div>
+        <div class="search-inp">${ICONS.search}<input placeholder="Nombre o correo"></div></div>
       <div class="fld"><label>Estado</label><select class="inp">
-        <option>Todos</option><option selected>PENDIENTE_REVISION</option>
-        <option>CAMBIOS_PEDIDOS</option><option>APROBADA</option><option>DENEGADA</option></select></div>
-      <div class="fld"><label>Entrega</label><select class="inp">
-        <option>Todas</option><option>ARCHIVO</option><option>ENLACE</option></select></div>
+        <option>Todos</option><option>Activos</option><option>Inactivos</option></select></div>
       <div class="fld"><label>&nbsp;</label><button class="btn btn-primary">Filtrar</button></div>
+      <div class="fld"><label>&nbsp;</label><button class="btn">Limpiar</button></div>
     </div>
     <div class="card-body tight">
-      ${table([{t:"Solicitud"},{t:"Juego"},{t:"Estudio"},{t:"Enviada"},{t:"Entrega"},
-               {t:"Precio",cls:"num"},{t:"Estado"},{t:"",cls:"acts"}],
-        SOLICITUDES.map(s=>[
-          `<span class="mono">${s.id}</span>`,
-          `<div><div class="t-main">${s.joc}</div>
-             <div class="t-sub">${s.cat} · ${s.plat} · PEGI ${s.pegi} · v${s.ver}</div></div>`,
-          s.prov, s.env,
-          s.entrega==="ARCHIVO"?`<span class="mono">Archivo ${s.peso}</span>`:`<span class="mono">Enlace</span>`,
-          s.p===0?badge("GRATIS"):`<b>${eur(s.p)}</b>`,
-          badge(s.est)+(s.motivo?`<div class="t-sub">${esc(s.motivo)}</div>`:""),
-          acts([{i:"eye",t:"Revisar",cls:"btn-primary"}])]))}
+      ${table([{t:"Nombre"},{t:"Correo"},{t:"Juegos publicados",cls:"num"},{t:"Fecha de alta"},
+               {t:"Contrasena"},{t:"Estado"},{t:"",cls:"acts"}],
+        COLABORADORES.map(c=>[
+          `<div class="row"><div class="avatar" style="width:28px;height:28px;font-size:11px">
+             ${c.nom[0]}</div>
+           <div><div class="t-main">${c.nom} ${c.cognoms}</div><div class="t-sub">${c.pais}</div></div></div>`,
+          `<span class="mono">${c.mail}</span>`,
+          c.jocs, c.alta,
+          badge(c.pwd),
+          badge(c.act?"ACTIVO":"INACTIVO"),
+          acts([{i:"edit",t:"Editar"},{i:"trash",t:"Borrar",cls:"btn-danger"}])]))}
     </div>
     ${pager(6,6,1,1)}
   </div>
-
-  <div class="card" style="margin-top:16px">
-    <div class="card-head"><h3>SOL-2026-0034 · Hollow Transit</h3>
-      <span class="right">${badge("PENDIENTE_REVISION")}</span></div>
-    <div class="card-body"><div class="grid g-2-1">
-      <div class="stack">
-        <dl class="kv" style="grid-template-columns:130px 1fr">
-          <dt>Estudio</dt><dd>Taller 3r DAM A</dd>
-          <dt>Enviada</dt><dd>27/10/2026 18:42</dd>
-          <dt>Version</dt><dd class="mono">1.0.0</dd>
-          <dt>Entrega</dt><dd>Archivo · hollow-transit-1.0.0.zip · 412 MB</dd>
-          <dt>Precio propuesto</dt><dd>Gratis</dd>
-          <dt>Historial</dt><dd>2.º envio; el 1.º volvio con cambios</dd>
-        </dl>
-        <div class="grid" style="grid-template-columns:repeat(3,1fr);gap:12px">
-          ${cover("Hollow Transit","wide",`<span class="pegi">7</span>`)}
-          ${cover("Transit captura 1","wide")}
-          ${cover("Transit captura 2","wide")}
-        </div>
-        <p class="hint" style="margin:0"><b>Notas del estudio:</b> se juega con teclado; el nivel 3
-        tarda en cargar la primera vez.</p>
-      </div>
-      <div class="stack">
-        <div class="card"><div class="card-body stack">
-          <h3 style="font-size:14px">Decidir</h3>
-          <button class="btn btn-primary" style="justify-content:center">${ICONS.check} Aceptar y publicar</button>
-          <button class="btn" style="justify-content:center">${ICONS.warn} Pedir cambios</button>
-          <button class="btn btn-danger" style="justify-content:center">${ICONS.x} Denegar</button>
-          <div class="frow"><label>Motivo</label>
-            <textarea class="inp" placeholder="Obligatorio si pide cambios o deniega. El estudio lo leera."></textarea></div>
-          <button class="btn" style="justify-content:center">${ICONS.down} Descargar el ZIP y probarlo</button>
-        </div></div>
-        ${note(`<b>Al aceptar, en una sola transaccion:</b> se crea la ficha del videojuego, se genera
-          una orden de compra a ese proveedor con <b>coste 0</b> y de su linea de compra cuelgan las
-          claves. La trazabilidad clave &rarr; linea de compra &rarr; proveedor queda igual que con un
-          distribuidor de verdad.`)}
-        ${abierta(`cuantas claves se generan al aceptar. Lo propuesto: ninguna, y se crea una clave
-          en el momento en que alguien lo adquiere, porque un juego publicado aqui no se agota. La
-          alternativa es que el estudio declare un numero de copias.`)}
-      </div>
-    </div></div>
+  <div class="grid g2" style="margin-top:16px">
+    ${note(`Un colaborador con juegos publicados <b>no se puede eliminar</b>: esos juegos cuelgan de el
+      y las claves que se hayan vendido tambien. Para quitarle el acceso, se edita y se desmarca como
+      activo.`)}
+    ${note(`Un colaborador es una fila de <code>usuario</code>, igual que un cliente o un empleado: lo
+      que cambia es el rol y la tabla hija que le cuelga, con su misma clave primaria. No se le compra
+      nada, asi que no tiene CIF, ni IBAN, ni ficha de proveedor.`)}
   </div>`};
 
-VIEWS["admin/proveedores"] = { shell:"panel", crumb:["Administracion","Cuentas de proveedor"], body:()=>`
-  ${head("Cuentas de proveedor",
-    "Nadie se registra como proveedor: la cuenta se crea aqui y se le pasan el correo y la contrasena.",
-    `<a class="btn btn-primary" href="#/admin/proveedor">${ICONS.plus} Crear cuenta</a>`)}
-  <div class="card">
-    <div class="card-body tight">
-      ${table([{t:"Estudio"},{t:"Correo de acceso"},{t:"Juegos"},{t:"Alta"},
-               {t:"Contrasena"},{t:"Estado"},{t:"",cls:"acts"}],
-        CUENTAS_PROV.map(c=>[
-          `<div class="row"><div class="avatar" style="width:28px;height:28px;font-size:11px">
-             ${c.nom.split(" ").map(x=>x[0]).join("").slice(0,2)}</div>
-           <div><div class="t-main">${c.nom}</div><div class="t-sub">#${c.id}</div></div></div>`,
-          `<span class="mono">${c.mail}</span>`,
-          `<span class="muted">${c.jocs}</span>`, c.alta,
-          c.pwd==="ACTIVO"?badge("ACTIVO"):badge("SIN_CAMBIAR"),
-          badge(c.act?"ACTIVO":"INACTIVO"),
-          acts([{i:"edit",t:"Editar"},{i:"mail",t:"Reenviar contrasena"},
-                {i:"x",t:"Desactivar",cls:"btn-danger"}])]))}
-    </div>
-    ${pager(4,4,1,1)}
-  </div>
-  <div style="margin-top:14px">
-    ${abierta(`esta pantalla y <a href="#/compras/proveedores">Proveedores</a> de aprovisionamiento
-      hablan del mismo estudio. O se fusionan, o la ficha de papeleo se queda para los distribuidores
-      de verdad y esta solo para los estudios que publican.`)}
-  </div>`};
-
-VIEWS["admin/proveedor"] = { shell:"panel", crumb:["Administracion","Cuentas de proveedor","Nueva"], body:()=>`
-  ${backTo("#/admin/proveedores","Volver al listado")}
-  ${head("Crear cuenta de proveedor",
-    "Mismo patron que el alta de empleado: crea el usuario, le pone el rol y le manda la contrasena por correo.")}
+VIEWS["admin/colaborador"] = { shell:"panel", crumb:["Administracion","Colaboradores","Nuevo"], body:()=>`
+  ${backTo("#/admin/colaboradores","Volver al listado")}
+  ${head("Nuevo colaborador",
+    "Se crea el usuario con el rol de colaborador y una contrasena inicial que tendra que cambiar en su primer acceso.")}
   <div class="grid g-2-1">
     <div class="card">
       <div class="card-body stack">
-        <div class="sect-label">Datos del estudio</div>
+        <div class="sect-label">Datos personales</div>
         <div class="form-grid">
-          <div class="frow"><label>Nombre del estudio <span class="req">*</span></label>
-            <input class="inp" placeholder="Taller 3r DAM C"></div>
+          <div class="frow"><label>Nombre <span class="req">*</span></label>
+            <input class="inp" placeholder="Jordi">
+            <span class="hint">Aparecera junto a sus juegos en la tienda.</span></div>
+          <div class="frow"><label>Apellidos <span class="req">*</span></label>
+            <input class="inp" placeholder="Bastida"></div>
           <div class="frow"><label>Pais</label><select class="inp">
-            <option>Espana</option><option>Francia</option><option>Italia</option></select></div>
-          <div class="frow wide"><label>Correo de acceso <span class="req">*</span></label>
-            <input class="inp" type="email" placeholder="taller3c@luduserp.cat">
-            <span class="hint">Sera su identificador de acceso, igual que para cualquier usuario.</span></div>
+            <option>Sin indicar</option><option selected>Espana</option><option>Francia</option>
+            <option>Italia</option></select></div>
         </div>
         <div class="sect-label">Acceso</div>
         <div class="form-grid">
-          <div class="frow"><label>Rol</label><input class="inp perm" value="PROVEEDOR" disabled>
-            <span class="hint">Esta pantalla solo crea proveedores: el rol no se elige.</span></div>
-          <div class="frow"><label>Estado</label>
-            <label class="switch" style="margin-top:6px"><input type="checkbox" checked><i></i> Activo</label></div>
-          <div class="frow wide"><label>Contrasena inicial</label>
-            <div class="row"><input class="inp mono" value="Tr3sDAM-9f4k" style="flex:1 1 auto">
-              <button class="btn">Generar otra</button></div>
-            <span class="hint">Se guarda cifrada con BCrypt. Se ve en claro solo ahora.</span></div>
-        </div>
-        <div class="row wrap" style="gap:20px">
-          <label class="cbx"><input type="checkbox" checked> Obligar a cambiarla en el primer acceso</label>
-          <label class="cbx"><input type="checkbox" checked> Enviarsela por correo</label>
+          <div class="frow wide"><label>Correo de acceso <span class="req">*</span></label>
+            <input class="inp" type="email" placeholder="jordi.bastida@example.com">
+            <span class="hint">Es su identificador de acceso. No puede estar en uso por ningun otro
+            usuario, ni cliente ni empleado: el correo es unico en toda la tabla.</span></div>
+          <div class="frow wide"><label>Contrasena inicial <span class="req">*</span></label>
+            <input class="inp" placeholder="La que le entregues">
+            <span class="hint">La escribes tu y se la entregas como quieras. No se guarda en claro: la
+            base solo conserva su hash, asi que apuntala, porque no se vuelve a mostrar.</span></div>
         </div>
       </div>
       <div class="form-foot">
-        <span class="note">Una cuenta con juegos publicados no se puede borrar, solo desactivar.</span>
-        <a class="btn" href="#/admin/proveedores">Cancelar</a>
-        <button class="btn btn-primary">${ICONS.check} Crear la cuenta</button>
+        <span class="note">Nace activo y con la contrasena marcada como pendiente de cambiar.</span>
+        <a class="btn" href="#/admin/colaboradores">Cancelar</a>
+        <button class="btn btn-primary">${ICONS.check} Crear colaborador</button>
       </div>
     </div>
     <div class="stack">
-      ${note(`Un proveedor es una fila mas de <code>usuario</code>, como el cliente y el empleado:
-        lo que cambia es el rol y lo que le cuelga.`)}
-      ${abierta(`el rol nuevo son <b>seis</b> roles en total. Hay que decidir si PROVEEDOR entra en el
-        mismo enum <code>Rol</code> que los otros cinco.`)}
+      ${note(`No hay correo automatico con la contrasena. Se descarto porque, al teclearla el
+        administrador, el correo no transportaba nada que el administrador no supiera ya.`)}
+      <div class="card"><div class="card-head"><h3>Que podra hacer</h3>
+        <span class="sub">con el rol COLABORADOR</span></div>
+        <div class="card-body stack">
+          <p class="hint" style="margin:0">Entrar con su correo y subir sus propios juegos, que salen
+          publicados en el apartado de colaboradores de la tienda.</p>
+          <p class="hint" style="margin:0">No ve compras, ni claves, ni clientes, ni el resto del ERP.
+          Tampoco se le pide NIF ni IBAN: no se le compra nada.</p>
+        </div>
+      </div>
     </div>
   </div>`};
 
@@ -2406,13 +2371,12 @@ VIEWS["admin/proveedor"] = { shell:"panel", crumb:["Administracion","Cuentas de 
 const MAPA = [
   ["Acceso", [["login","Inicio de sesion"],["registro","Registro de cliente"]]],
   ["Tienda", [["tienda","Catalogo"],["tienda/ficha","Ficha de videojuego"]]],
-  ["Area del cliente", [["tienda/cesta","Cesta"],["tienda/pago","Pago en 3 pasos"],
+  ["Area del cliente", [["tienda/cesta","Cesta"],["tienda/pago","Pago con Stripe"],
     ["tienda/biblioteca","Biblioteca de claves"],["tienda/pedidos","Mis pedidos"]]],
   ["Panel", [["panel","Panel de control"],["perfil","Mi perfil y preferencias"]]],
   ["Catalogo", [["catalogo/videojuegos","Listado de videojuegos"],
     ["catalogo/videojuego","Alta / edicion de videojuego"],["catalogo/imagenes","Imagenes y portada"],
-    ["catalogo/clasificacion","Categorias, plataformas y estudios"],
-    ["catalogo/solicitudes","Solicitudes de publicacion"]]],
+    ["catalogo/clasificacion","Categorias y plataformas"]]],
   ["Aprovisionamiento", [["compras/proveedores","Listado de proveedores"],
     ["compras/proveedor","Alta de proveedor"],["compras/ordenes","Ordenes de compra"],
     ["compras/orden","Detalle de una orden"],["compras/recepcion","Recepcion de mercancia"],
@@ -2421,11 +2385,11 @@ const MAPA = [
     ["ventas/documentos","Facturas emitidas"],["ventas/factura","Previsualizacion de factura"]]],
   ["Clientes", [["clientes/lista","Listado de clientes"],["clientes/ficha","Ficha de cliente"]]],
   ["Administracion", [["admin/empleados","Empleados"],["admin/empleado","Alta de empleado"],
-    ["admin/departamentos","Departamentos"],["admin/proveedores","Cuentas de proveedor"],
-    ["admin/proveedor","Crear cuenta de proveedor"],
+    ["admin/departamentos","Departamentos"],["admin/colaboradores","Colaboradores"],
+    ["admin/colaborador","Nuevo colaborador"],
     ["admin/config","Configuracion"],["admin/jobs","Trabajos en segundo plano"]]],
-  ["Proveedor", [["proveedor/panel","Panel del estudio"],["proveedor/juegos","Mis juegos"],
-    ["proveedor/solicitud","Publicar un juego"],["proveedor/cuenta","Mi cuenta y acceso"]]],
+  ["Colaborador", [["colaborador/panel","Panel del colaborador"],["colaborador/juegos","Mis juegos"],
+    ["colaborador/nuevo","Subir un juego"],["colaborador/cuenta","Mi cuenta y acceso"]]],
 ];
 VIEWS["mapa"] = { shell:"panel", crumb:["Prototipo","Mapa de vistas"], body:()=>`
   ${head("Mapa de vistas",
