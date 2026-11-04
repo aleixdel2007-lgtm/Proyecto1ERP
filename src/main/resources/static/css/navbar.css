@@ -56,7 +56,11 @@ body{
     border-radius:var(--r-sm);padding:6px 8px;outline:none;font-family:inherit;font-size:inherit;
 }
 
-.who{display:flex;align-items:center;gap:9px;padding-left:12px;border-left:1px solid var(--line)}
+.who{display:flex;align-items:center;gap:9px;padding-left:12px;border-left:1px solid var(--line);
+    cursor: pointer;}
+.who:hover{
+    border: #4a4a55;
+}
 .avatar{
     width:30px;height:30px;border-radius:50%;display:grid;place-items:center;
     background:linear-gradient(145deg,#6d28d9,var(--purple));color:#fff;font-size:12px;font-weight:700;
