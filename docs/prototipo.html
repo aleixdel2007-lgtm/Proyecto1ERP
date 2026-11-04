@@ -92,8 +92,8 @@ input,select,textarea{font-family:inherit;font-size:inherit}
   border:none;background:none;width:calc(100% - 16px);text-align:left;
 }
 .nav-item:hover{background:var(--surface-2);color:var(--ink)}
-.nav-item.on{background:var(--purple-dim);color:#fff;font-weight:550;
-  box-shadow:inset 0 0 0 1px rgba(139,92,246,.3)}
+.nav-item.on{background:rgba(139,92,246,.22);color:#fff;font-weight:600;
+  box-shadow:inset 0 0 0 1px rgba(139,92,246,.55)}
 .nav-item.on .ic{color:var(--purple-light)}
 .nav-item .ic{flex:0 0 auto;color:#7d7d88;display:grid;place-items:center}
 .nav-item .tag{margin-left:auto;font-size:10px;font-weight:700;padding:1px 6px;
@@ -203,7 +203,10 @@ input,select,textarea{font-family:inherit;font-size:inherit}
   display:inline-flex;align-items:center;gap:6px;font-size:12px;padding:3px 9px;
   border-radius:99px;background:var(--surface-2);border:1px solid var(--line);color:var(--ink-2);
 }
-.chip.on{background:var(--purple-dim);border-color:rgba(139,92,246,.35);color:var(--purple-light)}
+.chip.on{
+  background:rgba(139,92,246,.26);border-color:rgba(139,92,246,.6);
+  color:#c4b5fd;font-weight:650;
+}
 .chip .x{color:var(--muted);font-weight:700}
 
 /* --- tablas --------------------------------------------------------------- */
@@ -266,6 +269,7 @@ textarea.inp{resize:vertical;min-height:84px;line-height:1.55}
 .frow{display:flex;flex-direction:column;gap:5px}
 .frow>label{font-size:12.5px;font-weight:550;color:var(--ink-2)}
 .frow>label .req{color:var(--purple-light);margin-left:2px}
+.frow.off{opacity:.45}
 .hint{font-size:11.5px;color:var(--muted)}
 .hint.err{color:#ffb4ae}
 .inp.bad{border-color:rgba(248,81,73,.55);box-shadow:0 0 0 3px rgba(248,81,73,.12)}
@@ -400,6 +404,7 @@ textarea.inp{resize:vertical;min-height:84px;line-height:1.55}
 .buy-box{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px;
   display:flex;flex-direction:column;gap:12px;position:sticky;top:78px}
 .buy-price{font-size:28px;font-weight:650;letter-spacing:-.02em}
+.buy-price .old{color:var(--muted);text-decoration:line-through;font-weight:400;font-size:17px;margin-right:9px}
 
 /* --- pasos / cesta -------------------------------------------------------- */
 .steps{display:flex;align-items:center;gap:0;margin-bottom:22px}
@@ -587,22 +592,23 @@ const acts = list => list.map(a =>
 const CATS  = ["Accion","Aventura","RPG","Estrategia","Simulacion","Deportes","Terror","Indie","Carreras","Puzzle"];
 /* Nombre y codigo, los mismos cuatro que inserta V2__Catalogo.sql. */
 const PLATS = [["PC","PC"],["PlayStation 5","PS5"],["Xbox Series","XSX"],["Nintendo Switch","NSW"]];
-/* No hay tabla de desarrolladores: en los juegos de distribuidor el estudio es un
-   String dentro de videojuego, y en los de colaborador el nombre sale del propio
-   colaborador. El campo dev de GAMES es ese String. */
+/* El estudio no es texto libre ni una tabla propia: en los juegos de distribuidor es
+   el proveedor que nos los suministra (videojuego.proveedor_id), y en los de colaborador
+   el nombre sale del propio colaborador. El campo dev de GAMES es ese nombre, venga de
+   un lado o del otro. El campo pd es el precio con descuento: 0 = sin descuento. */
 const GAMES = [
-  {id:318,t:"Eclipse Protocol",     dev:"Larian Studios",    cat:"RPG",        plat:"PC",            p:44.99, pa:59.99, pegi:16, st:142, act:1, lanz:"2026-03-14"},
-  {id:319,t:"Neon Drifter",         dev:"Hello Games",       cat:"Carreras",   plat:"PC",            p:24.99, pa:0,     pegi:7,  st:38,  act:1, lanz:"2025-11-02"},
-  {id:320,t:"Ashen Crown",          dev:"FromSoftware",      cat:"Accion",     plat:"PS5",           p:69.99, pa:0,     pegi:18, st:0,   act:1, lanz:"2026-06-20"},
-  {id:321,t:"Mycelium",             dev:"Team Cherry",       cat:"Indie",      plat:"NSW",           p:19.99, pa:0,     pegi:12, st:211, act:1, lanz:"2026-01-30"},
-  {id:322,t:"Orbital Foundry",      dev:"Paradox Interactive",cat:"Simulacion",plat:"PC",            p:34.99, pa:39.99, pegi:3,  st:87,  act:1, lanz:"2025-09-12"},
-  {id:323,t:"Last Signal",          dev:"Supergiant Games",  cat:"Terror",     plat:"Xbox Series",   p:29.99, pa:0,     pegi:18, st:6,   act:1, lanz:"2026-04-04"},
-  {id:324,t:"Ironline Tactics",     dev:"Paradox Interactive",cat:"Estrategia",plat:"PC",            p:39.99, pa:0,     pegi:12, st:64,  act:1, lanz:"2026-02-18"},
-  {id:325,t:"Velora: Deep Harvest", dev:"Larian Studios",    cat:"Aventura",   plat:"PS5",           p:54.99, pa:0,     pegi:16, st:19,  act:1, lanz:"2026-05-22"},
-  {id:326,t:"Pixel Rally 99",       dev:"Hello Games",       cat:"Carreras",   plat:"NSW",           p:14.99, pa:19.99, pegi:3,  st:150, act:1, lanz:"2025-07-08"},
-  {id:327,t:"Thornfall",            dev:"FromSoftware",      cat:"RPG",        plat:"PC",            p:49.99, pa:0,     pegi:18, st:73,  act:1, lanz:"2026-08-01"},
-  {id:328,t:"Glasswork",            dev:"Supergiant Games",  cat:"Puzzle",     plat:"PC",            p:9.99,  pa:0,     pegi:3,  st:304, act:1, lanz:"2026-09-15"},
-  {id:329,t:"Dust League 26",       dev:"Paradox Interactive",cat:"Deportes",  plat:"Xbox Series",   p:59.99, pa:0,     pegi:3,  st:12,  act:0, lanz:"2026-10-01"},
+  {id:318,t:"Eclipse Protocol",     dev:"Iberia Digital Supply",   cat:"RPG",        plat:"PC",          p:59.99, pd:44.99, pegi:16, st:142, act:1, lanz:"2026-03-14"},
+  {id:319,t:"Neon Drifter",         dev:"Nordic Keys Distribution",cat:"Carreras",   plat:"PC",          p:24.99, pd:0,     pegi:7,  st:38,  act:1, lanz:"2025-11-02"},
+  {id:320,t:"Ashen Crown",          dev:"Nordic Keys Distribution",cat:"Accion",     plat:"PS5",         p:69.99, pd:0,     pegi:18, st:0,   act:1, lanz:"2026-06-20"},
+  {id:321,t:"Mycelium",             dev:"Rhein Game Trade",        cat:"Indie",      plat:"NSW",         p:19.99, pd:0,     pegi:12, st:211, act:1, lanz:"2026-01-30"},
+  {id:322,t:"Orbital Foundry",      dev:"Pacific Key Partners",    cat:"Simulacion", plat:"PC",          p:39.99, pd:34.99, pegi:3,  st:87,  act:1, lanz:"2025-09-12"},
+  {id:323,t:"Last Signal",          dev:"Iberia Digital Supply",   cat:"Terror",     plat:"Xbox Series", p:29.99, pd:0,     pegi:18, st:6,   act:1, lanz:"2026-04-04"},
+  {id:324,t:"Ironline Tactics",     dev:"Rhein Game Trade",        cat:"Estrategia", plat:"PC",          p:39.99, pd:0,     pegi:12, st:64,  act:1, lanz:"2026-02-18"},
+  {id:325,t:"Velora: Deep Harvest", dev:"Nordic Keys Distribution",cat:"Aventura",   plat:"PS5",         p:54.99, pd:0,     pegi:16, st:19,  act:1, lanz:"2026-05-22"},
+  {id:326,t:"Pixel Rally 99",       dev:"Alpha Codes Benelux",     cat:"Carreras",   plat:"NSW",         p:19.99, pd:14.99, pegi:3,  st:150, act:1, lanz:"2025-07-08"},
+  {id:327,t:"Thornfall",            dev:"Iberia Digital Supply",   cat:"RPG",        plat:"PC",          p:49.99, pd:0,     pegi:18, st:73,  act:1, lanz:"2026-08-01"},
+  {id:328,t:"Glasswork",            dev:"Pacific Key Partners",    cat:"Puzzle",     plat:"PC",          p:9.99,  pd:0,     pegi:3,  st:304, act:1, lanz:"2026-09-15"},
+  {id:329,t:"Dust League 26",       dev:"Rhein Game Trade",        cat:"Deportes",   plat:"Xbox Series", p:59.99, pd:0,     pegi:3,  st:12,  act:0, lanz:"2026-10-01"},
 ];
 const PROVEEDORES = [
   {id:1, nom:"Nordic Keys Distribution", rao:"Nordic Keys AB",        cif:"SE556##-####", pais:"Suecia",  mail:"ventas@nordickeys.se",   act:1, total:184200.40},
@@ -970,13 +976,13 @@ VIEWS["tienda"] = { shell:"shop", body:()=>`
     ${GAMES.map(g=>`
       <a class="game" href="#/tienda/ficha" style="text-decoration:none;color:inherit">
         ${cover(g.t,"",`<span class="pegi">PEGI ${g.pegi}</span>
-          ${g.pa?`<span class="off">-${Math.round((1-g.p/g.pa)*100)}%</span>`:""}`)}
+          ${g.pd?`<span class="off">-${Math.round((1-g.pd/g.p)*100)}%</span>`:""}`)}
         <div class="game-inf">
           <div class="ttl">${g.t}</div>
           <div class="meta">${g.dev} · ${g.cat}</div>
           <div class="foot">
             ${g.st===0 ? badge("AGOTADO") :
-              `<span class="price">${g.pa?`<span class="old">${eur(g.pa)}</span>`:""}${eur(g.p)}</span>`}
+              `<span class="price">${g.pd?`<span class="old">${eur(g.p)}</span>${eur(g.pd)}`:eur(g.p)}</span>`}
           </div>
         </div>
       </a>`).join("")}
@@ -1002,16 +1008,16 @@ VIEWS["tienda/ficha"] = { shell:"shop", body:()=>{
         </div>
         <p style="margin:0;color:var(--ink-2);line-height:1.7">
           Un RPG tactico por turnos ambientado en una estacion orbital a la deriva. Cada decision
-          consume oxigeno y el tiempo corre aunque no te muevas. Desarrollado por ${g.dev}.</p>
+          consume oxigeno y el tiempo corre aunque no te muevas. Distribuido por ${g.dev}.</p>
       </div></div>
     </div>
     <div>
       <div class="buy-box">
         <div class="row" style="justify-content:space-between">
-          ${g.pa?`<span class="chip on">-${Math.round((1-g.p/g.pa)*100)}%</span>`:"<span></span>"}
+          ${g.pd?`<span class="chip on">-${Math.round((1-g.pd/g.p)*100)}%</span>`:"<span></span>"}
           <span class="live"><i></i>Stock en vivo</span>
         </div>
-        <div class="buy-price">${g.pa?`<span class="old">${eur(g.pa)}</span>`:""}${eur(g.p)}</div>
+        <div class="buy-price">${g.pd?`<span class="old">${eur(g.p)}</span>${eur(g.pd)}`:eur(g.p)}</div>
         <div class="row">${badge("DISPONIBLE")}<span class="hint">${g.st} claves en stock</span></div>
         <a class="btn btn-primary" href="#/tienda/cesta" style="justify-content:center">${ICONS.cart} Anadir a la cesta</a>
         <button class="btn" style="justify-content:center">Comprar ahora</button>
@@ -1262,7 +1268,7 @@ VIEWS["perfil"] = { shell:"panel", crumb:["Mi perfil"], body:()=>`
 
 /* --- 5. Catalogo ---------------------------------------------------------- */
 VIEWS["catalogo/videojuegos"] = { shell:"panel", crumb:["Catalogo","Videojuegos"], body:()=>`
-  ${head("Videojuegos","CRUD principal del catalogo. Relaciona categorias y plataformas (N:M), imagenes (1:N) y, en los juegos subidos aqui, el colaborador que los publico (1:N).",
+  ${head("Videojuegos","CRUD principal del catalogo. Relaciona categorias y plataformas (N:M), imagenes (1:N), el proveedor que lo suministra y, en los juegos subidos por un colaborador, el colaborador que los publico.",
     `<a class="btn btn-primary" href="#/catalogo/videojuego">${ICONS.plus} Nuevo videojuego</a>`)}
   <div class="card">
     <div class="filters">
@@ -1287,10 +1293,10 @@ VIEWS["catalogo/videojuegos"] = { shell:"panel", crumb:["Catalogo","Videojuegos"
           `<div class="row"><div style="width:30px;flex:0 0 auto">${cover(g.t)}</div>
              <div><div class="t-main">${g.t}</div><div class="t-sub">#${g.id} · ${g.lanz}</div></div></div>`,
           g.dev, `<span class="chip">${g.cat}</span>`, g.plat, g.pegi,
-          `<b>${eur(g.p)}</b>${g.pa?`<div class="t-sub">antes ${eur(g.pa)}</div>`:""}`,
+          `<b>${eur(g.pd||g.p)}</b>${g.pd?`<div class="t-sub">estandar ${eur(g.p)}</div>`:""}`,
           g.st===0?badge("AGOTADO"):(g.st<20?`<span class="badge b-warn">${g.st}</span>`:g.st),
           badge(g.act?"ACTIVO":"INACTIVO"),
-          acts([{i:"eye",t:"Ver ficha"},{i:"image",t:"Imagenes"},{i:"edit",t:"Editar"},{i:"trash",t:"Borrar",cls:"btn-danger"}])
+          acts([{i:"eye",t:"Ver ficha"},{i:"edit",t:"Editar"},{i:"trash",t:"Borrar",cls:"btn-danger"}])
         ]))}
     </div>
     ${pager(12,248,13,1)}
@@ -1299,26 +1305,24 @@ VIEWS["catalogo/videojuegos"] = { shell:"panel", crumb:["Catalogo","Videojuegos"
 VIEWS["catalogo/videojuego"] = { shell:"panel", crumb:["Catalogo","Videojuegos","Editar"], body:()=>`
   ${backTo("#/catalogo/videojuegos","Volver al listado")}
   ${head("Eclipse Protocol","Ficha #318 · ultima modificacion hoy por gestor.productes@luduserp.cat",
-    `<a class="btn" href="#/catalogo/imagenes">${ICONS.image} Imagenes</a>
-     <button class="btn btn-danger">${ICONS.trash} Borrar</button>`)}
+    `<button class="btn btn-danger">${ICONS.trash} Borrar</button>`)}
   <div class="card">
     <div class="tabs" data-tabs>
       <button class="tab on" data-tab="0">Datos generales</button>
       <button class="tab" data-tab="1">Clasificacion</button>
       <button class="tab" data-tab="2">Precio y stock</button>
+      <button class="tab" data-tab="3">Imagenes</button>
     </div>
     <div class="card-body">
       <div class="tab-pane on" data-pane="0"><div class="form-grid">
         <div class="frow"><label>Titulo <span class="req">*</span></label><input class="inp" value="Eclipse Protocol"></div>
-        <div class="frow"><label>Slug <span class="req">*</span></label>
-          <input class="inp mono" value="eclipse-protocol">
-          <span class="hint">Unico. Se usa en la URL publica del catalogo.</span></div>
+        <div class="frow"><label>Estudio <span class="req">*</span></label>
+          <select class="inp">${PROVEEDORES.filter(p=>p.act).map(p=>
+            `<option ${p.nom==="Iberia Digital Supply"?"selected":""}>${p.nom}</option>`).join("")}</select>
+          <span class="hint">Sale de la tabla <code>proveedor</code> (<code>videojuego.proveedor_id</code>),
+          no es texto libre, y solo aparecen los proveedores activos.</span></div>
         <div class="frow wide"><label>Sinopsis</label>
           <textarea class="inp">RPG tactico por turnos ambientado en una estacion orbital a la deriva.</textarea></div>
-        <div class="frow"><label>Estudio</label>
-          <input class="inp" value="Larian Studios">
-          <span class="hint">Texto libre, no una tabla: no hay entidad de desarrollador. En los juegos
-          de colaborador este campo se queda vacio y el nombre sale del propio colaborador.</span></div>
         <div class="frow"><label>Fecha de lanzamiento</label><input class="inp" type="date" value="2026-03-14"></div>
         <div class="frow"><label>Clasificacion PEGI</label>
           <select class="inp"><option>3</option><option>7</option><option>12</option>
@@ -1335,59 +1339,81 @@ VIEWS["catalogo/videojuego"] = { shell:"panel", crumb:["Catalogo","Videojuegos",
             ${PLATS.map(p=>`<span class="chip ${p[1]==="PC"?"on":""}">${p[0]}</span>`).join("")}</div></div>
       </div></div>
       <div class="tab-pane" data-pane="2"><div class="form-grid">
-        <div class="frow"><label>Precio de venta <span class="req">*</span></label>
-          <input class="inp" value="44.99">
+        <div class="frow"><label>Precio estandar <span class="req">*</span></label>
+          <input class="inp" value="59.99">
           <span class="hint">Validador de negocio: no puede quedar por debajo del coste medio (${eur(28.40)}).</span></div>
-        <div class="frow"><label>Precio anterior</label><input class="inp" value="59.99"></div>
+        <div class="frow"><label>Descuento</label>
+          <label class="switch" style="margin-top:6px">
+            <input type="checkbox" checked data-enables="frow-precio-desc"><i></i> El juego esta rebajado</label>
+          <span class="hint">Apagado, se vende al precio estandar y <code>precio_descuento</code> queda a NULL.</span></div>
+        <div class="frow" id="frow-precio-desc"><label>Precio descuento <span class="req">*</span></label>
+          <input class="inp" value="44.99">
+          <span class="hint">Es lo que se cobra mientras el descuento este encendido, y lo que sale
+          en la tienda con el estandar tachado al lado. Tiene que ser menor que el estandar.</span></div>
         <div class="frow"><label>Umbral de stock bajo</label><input class="inp" value="10">
           <span class="hint">Por debajo de este numero salta el aviso horario al gestor de inventario.</span></div>
         <div class="frow"><label>Stock actual</label>
           <div class="row" style="margin-top:6px">${badge("DISPONIBLE")}<b>142 claves</b>
             <a class="hint" href="#/inventario/claves">Ver claves</a></div></div>
       </div></div>
-    </div>
-    <div class="form-foot">
-      <span class="note">Validacion de servidor con Bean Validation sobre el DTO; en el navegador, atributos HTML5.</span>
-      <a class="btn" href="#/catalogo/videojuegos">Cancelar</a>
-      <button class="btn btn-primary">${ICONS.check} Guardar cambios</button>
-    </div>
-  </div>`};
-
-VIEWS["catalogo/imagenes"] = { shell:"panel", crumb:["Catalogo","Videojuegos","Imagenes"], body:()=>`
-  ${backTo("#/catalogo/videojuego","Volver a la ficha")}
-  ${head("Imagenes de Eclipse Protocol","Tabla <code>imagen_videojuego</code>: tipo PORTADA, CAPTURA o BANNER, mas el campo de orden.",
-    `<button class="btn btn-primary">${ICONS.upload} Subir imagenes</button>`)}
-  <div class="grid g2">
-    <div class="card">
-      <div class="card-head"><h3>Galeria</h3><span class="sub">arrastra para reordenar</span></div>
-      <div class="card-body"><div class="grid" style="grid-template-columns:repeat(3,1fr);gap:12px">
-        ${["Portada","Captura 1","Captura 2","Captura 3","Banner","Captura 4"].map((t,i)=>`
-          <div class="card" style="overflow:hidden">
-            ${cover(t,"wide",`<span class="pegi">${i===0?"PORTADA":i===4?"BANNER":"CAPTURA"}</span>`)}
-            <div class="row" style="padding:7px 9px;justify-content:space-between">
-              <span class="t-sub">Orden ${i+1}</span>
-              <span>${acts([{i:"star",t:"Designar portada"},{i:"trash",t:"Quitar",cls:"btn-danger"}])}</span>
+      <div class="tab-pane" data-pane="3"><div class="stack">
+        ${note(`Tabla <code>imagen_videojuego</code>: una fila por imagen, con su <code>tipo</code>
+          (PORTADA, CAPTURA o BANNER), el <code>orden</code> dentro de la galeria y el texto
+          alternativo. En el alta las imagenes se guardan al guardar la ficha, porque hasta
+          entonces el juego todavia no tiene id.`)}
+        <div class="grid g-2-1">
+          <div class="stack">
+            ${[["Portada","PORTADA","una por juego · listado, tienda y cesta"],
+                ["Banner","BANNER","uno por juego · cabecera de la ficha de la tienda"]].map(([t,tipo,desc])=>`
+              <div><div class="sect-label">${tipo} <span class="hint">· ${desc}</span></div>
+                <div class="grid" style="grid-template-columns:repeat(3,1fr);gap:12px;margin-top:10px">
+                  <div class="card" style="overflow:hidden">
+                    ${cover(t,"wide",`<span class="pegi">${tipo}</span>`)}
+                    <div class="row" style="padding:7px 9px;justify-content:space-between">
+                      <span class="t-sub">Orden 1</span>
+                      <span>${acts([{i:"edit",t:"Cambiar"},{i:"trash",t:"Quitar",cls:"btn-danger"}])}</span>
+                    </div>
+                  </div>
+                </div></div>`).join("")}
+            <div><div class="sect-label">CAPTURAS <span class="hint">· las que hagan falta, se reordenan arrastrando</span></div>
+              <div class="grid" style="grid-template-columns:repeat(3,1fr);gap:12px;margin-top:10px">
+                ${["Captura 1","Captura 2","Captura 3","Captura 4"].map((t,i)=>`
+                  <div class="card" style="overflow:hidden">
+                    ${cover(t,"wide",`<span class="pegi">CAPTURA</span>`)}
+                    <div class="row" style="padding:7px 9px;justify-content:space-between">
+                      <span class="t-sub">Orden ${i+1}</span>
+                      <span>${acts([{i:"star",t:"Designar portada"},{i:"trash",t:"Quitar",cls:"btn-danger"}])}</span>
+                    </div>
+                  </div>`).join("")}
+              </div></div>
+          </div>
+          <div class="stack">
+            <div class="card">
+              <div class="card-head"><h3>Anadir una imagen</h3></div>
+              <div class="card-body stack">
+                <div style="border:1.5px dashed var(--line-strong);border-radius:var(--r);padding:30px;
+                  text-align:center;color:var(--muted)">
+                  ${ICONS.upload}<div style="margin-top:8px">Arrastra aqui el archivo o selecciona uno</div>
+                  <div class="hint" style="margin-top:4px">JPG o PNG, maximo 2 MB</div>
+                </div>
+                <div class="frow"><label>Tipo <span class="req">*</span></label><select class="inp">
+                  <option>CAPTURA</option><option>PORTADA</option><option>BANNER</option></select></div>
+                <div class="frow"><label>Texto alternativo</label>
+                  <input class="inp" placeholder="Descripcion para lectores de pantalla"></div>
+                <div class="frow"><label>Orden</label><input class="inp" value="5"></div>
+                <button class="btn btn-primary">${ICONS.plus} Anadir a la galeria</button>
+              </div>
             </div>
-          </div>`).join("")}
+            ${note(`Si subes una PORTADA nueva, la que hubiera pasa a CAPTURA: el validador no deja
+              dos portadas, igual que no deja dos banners.`)}
+          </div>
+        </div>
       </div></div>
     </div>
-    <div class="stack">
-      <div class="card">
-        <div class="card-head"><h3>Subir una imagen</h3></div>
-        <div class="card-body stack">
-          <div style="border:1.5px dashed var(--line-strong);border-radius:var(--r);padding:30px;
-            text-align:center;color:var(--muted)">
-            ${ICONS.upload}<div style="margin-top:8px">Arrastra aqui los archivos o <a href="#/catalogo/imagenes">selecciona</a></div>
-            <div class="hint" style="margin-top:4px">JPG o PNG, maximo 2 MB</div>
-          </div>
-          <div class="frow"><label>Texto alternativo</label>
-            <input class="inp" placeholder="Descripcion para lectores de pantalla"></div>
-          <div class="frow"><label>Tipo</label><select class="inp">
-            <option>CAPTURA</option><option>PORTADA</option><option>BANNER</option></select></div>
-          <button class="btn btn-primary">Anadir a la galeria</button>
-        </div>
-      </div>
-      ${note(`Solo una imagen puede ser <b>PORTADA</b>: al designar una nueva, la anterior pasa a CAPTURA.`)}
+    <div class="form-foot">
+      <span class="note">Validacion de servidor en el service, y en el navegador los atributos HTML5.</span>
+      <a class="btn" href="#/catalogo/videojuegos">Cancelar</a>
+      <button class="btn btn-primary">${ICONS.check} Guardar cambios</button>
     </div>
   </div>`};
 
@@ -2375,7 +2401,7 @@ const MAPA = [
     ["tienda/biblioteca","Biblioteca de claves"],["tienda/pedidos","Mis pedidos"]]],
   ["Panel", [["panel","Panel de control"],["perfil","Mi perfil y preferencias"]]],
   ["Catalogo", [["catalogo/videojuegos","Listado de videojuegos"],
-    ["catalogo/videojuego","Alta / edicion de videojuego"],["catalogo/imagenes","Imagenes y portada"],
+    ["catalogo/videojuego","Alta / edicion de videojuego"],
     ["catalogo/clasificacion","Categorias y plataformas"]]],
   ["Aprovisionamiento", [["compras/proveedores","Listado de proveedores"],
     ["compras/proveedor","Alta de proveedor"],["compras/ordenes","Ordenes de compra"],
@@ -2427,6 +2453,20 @@ function bindTabs(){
   });
 }
 
+/* Interruptores que habilitan otro campo, como el descuento sobre el precio rebajado. */
+function bindSwitches(){
+  document.querySelectorAll("[data-enables]").forEach(chk => {
+    const aplicar = () => {
+      const frow = document.getElementById(chk.dataset.enables);
+      if (!frow) return;
+      frow.classList.toggle("off", !chk.checked);
+      frow.querySelectorAll("input").forEach(i => i.disabled = !chk.checked);
+    };
+    chk.addEventListener("change", aplicar);
+    aplicar();
+  });
+}
+
 /* Confirmacion de borrado: el patron se repite en todos los CRUD. */
 function openModal(html){
   const d = document.createElement("div");
@@ -2465,6 +2505,7 @@ function render(){
   document.title = "LudusERP · " + (view.crumb ? view.crumb[view.crumb.length-1] : "Prototipo");
   window.scrollTo(0, 0);
   bindTabs();
+  bindSwitches();
 }
 window.addEventListener("hashchange", render);
 render();

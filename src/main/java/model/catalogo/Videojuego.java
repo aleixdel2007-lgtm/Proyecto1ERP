@@ -25,9 +25,6 @@ public class Videojuego {
     @Column(name = "titulo", nullable = false, length = 150)
     private String titulo;
 
-    @Column(name = "slug", nullable = false, unique = true, length = 160)
-    private String slug;
-
     @Column(name = "sinopsis", columnDefinition = "TEXT")
     private String sinopsis;
 

@@ -1,7 +1,6 @@
 CREATE TABLE videojuego (
     id                BIGINT        NOT NULL AUTO_INCREMENT,
     titulo            VARCHAR(150)  NOT NULL,
-    slug              VARCHAR(160)  NOT NULL,
     sinopsis          TEXT          NULL,
     estudio           VARCHAR(120)  NULL,
     precio            DECIMAL(10,2) NOT NULL,
@@ -12,7 +11,6 @@ CREATE TABLE videojuego (
     stock_ilimitado   BOOLEAN       NOT NULL DEFAULT FALSE,
     umbral_stock_bajo INT           NOT NULL DEFAULT 10,
     PRIMARY KEY (id),
-    CONSTRAINT uk_videojuego_slug UNIQUE (slug),
     INDEX idx_videojuego_activo (activo, titulo)
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4;
 
