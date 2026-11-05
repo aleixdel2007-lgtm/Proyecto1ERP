@@ -32,6 +32,15 @@
             
             <span class="ic"><svg th:replace="~{fragments/iconos :: truck}"></svg></span>Proveedores</a>
         </th:block>
+        <th:block sec:authorize="hasAnyRole('ADMIN', 'GESTOR_VENTAS')">
+            <div class="nav-group">Ventas</div>
+            <a class="nav-item" th:classappend="${activo == 'pedidos'} ? 'on' : ''"
+               th:href="@{/ventas/pedidos}">
+                <span class="ic"><svg th:replace="~{fragments/iconos :: cart}"></svg></span>Pedidos</a>
+            <a class="nav-item" th:classappend="${activo == 'facturas'} ? 'on' : ''"
+               th:href="@{/ventas/facturas}">
+                <span class="ic"><svg th:replace="~{fragments/iconos :: receipt}"></svg></span>Facturas</a>
+        </th:block>
         <th:block sec:authorize="hasAnyRole('GESTOR_CLIENTES', 'ADMIN')">
             <div class="nav-group">Clientes</div>
             <a class="nav-item" th:classappend="${activo == 'clientes'} ? 'on' : ''"

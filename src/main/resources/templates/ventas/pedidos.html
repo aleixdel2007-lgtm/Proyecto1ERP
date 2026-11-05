@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Pedidos · LudusERP</title>
+    <link rel="stylesheet" th:href="@{/css/panel.css}">
+</head>
+<body>
+
+<div class="app">
+
+    <aside th:replace="~{fragments/panel :: menu('pedidos')}"></aside>
+
+    <div class="main">
+
+        <header th:replace="~{fragments/panel :: barra('Ventas', 'Pedidos')}"></header>
+
+        <main class="canvas">
+
+            <div class="alert alert-ok" th:if="${mensaje}" th:text="${mensaje}"></div>
+            <div class="alert alert-err" th:if="${error}" th:text="${error}"></div>
+
+            <div class="page-head">
+                <div>
+                    <h1>Pedidos</h1>
+                    <p>Cabecera, líneas, claves entregadas y factura. El cliente solo ve los suyos;
+                        aquí se ven todos.</p>
+                </div>
+            </div>
+
+            <div class="grid g3" style="margin-bottom:16px">
+                <div class="kpi accent">
+                    <span class="k-label">Pagados</span>
+                    <span class="k-val" th:text="${pagados}">0</span>
+                    <span class="k-foot"></span>
+                </div>
+                <div class="kpi">
+                    <span class="k-label">Pendientes</span>
+                    <span class="k-val" th:text="${pendientes}">0</span>
+                    <span class="k-foot">pago sin confirmar</span>
+                </div>
+                <div class="kpi">
+                    <span class="k-label">Reembolsados</span>
+                    <span class="k-val" th:text="${reembolsados}">0</span>
+                    <span class="k-foot"></span>
+                </div>
+            </div>
+
+            <div class="card">
+
+                <form class="filters" method="get" th:action="@{/ventas/pedidos}">
+                    <div class="fld">
+                        <label>Buscar</label>
+                        <div class="search-inp">
+                            <svg th:replace="~{fragments/iconos :: search}"></svg>
+                            <input name="texto" th:value="${texto}" placeholder="Número o cliente">
+                        </div>
+                    </div>
+                    <div class="fld">
+                        <label>Estado</label>
+                        <select class="inp" name="estado">
+                            <option value="">Todos</option>
+                            <option th:each="e : ${estados}"
+                                    th:value="${e}"
+                                    th:text="${e}"
+                                    th:selected="${estado != null and estado == e}">PAGADO</option>
+                        </select>
+                    </div>
+                    <div class="fld">
+                        <label>Desde</label>
+                        <input class="inp" type="date" name="desde" th:value="${desde}">
+                    </div>
+                    <div class="fld">
+                        <label>Hasta</label>
+                        <input class="inp" type="date" name="hasta" th:value="${hasta}">
+                    </div>
+                    <div class="fld">
+                        <label>&nbsp;</label>
+                        <button type="submit" class="btn btn-primary">Filtrar</button>
+                    </div>
+                    <div class="fld">
+                        <label>&nbsp;</label>
+                        <a class="btn" th:href="@{/ventas/pedidos}">Limpiar</a>
+                    </div>
+                </form>
+
+                <div class="card-body tight">
+
+                    <div class="empty" th:if="${#lists.isEmpty(pedidos)}">
+                        <h4>No hay pedidos</h4>
+                        <p class="hint">Ningún pedido coincide con los filtros.</p>
+                    </div>
+
+                    <div class="tbl-wrap" th:if="${!#lists.isEmpty(pedidos)}">
+                        <table class="tbl">
+                            <thead>
+                            <tr>
+                                <th>Número</th>
+                                <th>Cliente</th>
+                                <th>Fecha</th>
+                                <th class="num">Art.</th>
+                                <th>Pago</th>
+                                <th class="num">Base</th>
+                                <th class="num">IVA</th>
+                                <th class="num">Total</th>
+                                <th>Estado</th>
+                                <th class="acts"></th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="p : ${pedidos}">
+                                <td><span class="mono-violet" th:text="${p.numero}">C-2026-1884</span></td>
+                                <td>
+                                    <div>
+                                        <div class="t-main"
+                                             th:text="${p.cliente.nombre} + (${p.cliente.apellidos} != null ? ' ' + ${p.cliente.apellidos} : '')">Marta Ribas</div>
+                                        <div class="t-sub" th:text="${p.cliente.email}">correo@ejemplo.com</div>
+                                    </div>
+                                </td>
+                                <td th:text="${#temporals.format(p.fecha, 'dd/MM/yyyy HH:mm')}">22/10/2026 11:48</td>
+                                <td class="num" th:text="${#lists.size(p.lineas)}">1</td>
+                                <td th:text="${p.metodoPago != null} ? ${p.metodoPago} : '—'">Tarjeta</td>
+                                <td class="num" th:text="${#numbers.formatDecimal(p.baseImponible, 1, 'POINT', 2, 'COMMA')} + ' €'">0,00 €</td>
+                                <td class="num" th:text="${#numbers.formatDecimal(p.iva, 1, 'POINT', 2, 'COMMA')} + ' €'">0,00 €</td>
+                                <td class="num"><b th:text="${#numbers.formatDecimal(p.total, 1, 'POINT', 2, 'COMMA')} + ' €'">0,00 €</b></td>
+                                <td>
+                                    <span class="badge"
+                                          th:classappend="${p.estado.name() == 'PAGADO'} ? 'b-good' : (${p.estado.name() == 'PENDIENTE_PAGO'} ? 'b-warn' : (${p.estado.name() == 'CANCELADO'} ? 'b-crit' : 'b-serious'))"
+                                          th:text="${#strings.replace(p.estado.name(), '_', ' ')}">PAGADO</span>
+                                </td>
+                                <td class="acts">
+                                    <a class="btn btn-sm btn-ghost" title="Ver pedido"
+                                       th:href="@{/ventas/pedido/{id}(id=${p.id})}">
+                                        <svg th:replace="~{fragments/iconos :: eye}"></svg>
+                                    </a>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="pager" th:if="${!#lists.isEmpty(pedidos)}">
+                    <span>Mostrando <b th:text="${#lists.size(pedidos)}">0</b>
+                        de <b th:text="${#lists.size(pedidos)}">0</b> registros</span>
+                    <div class="pages">
+                        <button class="pg" disabled>&lsaquo;</button>
+                        <button class="pg on" disabled>1</button>
+                        <button class="pg" disabled>&rsaquo;</button>
+                    </div>
+                </div>
+
+            </div>
+
+        </main>
+    </div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Pedido · LudusERP</title>
+    <link rel="stylesheet" th:href="@{/css/panel.css}">
+</head>
+<body>
+
+<div class="app">
+
+    <aside th:replace="~{fragments/panel :: menu('pedidos')}"></aside>
+
+    <div class="main">
+
+        <header th:replace="~{fragments/panel :: barra('Ventas', 'Pedidos / ' + ${pedido.numero})}"></header>
+
+        <main class="canvas">
+
+            <a class="btn btn-ghost btn-sm" style="margin-bottom:12px" th:href="@{/ventas/pedidos}">
+                <svg th:replace="~{fragments/iconos :: back}"></svg> Volver a los pedidos</a>
+
+            <div class="page-head">
+                <div>
+                    <h1 th:text="'Pedido ' + ${pedido.numero}">Pedido C-2026-1884</h1>
+                    <p>
+                        <span th:text="${pedido.cliente.nombre} + (${pedido.cliente.apellidos} != null ? ' ' + ${pedido.cliente.apellidos} : '')">Marta Ribas</span>
+                        · <span th:text="${#temporals.format(pedido.fecha, 'dd/MM/yyyy HH:mm')}">22/10/2026 11:48</span>
+                        <span th:if="${pedido.metodoPago != null}"> · pago con <span th:text="${pedido.metodoPago}">Stripe</span></span>
+                    </p>
+                </div>
+                <div class="page-actions">
+                    <span class="badge"
+                          th:classappend="${pedido.estado.name() == 'PAGADO'} ? 'b-good' : (${pedido.estado.name() == 'PENDIENTE_PAGO'} ? 'b-warn' : (${pedido.estado.name() == 'CANCELADO'} ? 'b-crit' : 'b-serious'))"
+                          th:text="${#strings.replace(pedido.estado.name(), '_', ' ')}">PAGADO</span>
+                </div>
+            </div>
+
+            <div class="grid g-2-1">
+
+                <div class="card">
+                    <div class="card-head"><h3>Líneas del pedido</h3></div>
+
+                    <div class="card-body tight">
+
+                        <div class="empty" th:if="${#lists.isEmpty(pedido.lineas)}">
+                            <h4>Este pedido no tiene líneas</h4>
+                        </div>
+
+                        <div class="tbl-wrap" th:if="${!#lists.isEmpty(pedido.lineas)}">
+                            <table class="tbl">
+                                <thead>
+                                <tr>
+                                    <th>Videojuego</th>
+                                    <th class="num">Precio</th>
+                                    <th class="num">Dto.</th>
+                                    <th class="num">Subtotal</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr th:each="l : ${pedido.lineas}">
+                                    <td>
+                                        <div>
+                                            <div class="t-main" th:text="${l.videojuego.titulo}">Eclipse Protocol</div>
+                                            <div class="t-sub" th:text="${l.videojuego.estudio}">Estudio</div>
+                                        </div>
+                                    </td>
+                                    <td class="num" th:text="${#numbers.formatDecimal(l.precioUnitario, 1, 'POINT', 2, 'COMMA')} + ' €'">0,00 €</td>
+                                    <td class="num">
+                                        <span th:if="${l.descuento.signum() > 0}"
+                                              th:text="${#numbers.formatDecimal(l.descuento, 1, 'POINT', 2, 'COMMA')} + ' €'">0,00 €</span>
+                                        <span class="muted" th:if="${l.descuento.signum() == 0}">—</span>
+                                    </td>
+                                    <td class="num"><b th:text="${#numbers.formatDecimal(l.precioUnitario.subtract(l.descuento), 1, 'POINT', 2, 'COMMA')} + ' €'">0,00 €</b></td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="form-foot">
+                        <div class="totals" style="min-width:250px;margin-left:auto">
+                            <div class="r"><span>Base imponible</span>
+                                <span th:text="${#numbers.formatDecimal(pedido.baseImponible, 1, 'POINT', 2, 'COMMA')} + ' €'">0,00 €</span></div>
+                            <div class="r"><span>IVA</span>
+                                <span th:text="${#numbers.formatDecimal(pedido.iva, 1, 'POINT', 2, 'COMMA')} + ' €'">0,00 €</span></div>
+                            <div class="r big"><span>Total</span>
+                                <span th:text="${#numbers.formatDecimal(pedido.total, 1, 'POINT', 2, 'COMMA')} + ' €'">0,00 €</span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-head"><h3>Cliente</h3></div>
+                    <div class="card-body">
+                        <div style="margin-bottom:12px">
+                            <div class="t-main"
+                                 th:text="${pedido.cliente.nombre} + (${pedido.cliente.apellidos} != null ? ' ' + ${pedido.cliente.apellidos} : '')">Marta Ribas</div>
+                            <div class="t-sub" th:text="${pedido.cliente.email}">correo@ejemplo.com</div>
+                        </div>
+                        <dl class="kv" style="grid-template-columns:110px 1fr">
+                            <dt>Cliente desde</dt>
+                            <dd th:text="${#temporals.format(pedido.cliente.fechaAlta, 'dd/MM/yyyy')}">11/02/2025</dd>
+                            <dt>Ciudad</dt>
+                            <dd th:text="${pedido.cliente.ciudad != null} ? ${pedido.cliente.ciudad} : '—'">Barcelona</dd>
+                            <dt>País</dt>
+                            <dd th:text="${pedido.cliente.pais != null} ? ${pedido.cliente.pais} : '—'">España</dd>
+                        </dl>
+                    </div>
+                </div>
+
+            </div>
+
+        </main>
+    </div>
+</div>
+
+</body>
+</html>

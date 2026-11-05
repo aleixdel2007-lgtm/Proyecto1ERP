@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Facturas · LudusERP</title>
+    <link rel="stylesheet" th:href="@{/css/panel.css}">
+</head>
+<body>
+
+<div class="app">
+
+    <aside th:replace="~{fragments/panel :: menu('facturas')}"></aside>
+
+    <div class="main">
+
+        <header th:replace="~{fragments/panel :: barra('Ventas', 'Facturas')}"></header>
+
+        <main class="canvas">
+
+            <div class="alert alert-ok" th:if="${mensaje}" th:text="${mensaje}"></div>
+            <div class="alert alert-err" th:if="${error}" th:text="${error}"></div>
+
+            <div class="page-head">
+                <div>
+                    <h1>Facturas</h1>
+                    <p>La factura se emite al pasar un pedido a PAGADO: una plantilla Thymeleaf de HTML y CSS que se renderiza con OpenHTMLtoPDF.</p>
+                </div>
+            </div>
+            <div class="card">
+
+                <form class="filters" method="get" th:action="@{/ventas/facturas}">
+                    <div class="fld">
+                        <label>Buscar</label>
+                        <div class="search-inp">
+                            <svg th:replace="~{fragments/iconos :: search}"></svg>
+                            <input name="texto" th:value="${texto}" placeholder="Número">
+                        </div>
+                    </div>
+                </form>
+
+                <div class="card-body tight">
+
+                    <div class="empty" th:if="${#lists.isEmpty(facturas)}">
+                        <h4>No hay facturas</h4>
+                        <p class="hint">Ninguna factura coincide con la búsqueda.</p>
+                    </div>
+
+                    <div class="tbl-wrap" th:if="${!#lists.isEmpty(facturas)}">
+                        <table class="tbl">
+                            <thead>
+                            <tr>
+                                <th>Factura</th>
+                                <th>Pedido</th>
+                                <th>Fecha</th>
+                                <th class="num" style="width:140px">Importe</th>
+                                <th class="acts"></th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="f : ${facturas}">
+                                <td><span class="mono-violet" th:text="${f.numero}">C-2026-1884</span></td>
+                                <td><span class="mono-violet" th:text="${f.pedido.numero}">C-2026-1884</span></td>
+                                <td th:text="${#temporals.format(f.fechaEmision, 'dd/MM/yyyy')}">22/10/2026</td>
+                                <td class="num"><b th:text="${#numbers.formatDecimal(f.pedido.total, 1, 'POINT', 2, 'COMMA')} + ' €'">0,00 €</b></td>
+                                <td class="acts">
+                                    <a class="btn btn-sm btn-ghost" title="Ver pedido"
+                                       th:href="@{/ventas/pedido/{id}(id=${f.pedido.id})}">
+                                        <svg th:replace="~{fragments/iconos :: eye}"></svg>
+                                    </a>
+                                    <a class="btn btn-sm btn-ghost" title="Descargar PDF" target="_blank"
+                                       th:href="@{/ventas/facturas/{id}/pdf(id=${f.id})}">
+                                        <svg th:replace="~{fragments/iconos :: pdf}"></svg>
+                                    </a>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="pager" th:if="${!#lists.isEmpty(facturas)}">
+                    <span>Mostrando <b th:text="${#lists.size(facturas)}">0</b>
+                        de <b th:text="${#lists.size(facturas)}">0</b> registros</span>
+                    <div class="pages">
+                        <button class="pg" disabled>&lsaquo;</button>
+                        <button class="pg on" disabled>1</button>
+                        <button class="pg" disabled>&rsaquo;</button>
+                    </div>
+                </div>
+
+            </div>
+
+        </main>
+    </div>
+</div>
+
+</body>
+</html>

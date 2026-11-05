@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8" />
+    <title th:text="'Factura ' + ${factura.numero}">Factura</title>
+    <style>
+        @page { size: A4; margin: 20mm; }
+        body { font-family: sans-serif; font-size: 11pt; color: #222; }
+        h1 { font-size: 20pt; margin: 0 0 4pt 0; }
+        .muted { color: #666; }
+        table { width: 100%; border-collapse: collapse; margin-top: 18pt; }
+        th { text-align: left; border-bottom: 1pt solid #333; padding: 6pt 4pt; }
+        td { border-bottom: 0.5pt solid #ccc; padding: 6pt 4pt; }
+        .num { text-align: right; }
+        .totales { width: 220pt; margin-left: auto; margin-top: 14pt; }
+        .totales td { border: none; }
+        .total { font-weight: bold; font-size: 13pt; border-top: 1pt solid #333; }
+    </style>
+</head>
+<body>
+    <h1>LudusERP</h1>
+    <div class="muted">Factura <b th:text="${factura.numero}">F-2026-0001</b>
+        · Emitida el <span th:text="${#temporals.format(factura.fechaEmision, 'dd/MM/yyyy')}">01/01/2026</span></div>
+    <div class="muted">Pedido <span th:text="${factura.pedido.numero}">C-2026-0001</span></div>
+
+    <p>
+        <b th:text="${factura.pedido.cliente.nombre} + (${factura.pedido.cliente.apellidos} != null ? ' ' + ${factura.pedido.cliente.apellidos} : '')">Cliente</b><br />
+        <span th:text="${factura.pedido.cliente.email}">correo@ejemplo.com</span>
+    </p>
+
+    <table>
+        <thead>
+        <tr>
+            <th>Videojuego</th>
+            <th class="num">Precio</th>
+            <th class="num">Dto.</th>
+            <th class="num">Subtotal</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="l : ${factura.pedido.lineas}">
+            <td th:text="${l.videojuego.titulo}">Juego</td>
+            <td class="num" th:text="${#numbers.formatDecimal(l.precioUnitario, 1, 'POINT', 2, 'COMMA')} + ' €'">0,00 €</td>
+            <td class="num" th:text="${#numbers.formatDecimal(l.descuento, 1, 'POINT', 2, 'COMMA')} + ' €'">0,00 €</td>
+            <td class="num" th:text="${#numbers.formatDecimal(l.precioUnitario.subtract(l.descuento), 1, 'POINT', 2, 'COMMA')} + ' €'">0,00 €</td>
+        </tr>
+        </tbody>
+    </table>
+
+    <table class="totales">
+        <tr><td>Base imponible</td>
+            <td class="num" th:text="${#numbers.formatDecimal(factura.pedido.baseImponible, 1, 'POINT', 2, 'COMMA')} + ' €'">0,00 €</td></tr>
+        <tr><td>IVA</td>
+            <td class="num" th:text="${#numbers.formatDecimal(factura.pedido.iva, 1, 'POINT', 2, 'COMMA')} + ' €'">0,00 €</td></tr>
+        <tr><td class="total">Total</td>
+            <td class="num total" th:text="${#numbers.formatDecimal(factura.pedido.total, 1, 'POINT', 2, 'COMMA')} + ' €'">0,00 €</td></tr>
+    </table>
+</body>
+</html>
