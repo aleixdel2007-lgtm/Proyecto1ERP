@@ -34,6 +34,7 @@ public class ControllerEmpleado {
             @RequestParam(required = false) String texto,
             @RequestParam(required = false) Long departamentoId,
             @RequestParam(required = false) Rol rol,
+            @RequestParam(defaultValue = "0") int pagina,
             Model model) {
 
         List<Empleado> lista = empleadoService.listarEmpleados(texto, departamentoId, rol);
@@ -43,6 +44,7 @@ public class ControllerEmpleado {
         model.addAttribute("texto", texto);
         model.addAttribute("departamentoId", departamentoId);
         model.addAttribute("rol", rol);
+        model.addAttribute("pagina", Math.max(0, pagina));
 
         return "empleados/listado";
     }

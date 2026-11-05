@@ -24,10 +24,13 @@ public class ControllerDepartamento {
     private DepartamentoService departamentoService;
 
     @GetMapping("/departamentos")
-    public String listarDepartamentos(Model model) {
+    public String listarDepartamentos(
+            @RequestParam(defaultValue = "0") int pagina,
+            Model model) {
 
         List<Departamento> lista = departamentoService.listarDepartamentos();
         model.addAttribute("departamentos", lista);
+        model.addAttribute("pagina", Math.max(0, pagina));
 
         return "departamentos/listado";
     }

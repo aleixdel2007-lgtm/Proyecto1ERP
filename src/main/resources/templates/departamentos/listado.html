@@ -36,7 +36,16 @@
 
             <div class="grid g-2-1">
 
-                <div class="card">
+                <!-- Los datos llegan enteros del servicio: aqui se calcula que trozo se pinta.
+                     tam es el limite por pagina y pagina la que pide el controlador; si se pasa
+                     del final, actual la recorta a la ultima que existe. -->
+                <div class="card"
+                     th:with="tam=${10},
+                              total=${#lists.size(departamentos)},
+                              paginas=${(total + tam - 1) / tam},
+                              actual=${paginas == 0 ? 0 : (pagina > paginas - 1 ? paginas - 1 : pagina)},
+                              inicio=${actual * tam},
+                              fin=${actual * tam + tam > total ? total : actual * tam + tam}">
 
                     <div class="card-body tight">
 
@@ -56,7 +65,7 @@
                                 </tr>
                                 </thead>
                                 <tbody>
-                                <tr th:each="d : ${departamentos}">
+                                <tr th:each="d : ${departamentos.subList(inicio, fin)}">
                                     <td>
                                         <div>
                                             <div class="t-main" th:text="${d.nombre}">Dirección</div>
@@ -87,13 +96,20 @@
                         </div>
                     </div>
 
+                    <!-- Flechas y numeros de pagina. Este listado no tiene filtros, asi que el
+                         enlace solo lleva la pagina, y .off apaga la flecha del extremo. -->
                     <div class="pager" th:unless="${#lists.isEmpty(departamentos)}">
-                        <span>Mostrando <b th:text="${#lists.size(departamentos)}">0</b>
-                            de <b th:text="${#lists.size(departamentos)}">0</b> registros</span>
+                        <span>Mostrando <b th:text="${fin - inicio}">10</b>
+                            de <b th:text="${total}">10</b> registros</span>
                         <div class="pages">
-                            <button class="pg" disabled>&lsaquo;</button>
-                            <button class="pg on" disabled>1</button>
-                            <button class="pg" disabled>&rsaquo;</button>
+                            <a class="pg" th:classappend="${actual == 0} ? 'off' : ''"
+                               th:href="@{/departamentos(pagina=${actual - 1})}">&lsaquo;</a>
+                            <a class="pg" th:each="i : ${#numbers.sequence(0, paginas - 1)}"
+                               th:classappend="${i == actual} ? 'on' : ''"
+                               th:text="${i + 1}"
+                               th:href="@{/departamentos(pagina=${i})}">1</a>
+                            <a class="pg" th:classappend="${actual >= paginas - 1} ? 'off' : ''"
+                               th:href="@{/departamentos(pagina=${actual + 1})}">&rsaquo;</a>
                         </div>
                     </div>
 

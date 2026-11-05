@@ -1,6 +1,6 @@
 ===============================================================================
 MEMORIA DE TRABAJO - LudusERP (repositorio Proyecto1ERP)
-Ultima actualizacion: 3 de noviembre de 2026
+Ultima actualizacion: 4 de noviembre de 2026
 ===============================================================================
 
 Para que sirve este fichero: retomar el trabajo sin tener que volver a explicar
@@ -156,6 +156,8 @@ Fuera del modelo:
 4.6 Desarrollador ELIMINADO como entidad. En los juegos de distribuidor el
     estudio es un String en Videojuego; en los de colaborador, el nombre sale de
     colaborador.nombre y el String queda sin usar.
+    OJO: la parte del String la sustituye la 4.15 del 4 de noviembre. Lo que
+    sigue en pie es que NO hay entidad Desarrollador.
 
 4.7 Estructura de paquetes: plana por capas, con model subdividido por modulos.
     Las capas en ingles, las clases y los modulos en espanol.
@@ -186,6 +188,30 @@ Fuera del modelo:
     cuelga de ninguna linea de compra y el margen es el precio integro, que es
     el mismo resultado que buscaba la compra ficticia pero sin inventarse una
     compra que nunca existio.
+
+4.15 (4 nov) EL ESTUDIO DE UN VIDEOJUEGO ES EL PROVEEDOR. Deja de ser un String
+    libre y pasa a ser una clave ajena a proveedor (videojuego.proveedor_id),
+    obligatoria, y en el formulario un desplegable con los proveedores activos.
+    Razon: el gestor escribia el nombre a mano y cada juego salia con una
+    variante distinta. En los juegos que sube un colaborador no hay proveedor:
+    el nombre sale del colaborador, como hasta ahora, pero ESA ALTA NO SE HACE
+    DESDE EL PANEL, la hace el colaborador en su propia pantalla, asi que el
+    desplegable del panel no ofrece ninguna opcion vacia.
+
+4.16 (4 nov) EL DESCUENTO SUSTITUYE AL PRECIO ANTERIOR. precio es el precio
+    estandar y precio_descuento es lo que se cobra mientras haya rebaja; NULL
+    significa sin descuento. En el formulario es un interruptor que habilita el
+    campo. Antes era precio_anterior, que obligaba a tocar dos campos para
+    rebajar un juego y dejaba el precio real en el campo equivocado.
+
+4.17 (4 nov) SLUG ELIMINADO de Videojuego y de V2. Era NOT NULL UNIQUE y no lo
+    leia nadie: ni controller, ni plantilla, ni consulta. Servia para URLs
+    publicas tipo /tienda/juego/eclipse-protocol, que este proyecto no usa, y a
+    cambio habia que generarlo y desduplicarlo al guardar.
+
+4.18 (4 nov) CATEGORIA Y PLATAFORMA NO TIENEN activo. Solo id, codigo y nombre.
+    No se esconden: o no tienen juegos y se borran, o tienen juegos y hay que
+    reasignarlos antes. Completa la 4.11.
 
 DECISIONES MUERTAS, por si alguien las busca: la antigua 2.3 (el trabajador que
 acepta, pide cambios o deniega), la antigua 2.4 (la compra a coste 0 generada al
@@ -318,6 +344,10 @@ aprobar) y la antigua 4.13 (precio_propuesto). Hay que avisar a Didac.
 8.2 Una vez aplicada, una migracion NO se edita: Flyway guarda su huella y se
     niega a arrancar si cambia. Para cambiar el esquema, una migracion nueva. Si
     se edita igualmente: docker compose down -v.
+    EL 4 DE NOVIEMBRE SE EDITO V2 DOS VECES, a mano y a sabiendas: fuera el
+    activo de categoria y plataforma, y fuera el slug de videojuego. Mientras el
+    proyecto no se entregue se asume que la base se recrea; en cuanto haya datos
+    que valgan algo, esto se termina y se pasa a migraciones nuevas.
 
 8.3 Docker Desktop tiene que estar arrancado. Con
     spring.docker.compose.enabled=true la aplicacion no levanta sin el.
@@ -377,12 +407,14 @@ aprobar) y la antigua 4.13 (precio_propuesto). Hay que avisar a Didac.
 9. ORDEN DE TRABAJO PENDIENTE
 -------------------------------------------------------------------------------
 
-0. PUNTO DE CONTROL, antes de cualquier otra cosa: docker compose down -v y
-   arrancar. Es la primera vez que la V8 y las entidades se validan juntas
-   contra MySQL. Lo que puede fallar: el MODIFY de clave_licencia con su clave
-   ajena puesta, y que Hibernate acepte el esquema resultante. La V8 sigue sin
-   aplicar, asi que se puede corregir. Entrar como admin@luduserp.cat con
-   luduserp y comprobar el menu Colaboradores con sus seis filas.
+0. PUNTO DE CONTROL: HECHO el 4 de noviembre. Las ocho migraciones se aplicaron,
+   V8 incluida, y Hibernate acepto el esquema. Lo unico que salio mal fue que
+   las entidades Categoria y Plataforma seguian declarando activo despues de
+   quitarlo de V2, y con ddl-auto=validate Hibernate se nego a arrancar pidiendo
+   la columna; se arreglo quitando el campo de las dos entidades.
+   PERO V2 se ha vuelto a editar despues (el slug), asi que la base que haya
+   ahora ya no cuadra con su huella: hace falta otro docker compose down -v
+   antes de arrancar, o Flyway se queja del checksum de V2.
 
 1. CAMBIAR LA CONTRASENA DE UN COLABORADOR. Hoy NO HAY NINGUNA VIA: ni el admin
    ni el propio colaborador pueden. El servicio ya lo soporta (si a
@@ -508,14 +540,10 @@ Huecos de diseno que habra que resolver al llegar a ventas:
 11. PROTOTIPO Y PDF POR REHACER ANTES DE ENTREGAR
 -------------------------------------------------------------------------------
 
-Del prototipo (docs\prototipo.html), por el cambio del 3 de noviembre:
-  catalogo/solicitudes    DESAPARECE: ya no hay cola de revision
-  proveedor/solicitud     pasa a ser un alta de juego normal, sin los 4 pasos
-  proveedor/*             el actor se llama Colaborador, no Proveedor
-  admin/proveedores       pasa a ser Colaboradores
-  tienda/pago             dice "Simulado" y pide tarjeta; ahora es Stripe
-  EMPLEADOS[].rols        es un array y los roles son cinco: son siete y uno
-  SOLICITUDES[].entrega   el tipo ENLACE no existe en el esquema
+Del prototipo: HECHO el 4 de noviembre, lo que habia en esta lista ya esta
+resincronizado y el detalle esta en el apartado 12. Quedan 36 pantallas mas el
+mapa. Si vuelve a hacer falta comprobarlo, no hace falta navegarlo a mano: se
+montan todas las vistas con un DOM de pega en Node y se avisa de la que falle.
 
 Del PDF, de la revision anterior:
   Figura 3        quitar el caso de uso P5 "CRUD desenvolupadors"
@@ -543,5 +571,73 @@ Del PDF, de la revision anterior:
   exige nombres de clases en INGLES cuando el codigo esta en espanol.
   La portada tiene "Grup: ____" sin rellenar y el apartado 11 los cinco nombres
   en blanco.
+
+
+-------------------------------------------------------------------------------
+12. HECHO EL 4 DE NOVIEMBRE
+-------------------------------------------------------------------------------
+
+12.1 CRUD DE CATEGORIAS, en /catalogo/categorias (commit 71a369b). CategoriaDao
+    con listarFiltrado y los cuatro existsBy del codigo y del nombre,
+    CategoriaService y su Impl, ControllerCategoria con cinco rutas (listado,
+    nuevo, editar, guardar, eliminar), cuatro excepciones propias
+    (CategoriaNoEncontrada, CodigoCategoriaDuplicado, NombreCategoriaDuplicado,
+    CategoriaConJuegos) y tres plantillas en templates/catalogo. El codigo se
+    guarda en mayusculas y sin espacios; el nombre, con trim.
+
+12.2 CRUD DE PLATAFORMAS, en /catalogo/plataformas (commit c299ff3). El mismo
+    codigo con otro objeto: mismos nombres de metodo, mismas cuatro
+    excepciones, mismas tres plantillas. La unica diferencia es el largo del
+    codigo, 20 en vez de 30. Los dos CRUD son de GESTOR_PRODUCTOS y ADMIN, con
+    una linea cada uno en SecurityConfig y su grupo Catalogo en el menu lateral.
+
+12.3 EL BORRADO DE LAS DOS, hecho con el patron del aviso 8.9: el service cuenta
+    primero los juegos que la usan y lanza su excepcion, y por si acaso envuelve
+    el delete en un catch de DataIntegrityViolationException con flush() dentro.
+    El flush esta a proposito: si alguien pone @Transactional en el service, sin
+    el, el catch dejaria de verse y el error saldria en otro sitio.
+
+12.4 LAS CONSULTAS DE VideojuegoDao para el contador de juegos:
+    countByCategoriasId y contarPorCategoria, mas las dos gemelas de
+    plataforma. NO filtran por videojuego.activo a proposito: el numero que se
+    ve en la pantalla tiene que ser el mismo que bloquea el borrado, o la
+    interfaz diria 0 juegos y la clave ajena seguiria negandose.
+
+12.5 PROTOTIPO RESINCRONIZADO (commit 92226ce, que lleva tambien el activo
+    fuera de las dos entidades y de V2). Se fue la pantalla de solicitudes y el
+    asistente de 4 pasos, proveedor/* paso a colaborador/*, admin/proveedores a
+    admin/colaboradores, el array de roles a un rol unico con los siete
+    valores, los perfiles 1:1 a la herencia JOINED, el pago con tarjeta a
+    Stripe y la columna Estado de categorias y plataformas, que ya no existe.
+
+12.6 LA FICHA DE VIDEOJUEGO DEL PROTOTIPO, rehecha con las decisiones 4.15 a
+    4.17: Estudio es un desplegable de proveedores activos y obligatorio, el
+    slug desaparece del formulario, el precio anterior se cambia por el
+    interruptor de descuento con su campo de precio rebajado, y las imagenes
+    pasan a ser una cuarta pestana dentro de la propia ficha, agrupadas por tipo
+    (una PORTADA, un BANNER y las CAPTURAS que hagan falta). La pantalla aparte
+    catalogo/imagenes se elimina: en un alta no tiene sentido irse a la pantalla
+    de imagenes de un juego que todavia no tiene id.
+
+12.7 TRES ARREGLOS DE CSS, los dos ultimos vistos por Aleix usandolo:
+    - .chip.on, el estado seleccionado, era casi invisible: fondo al .26 de
+      opacidad, borde al .55 y texto en negrita.
+    - .buy-price .old no existia, solo estaba .price .old, y por eso en la ficha
+      de la tienda los dos precios salian pegados y sin tachar.
+    - .nav-item.on, el item activo del menu lateral, tambien demasiado flojo:
+      fondo morado al .22 y anillo al .55, en panel.css y en el prototipo, para
+      saber en que pantalla estas de un vistazo.
+
+12.8 LO QUE QUEDA POR ALINEAR. El prototipo va por delante del codigo, a
+    proposito, porque el CRUD de videojuegos todavia no existe. Cuando se haga:
+    - fuera Videojuego.estudio (String) y en su lugar un ManyToOne a Proveedor,
+      columna proveedor_id en V2
+    - fuera precio_anterior y en su lugar precio_descuento DECIMAL(10,2) NULL
+    - el validador que no deje precio_descuento mayor o igual que precio
+    Y antes de arrancar, el down -v del aviso 8.2.
+
+12.9 nbactions.xml se ha versionado en el commit faae6df. Lo genera NetBeans
+    (aviso 8.11), asi que ahora saldra como modificado cada vez que alguien abra
+    el proyecto. Si molesta, al .gitignore y git rm --cached.
 
 ===============================================================================

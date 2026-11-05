@@ -24,12 +24,14 @@ public class ControllerCategoria {
     @GetMapping("/catalogo/categorias")
     public String listarCategorias(
             @RequestParam(required = false) String texto,
+            @RequestParam(defaultValue = "0") int pagina,
             Model model) {
 
         model.addAttribute("categorias", categoriaService.listarCategorias(texto));
         model.addAttribute("juegos", categoriaService.contarJuegos());
 
         model.addAttribute("texto", texto);
+        model.addAttribute("pagina", Math.max(0, pagina));
 
         return "catalogo/categorias";
     }
