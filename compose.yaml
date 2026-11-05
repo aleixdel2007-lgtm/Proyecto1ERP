@@ -45,6 +45,12 @@ services:
       retries: 30
       start_period: 10s
 
+  mailpit: #Para arrancar el servidor externo mailpit
+    image: axllent/mailpit
+    ports:
+      - "8025:8025"
+      - "1025:1025" 
+
 # Volums amb nom: les dades sobreviuen a reiniciar o recrear els contenidors.
 # Per partir de zero: docker compose down -v
 volumes:
