@@ -1,5 +1,5 @@
 /* ===========================================================================
-   LudusERP — paginas de error (403 y 404)
+   LudusERP — paginas de error (403, 404 y 500)
    Se usa junto con login.css (variables, envoltorio .auth, tarjeta y botones).
    =========================================================================== */
 .error-card{text-align:center;align-items:center}
@@ -11,4 +11,12 @@
 .error-title{font-size:17px}
 .error-text{max-width:32ch}
 .error-actions{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:4px}
+/* Detalle tecnico del 500: alineado a la izquierda y en monoespaciada, porque es para leerlo, no para lucirlo */
+.error-tech{
+    width:100%;text-align:left;background:var(--surface-2);border:1px solid var(--line);
+    border-radius:var(--r-sm);padding:10px 12px;font-size:12px;color:var(--ink-2);
+    font-family:ui-monospace,"Cascadia Mono",Consolas,"Courier New",monospace;
+    display:flex;flex-direction:column;gap:5px;word-break:break-word;
+}
+.error-tech b{color:var(--muted);font-weight:600;margin-right:6px}
 a.btn:hover{text-decoration:none}

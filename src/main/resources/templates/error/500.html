@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Error del servidor · LudusERP</title>
+    <link rel="stylesheet" th:href="@{/css/login.css}" href="../../static/css/login.css">
+    <link rel="stylesheet" th:href="@{/css/error.css}" href="../../static/css/error.css">
+</head>
+<body>
+
+<main class="auth">
+    <div class="auth-box">
+
+        <div class="auth-brand">
+            <div class="brand-mark">L</div>
+            <div class="brand-name">Ludus<span>ERP</span></div>
+        </div>
+
+        <div class="card">
+            <div class="card-body stack error-card">
+                <div class="error-code">500</div>
+                <div>
+                    <h2 class="error-title">Algo ha fallado</h2>
+                    <p class="hint auth-sub error-text">El servidor no ha podido completar la
+                        operación. No es cosa tuya: el fallo queda registrado en el log de la
+                        aplicación.</p>
+                </div>
+
+                <!-- Solo sale si Spring rellena esos atributos: la ruta siempre, y el detalle
+                     unicamente con server.error.include-message=always. -->
+                <div class="error-tech" th:if="${!#strings.isEmpty(path) or !#strings.isEmpty(message)}">
+                    <div th:if="${!#strings.isEmpty(path)}">
+                        <b>Ruta</b> <span th:text="${path}">/empleados</span>
+                    </div>
+                    <div th:if="${!#strings.isEmpty(message)}">
+                        <b>Detalle</b> <span th:text="${message}">Mensaje de la excepción</span>
+                    </div>
+                </div>
+
+                <div class="error-actions">
+                    <a class="btn btn-primary" sec:authorize="hasRole('CLIENTE')" th:href="@{/tienda}" href="#">Volver al inicio</a>
+                    <a class="btn btn-primary" sec:authorize="!hasRole('CLIENTE')" th:href="@{/home}" href="#">Volver al inicio</a>
+                    <a class="btn" th:href="@{/logout}" href="#">Cerrar sesión</a>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</main>
+
+</body>
+</html>

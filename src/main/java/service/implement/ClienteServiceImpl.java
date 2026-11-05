@@ -18,6 +18,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import service.interfaces.ClienteService;
+import service.interfaces.EmailService;
 
 /**
  *
@@ -32,6 +33,9 @@ public class ClienteServiceImpl implements ClienteService {
 
     @Autowired
     private UsuarioDao usuarioDao;
+
+    @Autowired
+    private EmailService emailService;
 
     @Override
     public List<Cliente> buscarFiltrado(String texto, String pais, LocalDate desde) {
@@ -60,9 +64,15 @@ public class ClienteServiceImpl implements ClienteService {
     @Transactional
     public void cambiarEstado(Long id, boolean activo) {
         Cliente cliente = buscarClienteXId(id);
-        cliente.setActivo(activo); // el boolean llega desde el html: es lo contrario al estado actual
-        cliente.setFechaSolicitud(null); // cuando el gestor cambia el estado, la solicitud ya esta atendida
+        boolean estabaInactivo = !cliente.isActivo();
+
+        cliente.setActivo(activo);
+        cliente.setFechaSolicitud(null);
         clienteDao.save(cliente);
+
+        if (activo && estabaInactivo) {
+            emailService.enviarCuentaActivada(cliente.getEmail(), cliente.getNombre());
+        }
     }
 
     @Override

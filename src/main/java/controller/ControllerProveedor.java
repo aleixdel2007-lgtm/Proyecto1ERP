@@ -28,6 +28,7 @@ public class ControllerProveedor {
             @RequestParam(required = false) String texto,
             @RequestParam(required = false) String pais,
             @RequestParam(required = false) Boolean activo,
+            @RequestParam(defaultValue = "0") int pagina,
             Model model) {
 
         model.addAttribute("proveedores", proveedorService.listarProveedores(texto, pais, activo));
@@ -36,6 +37,7 @@ public class ControllerProveedor {
         model.addAttribute("texto", texto);
         model.addAttribute("pais", pais);
         model.addAttribute("activo", activo);
+        model.addAttribute("pagina", Math.max(0, pagina));
 
         return "compras/proveedores";
     }

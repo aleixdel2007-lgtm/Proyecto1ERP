@@ -230,6 +230,9 @@ table.tbl td.acts form{display:inline}
 }
 .pg.on{background:var(--purple);border-color:var(--purple);color:#fff;font-weight:600}
 .pg:hover:not(.on){background:var(--surface-3);text-decoration:none}
+/* Los numeros del paginador son enlaces; .off es la flecha de un extremo, que no lleva a ningun sitio */
+.pg{text-decoration:none}
+.pg.off{opacity:.4;pointer-events:none}
 
 /* --- formularios ---------------------------------------------------------- */
 .form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:15px 18px}

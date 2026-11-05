@@ -24,6 +24,7 @@ public class ControllerColaborador {
     public String listarColaboradores(
             @RequestParam(required = false) String texto,
             @RequestParam(required = false) Boolean activo,
+            @RequestParam(defaultValue = "0") int pagina,
             Model model) {
 
         model.addAttribute("colaboradores", colaboradorService.listarColaboradores(texto, activo));
@@ -31,6 +32,7 @@ public class ControllerColaborador {
 
         model.addAttribute("texto", texto);
         model.addAttribute("activo", activo);
+        model.addAttribute("pagina", Math.max(0, pagina));
 
         return "admin/colaboradores";
     }

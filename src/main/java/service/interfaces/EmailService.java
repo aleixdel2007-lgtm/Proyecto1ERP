@@ -1,0 +1,14 @@
+/*
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Interface.java to edit this template
+ */
+package service.interfaces;
+
+/**
+ *
+ * @author Sandy
+ */
+public interface EmailService {
+
+    void enviarCuentaActivada(String destino, String nombre);
+}

@@ -34,7 +34,16 @@
                 </div>
             </div>
 
-            <div class="card">
+            <!-- Los datos llegan enteros del servicio: aqui se calcula que trozo se pinta.
+                 tam es el limite por pagina y pagina la que pide el controlador; si se pasa
+                 del final, actual la recorta a la ultima que existe. -->
+            <div class="card"
+                 th:with="tam=${10},
+                          total=${#lists.size(categorias)},
+                          paginas=${(total + tam - 1) / tam},
+                          actual=${paginas == 0 ? 0 : (pagina > paginas - 1 ? paginas - 1 : pagina)},
+                          inicio=${actual * tam},
+                          fin=${actual * tam + tam > total ? total : actual * tam + tam}">
 
                 <form class="filters" method="get" th:action="@{/catalogo/categorias}">
                     <div class="fld">
@@ -72,7 +81,7 @@
                             </tr>
                             </thead>
                             <tbody>
-                            <tr th:each="c : ${categorias}">
+                            <tr th:each="c : ${categorias.subList(inicio, fin)}">
                                 <td><span class="t-main" th:text="${c.nombre}">Acción</span></td>
                                 <td><span class="mono" th:text="${c.codigo}">ACCION</span></td>
                                 <td class="num" th:text="${juegos[c.id] != null ? juegos[c.id] : 0}">0</td>
@@ -94,13 +103,20 @@
                     </div>
                 </div>
 
+                <!-- Flechas y numeros de pagina. Cada enlace repite el filtro de busqueda para
+                     no perderlo al cambiar de pagina, y .off apaga la flecha del extremo. -->
                 <div class="pager" th:unless="${#lists.isEmpty(categorias)}">
-                    <span>Mostrando <b th:text="${#lists.size(categorias)}">0</b>
-                        de <b th:text="${#lists.size(categorias)}">0</b> registros</span>
+                    <span>Mostrando <b th:text="${fin - inicio}">10</b>
+                        de <b th:text="${total}">10</b> registros</span>
                     <div class="pages">
-                        <button class="pg" disabled>&lsaquo;</button>
-                        <button class="pg on" disabled>1</button>
-                        <button class="pg" disabled>&rsaquo;</button>
+                        <a class="pg" th:classappend="${actual == 0} ? 'off' : ''"
+                           th:href="@{/catalogo/categorias(texto=${texto}, pagina=${actual - 1})}">&lsaquo;</a>
+                        <a class="pg" th:each="i : ${#numbers.sequence(0, paginas - 1)}"
+                           th:classappend="${i == actual} ? 'on' : ''"
+                           th:text="${i + 1}"
+                           th:href="@{/catalogo/categorias(texto=${texto}, pagina=${i})}">1</a>
+                        <a class="pg" th:classappend="${actual >= paginas - 1} ? 'off' : ''"
+                           th:href="@{/catalogo/categorias(texto=${texto}, pagina=${actual + 1})}">&rsaquo;</a>
                     </div>
                 </div>
 

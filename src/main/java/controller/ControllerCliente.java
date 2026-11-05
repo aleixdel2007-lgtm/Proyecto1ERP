@@ -32,12 +32,14 @@ public class ControllerCliente {
             @RequestParam(required = false) String pais,
             @RequestParam(required = false)
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate desde,
+            @RequestParam(defaultValue = "0") int pagina,
             Model model) {
         model.addAttribute("clientes", clienteService.buscarFiltrado(buscar, pais, desde));
         model.addAttribute("paises", clienteService.listarPaises());
         model.addAttribute("buscar", buscar);
         model.addAttribute("pais", pais);
         model.addAttribute("desde", desde);
+        model.addAttribute("pagina", Math.max(0, pagina));
         return "gestorCliente/listadoClientes";
     }
 

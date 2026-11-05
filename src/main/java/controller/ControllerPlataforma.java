@@ -24,12 +24,14 @@ public class ControllerPlataforma {
     @GetMapping("/catalogo/plataformas")
     public String listarPlataformas(
             @RequestParam(required = false) String texto,
+            @RequestParam(defaultValue = "0") int pagina,
             Model model) {
 
         model.addAttribute("plataformas", plataformaService.listarPlataformas(texto));
         model.addAttribute("juegos", plataformaService.contarJuegos());
 
         model.addAttribute("texto", texto);
+        model.addAttribute("pagina", Math.max(0, pagina));
 
         return "catalogo/plataformas";
     }
