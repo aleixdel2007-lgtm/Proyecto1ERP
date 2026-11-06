@@ -23,13 +23,11 @@
         </select>
     </th:block>
     <div class="who">
-        <img th:if="${imagenPerfil != null}" class="avatar"
-             th:src="@{${imagenPerfil.rutaImagen}}" th:alt="${imagenPerfil.textoAlternativo}"
-             style="object-fit:cover">
-        <div th:if="${imagenPerfil == null}" class="avatar"
-             th:text="${#strings.toUpperCase(#strings.substring(#authentication.name, 0, 2))}">
-            AD
-        </div>
+        <!-- Sin foto va el avatar generico de /img/placeholder.webp. No hay fila de
+             imagen_usuario para esos: el hueco lo rellena la plantilla. -->
+        <img class="avatar" style="object-fit:cover"
+             th:src="${imagenPerfil != null} ? @{${imagenPerfil.rutaImagen}} : @{/img/placeholder.webp}"
+             th:alt="${imagenPerfil != null} ? ${imagenPerfil.textoAlternativo} : 'Sin foto de perfil'">
 
         <div class="who-txt">
             <b th:text="${#authentication.name}">admin@luduserp.cat</b>

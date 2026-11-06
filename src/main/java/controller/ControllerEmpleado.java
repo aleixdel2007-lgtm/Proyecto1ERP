@@ -2,6 +2,7 @@ package controller;
 
 import exception.email.EmailDuplicadoException;
 import exception.empleado.EmpleadoConReferenciasException;
+import exception.imagen.ImagenInvalidaException;
 import exception.nif.NifDuplicadoException;
 import java.util.List;
 import model.seguridad.Departamento;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import service.interfaces.EmpleadoService;
 
@@ -69,6 +71,7 @@ public class ControllerEmpleado {
 
         List<Departamento> departamentos = empleadoService.listarDepartamentos();
         model.addAttribute("departamentos", departamentos);
+        model.addAttribute("imagenEmpleado", empleadoService.buscarImagenPerfil(id));
 
         return "empleados/formularioEditarEmp";
     }
@@ -78,11 +81,14 @@ public class ControllerEmpleado {
             @ModelAttribute("empleado") Empleado empleado,
             @RequestParam(required = false) Long departamentoId,
             @RequestParam(required = false) String password,
+            @RequestParam(value = "foto", required = false) MultipartFile foto,
             Model model,
             RedirectAttributes flash) {
 
+        Empleado guardado;
+
         try {
-            empleadoService.guardarEmpleado(empleado, departamentoId, password);
+            guardado = empleadoService.guardarEmpleado(empleado, departamentoId, password);
 
         } catch (EmailDuplicadoException | NifDuplicadoException | IllegalArgumentException e) {
 
@@ -92,7 +98,22 @@ public class ControllerEmpleado {
             if (empleado.getId() == null) {
                 return "empleados/formularioNuevoEmp";
             }
+
+            model.addAttribute("imagenEmpleado", empleadoService.buscarImagenPerfil(empleado.getId()));
+
             return "empleados/formularioEditarEmp";
+        }
+
+        if (foto != null && !foto.isEmpty()) {
+
+            try {
+                empleadoService.guardarImagenPerfil(guardado.getId(), foto);
+
+            } catch (ImagenInvalidaException e) {
+                flash.addFlashAttribute("error",
+                        "Empleado guardado, pero la foto no: " + e.getMessage());
+                return "redirect:/empleados";
+            }
         }
 
         flash.addFlashAttribute("mensaje", "Empleado guardado correctamente");

@@ -1,8 +1,10 @@
 package service.implement;
 
+import config.AlmacenArchivos;
 import config.IndiceCiego;
 import dao.DepartamentoDao;
 import dao.EmpleadoDao;
+import dao.ImagenUsuarioDao;
 import dao.UsuarioDao;
 import exception.email.EmailDuplicadoException;
 import exception.empleado.EmpleadoConReferenciasException;
@@ -11,11 +13,13 @@ import exception.nif.NifDuplicadoException;
 import java.util.List;
 import model.seguridad.Departamento;
 import model.seguridad.Empleado;
+import model.seguridad.ImagenUsuario;
 import model.seguridad.Rol;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 import service.interfaces.EmpleadoService;
 
 @Service
@@ -29,6 +33,12 @@ public class EmpleadoServiceImpl implements EmpleadoService {
 
     @Autowired
     private DepartamentoDao departamentoDao;
+
+    @Autowired
+    private ImagenUsuarioDao imagenUsuarioDao;
+
+    @Autowired
+    private AlmacenArchivos almacenArchivos;
 
     @Autowired
     private PasswordEncoder codificador;
@@ -185,11 +195,65 @@ public class EmpleadoServiceImpl implements EmpleadoService {
 
         Empleado empleado = buscarEmpleadoXId(id);
 
+        eliminarImagenPerfil(id);
+
         try {
             empleadoDao.delete(empleado);
 
         } catch (DataIntegrityViolationException e) {
             throw new EmpleadoConReferenciasException();
         }
+    }
+
+    @Override
+    public ImagenUsuario buscarImagenPerfil(Long empleadoId) {
+        return imagenUsuarioDao.findById(empleadoId).orElse(null);
+    }
+
+    @Override
+    public void guardarImagenPerfil(Long empleadoId, MultipartFile archivo) {
+
+        Empleado empleado = buscarEmpleadoXId(empleadoId);
+
+        String ruta = almacenArchivos.guardarImagenPerfil(empleadoId, archivo);
+
+        ImagenUsuario imagen = imagenUsuarioDao.findById(empleadoId).orElseGet(() -> {
+            ImagenUsuario nueva = new ImagenUsuario();
+            nueva.setUsuario(empleado);
+            return nueva;
+        });
+
+        String rutaAnterior = imagen.getRutaImagen();
+
+        imagen.setRutaImagen(ruta);
+        imagen.setTextoAlternativo("Foto de perfil de " + empleado.getNombre());
+
+        try {
+            imagenUsuarioDao.save(imagen);
+
+        } catch (RuntimeException e) {
+            almacenArchivos.borrar(ruta);
+            throw e;
+        }
+
+        if (rutaAnterior != null) {
+            almacenArchivos.borrar(rutaAnterior);
+        }
+    }
+
+    private void eliminarImagenPerfil(Long empleadoId) {
+
+        ImagenUsuario imagen = imagenUsuarioDao.findById(empleadoId).orElse(null);
+
+        if (imagen == null) {
+            return;
+        }
+
+        String ruta = imagen.getRutaImagen();
+
+        imagenUsuarioDao.delete(imagen);
+        imagenUsuarioDao.flush();
+
+        almacenArchivos.borrar(ruta);
     }
 }

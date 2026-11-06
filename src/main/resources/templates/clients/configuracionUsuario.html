@@ -25,11 +25,9 @@
         <!-- Tarjeta de perfil -->
         <div class="card">
             <div class="card-body stack profile">
-                <img th:if="${imagen != null}" class="avatar avatar-lg"
-                     th:src="@{${imagen.rutaImagen}}" th:alt="${imagen.textoAlternativo}"
-                     style="object-fit:cover">
-                <div th:if="${imagen == null}" class="avatar avatar-lg"
-                     th:text="${#strings.toUpperCase(#strings.substring(usuario.nombre, 0, 1) + (#strings.isEmpty(usuario.apellidos) ? '' : #strings.substring(usuario.apellidos, 0, 1)))}">LF</div>
+                <img class="avatar avatar-lg" style="object-fit:cover"
+                     th:src="${imagen != null} ? @{${imagen.rutaImagen}} : @{/img/placeholder.webp}"
+                     th:alt="${imagen != null} ? ${imagen.textoAlternativo} : 'Sin foto de perfil'">
                 <div>
                     <div class="t-main profile-name"
                          th:text="${usuario.nombre + ' ' + (usuario.apellidos ?: '')}">Lucía Fernández</div>

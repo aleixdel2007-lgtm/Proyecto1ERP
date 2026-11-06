@@ -34,7 +34,8 @@
             <div class="grid g-2-1">
 
                 <div class="card">
-                    <form th:action="@{/empleados/guardar}" method="post" th:object="${empleado}">
+                    <form th:action="@{/empleados/guardar}" method="post" th:object="${empleado}"
+                          enctype="multipart/form-data">
 
                         <div class="card-body stack">
 
@@ -119,6 +120,26 @@
                                     <input class="inp" type="text" name="password"
                                            placeholder="La que le entregues" required>
                                     <span class="hint">No se guarda en claro: la base solo conserva su hash.</span>
+                                </div>
+
+                            </div>
+
+                            <!-- La foto no es obligatoria. Sin ella, en toda la aplicacion sale
+                                 el avatar generico de /img/placeholder.webp, que no es una fila
+                                 de imagen_usuario: es el hueco por defecto de la plantilla. -->
+                            <div class="sect-label">Foto de perfil</div>
+                            <div class="form-grid">
+
+                                <div class="frow wide">
+                                    <label for="foto">Foto</label>
+                                    <div class="row">
+                                        <img class="avatar emp-avatar" th:src="@{/img/placeholder.webp}"
+                                             alt="Sin foto de perfil" style="object-fit:cover">
+                                        <input class="inp" type="file" id="foto" name="foto"
+                                               accept="image/png,image/jpeg,image/webp">
+                                    </div>
+                                    <span class="hint">JPG, PNG o WEBP, máximo 2 MB. Si lo dejas vacío se
+                                        queda con el avatar genérico.</span>
                                 </div>
 
                             </div>

@@ -79,8 +79,11 @@
         <b th:text="${titulo}">Proveedores</b>
     </div>
     <div class="who">
-        <div class="avatar"
-             th:text="${#strings.toUpperCase(#strings.substring(#authentication.name, 0, 1))}">A</div>
+        <!-- imagenPerfil lo pone ImagenPerfilAdvice en todas las paginas. Antes esta barra
+             nunca ensenaba la foto, solo la inicial, aunque el usuario tuviera una. -->
+        <img class="avatar" style="object-fit:cover"
+             th:src="${imagenPerfil != null} ? @{${imagenPerfil.rutaImagen}} : @{/img/placeholder.webp}"
+             th:alt="${imagenPerfil != null} ? ${imagenPerfil.textoAlternativo} : 'Sin foto de perfil'">
         <div class="who-txt">
             <b sec:authentication="name">usuario@luduserp.cat</b>
             <span sec:authentication="principal.authorities">ROLE_ADMIN</span>

@@ -4,9 +4,11 @@ import java.io.IOException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import exception.imagen.ImagenInvalidaException;
 import java.text.Normalizer;
 import java.util.Comparator;
 import java.util.Locale;
+import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Stream;
 import org.springframework.beans.factory.annotation.Value;
@@ -21,6 +23,13 @@ public class AlmacenArchivos {
     private static final String RAIZ_WEB = "/uploads/";
     // Carpeta que agrupa las de cada juego, dentro de app.uploads.dir
     private static final String CARPETA_VIDEOJUEGOS = "videojuegos";
+    // Carpeta de las fotos de perfil, la misma que ya usaba ControllerHome
+    private static final String CARPETA_PERFILES = "perfiles";
+    // Lo unico que se admite subir. El tipo lo declara el navegador, asi que esto es un
+    // filtro de cortesia, no una garantia: lo que de verdad protege es que el nombre del
+    // archivo lo pone un UUID y nunca el que venga de fuera
+    private static final Map<String, String> EXTENSIONES = Map.of(
+            "image/png", "png", "image/jpeg", "jpg", "image/webp", "webp");
     // Corte del slug. Windows no admite rutas de mas de 260 caracteres y el titulo
     // puede medir 150, asi que sin el corte una ruta larga no se podria crear
     private static final int LARGO_SLUG = 40;
@@ -41,21 +50,60 @@ public class AlmacenArchivos {
         // es texto de fuera y no debe acabar formando parte de una ruta
         String nombre = UUID.randomUUID() + "." + extension;
 
+        escribir(carpeta, archivo, nombre);
+
+        // La ruta web se monta con el nombre real de la carpeta, que puede llevar un slug
+        // viejo si el juego se ha renombrado: manda lo que hay en disco
+        return RAIZ_WEB + CARPETA_VIDEOJUEGOS + "/" + carpeta.getFileName() + "/" + nombre;
+    }
+
+    // Guarda la foto de perfil de un usuario y devuelve su ruta web. Todas viven juntas
+    // en la misma carpeta: a diferencia de los juegos, un usuario tiene una sola foto y
+    // no hay nada que agrupar
+    public String guardarImagenPerfil(Long usuarioId, MultipartFile archivo) {
+
+        String extension = extensionDe(archivo);
+        // El id delante para poder reconocer de quien es mirando la carpeta
+        String nombre = usuarioId + "-" + UUID.randomUUID() + "." + extension;
+
+        escribir(raiz().resolve(CARPETA_PERFILES), archivo, nombre);
+
+        return RAIZ_WEB + CARPETA_PERFILES + "/" + nombre;
+    }
+
+    // Comprueba que hay archivo y que es de un tipo admitido, y devuelve su extension.
+    // Vive aqui y no en cada servicio para que no haya dos listas de tipos que se puedan
+    // desincronizar
+    public String extensionDe(MultipartFile archivo) {
+
+        if (archivo == null || archivo.isEmpty()) {
+            throw new ImagenInvalidaException("Selecciona un archivo");
+        }
+
+        String extension = archivo.getContentType() == null
+                ? null : EXTENSIONES.get(archivo.getContentType());
+
+        if (extension == null) {
+            throw new ImagenInvalidaException("La imagen tiene que ser JPG, PNG o WEBP");
+        }
+        return extension;
+    }
+
+    // El volcado al disco, comun a las dos. La carpeta es absoluta, asi que transferTo no
+    // tiene que resolver nada contra el directorio de trabajo ni contra el temporal
+    private void escribir(Path carpeta, MultipartFile archivo, String nombre) {
+
         try {
-            // Volcado al disco. La carpeta ya es absoluta, asi que transferTo no tiene
-            // que resolver nada contra el directorio de trabajo ni contra el temporal
+            // createDirectories tambien crea uploads si falta, que es lo que hace que esto
+            // funcione en un clon recien bajado: uploads esta en el .gitignore
+            Files.createDirectories(carpeta);
             archivo.transferTo(carpeta.resolve(nombre));
 
         } catch (IOException e) {
             // El IOException se envuelve aqui para que el service no arrastre checked
             // exceptions, igual que hace FacturaServiceImpl al generar el PDF
-            throw new IllegalStateException(
-                    "No se pudo guardar la imagen del videojuego " + videojuegoId, e);
+            throw new IllegalStateException("No se pudo guardar el archivo " + nombre, e);
         }
-
-        // La ruta web se monta con el nombre real de la carpeta, que puede llevar un slug
-        // viejo si el juego se ha renombrado: manda lo que hay en disco
-        return RAIZ_WEB + CARPETA_VIDEOJUEGOS + "/" + carpeta.getFileName() + "/" + nombre;
     }
 
     // Borra un archivo suelto a partir de la ruta web que tiene guardada su fila
@@ -197,11 +245,16 @@ public class AlmacenArchivos {
         return null;
     }
 
-    // Carpeta que agrupa las de todos los juegos. Solo calcula la ruta, no toca el disco.
-    // Se hace absoluta porque app.uploads.dir es relativa, y una ruta relativa la resuelve
-    // cada API contra un sitio distinto
+    // La carpeta de subidas. Solo calcula la ruta, no toca el disco. Se hace absoluta
+    // porque app.uploads.dir es relativa, y una ruta relativa la resuelve cada API contra
+    // un sitio distinto
+    private Path raiz() {
+        return Path.of(uploadsDir).toAbsolutePath().normalize();
+    }
+
+    // Carpeta que agrupa las de todos los juegos
     private Path raizVideojuegos() {
-        return Path.of(uploadsDir).toAbsolutePath().normalize().resolve(CARPETA_VIDEOJUEGOS);
+        return raiz().resolve(CARPETA_VIDEOJUEGOS);
     }
 
     // Traduce una ruta web a la ruta real en disco, o devuelve null si no se puede
@@ -213,7 +266,7 @@ public class AlmacenArchivos {
             return null;
         }
 
-        Path base = Path.of(uploadsDir).toAbsolutePath().normalize();
+        Path base = raiz();
         // normalize resuelve los .. que pudiera traer la ruta
         Path archivo = base.resolve(rutaWeb.substring(RAIZ_WEB.length())).normalize();
 

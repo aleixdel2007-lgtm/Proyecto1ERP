@@ -37,9 +37,6 @@ public class VideojuegoServiceImpl implements VideojuegoService {
 
     private static final List<Integer> PEGI_VALIDOS = List.of(3, 7, 12, 16, 18);
 
-    private static final Map<String, String> EXTENSIONES = Map.of(
-            "image/png", "png", "image/jpeg", "jpg", "image/webp", "webp");
-
     @Autowired
     private VideojuegoDao videojuegoDao;
 
@@ -283,7 +280,7 @@ public class VideojuegoServiceImpl implements VideojuegoService {
             throw new IllegalArgumentException("El tipo de imagen es obligatorio");
         }
 
-        String extension = extensionDe(archivo);
+        String extension = almacenArchivos.extensionDe(archivo);
 
         if (tipo != TipoImagen.CAPTURA) {
             validarQueNoExista(videojuegoId, tipo);
@@ -337,21 +334,6 @@ public class VideojuegoServiceImpl implements VideojuegoService {
             throw new ImagenNoEncontradaException(imagenId);
         }
         return imagen;
-    }
-
-    private String extensionDe(MultipartFile archivo) {
-
-        if (archivo == null || archivo.isEmpty()) {
-            throw new ImagenInvalidaException("Selecciona un archivo");
-        }
-
-        String extension = archivo.getContentType() == null
-                ? null : EXTENSIONES.get(archivo.getContentType());
-
-        if (extension == null) {
-            throw new ImagenInvalidaException("La imagen tiene que ser JPG, PNG o WEBP");
-        }
-        return extension;
     }
 
     private String textoAlternativoDe(String textoAlternativo, Videojuego videojuego) {

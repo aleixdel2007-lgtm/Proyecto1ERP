@@ -34,7 +34,8 @@
             <div class="grid g-2-1">
 
                 <div class="card">
-                    <form th:action="@{/empleados/guardar}" method="post" th:object="${empleado}">
+                    <form th:action="@{/empleados/guardar}" method="post" th:object="${empleado}"
+                          enctype="multipart/form-data">
 
                         <input type="hidden" th:field="*{id}">
 
@@ -131,6 +132,30 @@
                                         <input type="checkbox" th:field="*{activo}"><i></i> Activo
                                     </label>
                                     <span class="hint">Si lo desmarcas, el empleado no podrá iniciar sesión.</span>
+                                </div>
+
+                            </div>
+
+                            <!-- La foto actual, o el avatar generico si todavia no tiene. Como el
+                                 campo de contrasena: vacio significa no tocarla. -->
+                            <div class="sect-label">Foto de perfil</div>
+                            <div class="form-grid">
+
+                                <div class="frow wide">
+                                    <label for="foto">Cambiar la foto</label>
+                                    <div class="row">
+                                        <img class="avatar emp-avatar" style="object-fit:cover"
+                                             th:src="${imagenEmpleado != null}
+                                                     ? @{${imagenEmpleado.rutaImagen}}
+                                                     : @{/img/placeholder.webp}"
+                                             th:alt="${imagenEmpleado != null}
+                                                     ? ${imagenEmpleado.textoAlternativo}
+                                                     : 'Sin foto de perfil'">
+                                        <input class="inp" type="file" id="foto" name="foto"
+                                               accept="image/png,image/jpeg,image/webp">
+                                    </div>
+                                    <span class="hint">JPG, PNG o WEBP, máximo 2 MB. Déjalo vacío para no
+                                        cambiarla; la anterior se borra al subir una nueva.</span>
                                 </div>
 
                             </div>
