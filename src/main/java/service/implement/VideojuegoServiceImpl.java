@@ -1,9 +1,13 @@
 package service.implement;
 
+import config.AlmacenArchivos;
 import dao.CategoriaDao;
+import dao.ImagenVideojuegoDao;
 import dao.PlataformaDao;
 import dao.ProveedorDao;
 import dao.VideojuegoDao;
+import exception.imagen.ImagenInvalidaException;
+import exception.imagen.ImagenNoEncontradaException;
 import exception.precio.PrecioDescuentoInvalidoException;
 import exception.precio.PrecioInvalidoException;
 import exception.videojuego.ProveedorObligatorioException;
@@ -11,16 +15,21 @@ import exception.videojuego.VideojuegoConReferenciasException;
 import exception.videojuego.VideojuegoNoEncontradoException;
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import model.aprovisionamiento.Proveedor;
 import model.catalogo.Categoria;
+import model.catalogo.ImagenVideojuego;
 import model.catalogo.Plataforma;
+import model.catalogo.TipoImagen;
 import model.catalogo.Videojuego;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 import service.interfaces.VideojuegoService;
 
 @Service
@@ -28,8 +37,17 @@ public class VideojuegoServiceImpl implements VideojuegoService {
 
     private static final List<Integer> PEGI_VALIDOS = List.of(3, 7, 12, 16, 18);
 
+    private static final Map<String, String> EXTENSIONES = Map.of(
+            "image/png", "png", "image/jpeg", "jpg", "image/webp", "webp");
+
     @Autowired
     private VideojuegoDao videojuegoDao;
+
+    @Autowired
+    private ImagenVideojuegoDao imagenVideojuegoDao;
+
+    @Autowired
+    private AlmacenArchivos almacenArchivos;
 
     @Autowired
     private ProveedorDao proveedorDao;
@@ -225,6 +243,143 @@ public class VideojuegoServiceImpl implements VideojuegoService {
         } catch (DataIntegrityViolationException e) {
             throw new VideojuegoConReferenciasException();
         }
+
+        almacenArchivos.borrarCarpeta(id);
+    }
+
+    @Override
+    public List<ImagenVideojuego> listarImagenes(Long videojuegoId) {
+        return imagenVideojuegoDao.findByVideojuegoIdOrderByOrdenAscIdAsc(videojuegoId);
+    }
+
+    @Override
+    public Map<Long, String> listarPortadas(List<Videojuego> videojuegos) {
+
+        Map<Long, String> portadas = new HashMap<>();
+
+        if (videojuegos == null || videojuegos.isEmpty()) {
+            return portadas;
+        }
+
+        List<Long> ids = new ArrayList<>();
+
+        for (Videojuego videojuego : videojuegos) {
+            ids.add(videojuego.getId());
+        }
+
+        for (Object[] fila : imagenVideojuegoDao.buscarPorTipo(ids, TipoImagen.PORTADA)) {
+            portadas.putIfAbsent((Long) fila[0], (String) fila[1]);
+        }
+        return portadas;
+    }
+
+    @Override
+    public ImagenVideojuego guardarImagen(Long videojuegoId, MultipartFile archivo,
+                                          TipoImagen tipo, String textoAlternativo) {
+
+        Videojuego videojuego = buscarVideojuegoXId(videojuegoId);
+
+        if (tipo == null) {
+            throw new IllegalArgumentException("El tipo de imagen es obligatorio");
+        }
+
+        String extension = extensionDe(archivo);
+
+        if (tipo != TipoImagen.CAPTURA) {
+            degradarAnteriores(videojuegoId, tipo);
+        }
+
+        String ruta = almacenArchivos.guardarImagen(
+                videojuegoId, videojuego.getTitulo(), archivo, extension);
+
+        ImagenVideojuego imagen = new ImagenVideojuego();
+        imagen.setVideojuego(videojuego);
+        imagen.setTipo(tipo);
+        imagen.setRuta(ruta);
+        imagen.setOrden(imagenVideojuegoDao.maximoOrden(videojuegoId, tipo) + 1);
+        imagen.setTextoAlternativo(textoAlternativoDe(textoAlternativo, videojuego));
+
+        try {
+            return imagenVideojuegoDao.save(imagen);
+
+        } catch (RuntimeException e) {
+            almacenArchivos.borrar(ruta);
+            throw e;
+        }
+    }
+
+    @Override
+    public void eliminarImagen(Long videojuegoId, Long imagenId) {
+
+        ImagenVideojuego imagen = buscarImagenXId(videojuegoId, imagenId);
+        String ruta = imagen.getRuta();
+
+        imagenVideojuegoDao.delete(imagen);
+        imagenVideojuegoDao.flush();
+
+        almacenArchivos.borrar(ruta);
+    }
+
+    @Override
+    public void designarPortada(Long videojuegoId, Long imagenId) {
+
+        ImagenVideojuego imagen = buscarImagenXId(videojuegoId, imagenId);
+
+        if (imagen.getTipo() == TipoImagen.PORTADA) {
+            return;
+        }
+
+        degradarAnteriores(videojuegoId, TipoImagen.PORTADA);
+
+        imagen.setTipo(TipoImagen.PORTADA);
+        imagen.setOrden(1);
+
+        imagenVideojuegoDao.save(imagen);
+    }
+
+    private void degradarAnteriores(Long videojuegoId, TipoImagen tipo) {
+
+        for (ImagenVideojuego anterior
+                : imagenVideojuegoDao.findByVideojuegoIdAndTipoOrderByOrdenAscIdAsc(videojuegoId, tipo)) {
+
+            anterior.setTipo(TipoImagen.CAPTURA);
+            anterior.setOrden(imagenVideojuegoDao.maximoOrden(videojuegoId, TipoImagen.CAPTURA) + 1);
+
+            imagenVideojuegoDao.save(anterior);
+        }
+    }
+
+    private ImagenVideojuego buscarImagenXId(Long videojuegoId, Long imagenId) {
+
+        ImagenVideojuego imagen = imagenVideojuegoDao.findById(imagenId).orElse(null);
+
+        if (imagen == null || !imagen.getVideojuego().getId().equals(videojuegoId)) {
+            throw new ImagenNoEncontradaException(imagenId);
+        }
+        return imagen;
+    }
+
+    private String extensionDe(MultipartFile archivo) {
+
+        if (archivo == null || archivo.isEmpty()) {
+            throw new ImagenInvalidaException("Selecciona un archivo");
+        }
+
+        String extension = archivo.getContentType() == null
+                ? null : EXTENSIONES.get(archivo.getContentType());
+
+        if (extension == null) {
+            throw new ImagenInvalidaException("La imagen tiene que ser JPG, PNG o WEBP");
+        }
+        return extension;
+    }
+
+    private String textoAlternativoDe(String textoAlternativo, Videojuego videojuego) {
+
+        if (textoAlternativo == null || textoAlternativo.isBlank()) {
+            return videojuego.getTitulo();
+        }
+        return textoAlternativo.trim();
     }
 
     @Override

@@ -1,15 +1,19 @@
 package controller;
 
+import exception.imagen.ImagenInvalidaException;
 import exception.precio.PrecioDescuentoInvalidoException;
 import exception.precio.PrecioInvalidoException;
 import exception.videojuego.ProveedorObligatorioException;
 import exception.videojuego.VideojuegoConReferenciasException;
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import model.catalogo.Categoria;
+import model.catalogo.ImagenVideojuego;
 import model.catalogo.Plataforma;
+import model.catalogo.TipoImagen;
 import model.catalogo.Videojuego;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -19,6 +23,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import service.interfaces.VideojuegoService;
 
@@ -39,8 +44,11 @@ public class ControllerVideojuego {
             @RequestParam(defaultValue = "0") int pagina,
             Model model) {
 
-        model.addAttribute("videojuegos", videojuegoService.listarVideojuegos(
-                texto, categoriaId, plataformaId, precioMin, precioMax, activo));
+        List<Videojuego> videojuegos = videojuegoService.listarVideojuegos(
+                texto, categoriaId, plataformaId, precioMin, precioMax, activo);
+
+        model.addAttribute("videojuegos", videojuegos);
+        model.addAttribute("portadas", videojuegoService.listarPortadas(videojuegos));
         model.addAttribute("categorias", videojuegoService.listarCategorias());
         model.addAttribute("plataformas", videojuegoService.listarPlataformas());
 
@@ -72,6 +80,7 @@ public class ControllerVideojuego {
 
         cargarCatalogos(model, idDelProveedor(videojuego),
                 idsDeCategorias(videojuego), idsDePlataformas(videojuego));
+        cargarImagenes(model, id);
 
         return "catalogo/videojuego";
     }
@@ -116,6 +125,68 @@ public class ControllerVideojuego {
         flash.addFlashAttribute("mensaje", "Videojuego eliminado correctamente");
 
         return "redirect:/catalogo/videojuegos";
+    }
+
+    @PostMapping("/catalogo/videojuegos/{id}/imagenes")
+    public String guardarImagen(@PathVariable Long id,
+                                @RequestParam("archivo") MultipartFile archivo,
+                                @RequestParam("tipo") TipoImagen tipo,
+                                @RequestParam(value = "textoAlternativo", required = false) String textoAlternativo,
+                                RedirectAttributes flash) {
+
+        try {
+            videojuegoService.guardarImagen(id, archivo, tipo, textoAlternativo);
+            flash.addFlashAttribute("mensaje", "Imagen anadida correctamente");
+
+        } catch (ImagenInvalidaException | IllegalArgumentException e) {
+            flash.addFlashAttribute("error", e.getMessage());
+        }
+
+        return "redirect:/catalogo/videojuegos/editar/" + id;
+    }
+
+    @PostMapping("/catalogo/videojuegos/{id}/imagenes/{imagenId}/eliminar")
+    public String eliminarImagen(@PathVariable Long id, @PathVariable Long imagenId,
+                                 RedirectAttributes flash) {
+
+        videojuegoService.eliminarImagen(id, imagenId);
+        flash.addFlashAttribute("mensaje", "Imagen eliminada correctamente");
+
+        return "redirect:/catalogo/videojuegos/editar/" + id;
+    }
+
+    @PostMapping("/catalogo/videojuegos/{id}/imagenes/{imagenId}/portada")
+    public String designarPortada(@PathVariable Long id, @PathVariable Long imagenId,
+                                  RedirectAttributes flash) {
+
+        videojuegoService.designarPortada(id, imagenId);
+        flash.addFlashAttribute("mensaje", "Portada actualizada correctamente");
+
+        return "redirect:/catalogo/videojuegos/editar/" + id;
+    }
+
+    private void cargarImagenes(Model model, Long id) {
+
+        ImagenVideojuego portada = null;
+        ImagenVideojuego banner = null;
+        List<ImagenVideojuego> capturas = new ArrayList<>();
+
+        for (ImagenVideojuego imagen : videojuegoService.listarImagenes(id)) {
+
+            if (imagen.getTipo() == TipoImagen.PORTADA && portada == null) {
+                portada = imagen;
+
+            } else if (imagen.getTipo() == TipoImagen.BANNER && banner == null) {
+                banner = imagen;
+
+            } else {
+                capturas.add(imagen);
+            }
+        }
+
+        model.addAttribute("portada", portada);
+        model.addAttribute("banner", banner);
+        model.addAttribute("capturas", capturas);
     }
 
     private void cargarCatalogos(Model model, Long proveedorId,

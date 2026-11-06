@@ -2,10 +2,14 @@ package service.interfaces;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 import model.aprovisionamiento.Proveedor;
 import model.catalogo.Categoria;
+import model.catalogo.ImagenVideojuego;
 import model.catalogo.Plataforma;
+import model.catalogo.TipoImagen;
 import model.catalogo.Videojuego;
+import org.springframework.web.multipart.MultipartFile;
 
 public interface VideojuegoService {
 
@@ -18,6 +22,17 @@ public interface VideojuegoService {
                                  List<Long> categoriaIds, List<Long> plataformaIds);
 
     void eliminarVideojuego(Long id);
+
+    List<ImagenVideojuego> listarImagenes(Long videojuegoId);
+
+    Map<Long, String> listarPortadas(List<Videojuego> videojuegos);
+
+    ImagenVideojuego guardarImagen(Long videojuegoId, MultipartFile archivo,
+                                   TipoImagen tipo, String textoAlternativo);
+
+    void eliminarImagen(Long videojuegoId, Long imagenId);
+
+    void designarPortada(Long videojuegoId, Long imagenId);
 
     List<Proveedor> listarProveedoresActivos();
 
