@@ -1,6 +1,7 @@
 package service.interfaces;
 
 import java.util.List;
+import java.util.Map;
 import model.seguridad.Departamento;
 import model.seguridad.Empleado;
 import model.seguridad.ImagenUsuario;
@@ -14,5 +15,6 @@ public interface EmpleadoService {
     void eliminarEmpleado(Long id);
     List<Departamento> listarDepartamentos();
     ImagenUsuario buscarImagenPerfil(Long empleadoId);
+    Map<Long, String> listarImagenesPerfil(List<Empleado> empleados);
     void guardarImagenPerfil(Long empleadoId, MultipartFile archivo);
 }

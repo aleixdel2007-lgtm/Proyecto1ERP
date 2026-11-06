@@ -41,6 +41,7 @@ public class ControllerEmpleado {
 
         List<Empleado> lista = empleadoService.listarEmpleados(texto, departamentoId, rol);
         model.addAttribute("empleados", lista);
+        model.addAttribute("fotos", empleadoService.listarImagenesPerfil(lista));
         model.addAttribute("departamentos", empleadoService.listarDepartamentos());
 
         model.addAttribute("texto", texto);

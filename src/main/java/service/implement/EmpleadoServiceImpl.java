@@ -10,7 +10,10 @@ import exception.email.EmailDuplicadoException;
 import exception.empleado.EmpleadoConReferenciasException;
 import exception.empleado.EmpleadoNoEncontradoException;
 import exception.nif.NifDuplicadoException;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import model.seguridad.Departamento;
 import model.seguridad.Empleado;
 import model.seguridad.ImagenUsuario;
@@ -208,6 +211,27 @@ public class EmpleadoServiceImpl implements EmpleadoService {
     @Override
     public ImagenUsuario buscarImagenPerfil(Long empleadoId) {
         return imagenUsuarioDao.findById(empleadoId).orElse(null);
+    }
+
+    @Override
+    public Map<Long, String> listarImagenesPerfil(List<Empleado> empleados) {
+
+        Map<Long, String> fotos = new HashMap<>();
+
+        if (empleados == null || empleados.isEmpty()) {
+            return fotos;
+        }
+
+        List<Long> ids = new ArrayList<>();
+
+        for (Empleado empleado : empleados) {
+            ids.add(empleado.getId());
+        }
+
+        for (Object[] fila : imagenUsuarioDao.buscarPorUsuarios(ids)) {
+            fotos.put((Long) fila[0], (String) fila[1]);
+        }
+        return fotos;
     }
 
     @Override
