@@ -100,12 +100,20 @@
 .gal-main.vacia{display:grid;place-items:center;color:var(--muted);font-size:13px;text-align:center;padding:20px}
 
 .gal-thumbs{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+
+/* Son botones, asi que hay que quitarles el relleno que traen de serie */
 .gal-thumbs .thumb{
     aspect-ratio:16/9;border-radius:var(--r-sm);overflow:hidden;background:var(--surface-2);
-    border:1px solid var(--line);opacity:.65;
+    border:1px solid var(--line);opacity:.65;padding:0;display:block;cursor:pointer;
 }
-.gal-thumbs .thumb:hover{opacity:1;box-shadow:0 0 0 2px var(--purple)}
+/* .on la pone ficha.js en la que esta puesta arriba */
+.gal-thumbs .thumb:hover,
+.gal-thumbs .thumb.on{opacity:1;box-shadow:0 0 0 2px var(--purple)}
 .gal-thumbs .thumb img{width:100%;height:100%;object-fit:cover;display:block}
+
+/* La clase la anade ficha.js cuando conecta el intercambio, para que el cursor de mano
+   no aparezca en un juego sin capturas, donde pulsar la imagen no hace nada */
+.gal-main.interactiva{cursor:pointer}
 
 /* La etiqueta PEGI sobre la imagen principal */
 .gal-main{position:relative}
