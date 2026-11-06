@@ -29,9 +29,11 @@
                 </div>
 
                 <div class="error-actions">
-                    <a class="btn btn-primary" sec:authorize="hasRole('CLIENTE')" th:href="@{/tienda}" href="#">Volver al inicio</a>
-                    <a class="btn btn-primary" sec:authorize="!hasRole('CLIENTE')" th:href="@{/home}" href="#">Volver al inicio</a>
-                    <a class="btn" th:href="@{/logout}" href="#">Cerrar sesión</a>
+                    <a class="btn btn-primary" sec:authorize="hasAnyRole('CLIENTE','COLABORADOR')" th:href="@{/tienda}" href="#">Volver al inicio</a>
+                    <a class="btn btn-primary" sec:authorize="!hasAnyRole('CLIENTE','COLABORADOR')" th:href="@{/home}" href="#">Volver al inicio</a>
+                    <form th:action="@{/logout}" method="post">
+                        <button type="submit" class="btn">Cerrar sesión</button>
+                    </form>
                 </div>
             </div>
         </div>

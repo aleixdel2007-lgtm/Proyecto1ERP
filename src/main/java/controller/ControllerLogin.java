@@ -90,10 +90,4 @@ public class ControllerLogin {
         return "login/login";
     }
 
-    @GetMapping("/logout")
-    public String logout() {
-        SecurityContextHolder.getContext().setAuthentication(null);
-        return "redirect:/login";
-    }
-
 }

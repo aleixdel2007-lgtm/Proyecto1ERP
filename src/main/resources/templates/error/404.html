@@ -26,8 +26,8 @@
                     <p class="hint auth-sub error-text">La dirección que buscas no existe o se ha movido a otro sitio.</p>
                 </div>
                 <div class="error-actions">
-                    <a class="btn btn-primary" sec:authorize="hasRole('CLIENTE')" th:href="@{/tienda}" href="#">Volver al inicio</a>
-                    <a class="btn btn-primary" sec:authorize="!hasRole('CLIENTE')" th:href="@{/home}" href="#">Volver al inicio</a>
+                    <a class="btn btn-primary" sec:authorize="hasAnyRole('CLIENTE','COLABORADOR')" th:href="@{/tienda}" href="#">Volver al inicio</a>
+                    <a class="btn btn-primary" sec:authorize="!hasAnyRole('CLIENTE','COLABORADOR')" th:href="@{/home}" href="#">Volver al inicio</a>
                 </div>
             </div>
         </div>

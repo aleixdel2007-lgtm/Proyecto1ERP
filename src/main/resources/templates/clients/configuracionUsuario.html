@@ -1,5 +1,6 @@
 <!doctype html>
-<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<html lang="es" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -136,7 +137,12 @@
                     </div>
                 </div>
                 <div class="form-foot">
-                    <a class="btn" th:href="@{/home}" href="#">Cancelar</a>
+                    <!-- A donde se vuelve depende del rol: un cliente o un colaborador no
+                         pueden entrar en /home, asi que ese boton les daba un 403. -->
+                    <a class="btn" sec:authorize="hasAnyRole('CLIENTE','COLABORADOR')"
+                       th:href="@{/tienda}" href="#">Cancelar</a>
+                    <a class="btn" sec:authorize="!hasAnyRole('CLIENTE','COLABORADOR')"
+                       th:href="@{/home}" href="#">Cancelar</a>
                     <button type="submit" class="btn btn-primary">Guardar</button>
                 </div>
             </form>

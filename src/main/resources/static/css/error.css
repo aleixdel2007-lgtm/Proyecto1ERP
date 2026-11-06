@@ -11,4 +11,7 @@
 .error-title{font-size:17px}
 .error-text{max-width:32ch}
 .error-actions{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:4px}
+/* El form del boton de cerrar sesion no debe contar como caja: display:contents deja que
+   el boton sea hijo directo del flex y se alinee con los enlaces de al lado */
+.error-actions form{display:contents}
 a.btn:hover{text-decoration:none}

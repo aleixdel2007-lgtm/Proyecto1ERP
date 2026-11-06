@@ -7,7 +7,7 @@
         <div class="brand-mark">L</div>
         <div class="brand-name">Ludus<span>ERP</span></div>
     </a>
-    <th:block th:if="${#authentication.authorities[0].authority != 'ROLE_ADMIN'}">
+    <th:block sec:authorize="!hasRole('ADMIN')">
         <div class="top-search">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                  stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -35,7 +35,11 @@
         </div>
     </div>
 
-    <a class="top-logout" th:href="@{/logout}" href="#">Cerrar sesión</a>
+    <!-- Tiene que ser un POST: desde Security 6 el filtro de logout solo escucha POST, y un
+         enlace GET dejaba la sesion abierta. El token CSRF lo pone Thymeleaf solo. -->
+    <form th:action="@{/logout}" method="post">
+        <button type="submit" class="top-logout">Cerrar sesión</button>
+    </form>
     <script th:src="@{/js/client-profile.js}" src="../static/js/client-profile.js"></script>
 </header>
 </body>

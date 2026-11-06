@@ -35,7 +35,7 @@
             
             <span class="ic"><svg th:replace="~{fragments/iconos :: truck}"></svg></span>Proveedores</a>
         </th:block>
-        <th:block sec:authorize="hasAnyRole('ADMIN', 'GESTOR_VENTAS')">
+        <th:block sec:authorize="hasAnyRole('ADMIN', 'GESTOR_INVENTARIO')">
             <div class="nav-group">Ventas</div>
             <a class="nav-item" th:classappend="${activo == 'pedidos'} ? 'on' : ''"
                th:href="@{/ventas/pedidos}">
@@ -79,7 +79,7 @@
         <b th:text="${titulo}">Proveedores</b>
     </div>
     <div class="who">
-        <!-- imagenPerfil lo pone ImagenPerfilAdvice en todas las paginas. Antes esta barra
+        <!-- imagenPerfil lo pone ControllerAdviceImagenPerfil en todas las paginas. Antes esta barra
              nunca ensenaba la foto, solo la inicial, aunque el usuario tuviera una. -->
         <img class="avatar" style="object-fit:cover"
              th:src="${imagenPerfil != null} ? @{${imagenPerfil.rutaImagen}} : @{/img/placeholder.webp}"

@@ -13,7 +13,7 @@ import java.security.Principal;
 // La navbar sale en casi todas las paginas, asi que la foto del usuario se pone en el modelo aqui
 @ControllerAdvice
 @RequiredArgsConstructor
-public class ImagenPerfilAdvice {
+public class ControllerAdviceImagenPerfil {
 
     private final UsuarioDao usuarioDao;
     private final ImagenUsuarioDao imagenUsuarioDao;

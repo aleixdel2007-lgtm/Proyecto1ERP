@@ -69,8 +69,11 @@ body{
 .who-txt b{display:block;font-size:12.5px;font-weight:600}
 .who-txt span{font-size:11px;color:var(--muted)}
 
+/* Cerrar sesion es un <button> dentro de un form POST, no un enlace: hay que quitarle
+   el fondo y el borde que el navegador le pone de serie para que siga pareciendo texto */
 .top-logout{
     padding:6px 11px;border-radius:var(--r-sm);color:var(--ink-2);font-size:13.5px;
+    background:none;border:0;font-family:inherit;cursor:pointer;
 }
 .top-logout:hover{background:var(--surface-2);color:var(--ink)}
 

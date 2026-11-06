@@ -55,19 +55,22 @@ public class SecurityConfig {
                 .requestMatchers("/catalogo/categorias/**").hasAnyRole("GESTOR_PRODUCTOS", "ADMIN")
                 .requestMatchers("/catalogo/plataformas/**").hasAnyRole("GESTOR_PRODUCTOS", "ADMIN")
                 .requestMatchers("/compras/**").hasAnyRole("ADMIN", "GESTOR_INVENTARIO")
+                .requestMatchers("/ventas/**").hasAnyRole("ADMIN", "GESTOR_INVENTARIO")
+                .requestMatchers("/tienda", "/tienda/**").hasAnyRole("CLIENTE", "COLABORADOR", "ADMIN")
                 .requestMatchers("/home").hasAnyRole("ADMIN", "GESTOR_CLIENTES", "GESTOR_PRODUCTOS", "GESTOR_INVENTARIO")
                 .requestMatchers("/admin/**").hasRole("ADMIN")
-                .requestMatchers("/user/**").hasAnyRole("CLIENTE", "ADMIN")
+                .requestMatchers("/user/**").authenticated()
                 .requestMatchers("/clientes/**").hasAnyRole("GESTOR_CLIENTES", "ADMIN")
                 .anyRequest().authenticated()
                 )
                 .formLogin(form -> form
                 .loginPage("/login")
-                // Los clientes van a la tienda, el resto de roles, a "/home"
+                // Los clientes y los colaboradores van a la tienda, el resto de roles, a "/home"
                 .successHandler((request, response, authentication) -> {
-                    boolean esCliente = authentication.getAuthorities().stream()
-                            .anyMatch(a -> a.getAuthority().equals("ROLE_" + Rol.CLIENTE.name()));
-                    response.sendRedirect(request.getContextPath() + (esCliente ? "/tienda" : "/home"));
+                    boolean vaATienda = authentication.getAuthorities().stream()
+                            .anyMatch(a -> a.getAuthority().equals("ROLE_" + Rol.CLIENTE.name())
+                            || a.getAuthority().equals("ROLE_" + Rol.COLABORADOR.name()));
+                    response.sendRedirect(request.getContextPath() + (vaATienda ? "/tienda" : "/home"));
                 })
                 // si el login falla, miramos por que: si es porque la cuenta esta inactiva, avisamos aparte
                 .failureHandler((request, response, exception) -> {
@@ -82,13 +85,14 @@ public class SecurityConfig {
                 .permitAll()
                 )
                 .exceptionHandling(ex -> ex
-                // Un cliente que escribe /home a mano va a su pagina de inicio, no al 403
+                // Un cliente o un colaborador que escribe /home a mano va a su pagina de inicio, no al 403
                 .accessDeniedHandler((request, response, denied) -> {
                     Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-                    boolean esCliente = auth != null && auth.getAuthorities().stream()
-                            .anyMatch(a -> a.getAuthority().equals("ROLE_" + Rol.CLIENTE.name()));
+                    boolean vaATienda = auth != null && auth.getAuthorities().stream()
+                            .anyMatch(a -> a.getAuthority().equals("ROLE_" + Rol.CLIENTE.name())
+                            || a.getAuthority().equals("ROLE_" + Rol.COLABORADOR.name()));
                     String ruta = request.getRequestURI().substring(request.getContextPath().length());
-                    if (esCliente && ruta.equals("/home")) {
+                    if (vaATienda && ruta.equals("/home")) {
                         response.sendRedirect(request.getContextPath() + "/tienda");
                     } else {
                         response.sendError(HttpServletResponse.SC_FORBIDDEN);
