@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Videojuegos · LudusERP</title>
+    <link rel="stylesheet" th:href="@{/css/panel.css}">
+    <link rel="stylesheet" th:href="@{/css/catalogo.css}">
+</head>
+<body>
+
+<div class="app">
+
+    <aside th:replace="~{fragments/panel :: menu('videojuegos')}"></aside>
+
+    <div class="main">
+
+        <header th:replace="~{fragments/panel :: barra('Catálogo', 'Videojuegos')}"></header>
+
+        <main class="canvas">
+
+            <div class="alert alert-ok" th:if="${mensaje}" th:text="${mensaje}"></div>
+            <div class="alert alert-err" th:if="${error}" th:text="${error}"></div>
+
+            <div class="page-head">
+                <div>
+                    <h1>Videojuegos</h1>
+                    <p>El CRUD principal del catálogo. Relaciona categorías y plataformas (N:M),
+                        imágenes (1:N), el proveedor que lo suministra y, en los juegos que sube un
+                        colaborador, el colaborador que los publicó.</p>
+                </div>
+                <div class="page-actions">
+                    <a class="btn btn-primary" th:href="@{/catalogo/videojuegos/nuevo}">
+                        <svg th:replace="~{fragments/iconos :: plus}"></svg> Nuevo videojuego</a>
+                </div>
+            </div>
+
+            <!-- Los datos llegan enteros del servicio: aqui se calcula que trozo se pinta.
+                 tam es el limite por pagina y pagina la que pide el controlador; si se pasa
+                 del final, actual la recorta a la ultima que existe. -->
+            <div class="card"
+                 th:with="tam=${10},
+                          total=${#lists.size(videojuegos)},
+                          paginas=${(total + tam - 1) / tam},
+                          actual=${paginas == 0 ? 0 : (pagina > paginas - 1 ? paginas - 1 : pagina)},
+                          inicio=${actual * tam},
+                          fin=${actual * tam + tam > total ? total : actual * tam + tam}">
+
+                <form class="filters" method="get" th:action="@{/catalogo/videojuegos}">
+                    <div class="fld">
+                        <label>Buscar por título</label>
+                        <div class="search-inp">
+                            <svg th:replace="~{fragments/iconos :: search}"></svg>
+                            <input name="texto" th:value="${texto}" placeholder="Título...">
+                        </div>
+                    </div>
+                    <div class="fld">
+                        <label>Categoría</label>
+                        <select class="inp" name="categoriaId">
+                            <option value="">Todas</option>
+                            <option th:each="c : ${categorias}"
+                                    th:value="${c.id}"
+                                    th:text="${c.nombre}"
+                                    th:selected="${categoriaId != null and categoriaId == c.id}">Acción</option>
+                        </select>
+                    </div>
+                    <div class="fld">
+                        <label>Plataforma</label>
+                        <select class="inp" name="plataformaId">
+                            <option value="">Todas</option>
+                            <option th:each="p : ${plataformas}"
+                                    th:value="${p.id}"
+                                    th:text="${p.nombre}"
+                                    th:selected="${plataformaId != null and plataformaId == p.id}">PC</option>
+                        </select>
+                    </div>
+                    <div class="fld">
+                        <label>Precio</label>
+                        <div class="fld-precio">
+                            <input class="inp" type="number" step="0.01" min="0" name="precioMin"
+                                   th:value="${precioMin}" placeholder="min">
+                            <span class="muted">—</span>
+                            <input class="inp" type="number" step="0.01" min="0" name="precioMax"
+                                   th:value="${precioMax}" placeholder="max">
+                        </div>
+                    </div>
+                    <div class="fld">
+                        <label>Estado</label>
+                        <select class="inp" name="activo">
+                            <option value="">Todos</option>
+                            <option value="true" th:selected="${activo != null and activo}">Activo</option>
+                            <option value="false" th:selected="${activo != null and !activo}">Inactivo</option>
+                        </select>
+                    </div>
+                    <div class="fld">
+                        <label>&nbsp;</label>
+                        <button type="submit" class="btn btn-primary">Filtrar</button>
+                    </div>
+                    <div class="fld">
+                        <label>&nbsp;</label>
+                        <a class="btn" th:href="@{/catalogo/videojuegos}">Limpiar</a>
+                    </div>
+                </form>
+
+                <div class="card-body tight">
+
+                    <div class="empty" th:if="${#lists.isEmpty(videojuegos)}">
+                        <h4>Todavía no hay videojuegos</h4>
+                        <p class="hint">Crea el primero con el botón «Nuevo videojuego».</p>
+                    </div>
+
+                    <div class="tbl-wrap" th:unless="${#lists.isEmpty(videojuegos)}">
+                        <table class="tbl">
+                            <thead>
+                            <tr>
+                                <th>Juego</th>
+                                <th>Estudio</th>
+                                <th>Categoría</th>
+                                <th>Plataforma</th>
+                                <th class="num">PEGI</th>
+                                <th class="num">Precio</th>
+                                <th class="num">Stock</th>
+                                <th>Estado</th>
+                                <th class="acts"></th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="v : ${videojuegos.subList(inicio, fin)}">
+                                <td>
+                                    <!-- La portada sale del mapa portadas, con la misma forma que el mapa
+                                         juegos del listado de categorias: la clave es el id del juego. -->
+                                    <div class="row">
+                                        <span class="mini" th:if="${portadas[v.id] != null}">
+                                            <img th:src="@{${portadas[v.id]}}" th:alt="${v.titulo}">
+                                        </span>
+                                        <span class="mini vacia" th:if="${portadas[v.id] == null}"
+                                              title="Este juego todavía no tiene portada">
+                                            <svg th:replace="~{fragments/iconos :: image}"></svg>
+                                        </span>
+                                        <div>
+                                            <div class="t-main" th:text="${v.titulo}">Eclipse Protocol</div>
+                                            <div class="t-sub">
+                                                <span th:text="'#' + ${v.id}">#318</span>
+                                                <span th:if="${v.fechaLanzamiento != null}"
+                                                      th:text="' · ' + ${#temporals.format(v.fechaLanzamiento, 'dd/MM/yyyy')}">
+                                                    · 14/03/2026</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span th:if="${v.proveedor != null}"
+                                          th:text="${v.proveedor.nombreComercial}">Iberia Digital Supply</span>
+                                    <div th:if="${v.proveedor == null and v.colaborador != null}">
+                                        <div th:text="${v.colaborador.apellidos != null
+                                                ? v.colaborador.nombre + ' ' + v.colaborador.apellidos
+                                                : v.colaborador.nombre}">Jordi Bastida</div>
+                                        <div class="t-sub">colaborador</div>
+                                    </div>
+                                    <span class="muted"
+                                          th:if="${v.proveedor == null and v.colaborador == null}">—</span>
+                                </td>
+                                <td>
+                                    <span class="chip" th:each="c : ${v.categorias}" th:text="${c.nombre}">RPG</span>
+                                    <span class="muted" th:if="${v.categorias.isEmpty()}">—</span>
+                                </td>
+                                <td>
+                                    <span class="chip" th:each="p : ${v.plataformas}" th:text="${p.nombre}">PC</span>
+                                    <span class="muted" th:if="${v.plataformas.isEmpty()}">—</span>
+                                </td>
+                                <td class="num" th:text="${v.pegi}">16</td>
+                                <td class="num">
+                                    <b th:text="${#numbers.formatDecimal(
+                                            v.precioDescuento != null ? v.precioDescuento : v.precio,
+                                            1, 'POINT', 2, 'COMMA')} + ' €'">44,99 €</b>
+                                    <div class="t-sub" th:if="${v.precioDescuento != null}"
+                                         th:text="'estándar ' + ${#numbers.formatDecimal(v.precio, 1, 'POINT', 2, 'COMMA')} + ' €'">
+                                        estándar 59,99 €</div>
+                                </td>
+                                <td class="num">
+                                    <span class="muted" title="Pendiente de las claves de licencia">—</span>
+                                </td>
+                                <td>
+                                    <span class="badge" th:classappend="${v.activo} ? 'b-good' : 'b-mute'"
+                                          th:text="${v.activo} ? 'ACTIVO' : 'INACTIVO'">ACTIVO</span>
+                                </td>
+                                <td class="acts">
+                                    <a class="btn btn-sm btn-ghost" title="Editar"
+                                       th:href="@{/catalogo/videojuegos/editar/{id}(id=${v.id})}">
+                                        <svg th:replace="~{fragments/iconos :: edit}"></svg>
+                                    </a>
+                                    <form th:action="@{/catalogo/videojuegos/eliminar/{id}(id=${v.id})}" method="post"
+                                          onsubmit="return confirm(&quot;¿Seguro que quieres eliminar este videojuego? No se puede deshacer.&quot;);">
+                                        <button type="submit" class="btn btn-sm btn-danger" title="Eliminar">
+                                            <svg th:replace="~{fragments/iconos :: trash}"></svg>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Flechas y numeros de pagina. Cada enlace repite los cinco filtros para no
+                     perderlos al cambiar de pagina, y .off apaga la flecha del extremo. -->
+                <div class="pager" th:unless="${#lists.isEmpty(videojuegos)}">
+                    <span>Mostrando <b th:text="${fin - inicio}">10</b>
+                        de <b th:text="${total}">12</b> registros</span>
+                    <div class="pages">
+                        <a class="pg" th:classappend="${actual == 0} ? 'off' : ''"
+                           th:href="@{/catalogo/videojuegos(texto=${texto}, categoriaId=${categoriaId},
+                                                            plataformaId=${plataformaId}, precioMin=${precioMin},
+                                                            precioMax=${precioMax}, activo=${activo},
+                                                            pagina=${actual - 1})}">&lsaquo;</a>
+                        <a class="pg" th:each="i : ${#numbers.sequence(0, paginas - 1)}"
+                           th:classappend="${i == actual} ? 'on' : ''"
+                           th:text="${i + 1}"
+                           th:href="@{/catalogo/videojuegos(texto=${texto}, categoriaId=${categoriaId},
+                                                            plataformaId=${plataformaId}, precioMin=${precioMin},
+                                                            precioMax=${precioMax}, activo=${activo},
+                                                            pagina=${i})}">1</a>
+                        <a class="pg" th:classappend="${actual >= paginas - 1} ? 'off' : ''"
+                           th:href="@{/catalogo/videojuegos(texto=${texto}, categoriaId=${categoriaId},
+                                                            plataformaId=${plataformaId}, precioMin=${precioMin},
+                                                            precioMax=${precioMax}, activo=${activo},
+                                                            pagina=${actual + 1})}">&rsaquo;</a>
+                    </div>
+                </div>
+
+            </div>
+
+        </main>
+    </div>
+</div>
+
+</body>
+</html>

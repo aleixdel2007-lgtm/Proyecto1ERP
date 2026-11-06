@@ -2,7 +2,7 @@ package service.implement;
 
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
 import dao.FacturasDAO;
-import exception.FacturaNoEncontradaException;
+import exception.factura.FacturaNoEncontradaException;
 import model.ventas.Factura;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

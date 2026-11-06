@@ -1,7 +1,7 @@
 package service.implement;
 
 import dao.PedidoDao;
-import exception.PedidoNoEncontradoException;
+import exception.pedido.PedidoNoEncontradoException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;

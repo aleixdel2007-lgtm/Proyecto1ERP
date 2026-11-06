@@ -28,17 +28,6 @@
                         aplicación.</p>
                 </div>
 
-                <!-- Solo sale si Spring rellena esos atributos: la ruta siempre, y el detalle
-                     unicamente con server.error.include-message=always. -->
-                <div class="error-tech" th:if="${!#strings.isEmpty(path) or !#strings.isEmpty(message)}">
-                    <div th:if="${!#strings.isEmpty(path)}">
-                        <b>Ruta</b> <span th:text="${path}">/empleados</span>
-                    </div>
-                    <div th:if="${!#strings.isEmpty(message)}">
-                        <b>Detalle</b> <span th:text="${message}">Mensaje de la excepción</span>
-                    </div>
-                </div>
-
                 <div class="error-actions">
                     <a class="btn btn-primary" sec:authorize="hasRole('CLIENTE')" th:href="@{/tienda}" href="#">Volver al inicio</a>
                     <a class="btn btn-primary" sec:authorize="!hasRole('CLIENTE')" th:href="@{/home}" href="#">Volver al inicio</a>

@@ -11,3 +11,93 @@
 
 /* Los dos avisos del pie del listado */
 .cat-avisos{margin-top:16px}
+
+/* Los dos campos del filtro de precio, uno al lado del otro dentro del mismo .fld */
+.fld-precio{display:flex;align-items:center;gap:7px}
+.fld-precio .inp{width:84px}
+
+/* La fila del precio rebajado, apagada mientras el interruptor del descuento este en off */
+.frow.off{opacity:.45}
+
+/* Los chips de la pestana de clasificacion hacen de casilla: la casilla se ve, y el JS
+   le pone .on al chip para que se note cual esta seleccionado */
+.chip-grupo{margin-top:10px}
+.chip-grupo .chip{cursor:pointer}
+.chip-grupo .chip input{margin:0;accent-color:var(--purple)}
+
+/* OJO: .row lo definen empleados.css, colaboradores.css y configuracionUsuario.css, y esta
+   pantalla no carga ninguno de los tres, asi que los chips salian pegados sin el gap. Su
+   sitio natural es panel.css, que es el que comparten todas; aqui esta para no tocar el
+   fichero comun mientras solo trabajamos el catalogo */
+.row{display:flex;gap:10px;align-items:center}
+.row.wrap{flex-wrap:wrap}
+
+/* El pie del formulario de la ficha cuelga ahora de dentro de .card-body, porque el form
+   cierra antes de la pestana de imagenes. Los margenes negativos lo devuelven a los bordes
+   de la tarjeta, que es donde estaba cuando era hermano de .card-body */
+.form-foot.foot-dentro{margin:16px -16px -16px}
+
+/* Con la pestana de imagenes abierta, el pie de la ficha no pinta nada: lo que se ve son
+   los formularios de la galeria. Si el navegador no soporta :has() simplemente se queda
+   visible, que es molesto pero no rompe nada */
+.card:has(.tab-pane[data-pane="3"].on) .form-foot.foot-dentro{display:none}
+
+/* ===========================================================================
+   Pestana de imagenes de la ficha
+   Una fila por tipo: la PORTADA y el BANNER van solos y las CAPTURAS las que hagan
+   falta. El tipo vive en imagen_videojuego.tipo, no en la ruta.
+   =========================================================================== */
+
+/* Cada bloque de tipo: su etiqueta y su rejilla */
+.img-grupo + .img-grupo{margin-top:18px}
+
+.img-grid{
+    display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));
+    gap:12px;margin-top:10px;
+}
+
+.img-card{
+    border:1px solid var(--line);border-radius:var(--r);overflow:hidden;
+    background:var(--surface-2);
+}
+
+/* El marco fija la proporcion para que una captura vertical no descoloque la rejilla,
+   y el object-fit recorta en vez de deformar */
+.img-card .marco{position:relative;display:block;aspect-ratio:16/9;background:var(--surface-3)}
+.img-card .marco img{width:100%;height:100%;object-fit:cover;display:block}
+
+/* La etiqueta del tipo, encima de la imagen */
+.img-card .img-tipo{
+    position:absolute;top:6px;left:6px;font-size:10px;font-weight:650;letter-spacing:.04em;
+    padding:2px 6px;border-radius:var(--r-sm);background:rgba(0,0,0,.62);color:#fff;
+}
+
+.img-card .img-foot{
+    display:flex;align-items:center;justify-content:space-between;gap:6px;padding:7px 9px;
+}
+.img-card .img-foot form{display:inline}
+
+/* Hueco de un tipo que todavia no tiene imagen */
+.img-vacia{
+    border:1.5px dashed var(--line-strong);border-radius:var(--r);padding:18px;
+    margin-top:10px;text-align:center;color:var(--muted);font-size:12.5px;
+}
+
+/* La zona de subir, en la columna de la derecha */
+.img-drop{
+    border:1.5px dashed var(--line-strong);border-radius:var(--r);padding:22px 16px;
+    text-align:center;color:var(--muted);
+}
+.img-drop .nombre{display:block;margin-top:8px;font-size:12px;color:var(--ink-2);word-break:break-all}
+
+/* ===========================================================================
+   Miniatura del listado
+   =========================================================================== */
+.mini{
+    width:34px;flex:0 0 auto;aspect-ratio:3/4;border-radius:var(--r-sm);overflow:hidden;
+    background:var(--surface-3);border:1px solid var(--line);
+}
+.mini img{width:100%;height:100%;object-fit:cover;display:block}
+
+/* Sin portada: un hueco del mismo tamano, para que la columna no baile */
+.mini.vacia{display:grid;place-items:center;color:var(--muted)}

@@ -1,10 +1,17 @@
+-- El estudio de un juego no es texto libre: es el proveedor que nos lo suministra
+-- (proveedor_id). Queda NULL en los juegos que sube un colaborador, que no se compran
+-- a nadie y de los que el nombre sale de colaborador.nombre. La clave ajena se declara
+-- en V3, que es donde nace la tabla proveedor.
+--
+-- precio es el precio estandar y precio_descuento lo que se cobra mientras haya rebaja:
+-- NULL significa sin descuento.
 CREATE TABLE videojuego (
     id                BIGINT        NOT NULL AUTO_INCREMENT,
     titulo            VARCHAR(150)  NOT NULL,
     sinopsis          TEXT          NULL,
-    estudio           VARCHAR(120)  NULL,
+    proveedor_id      BIGINT        NULL,
     precio            DECIMAL(10,2) NOT NULL,
-    precio_anterior   DECIMAL(10,2) NULL,
+    precio_descuento  DECIMAL(10,2) NULL,
     fecha_lanzamiento DATE          NULL,
     pegi              INT           NOT NULL,
     activo            BOOLEAN       NOT NULL DEFAULT TRUE,

@@ -185,6 +185,36 @@ button,input,select,textarea{font-family:inherit;font-size:inherit}
 .badge.b-purple{color:var(--purple-light);background:var(--purple-dim);border-color:rgba(139,92,246,.32)}
 .badge.b-mute{color:var(--muted)}
 
+/* Distintivos de rol. Van aparte de los de estado porque conviven en la misma fila:
+   el rol es una categoria, no un estado, y por eso ninguno usa el verde ni el rojo */
+.badge.b-rol-admin{color:var(--purple-light);background:var(--purple-dim);border-color:rgba(139,92,246,.32)}
+.badge.b-rol-gestor_productos{color:#22d3ee;background:rgba(34,211,238,.1);border-color:rgba(34,211,238,.28)}
+.badge.b-rol-gestor_clientes{color:#f9a8d4;background:rgba(249,168,212,.1);border-color:rgba(249,168,212,.28)}
+.badge.b-rol-gestor_inventario{color:#fde047;background:rgba(253,224,71,.1);border-color:rgba(253,224,71,.28)}
+
+/* --- etiquetas de clasificacion ------------------------------------------- */
+/* Las usan la categoria y la plataforma del videojuego y el departamento del empleado.
+   .on es la seleccionada, para cuando sirven de casilla en un formulario */
+.chip{
+    display:inline-flex;align-items:center;gap:6px;font-size:12px;padding:3px 9px;
+    border-radius:99px;background:var(--surface-2);border:1px solid var(--line);color:var(--ink-2);
+}
+.chip.on{
+    background:rgba(139,92,246,.26);border-color:rgba(139,92,246,.6);
+    color:#c4b5fd;font-weight:650;
+}
+
+/* --- pestanas ------------------------------------------------------------- */
+.tabs{display:flex;gap:2px;border-bottom:1px solid var(--line);padding:0 16px;background:var(--surface-2)}
+.tab{
+    padding:10px 13px;font-size:13px;color:var(--muted);border:none;background:none;
+    border-bottom:2px solid transparent;margin-bottom:-1px;font-weight:550;cursor:pointer;
+}
+.tab:hover{color:var(--ink-2)}
+.tab.on{color:#fff;border-bottom-color:var(--purple)}
+.tab-pane{display:none}
+.tab-pane.on{display:block}
+
 /* --- tablas --------------------------------------------------------------- */
 .tbl-wrap{overflow-x:auto}
 table.tbl{width:100%;border-collapse:collapse;font-size:13px}

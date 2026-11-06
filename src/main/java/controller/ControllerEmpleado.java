@@ -1,8 +1,8 @@
 package controller;
 
-import exception.EmailDuplicadoException;
-import exception.EmpleadoConReferenciasException;
-import exception.NifDuplicadoException;
+import exception.email.EmailDuplicadoException;
+import exception.empleado.EmpleadoConReferenciasException;
+import exception.nif.NifDuplicadoException;
 import java.util.List;
 import model.seguridad.Departamento;
 import model.seguridad.Empleado;

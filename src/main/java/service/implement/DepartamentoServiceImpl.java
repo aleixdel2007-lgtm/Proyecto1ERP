@@ -2,10 +2,10 @@ package service.implement;
 
 import dao.DepartamentoDao;
 import dao.EmpleadoDao;
-import exception.DepartamentoConTrabajadoresException;
-import exception.DepartamentoNoEncontradoException;
-import exception.NombreDepartamentoDuplicadoException;
-import exception.ResponsableOcupadoException;
+import exception.departamento.DepartamentoConTrabajadoresException;
+import exception.departamento.DepartamentoNoEncontradoException;
+import exception.departamento.NombreDepartamentoDuplicadoException;
+import exception.departamento.ResponsableOcupadoException;
 import java.util.List;
 import model.seguridad.Departamento;
 import model.seguridad.Empleado;

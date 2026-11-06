@@ -1,8 +1,8 @@
 package controller;
 
-import exception.CodigoPlataformaDuplicadoException;
-import exception.NombrePlataformaDuplicadoException;
-import exception.PlataformaConJuegosException;
+import exception.plataforma.CodigoPlataformaDuplicadoException;
+import exception.plataforma.NombrePlataformaDuplicadoException;
+import exception.plataforma.PlataformaConJuegosException;
 import model.catalogo.Plataforma;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;

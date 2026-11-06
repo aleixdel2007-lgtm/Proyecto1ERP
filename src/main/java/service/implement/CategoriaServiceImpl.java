@@ -2,10 +2,10 @@ package service.implement;
 
 import dao.CategoriaDao;
 import dao.VideojuegoDao;
-import exception.CategoriaConJuegosException;
-import exception.CategoriaNoEncontradaException;
-import exception.CodigoCategoriaDuplicadoException;
-import exception.NombreCategoriaDuplicadoException;
+import exception.categoria.CategoriaConJuegosException;
+import exception.categoria.CategoriaNoEncontradaException;
+import exception.categoria.CodigoCategoriaDuplicadoException;
+import exception.categoria.NombreCategoriaDuplicadoException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;

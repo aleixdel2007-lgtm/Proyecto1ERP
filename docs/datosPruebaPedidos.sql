@@ -13,11 +13,12 @@ SELECT id, '600000000', 'Calle Demo 1', 'Barcelona', 'España'
 FROM usuario
 WHERE email IN ('marta.ribas@demo.test', 'luis.perez@demo.test', 'sara.vidal@demo.test');
 
--- Videojuegos
-INSERT INTO videojuego (titulo, estudio, precio, pegi, activo, stock_ilimitado, umbral_stock_bajo) VALUES
-    ('Demo Quest',   'Estudio Demo', 49.99, 12, TRUE, TRUE, 10),
-    ('Demo Racing',  'Estudio Demo', 29.99,  3, TRUE, TRUE, 10),
-    ('Demo Puzzle',  'Estudio Demo', 19.99,  3, TRUE, TRUE, 10);
+-- Videojuegos. Van sin proveedor: el estudio ya no es texto libre, es videojuego.proveedor_id,
+-- y estos tres son de prueba. En el listado del catalogo saldran con un guion en Estudio.
+INSERT INTO videojuego (titulo, precio, pegi, activo, stock_ilimitado, umbral_stock_bajo) VALUES
+    ('Demo Quest',   49.99, 12, TRUE, TRUE, 10),
+    ('Demo Racing',  29.99,  3, TRUE, TRUE, 10),
+    ('Demo Puzzle',  19.99,  3, TRUE, TRUE, 10);
 
 -- Pedidos (IVA 21 %)
 INSERT INTO pedido (numero, cliente_id, fecha, estado, base_imponible, iva, total, metodo_pago) VALUES

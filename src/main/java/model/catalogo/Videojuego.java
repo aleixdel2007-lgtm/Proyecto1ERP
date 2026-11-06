@@ -3,7 +3,9 @@ package model.catalogo;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import model.aprovisionamiento.Proveedor;
 import model.seguridad.Colaborador;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -28,8 +30,9 @@ public class Videojuego {
     @Column(name = "sinopsis", columnDefinition = "TEXT")
     private String sinopsis;
 
-    @Column(name = "estudio", length = 120)
-    private String estudio;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "proveedor_id")
+    private Proveedor proveedor;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "colaborador_id")
@@ -38,10 +41,11 @@ public class Videojuego {
     @Column(name = "precio", nullable = false, precision = 10, scale = 2)
     private BigDecimal precio;
 
-    @Column(name = "precio_anterior", precision = 10, scale = 2)
-    private BigDecimal precioAnterior;
+    @Column(name = "precio_descuento", precision = 10, scale = 2)
+    private BigDecimal precioDescuento;
 
     @Column(name = "fecha_lanzamiento")
+    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
     private LocalDate fechaLanzamiento;
 
     @Column(name = "pegi", nullable = false)
@@ -68,7 +72,7 @@ public class Videojuego {
             inverseJoinColumns = @JoinColumn(name = "plataforma_id"))
     private Set<Plataforma> plataformas = new HashSet<>();
 
-    @OneToMany(mappedBy = "videojuego")
+    @OneToMany(mappedBy = "videojuego", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("orden, id")
     private List<ImagenVideojuego> imagenes = new ArrayList<>();
 

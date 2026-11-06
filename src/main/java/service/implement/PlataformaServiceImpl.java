@@ -2,10 +2,10 @@ package service.implement;
 
 import dao.PlataformaDao;
 import dao.VideojuegoDao;
-import exception.CodigoPlataformaDuplicadoException;
-import exception.NombrePlataformaDuplicadoException;
-import exception.PlataformaConJuegosException;
-import exception.PlataformaNoEncontradaException;
+import exception.plataforma.CodigoPlataformaDuplicadoException;
+import exception.plataforma.NombrePlataformaDuplicadoException;
+import exception.plataforma.PlataformaConJuegosException;
+import exception.plataforma.PlataformaNoEncontradaException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;

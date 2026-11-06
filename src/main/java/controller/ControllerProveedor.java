@@ -1,8 +1,8 @@
 package controller;
 
-import exception.CifDuplicadoException;
-import exception.CifInvalidoException;
-import exception.ProveedorConReferenciasException;
+import exception.cif.CifDuplicadoException;
+import exception.cif.CifInvalidoException;
+import exception.proveedor.ProveedorConReferenciasException;
 import lombok.RequiredArgsConstructor;
 import model.aprovisionamiento.Proveedor;
 import org.springframework.stereotype.Controller;

@@ -1,8 +1,8 @@
 package controller;
 
-import exception.DepartamentoConTrabajadoresException;
-import exception.NombreDepartamentoDuplicadoException;
-import exception.ResponsableOcupadoException;
+import exception.departamento.DepartamentoConTrabajadoresException;
+import exception.departamento.NombreDepartamentoDuplicadoException;
+import exception.departamento.ResponsableOcupadoException;
 import java.util.List;
 import model.seguridad.Departamento;
 import model.seguridad.Empleado;

@@ -6,9 +6,9 @@ package service.implement;
 
 import dao.ClienteDao;
 import dao.UsuarioDao;
-import exception.ClienteConDatosAsociadosException;
-import exception.ClienteNoEncontradoException;
-import exception.CorreoYaRegistradoException;
+import exception.cliente.ClienteConDatosAsociadosException;
+import exception.cliente.ClienteNoEncontradoException;
+import exception.email.CorreoYaRegistradoException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;

@@ -17,12 +17,15 @@
 
         <th:block sec:authorize="hasAnyRole('GESTOR_PRODUCTOS', 'ADMIN')">
             <div class="nav-group">Catálogo</div>
+            <a class="nav-item" th:classappend="${activo == 'videojuegos'} ? 'on' : ''"
+               th:href="@{/catalogo/videojuegos}">
+                <span class="ic"><svg th:replace="~{fragments/iconos :: game}"></svg></span>Videojuegos</a>
             <a class="nav-item" th:classappend="${activo == 'categorias'} ? 'on' : ''"
                th:href="@{/catalogo/categorias}">
                 <span class="ic"><svg th:replace="~{fragments/iconos :: tag}"></svg></span>Categorías</a>
             <a class="nav-item" th:classappend="${activo == 'plataformas'} ? 'on' : ''"
                th:href="@{/catalogo/plataformas}">
-                <span class="ic"><svg th:replace="~{fragments/iconos :: game}"></svg></span>Plataformas</a>
+                <span class="ic"><svg th:replace="~{fragments/iconos :: monitor}"></svg></span>Plataformas</a>
         </th:block>
 
         <th:block sec:authorize="hasAnyRole('ADMIN', 'GESTOR_INVENTARIO')">

@@ -51,3 +51,11 @@ CREATE TABLE linea_compra (
     CONSTRAINT fk_linea_compra_videojuego
         FOREIGN KEY (videojuego_id) REFERENCES videojuego (id)
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4;
+
+-- El estudio del videojuego es el proveedor que lo suministra. La columna se declara
+-- en V2, con la tabla, pero la clave ajena tiene que esperar hasta aqui, que es donde
+-- existe proveedor. No se declara un indice aparte porque la clave ajena ya crea el
+-- suyo sobre esta columna.
+ALTER TABLE videojuego
+    ADD CONSTRAINT fk_videojuego_proveedor
+        FOREIGN KEY (proveedor_id) REFERENCES proveedor (id);

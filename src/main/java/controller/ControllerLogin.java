@@ -1,7 +1,7 @@
 package controller;
 
 import dao.UsuarioDao;
-import exception.CorreoYaRegistradoException;
+import exception.email.CorreoYaRegistradoException;
 import lombok.RequiredArgsConstructor;
 import model.seguridad.Cliente;
 import org.springframework.security.core.context.SecurityContextHolder;

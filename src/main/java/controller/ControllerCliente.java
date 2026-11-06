@@ -4,7 +4,7 @@
  */
 package controller;
 
-import exception.ClienteConDatosAsociadosException;
+import exception.cliente.ClienteConDatosAsociadosException;
 import java.time.LocalDate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;

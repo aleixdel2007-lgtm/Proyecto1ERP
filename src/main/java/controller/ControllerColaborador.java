@@ -1,7 +1,7 @@
 package controller;
 
-import exception.ColaboradorConJuegosException;
-import exception.EmailDuplicadoException;
+import exception.colaborador.ColaboradorConJuegosException;
+import exception.email.EmailDuplicadoException;
 import model.seguridad.Colaborador;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;

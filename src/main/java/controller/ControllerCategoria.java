@@ -1,8 +1,8 @@
 package controller;
 
-import exception.CategoriaConJuegosException;
-import exception.CodigoCategoriaDuplicadoException;
-import exception.NombreCategoriaDuplicadoException;
+import exception.categoria.CategoriaConJuegosException;
+import exception.categoria.CodigoCategoriaDuplicadoException;
+import exception.categoria.NombreCategoriaDuplicadoException;
 import model.catalogo.Categoria;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;

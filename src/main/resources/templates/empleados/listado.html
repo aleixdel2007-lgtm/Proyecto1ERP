@@ -117,7 +117,9 @@
                                 </td>
                                 <td><span class="chip" th:text="${e.departamento.nombre}">Dirección</span></td>
                                 <td th:text="${e.cargo}">Administrador del sistema</td>
-                                <td><span class="badge b-purple" th:text="${e.rol}">ADMIN</span></td>
+                                <td><span class="badge"
+                                          th:classappend="${'b-rol-' + #strings.toLowerCase(e.rol)}"
+                                          th:text="${e.rol}">ADMIN</span></td>
                                 <td th:text="${e.fechaContratacion}">2024-09-02</td>
                                 <td>
                                     <span class="badge" th:classappend="${e.activo} ? 'b-good' : 'b-mute'"

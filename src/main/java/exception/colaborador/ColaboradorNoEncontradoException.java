@@ -1,0 +1,12 @@
+package exception.colaborador;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.ResponseStatus;
+
+@ResponseStatus(HttpStatus.NOT_FOUND)
+public class ColaboradorNoEncontradoException extends RuntimeException {
+
+    public ColaboradorNoEncontradoException(Long id) {
+        super("No existe el colaborador " + id);
+    }
+}
