@@ -95,8 +95,16 @@
                             <tr th:each="c : ${colaboradores.subList(inicio, fin)}">
                                 <td>
                                     <div class="row">
-                                        <div class="avatar col-avatar"
-                                             th:text="${#strings.toUpperCase(#strings.substring(c.nombre, 0, 1))}">T</div>
+                                        <!-- La foto sale del mapa fotos, con la clave igual que
+                                             el id del usuario. Sin foto va el avatar generico.
+                                             Se sube desde el formulario de alta o de edicion. -->
+                                        <img class="avatar col-avatar" style="object-fit:cover"
+                                             th:src="${fotos[c.id] != null}
+                                                     ? @{${fotos[c.id]}}
+                                                     : @{/img/placeholder.webp}"
+                                             th:alt="${fotos[c.id] != null}
+                                                     ? 'Foto de perfil de ' + ${c.nombre}
+                                                     : 'Sin foto de perfil'">
                                         <div>
                                             <div class="t-main"
                                                  th:text="${c.apellidos != null ? c.nombre + ' ' + c.apellidos : c.nombre}">Jordi Bastida</div>

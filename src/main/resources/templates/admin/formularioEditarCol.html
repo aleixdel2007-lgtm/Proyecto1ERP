@@ -34,7 +34,8 @@
             <div class="grid g-2-1">
 
                 <div class="card">
-                    <form th:action="@{/admin/colaboradores/guardar}" method="post" th:object="${colaborador}">
+                    <form th:action="@{/admin/colaboradores/guardar}" method="post" th:object="${colaborador}"
+                          enctype="multipart/form-data">
 
                         <input type="hidden" th:field="*{id}">
 
@@ -96,6 +97,30 @@
                                               th:text="${colaborador.debeCambiarPassword} ? 'PENDIENTE DE CAMBIAR' : 'ACTIVA'">ACTIVA</span>
                                     </div>
                                     <span class="hint">No se edita desde aquí.</span>
+                                </div>
+
+                            </div>
+
+                            <!-- La foto actual, o el avatar generico si todavia no tiene. Vacio
+                                 significa no tocarla, igual que en el formulario del empleado. -->
+                            <div class="sect-label">Foto de perfil</div>
+                            <div class="form-grid">
+
+                                <div class="frow wide">
+                                    <label for="foto">Cambiar la foto</label>
+                                    <div class="row">
+                                        <img class="avatar col-avatar" style="object-fit:cover"
+                                             th:src="${imagenColaborador != null}
+                                                     ? @{${imagenColaborador.rutaImagen}}
+                                                     : @{/img/placeholder.webp}"
+                                             th:alt="${imagenColaborador != null}
+                                                     ? ${imagenColaborador.textoAlternativo}
+                                                     : 'Sin foto de perfil'">
+                                        <input class="inp" type="file" id="foto" name="foto"
+                                               accept="image/png,image/jpeg,image/webp">
+                                    </div>
+                                    <span class="hint">JPG, PNG o WEBP, máximo 2 MB. Déjalo vacío para no
+                                        cambiarla; la anterior se borra al subir una nueva.</span>
                                 </div>
 
                             </div>

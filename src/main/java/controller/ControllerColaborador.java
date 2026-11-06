@@ -2,6 +2,8 @@ package controller;
 
 import exception.colaborador.ColaboradorConJuegosException;
 import exception.email.EmailDuplicadoException;
+import exception.imagen.ImagenInvalidaException;
+import java.util.List;
 import model.seguridad.Colaborador;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -11,6 +13,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import service.interfaces.ColaboradorService;
 
@@ -27,7 +30,10 @@ public class ControllerColaborador {
             @RequestParam(defaultValue = "0") int pagina,
             Model model) {
 
-        model.addAttribute("colaboradores", colaboradorService.listarColaboradores(texto, activo));
+        List<Colaborador> lista = colaboradorService.listarColaboradores(texto, activo);
+
+        model.addAttribute("colaboradores", lista);
+        model.addAttribute("fotos", colaboradorService.listarImagenesPerfil(lista));
         model.addAttribute("juegos", colaboradorService.contarJuegos());
 
         model.addAttribute("texto", texto);
@@ -50,6 +56,7 @@ public class ControllerColaborador {
 
         model.addAttribute("colaborador", colaboradorService.buscarColaboradorXId(id));
         model.addAttribute("juegosPublicados", colaboradorService.contarJuegosXColaborador(id));
+        model.addAttribute("imagenColaborador", colaboradorService.buscarImagenPerfil(id));
 
         return "admin/formularioEditarCol";
     }
@@ -58,11 +65,14 @@ public class ControllerColaborador {
     public String guardarColaborador(
             @ModelAttribute("colaborador") Colaborador colaborador,
             @RequestParam(required = false) String password,
+            @RequestParam(value = "foto", required = false) MultipartFile foto,
             Model model,
             RedirectAttributes flash) {
 
+        Colaborador guardado;
+
         try {
-            colaboradorService.guardarColaborador(colaborador, password);
+            guardado = colaboradorService.guardarColaborador(colaborador, password);
 
         } catch (EmailDuplicadoException | IllegalArgumentException e) {
 
@@ -74,8 +84,22 @@ public class ControllerColaborador {
 
             model.addAttribute("juegosPublicados",
                     colaboradorService.contarJuegosXColaborador(colaborador.getId()));
+            model.addAttribute("imagenColaborador",
+                    colaboradorService.buscarImagenPerfil(colaborador.getId()));
 
             return "admin/formularioEditarCol";
+        }
+
+        if (foto != null && !foto.isEmpty()) {
+
+            try {
+                colaboradorService.guardarImagenPerfil(guardado.getId(), foto);
+
+            } catch (ImagenInvalidaException e) {
+                flash.addFlashAttribute("error",
+                        "Colaborador guardado, pero la foto no: " + e.getMessage());
+                return "redirect:/admin/colaboradores";
+            }
         }
 
         flash.addFlashAttribute("mensaje", "Colaborador guardado correctamente");

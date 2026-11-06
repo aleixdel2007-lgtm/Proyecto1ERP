@@ -1,18 +1,23 @@
 package service.implement;
 
+import config.AlmacenArchivos;
 import dao.ColaboradorDao;
+import dao.ImagenUsuarioDao;
 import dao.UsuarioDao;
 import dao.VideojuegoDao;
 import exception.colaborador.ColaboradorConJuegosException;
 import exception.colaborador.ColaboradorNoEncontradoException;
 import exception.email.EmailDuplicadoException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import model.seguridad.Colaborador;
+import model.seguridad.ImagenUsuario;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 import service.interfaces.ColaboradorService;
 
 @Service
@@ -26,6 +31,12 @@ public class ColaboradorServiceImpl implements ColaboradorService {
 
     @Autowired
     private UsuarioDao usuarioDao;
+
+    @Autowired
+    private ImagenUsuarioDao imagenUsuarioDao;
+
+    @Autowired
+    private AlmacenArchivos almacenArchivos;
 
     @Autowired
     private PasswordEncoder codificador;
@@ -119,7 +130,82 @@ public class ColaboradorServiceImpl implements ColaboradorService {
             throw new ColaboradorConJuegosException();
         }
 
+        eliminarImagenPerfil(id);
+
         colaboradorDao.delete(colaborador);
+    }
+
+    @Override
+    public ImagenUsuario buscarImagenPerfil(Long colaboradorId) {
+        return imagenUsuarioDao.findById(colaboradorId).orElse(null);
+    }
+
+    @Override
+    public Map<Long, String> listarImagenesPerfil(List<Colaborador> colaboradores) {
+
+        Map<Long, String> fotos = new HashMap<>();
+
+        if (colaboradores == null || colaboradores.isEmpty()) {
+            return fotos;
+        }
+
+        List<Long> ids = new ArrayList<>();
+
+        for (Colaborador colaborador : colaboradores) {
+            ids.add(colaborador.getId());
+        }
+
+        for (Object[] fila : imagenUsuarioDao.buscarPorUsuarios(ids)) {
+            fotos.put((Long) fila[0], (String) fila[1]);
+        }
+        return fotos;
+    }
+
+    @Override
+    public void guardarImagenPerfil(Long colaboradorId, MultipartFile archivo) {
+
+        Colaborador colaborador = buscarColaboradorXId(colaboradorId);
+
+        String ruta = almacenArchivos.guardarImagenPerfil(colaboradorId, archivo);
+
+        ImagenUsuario imagen = imagenUsuarioDao.findById(colaboradorId).orElseGet(() -> {
+            ImagenUsuario nueva = new ImagenUsuario();
+            nueva.setUsuario(colaborador);
+            return nueva;
+        });
+
+        String rutaAnterior = imagen.getRutaImagen();
+
+        imagen.setRutaImagen(ruta);
+        imagen.setTextoAlternativo("Foto de perfil de " + colaborador.getNombre());
+
+        try {
+            imagenUsuarioDao.save(imagen);
+
+        } catch (RuntimeException e) {
+            almacenArchivos.borrar(ruta);
+            throw e;
+        }
+
+        if (rutaAnterior != null) {
+            almacenArchivos.borrar(rutaAnterior);
+        }
+    }
+
+    private void eliminarImagenPerfil(Long colaboradorId) {
+
+        ImagenUsuario imagen = imagenUsuarioDao.findById(colaboradorId).orElse(null);
+
+        if (imagen == null) {
+            return;
+        }
+
+        String ruta = imagen.getRutaImagen();
+
+        imagenUsuarioDao.delete(imagen);
+        imagenUsuarioDao.flush();
+
+        almacenArchivos.borrar(ruta);
     }
 
     @Override
