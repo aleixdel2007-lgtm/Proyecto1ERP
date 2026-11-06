@@ -189,6 +189,13 @@
                                        th:href="@{/catalogo/videojuegos/editar/{id}(id=${v.id})}">
                                         <svg th:replace="~{fragments/iconos :: edit}"></svg>
                                     </a>
+                                    <!-- Vista previa de como queda la ficha para el cliente. En
+                                         pestana nueva para no perder los filtros ni la pagina. -->
+                                    <a class="btn btn-sm btn-ghost" title="Ver como lo verá el cliente"
+                                       target="_blank"
+                                       th:href="@{/catalogo/videojuegos/{id}/vista-previa(id=${v.id})}">
+                                        <svg th:replace="~{fragments/iconos :: eye}"></svg>
+                                    </a>
                                     <form th:action="@{/catalogo/videojuegos/eliminar/{id}(id=${v.id})}" method="post"
                                           onsubmit="return confirm(&quot;¿Seguro que quieres eliminar este videojuego? No se puede deshacer.&quot;);">
                                         <button type="submit" class="btn btn-sm btn-danger" title="Eliminar">

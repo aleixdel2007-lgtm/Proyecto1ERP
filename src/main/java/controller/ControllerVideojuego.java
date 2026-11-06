@@ -127,6 +127,15 @@ public class ControllerVideojuego {
         return "redirect:/catalogo/videojuegos";
     }
 
+    @GetMapping("/catalogo/videojuegos/{id}/vista-previa")
+    public String vistaPreviaVideojuego(@PathVariable Long id, Model model) {
+
+        model.addAttribute("videojuego", videojuegoService.buscarVideojuegoXId(id));
+        cargarImagenes(model, id);
+
+        return "client/ficha";
+    }
+
     @PostMapping("/catalogo/videojuegos/{id}/imagenes")
     public String guardarImagen(@PathVariable Long id,
                                 @RequestParam("archivo") MultipartFile archivo,
@@ -155,16 +164,6 @@ public class ControllerVideojuego {
         return "redirect:/catalogo/videojuegos/editar/" + id;
     }
 
-    @PostMapping("/catalogo/videojuegos/{id}/imagenes/{imagenId}/portada")
-    public String designarPortada(@PathVariable Long id, @PathVariable Long imagenId,
-                                  RedirectAttributes flash) {
-
-        videojuegoService.designarPortada(id, imagenId);
-        flash.addFlashAttribute("mensaje", "Portada actualizada correctamente");
-
-        return "redirect:/catalogo/videojuegos/editar/" + id;
-    }
-
     private void cargarImagenes(Model model, Long id) {
 
         ImagenVideojuego portada = null;
@@ -179,7 +178,7 @@ public class ControllerVideojuego {
             } else if (imagen.getTipo() == TipoImagen.BANNER && banner == null) {
                 banner = imagen;
 
-            } else {
+            } else if (imagen.getTipo() == TipoImagen.CAPTURA) {
                 capturas.add(imagen);
             }
         }

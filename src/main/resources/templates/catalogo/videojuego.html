@@ -27,6 +27,11 @@
                     <h1 th:text="${videojuego.id} == null ? 'Nuevo videojuego' : 'Editar videojuego'">Nuevo videojuego</h1>
                     <p th:if="${videojuego.id != null}" th:text="'Ficha #' + ${videojuego.id}">Ficha #318</p>
                 </div>
+                <div class="page-actions" th:if="${videojuego.id != null}">
+                    <a class="btn" target="_blank"
+                       th:href="@{/catalogo/videojuegos/{id}/vista-previa(id=${videojuego.id})}">
+                        <svg th:replace="~{fragments/iconos :: eye}"></svg> Vista previa</a>
+                </div>
             </div>
 
             <div class="alert alert-ok" th:if="${mensaje}" th:text="${mensaje}"></div>
@@ -63,7 +68,7 @@
                                 </div>
 
                                 <div class="frow" th:if="${videojuego.colaborador == null}">
-                                    <label for="proveedorId">Estudio <span class="req">*</span></label>
+                                    <label for="proveedorId">Proveedor <span class="req">*</span></label>
                                     <select class="inp" id="proveedorId" name="proveedorId" required>
                                         <option value="">Selecciona un proveedor</option>
                                         <option th:each="p : ${proveedores}"
@@ -88,7 +93,7 @@
                                 </div>
 
                                 <div class="frow wide">
-                                    <label for="sinopsis">Sinopsis</label>
+                                    <label for="sinopsis">Descripción</label>
                                     <textarea class="inp" th:field="*{sinopsis}" rows="4"
                                               placeholder="De qué va el juego"></textarea>
                                 </div>
@@ -299,14 +304,6 @@
                                             <div class="img-foot">
                                                 <span class="t-sub" th:text="'Orden ' + ${i.orden}">Orden 1</span>
                                                 <span class="row" style="gap:4px">
-                                                    <form th:action="@{/catalogo/videojuegos/{id}/imagenes/{imagenId}/portada(id=${videojuego.id},
-                                                                      imagenId=${i.id})}"
-                                                          method="post">
-                                                        <button type="submit" class="btn btn-sm btn-ghost"
-                                                                title="Designar portada">
-                                                            <svg th:replace="~{fragments/iconos :: star}"></svg>
-                                                        </button>
-                                                    </form>
                                                     <form th:action="@{/catalogo/videojuegos/{id}/imagenes/{imagenId}/eliminar(id=${videojuego.id},
                                                                       imagenId=${i.id})}"
                                                           method="post"
@@ -353,8 +350,8 @@
                                                 <option value="PORTADA">PORTADA</option>
                                                 <option value="BANNER">BANNER</option>
                                             </select>
-                                            <span class="hint">Si subes una PORTADA o un BANNER y ya había uno, el
-                                                anterior pasa a CAPTURA. No se pierde.</span>
+                                            <span class="hint">Solo puede haber una PORTADA y un BANNER por juego.
+                                                Si ya hay uno, quítalo antes de subir el nuevo.</span>
                                         </div>
 
                                         <div class="frow">
@@ -369,22 +366,6 @@
 
                                     </div>
                                 </form>
-
-                                <div class="note-box">
-                                    <svg th:replace="~{fragments/iconos :: warn}"></svg>
-                                    <div>Cada imagen es una fila de <code>imagen_videojuego</code> con su tipo, su
-                                        orden y su texto alternativo. El archivo vive en
-                                        <code>uploads/videojuegos/</code>, en la carpeta de este juego, y el tipo
-                                        solo se guarda en la base: cambiarlo no mueve el archivo.</div>
-                                </div>
-
-                                <div class="note-box">
-                                    <svg th:replace="~{fragments/iconos :: warn}"></svg>
-                                    <div>El orden se asigna solo, el siguiente que quede libre dentro del tipo. Si
-                                        borras una del medio quedan huecos, y da igual: la galería ordena por
-                                        <code>orden</code> y luego por <code>id</code>.</div>
-                                </div>
-
                             </div>
                         </div>
                     </div>

@@ -1,0 +1,154 @@
+/* ===========================================================================
+   LudusERP — la tienda tal como la ve el cliente
+   Se carga DESPUES de navbar.css, que es quien trae la barra superior, el body
+   y la mayoria de las variables. Aqui solo van las que faltan y el cuerpo de la
+   ficha del juego.
+   Los valores estan calcados de docs/prototipo.html para que la vista previa
+   ensene de verdad lo que vera el cliente y no una aproximacion.
+   =========================================================================== */
+
+/* Variables que navbar.css no declara y que si usa el prototipo */
+:root{
+    --surface-3:#31313a;
+    --line-strong:rgba(255,255,255,.15);
+    --purple-dim:rgba(139,92,246,.14);
+    --good:#56d364;
+    --r:10px;
+}
+
+/* --- rejilla y cuerpo ----------------------------------------------------- */
+.shop-body{max-width:1360px;margin:0 auto;width:100%;padding:24px 26px 70px}
+.shop-foot{
+    border-top:1px solid var(--line);color:var(--muted);font-size:12.5px;
+    padding:20px 26px;text-align:center;
+}
+
+.grid{display:grid;gap:16px}
+.g-2-1{grid-template-columns:2fr 1fr}
+
+/* En pantalla estrecha la caja de compra baja debajo de la galeria */
+@media (max-width:1100px){
+    .g-2-1{grid-template-columns:1fr}
+}
+
+/* --- piezas prestadas del panel ------------------------------------------- */
+/* Esta pantalla no carga panel.css: los dos ficheros declaran .top y se pisarian,
+   porque la barra del panel y la de la tienda no son la misma. Asi que los cuatro
+   ladrillos que hacen falta se repiten aqui, como ya hacen empleados.css y
+   colaboradores.css con .row */
+.btn{
+    display:inline-flex;align-items:center;gap:7px;border-radius:var(--r-sm);
+    padding:7px 13px;font-size:13px;font-weight:550;border:1px solid var(--line-strong);
+    background:var(--surface-2);color:var(--ink);white-space:nowrap;
+    text-decoration:none;cursor:pointer;font-family:inherit;
+}
+.btn:hover{background:var(--surface-3);border-color:rgba(255,255,255,.22);text-decoration:none}
+.btn-primary{background:var(--purple);border-color:var(--purple);color:#fff}
+.btn-primary:hover{background:var(--purple-light);border-color:var(--purple-light)}
+.btn-ghost{background:transparent;border-color:transparent;color:var(--ink-2)}
+.btn-ghost:hover{background:var(--surface-2);color:var(--ink)}
+.btn-sm{padding:4px 9px;font-size:12px}
+.btn[disabled]{opacity:.45;pointer-events:none}
+
+.card{
+    background:var(--surface);border:1px solid var(--line);border-radius:var(--r);
+    overflow:hidden;
+}
+.card-body{padding:16px}
+
+.badge{
+    display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:600;
+    padding:2px 8px;border-radius:99px;border:1px solid;white-space:nowrap;
+    background:var(--surface-2);border-color:var(--line-strong);color:var(--ink-2);
+}
+.badge::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor;flex:0 0 auto}
+.badge.b-good{color:var(--good);background:rgba(86,211,100,.1);border-color:rgba(86,211,100,.28)}
+.badge.b-mute{color:var(--muted)}
+
+.chip{
+    display:inline-flex;align-items:center;gap:6px;font-size:12px;padding:3px 9px;
+    border-radius:99px;background:var(--surface-2);border:1px solid var(--line);color:var(--ink-2);
+}
+
+.kv{display:grid;grid-template-columns:90px 1fr;gap:9px 14px;font-size:12.5px;margin:0}
+.kv dt{color:var(--muted)}
+.kv dd{margin:0;color:var(--ink)}
+
+.note-box{
+    background:var(--purple-dim);border:1px solid rgba(139,92,246,.28);border-radius:var(--r-sm);
+    padding:11px 13px;font-size:12.5px;color:var(--ink-2);display:flex;gap:9px;align-items:flex-start;
+}
+.note-box svg{color:var(--purple-light);flex:0 0 auto;margin-top:1px}
+
+.sep{height:1px;background:var(--line);margin:4px 0}
+.muted{color:var(--muted)}
+.row{display:flex;gap:10px;align-items:center}
+.row.wrap{flex-wrap:wrap}
+.stack{display:flex;flex-direction:column;gap:14px}
+
+/* --- galeria de la ficha -------------------------------------------------- */
+.gal{display:grid;grid-template-columns:1fr;gap:10px}
+
+/* La principal es el banner si lo hay, y si no la portada */
+.gal-main{
+    aspect-ratio:16/9;border-radius:var(--r);overflow:hidden;background:var(--surface-2);
+    border:1px solid var(--line);
+}
+.gal-main img{width:100%;height:100%;object-fit:cover;display:block}
+
+/* Juego sin ninguna imagen: el hueco se ve, pero no descoloca nada */
+.gal-main.vacia{display:grid;place-items:center;color:var(--muted);font-size:13px;text-align:center;padding:20px}
+
+.gal-thumbs{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.gal-thumbs .thumb{
+    aspect-ratio:16/9;border-radius:var(--r-sm);overflow:hidden;background:var(--surface-2);
+    border:1px solid var(--line);opacity:.65;
+}
+.gal-thumbs .thumb:hover{opacity:1;box-shadow:0 0 0 2px var(--purple)}
+.gal-thumbs .thumb img{width:100%;height:100%;object-fit:cover;display:block}
+
+/* La etiqueta PEGI sobre la imagen principal */
+.gal-main{position:relative}
+.gal-main .pegi{
+    position:absolute;top:8px;left:8px;background:rgba(0,0,0,.55);
+    border:1px solid rgba(255,255,255,.3);color:#fff;
+    font-size:10px;font-weight:700;padding:1px 5px;border-radius:4px;
+}
+
+/* --- caja de compra ------------------------------------------------------- */
+/* sticky: al bajar por la sinopsis el precio y el boton se quedan a la vista */
+.buy-box{
+    background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px;
+    display:flex;flex-direction:column;gap:12px;position:sticky;top:78px;
+}
+.buy-price{font-size:28px;font-weight:650;letter-spacing:-.02em}
+
+/* El precio estandar tachado al lado del rebajado. El descuento es un precio
+   fijo, no un porcentaje: no hay badge de -X% */
+.buy-price .old{
+    color:var(--muted);text-decoration:line-through;font-weight:400;
+    font-size:17px;margin-right:9px;
+}
+
+/* El punto verde que en la tienda de verdad ira contra el stock real */
+.live{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;color:var(--good)}
+.live i{
+    width:7px;height:7px;border-radius:50%;background:var(--good);
+    box-shadow:0 0 0 3px rgba(86,211,100,.18);animation:pulse 1.8s infinite;
+}
+@keyframes pulse{50%{opacity:.35}}
+
+/* --- aviso de vista previa ------------------------------------------------ */
+/* La franja que recuerda que esto no es la tienda, sino el ERP ensenando como
+   quedara. Va en naranja y no en morado para que no se confunda con un note-box */
+.aviso-previa{
+    display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+    background:rgba(240,136,62,.1);border:1px solid rgba(240,136,62,.45);
+    border-radius:var(--r-sm);padding:11px 13px;font-size:12.5px;color:var(--ink-2);
+    margin-bottom:18px;
+}
+.aviso-previa .btn{margin-left:auto}
+
+h1,h2,h3{margin:0;font-weight:600;letter-spacing:-.01em}
+.sinopsis{margin:0;color:var(--ink-2);line-height:1.7}
+.hint{font-size:12px;color:var(--muted)}

@@ -1321,7 +1321,7 @@ VIEWS["catalogo/videojuego"] = { shell:"panel", crumb:["Catalogo","Videojuegos",
             `<option ${p.nom==="Iberia Digital Supply"?"selected":""}>${p.nom}</option>`).join("")}</select>
           <span class="hint">Sale de la tabla <code>proveedor</code> (<code>videojuego.proveedor_id</code>),
           no es texto libre, y solo aparecen los proveedores activos.</span></div>
-        <div class="frow wide"><label>Sinopsis</label>
+        <div class="frow wide"><label>Descripción</label>
           <textarea class="inp">RPG tactico por turnos ambientado en una estacion orbital a la deriva.</textarea></div>
         <div class="frow"><label>Fecha de lanzamiento</label><input class="inp" type="date" value="2026-03-14"></div>
         <div class="frow"><label>Clasificacion PEGI</label>
@@ -2180,7 +2180,7 @@ VIEWS["colaborador/nuevo"] = { shell:"panel", crumb:["Mis juegos","Subir un jueg
         <div class="card-body"><div class="form-grid">
           <div class="frow wide"><label>Titulo <span class="req">*</span></label>
             <input class="inp" value="Hollow Transit"></div>
-          <div class="frow wide"><label>Sinopsis <span class="req">*</span></label>
+          <div class="frow wide"><label>Descripción <span class="req">*</span></label>
             <textarea class="inp">Un metro abandonado, una linterna y catorce minutos de bateria.</textarea></div>
           <div class="frow"><label>Categoria <span class="req">*</span></label>
             <select class="inp">${CATS.map(c=>`<option ${c==="Indie"?"selected":""}>${c}</option>`).join("")}</select></div>

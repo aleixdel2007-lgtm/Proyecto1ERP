@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="${videojuego.titulo} + ' · LudusERP'">Videojuego · LudusERP</title>
+    <link rel="stylesheet" th:href="@{/css/navbar.css}">
+    <link rel="stylesheet" th:href="@{/css/tienda.css}">
+</head>
+<body>
+
+<div th:replace="~{fragments/navbar :: navbar}"></div>
+
+<main class="shop-body">
+
+    <!-- Esta pantalla se sirve desde /catalogo, no desde /tienda: es el ERP ensenando
+         la ficha, no la tienda. El aviso esta para que nadie la confunda con la de
+         verdad, y para avisar de lo que el cliente no veria. -->
+    <div class="aviso-previa">
+        <svg th:replace="~{fragments/iconos :: warn}"></svg>
+        <div>
+            <b>Vista previa.</b> Asi queda la ficha para el cliente. Nada de lo que hay
+            aqui guarda ni compra.
+            <span th:unless="${videojuego.activo}">
+                <br><b>Este juego esta inactivo:</b> hoy el cliente no lo ve en el catalogo.</span>
+        </div>
+        <a class="btn btn-sm" th:href="@{/catalogo/videojuegos/editar/{id}(id=${videojuego.id})}">
+            <svg th:replace="~{fragments/iconos :: edit}"></svg> Volver a la ficha</a>
+    </div>
+
+    <div class="grid g-2-1">
+
+        <div class="stack">
+
+            <div class="gal">
+
+                <!-- La principal es el banner si lo hay, y si no la portada. Si no hay
+                     ninguna de las dos, queda el hueco con su aviso. -->
+                <div class="gal-main" th:if="${banner != null}">
+                    <img th:src="@{${banner.ruta}}"
+                         th:alt="${banner.textoAlternativo != null ? banner.textoAlternativo : videojuego.titulo}">
+                    <span class="pegi" th:text="'PEGI ' + ${videojuego.pegi}">PEGI 16</span>
+                </div>
+
+                <div class="gal-main" th:if="${banner == null and portada != null}">
+                    <img th:src="@{${portada.ruta}}"
+                         th:alt="${portada.textoAlternativo != null ? portada.textoAlternativo : videojuego.titulo}">
+                    <span class="pegi" th:text="'PEGI ' + ${videojuego.pegi}">PEGI 16</span>
+                </div>
+
+                <div class="gal-main vacia" th:if="${banner == null and portada == null}">
+                    Este juego todavia no tiene portada ni banner: en la tienda saldria con
+                    este hueco.
+                </div>
+
+                <!-- Solo capturas. La portada no entra aqui: es la imagen del listado, de la
+                     tienda y de la cesta, no una mas de la galeria. -->
+                <div class="gal-thumbs" th:unless="${#lists.isEmpty(capturas)}">
+
+                    <span class="thumb" th:each="i : ${capturas}">
+                        <img th:src="@{${i.ruta}}"
+                             th:alt="${i.textoAlternativo != null ? i.textoAlternativo : videojuego.titulo}">
+                    </span>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-body stack">
+
+                    <h2 style="font-size:19px" th:text="${videojuego.titulo}">Eclipse Protocol</h2>
+
+                    <div class="row wrap">
+                        <span class="chip" th:each="c : ${videojuego.categorias}" th:text="${c.nombre}">RPG</span>
+                        <span class="chip" th:each="p : ${videojuego.plataformas}" th:text="${p.nombre}">PC</span>
+                        <span class="chip" th:text="'PEGI ' + ${videojuego.pegi}">PEGI 16</span>
+                        <span class="chip" th:if="${videojuego.fechaLanzamiento != null}"
+                              th:text="${#temporals.format(videojuego.fechaLanzamiento, 'dd/MM/yyyy')}">14/03/2026</span>
+                    </div>
+
+                    <p class="sinopsis" th:if="${videojuego.sinopsis != null}"
+                       th:text="${videojuego.sinopsis}">De que va el juego.</p>
+
+                    <p class="sinopsis muted" th:if="${videojuego.sinopsis == null}">
+                        Este juego no tiene sinopsis. En la tienda, el cliente veria este hueco.</p>
+
+                </div>
+            </div>
+        </div>
+
+        <div>
+            <div class="buy-box">
+
+                <div class="row" style="justify-content:space-between">
+                    <span class="badge b-mute">Sin stock calculado</span>
+                    <span class="live"><i></i>Stock en vivo</span>
+                </div>
+
+                <div class="buy-price">
+                    <span class="old" th:if="${videojuego.precioDescuento != null}"
+                          th:text="${#numbers.formatDecimal(videojuego.precio, 1, 'POINT', 2, 'COMMA')} + ' €'">59,99 €</span>
+                    <span th:text="${#numbers.formatDecimal(
+                            videojuego.precioDescuento != null ? videojuego.precioDescuento : videojuego.precio,
+                            1, 'POINT', 2, 'COMMA')} + ' €'">44,99 €</span>
+                </div>
+
+                <!-- El stock sale de clave_licencia, que todavia no tiene ni DAO. Un numero
+                     inventado aqui enganaria en la unica pantalla que existe para comprobar
+                     como queda, asi que se queda con el mismo guion que el listado. -->
+                <div class="row">
+                    <span class="muted" title="Pendiente de las claves de licencia">—</span>
+                    <span class="hint">claves en stock</span>
+                </div>
+
+                <!-- Deshabilitados a proposito: no hay modulo de cesta, y en una vista previa
+                     tampoco interesa que funcionen. -->
+                <button class="btn btn-primary" style="justify-content:center" disabled
+                        title="La cesta todavia no existe">Anadir a la cesta</button>
+                <button class="btn" style="justify-content:center" disabled
+                        title="El pago con Stripe todavia no existe">Comprar ahora</button>
+
+                <div class="sep"></div>
+
+                <dl class="kv">
+                    <dt>Estudio</dt>
+                    <dd th:if="${videojuego.proveedor != null}"
+                        th:text="${videojuego.proveedor.nombreComercial}">Iberia Digital Supply</dd>
+                    <dd th:if="${videojuego.proveedor == null and videojuego.colaborador != null}"
+                        th:text="${videojuego.colaborador.apellidos != null
+                                ? videojuego.colaborador.nombre + ' ' + videojuego.colaborador.apellidos
+                                : videojuego.colaborador.nombre}">Jordi Bastida</dd>
+                    <dd class="muted" th:if="${videojuego.proveedor == null and videojuego.colaborador == null}">—</dd>
+
+                    <dt>Genero</dt>
+                    <dd>
+                        <span class="chip" th:each="c : ${videojuego.categorias}" th:text="${c.nombre}">RPG</span>
+                        <span class="muted" th:if="${videojuego.categorias.isEmpty()}">—</span>
+                    </dd>
+
+                    <dt>Plataforma</dt>
+                    <dd>
+                        <span class="chip" th:each="p : ${videojuego.plataformas}" th:text="${p.nombre}">PC</span>
+                        <span class="muted" th:if="${videojuego.plataformas.isEmpty()}">—</span>
+                    </dd>
+
+                    <dt>Entrega</dt>
+                    <dd>Clave en tu biblioteca</dd>
+                </dl>
+
+                <!-- El texto del prototipo decia "clave por correo, al instante", y eso
+                     contradice las decisiones 2.6 y 2.7: la clave es la prueba de que el
+                     juego es tuyo y la descarga la sirve un controlador nuestro que antes
+                     comprueba que la clave es de quien la pide y esta VENDIDA. -->
+                <p class="hint" style="margin:0">La clave se asigna al confirmar el pago y queda
+                    ligada a tu biblioteca, que es desde donde se descarga.</p>
+
+            </div>
+        </div>
+    </div>
+</main>
+
+<footer class="shop-foot">LudusERP · Vista previa servida desde el panel de catalogo</footer>
+
+</body>
+</html>

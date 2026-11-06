@@ -286,7 +286,7 @@ public class VideojuegoServiceImpl implements VideojuegoService {
         String extension = extensionDe(archivo);
 
         if (tipo != TipoImagen.CAPTURA) {
-            degradarAnteriores(videojuegoId, tipo);
+            validarQueNoExista(videojuegoId, tipo);
         }
 
         String ruta = almacenArchivos.guardarImagen(
@@ -320,32 +320,12 @@ public class VideojuegoServiceImpl implements VideojuegoService {
         almacenArchivos.borrar(ruta);
     }
 
-    @Override
-    public void designarPortada(Long videojuegoId, Long imagenId) {
+    private void validarQueNoExista(Long videojuegoId, TipoImagen tipo) {
 
-        ImagenVideojuego imagen = buscarImagenXId(videojuegoId, imagenId);
+        if (!imagenVideojuegoDao.findByVideojuegoIdAndTipoOrderByOrdenAscIdAsc(videojuegoId, tipo).isEmpty()) {
 
-        if (imagen.getTipo() == TipoImagen.PORTADA) {
-            return;
-        }
-
-        degradarAnteriores(videojuegoId, TipoImagen.PORTADA);
-
-        imagen.setTipo(TipoImagen.PORTADA);
-        imagen.setOrden(1);
-
-        imagenVideojuegoDao.save(imagen);
-    }
-
-    private void degradarAnteriores(Long videojuegoId, TipoImagen tipo) {
-
-        for (ImagenVideojuego anterior
-                : imagenVideojuegoDao.findByVideojuegoIdAndTipoOrderByOrdenAscIdAsc(videojuegoId, tipo)) {
-
-            anterior.setTipo(TipoImagen.CAPTURA);
-            anterior.setOrden(imagenVideojuegoDao.maximoOrden(videojuegoId, TipoImagen.CAPTURA) + 1);
-
-            imagenVideojuegoDao.save(anterior);
+            throw new ImagenInvalidaException("Ya hay una imagen de tipo " + tipo
+                    + ": quitala antes de subir otra");
         }
     }
 

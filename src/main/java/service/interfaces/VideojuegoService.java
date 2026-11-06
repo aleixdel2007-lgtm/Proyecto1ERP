@@ -32,8 +32,6 @@ public interface VideojuegoService {
 
     void eliminarImagen(Long videojuegoId, Long imagenId);
 
-    void designarPortada(Long videojuegoId, Long imagenId);
-
     List<Proveedor> listarProveedoresActivos();
 
     List<Categoria> listarCategorias();
