@@ -178,6 +178,10 @@ h1,h2,h3{margin:0;font-weight:600;letter-spacing:-.01em}
 /* navbar.css le pone margin-right:auto a la marca para empujar el resto. Aqui el
    que empuja es el menu, que va pegado a la marca */
 .shop-bar .top-brand{margin-right:0}
+/* navbar.css solo quita el color de enlace dentro de .top (".top a"), y esta barra es
+   .shop-top: sin esto "Ludus" sale con el azul por defecto del navegador, casi negro
+   sobre el fondo oscuro. Solo la marca, para no tocar los .btn ni el menu */
+.shop-top .top-brand{color:inherit;text-decoration:none}
 .shop-nav{display:flex;gap:4px;margin-left:10px;margin-right:auto}
 .shop-nav a{
     padding:6px 11px;border-radius:var(--r-sm);color:var(--ink-2);
