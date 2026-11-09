@@ -3,8 +3,10 @@ package controller;
 import exception.imagen.ImagenInvalidaException;
 import exception.usuario.UsuarioNoEncontradoException;
 import lombok.RequiredArgsConstructor;
+import java.time.LocalDate;
 import model.seguridad.Cliente;
 import model.seguridad.Usuario;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -49,6 +51,34 @@ public class ControllerHome {
         model.addAttribute("imagen", usuarioService.buscarImagenPerfil(usuario.getId()));
 
         return "clients/configuracionUsuario";
+    }
+
+    @PostMapping("/user/profile")
+    public String guardarPerfil(Authentication authentication,
+            @RequestParam String nombre,
+            @RequestParam(required = false) String apellidos,
+            @RequestParam(required = false) String telefono,
+            @RequestParam(required = false) String direccion,
+            @RequestParam(required = false) String ciudad,
+            @RequestParam(required = false) String pais,
+            @RequestParam(required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaNacimiento,
+            RedirectAttributes flash) {
+
+        Usuario usuario = usuarioService.buscarUsuarioXEmail(authentication.getName());
+
+        try {
+            usuarioService.guardarDatosPersonales(usuario.getId(), nombre, apellidos,
+                    telefono, direccion, ciudad, pais, fechaNacimiento);
+
+        } catch (IllegalArgumentException e) {
+            flash.addFlashAttribute("errorDatos", e.getMessage());
+            return "redirect:/user/profile";
+        }
+
+        flash.addFlashAttribute("okDatos", "Datos guardados.");
+
+        return "redirect:/user/profile";
     }
 
     @PostMapping("/user/profile/imagen")

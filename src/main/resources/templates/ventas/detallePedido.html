@@ -63,7 +63,14 @@
                                     <td>
                                         <div>
                                             <div class="t-main" th:text="${l.videojuego.titulo}">Eclipse Protocol</div>
-                                            <div class="t-sub" th:text="${l.videojuego.estudio}">Estudio</div>
+                                            <!-- El estudio ya no es un String: en los juegos de distribuidor es el
+                                                 proveedor que los suministra y en los de colaborador, quien los subio -->
+                                            <div class="t-sub"
+                                                 th:text="${l.videojuego.proveedor != null
+                                                         ? l.videojuego.proveedor.nombreComercial
+                                                         : (l.videojuego.colaborador != null
+                                                                 ? l.videojuego.colaborador.nombre + ' ' + (l.videojuego.colaborador.apellidos ?: '')
+                                                                 : '—')}">Iberia Digital Supply</div>
                                         </div>
                                     </td>
                                     <td class="num" th:text="${#numbers.formatDecimal(l.precioUnitario, 1, 'POINT', 2, 'COMMA')} + ' €'">0,00 €</td>

@@ -76,7 +76,7 @@
 
         <!-- Datos del usuario -->
         <div class="card">
-            <form>
+            <form th:action="@{/user/profile}" method="post">
                 <div class="card-head"><h3>Mis datos</h3></div>
                 <div class="card-body">
                     <div class="form-grid">
@@ -102,41 +102,50 @@
                             <span class="hint">Es tu identificador de acceso y no se puede cambiar.</span>
                         </div>
 
-                        <div class="frow">
-                            <label for="fechaNacimiento">Fecha de nacimiento</label>
-                            <input class="inp" type="date" id="fechaNacimiento" name="fechaNacimiento"
-                                   th:value="${cliente?.fechaNacimiento}">
-                        </div>
+                        <!-- Estos campos son de la tabla cliente, no de usuario: un empleado o un
+                             colaborador no los tiene, y antes se les pintaban vacios. Sus datos de
+                             empresa los lleva el administrador desde el panel. -->
+                        <th:block th:if="${cliente != null}">
 
-                        <div class="frow">
-                            <label for="pais">País</label>
-                            <input class="inp" type="text" id="pais" name="pais" autocomplete="country-name"
-                                   th:value="${cliente?.pais}">
-                        </div>
+                            <div class="frow">
+                                <label for="fechaNacimiento">Fecha de nacimiento</label>
+                                <input class="inp" type="date" id="fechaNacimiento" name="fechaNacimiento"
+                                       th:value="${cliente.fechaNacimiento}">
+                            </div>
 
-                        <div class="frow wide"><div class="sect-label">Datos de contacto</div></div>
+                            <div class="frow">
+                                <label for="pais">País</label>
+                                <input class="inp" type="text" id="pais" name="pais" autocomplete="country-name"
+                                       th:value="${cliente.pais}">
+                            </div>
 
-                        <div class="frow">
-                            <label for="telefono">Teléfono</label>
-                            <input class="inp" type="tel" id="telefono" name="telefono" autocomplete="tel"
-                                   th:value="${cliente?.telefono}">
-                        </div>
+                            <div class="frow wide"><div class="sect-label">Datos de contacto</div></div>
 
-                        <div class="frow">
-                            <label for="ciudad">Ciudad</label>
-                            <input class="inp" type="text" id="ciudad" name="ciudad" autocomplete="address-level2"
-                                   th:value="${cliente?.ciudad}">
-                        </div>
+                            <div class="frow">
+                                <label for="telefono">Teléfono</label>
+                                <input class="inp" type="tel" id="telefono" name="telefono" autocomplete="tel"
+                                       th:value="${cliente.telefono}">
+                            </div>
 
-                        <div class="frow wide">
-                            <label for="direccion">Dirección</label>
-                            <input class="inp" type="text" id="direccion" name="direccion" autocomplete="street-address"
-                                   th:value="${cliente?.direccion}">
-                        </div>
+                            <div class="frow">
+                                <label for="ciudad">Ciudad</label>
+                                <input class="inp" type="text" id="ciudad" name="ciudad" autocomplete="address-level2"
+                                       th:value="${cliente.ciudad}">
+                            </div>
+
+                            <div class="frow wide">
+                                <label for="direccion">Dirección</label>
+                                <input class="inp" type="text" id="direccion" name="direccion" autocomplete="street-address"
+                                       th:value="${cliente.direccion}">
+                            </div>
+
+                        </th:block>
 
                     </div>
                 </div>
                 <div class="form-foot">
+                    <span class="note" th:if="${okDatos}" th:text="${okDatos}"></span>
+                    <span class="note" th:if="${errorDatos}" th:text="${errorDatos}"></span>
                     <!-- A donde se vuelve depende del rol: un cliente o un colaborador no
                          pueden entrar en /home, asi que ese boton les daba un 403. -->
                     <a class="btn" sec:authorize="hasAnyRole('CLIENTE','COLABORADOR')"

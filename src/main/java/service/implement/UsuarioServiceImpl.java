@@ -4,6 +4,8 @@ import config.AlmacenArchivos;
 import dao.ImagenUsuarioDao;
 import dao.UsuarioDao;
 import exception.usuario.UsuarioNoEncontradoException;
+import java.time.LocalDate;
+import model.seguridad.Cliente;
 import model.seguridad.ImagenUsuario;
 import model.seguridad.Usuario;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,6 +34,30 @@ public class UsuarioServiceImpl implements UsuarioService {
             throw new UsuarioNoEncontradoException(email);
         }
         return usuario;
+    }
+
+    @Override
+    public void guardarDatosPersonales(Long usuarioId, String nombre, String apellidos,
+                                       String telefono, String direccion, String ciudad,
+                                       String pais, LocalDate fechaNacimiento) {
+
+        Usuario usuario = buscarUsuarioXId(usuarioId);
+
+        if (nombre == null || nombre.isBlank()) {
+            throw new IllegalArgumentException("El nombre es obligatorio");
+        }
+
+        usuario.setNombre(nombre.trim());
+        usuario.setApellidos(normalizarTexto(apellidos));
+
+        if (usuario instanceof Cliente cliente) {
+            cliente.setTelefono(normalizarTexto(telefono));
+            cliente.setDireccion(normalizarTexto(direccion));
+            cliente.setCiudad(normalizarTexto(ciudad));
+            cliente.setPais(normalizarTexto(pais));
+            cliente.setFechaNacimiento(fechaNacimiento);
+        }
+        usuarioDao.save(usuario);
     }
 
     @Override
@@ -69,6 +95,14 @@ public class UsuarioServiceImpl implements UsuarioService {
         if (rutaAnterior != null) {
             almacenArchivos.borrar(rutaAnterior);
         }
+    }
+
+    private String normalizarTexto(String texto) {
+
+        if (texto == null || texto.isBlank()) {
+            return null;
+        }
+        return texto.trim();
     }
 
     private Usuario buscarUsuarioXId(Long id) {
