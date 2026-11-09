@@ -13,7 +13,7 @@
         <div class="nav-group">General</div>
         <a class="nav-item" th:classappend="${activo == 'inicio'} ? 'on' : ''"
            th:href="@{/home}">
-            <span class="ic"><svg th:replace="~{fragments/iconos :: panel}"></svg></span>Inicio</a>
+            <span class="ic"><svg th:replace="~{fragments/iconos :: panel}"></svg></span>Panel de control</a>
 
         <th:block sec:authorize="hasAnyRole('GESTOR_PRODUCTOS', 'ADMIN')">
             <div class="nav-group">Catálogo</div>

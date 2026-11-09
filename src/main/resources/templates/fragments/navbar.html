@@ -46,5 +46,46 @@
     </form>
     <script th:src="@{/js/client-profile.js}" src="../static/js/client-profile.js"></script>
 </header>
+
+<!-- La barra de la tienda. No es la de arriba: aqui la marca lleva al catalogo y no al
+     panel, no hay buscador (el filtro vive dentro de la propia pagina) y solo hay dos
+     apartados. El parametro activo marca en cual estas. -->
+<header class="shop-top" th:fragment="barraTienda(activo)">
+    <div class="shop-bar">
+
+        <a class="top-brand" th:href="@{/tienda}" href="#">
+            <div class="brand-mark">L</div>
+            <div class="brand-name">Ludus<span>ERP</span></div>
+        </a>
+
+        <nav class="shop-nav">
+            <a th:href="@{/tienda}" href="#"
+               th:classappend="${activo == 'catalogo'} ? 'on' : ''">Catálogo</a>
+            <a th:href="@{/tienda/ofertas}" href="#"
+               th:classappend="${activo == 'ofertas'} ? 'on' : ''">Ofertas</a>
+        </nav>
+
+        <div class="who">
+            <img class="avatar" style="object-fit:cover"
+                 th:src="${imagenPerfil != null} ? @{${imagenPerfil.rutaImagen}} : @{/img/placeholder.webp}"
+                 th:alt="${imagenPerfil != null} ? ${imagenPerfil.textoAlternativo} : 'Sin foto de perfil'">
+
+            <div class="who-txt">
+                <b th:text="${#authentication.name}">cliente@example.com</b>
+                <span th:text="${#authentication.authorities[0].authority}">ROLE_CLIENTE</span>
+            </div>
+        </div>
+
+        <!-- Al admin tambien lo manda aqui el successHandler, asi que necesita una puerta
+             de vuelta al panel. El cliente y el colaborador no ven este boton. -->
+        <a class="btn" sec:authorize="hasRole('ADMIN')" th:href="@{/home}" href="#">Panel ERP</a>
+
+        <form th:action="@{/logout}" method="post">
+            <button type="submit" class="top-logout">Cerrar sesión</button>
+        </form>
+
+    </div>
+    <script th:src="@{/js/client-profile.js}" src="../static/js/client-profile.js"></script>
+</header>
 </body>
 </html>
