@@ -4,7 +4,6 @@ import exception.imagen.ImagenInvalidaException;
 import exception.usuario.UsuarioNoEncontradoException;
 import lombok.RequiredArgsConstructor;
 import model.seguridad.Cliente;
-import model.seguridad.Rol;
 import model.seguridad.Usuario;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
@@ -27,17 +26,9 @@ public class ControllerHome {
 
         Usuario usuario = usuarioService.buscarUsuarioXEmail(authentication.getName());
 
-        if (usuario.getRol() == Rol.CLIENTE) {
-            return "redirect:/tienda";
-        }
         model.addAttribute("usuario", usuario);
 
         return "home";
-    }
-
-    @GetMapping("/tienda")
-    public String tienda() {
-        return "client/tienda";
     }
 
     @GetMapping("/user/profile")

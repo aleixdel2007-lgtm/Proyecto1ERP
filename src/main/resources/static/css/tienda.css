@@ -160,3 +160,137 @@
 h1,h2,h3{margin:0;font-weight:600;letter-spacing:-.01em}
 .sinopsis{margin:0;color:var(--ink-2);line-height:1.7}
 .hint{font-size:12px;color:var(--muted)}
+
+/* ===========================================================================
+   Barra de la tienda
+   La marca, el avatar y el boton de cerrar sesion los viste navbar.css, que ya
+   carga esta pantalla. Aqui solo va el envoltorio y los dos apartados.
+   =========================================================================== */
+.shop-top{
+    position:sticky;top:0;z-index:50;
+    background:rgba(28,28,28,.86);backdrop-filter:blur(8px);
+    border-bottom:1px solid var(--line);
+}
+.shop-bar{
+    display:flex;align-items:center;gap:16px;
+    padding:12px 26px;max-width:1360px;margin:0 auto;width:100%;
+}
+/* navbar.css le pone margin-right:auto a la marca para empujar el resto. Aqui el
+   que empuja es el menu, que va pegado a la marca */
+.shop-bar .top-brand{margin-right:0}
+.shop-nav{display:flex;gap:4px;margin-left:10px;margin-right:auto}
+.shop-nav a{
+    padding:6px 11px;border-radius:var(--r-sm);color:var(--ink-2);
+    font-size:13.5px;text-decoration:none;
+}
+.shop-nav a:hover{background:var(--surface-2);color:var(--ink);text-decoration:none}
+/* El apartado en el que estas, con el mismo morado que el menu del panel */
+.shop-nav a.on{
+    background:rgba(139,92,246,.22);color:#fff;font-weight:600;
+    box-shadow:inset 0 0 0 1px rgba(139,92,246,.55);
+}
+
+/* ===========================================================================
+   Cabecera de pagina, filtros y paginador
+   Calcados de panel.css: esta pantalla no lo carga, porque los dos ficheros
+   declaran .top y la barra del panel no es la de la tienda.
+   =========================================================================== */
+.page-head{display:flex;align-items:flex-start;gap:16px;margin-bottom:18px;flex-wrap:wrap}
+.page-head h1{font-size:21px}
+.page-head h2{font-size:17px}
+.page-head p{margin:5px 0 0;color:var(--muted);font-size:13px;max-width:70ch}
+
+.filters{
+    display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end;
+    padding:12px 16px;border-bottom:1px solid var(--line);background:rgba(0,0,0,.14);
+}
+.fld{display:flex;flex-direction:column;gap:4px}
+.fld>label{
+    font-size:10.5px;font-weight:700;letter-spacing:.05em;
+    text-transform:uppercase;color:var(--muted);
+}
+/* Los dos campos del precio, uno al lado del otro dentro del mismo .fld */
+.fld-precio{display:flex;align-items:center;gap:7px}
+.fld-precio .inp{width:84px}
+
+.inp{
+    background:var(--surface-2);border:1px solid var(--line);color:var(--ink);
+    border-radius:var(--r-sm);padding:6px 10px;outline:none;min-width:0;
+}
+.inp:focus{border-color:var(--purple);box-shadow:0 0 0 3px rgba(139,92,246,.18)}
+.inp::placeholder{color:#6e6e78}
+select.inp{
+    appearance:none;padding-right:26px;
+    background-image:linear-gradient(45deg,transparent 50%,var(--muted) 50%),
+                     linear-gradient(135deg,var(--muted) 50%,transparent 50%);
+    background-position:calc(100% - 14px) 52%,calc(100% - 9px) 52%;
+    background-size:5px 5px,5px 5px;background-repeat:no-repeat;
+}
+.search-inp{
+    display:flex;align-items:center;gap:7px;background:var(--surface-2);
+    border:1px solid var(--line);border-radius:var(--r-sm);padding:6px 10px;
+}
+.search-inp input{background:none;border:none;outline:none;color:var(--ink);width:190px}
+.search-inp svg{color:var(--muted);flex:0 0 auto}
+
+.empty{padding:38px 20px;text-align:center;color:var(--muted)}
+.empty h4{font-size:14px;color:var(--ink-2);margin:0 0 5px}
+
+.pager{
+    display:flex;align-items:center;gap:10px;padding:11px 16px;
+    border-top:1px solid var(--line);font-size:12.5px;color:var(--muted);
+}
+.pager .pages{margin-left:auto;display:flex;gap:4px}
+.pg{
+    min-width:28px;height:28px;border-radius:var(--r-sm);border:1px solid var(--line);
+    background:var(--surface-2);color:var(--ink-2);display:grid;place-items:center;
+    font-size:12.5px;text-decoration:none;
+}
+.pg:hover:not(.on){background:var(--surface-3);text-decoration:none}
+.pg.on{background:var(--purple);border-color:var(--purple);color:#fff;font-weight:600}
+/* .off es la flecha de un extremo, que no lleva a ningun sitio */
+.pg.off{opacity:.4;pointer-events:none}
+
+/* ===========================================================================
+   Rejilla del catalogo
+   =========================================================================== */
+.cat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(205px,1fr));gap:18px}
+
+.game{
+    background:var(--surface);border:1px solid var(--line);border-radius:var(--r);
+    overflow:hidden;display:flex;flex-direction:column;color:inherit;text-decoration:none;
+}
+.game:hover{
+    border-color:rgba(139,92,246,.45);transform:translateY(-2px);
+    transition:.14s;text-decoration:none;
+}
+
+/* El marco fija la proporcion para que una portada apaisada no descoloque la
+   rejilla, y el object-fit recorta en vez de deformar */
+.cover{position:relative;display:block;aspect-ratio:3/4;background:var(--surface-3)}
+.cover img{width:100%;height:100%;object-fit:cover;display:block}
+.cover .pegi{
+    position:absolute;top:8px;left:8px;background:rgba(0,0,0,.55);
+    border:1px solid rgba(255,255,255,.3);color:#fff;
+    font-size:10px;font-weight:700;padding:1px 5px;border-radius:4px;
+}
+.cover .off{
+    position:absolute;top:8px;right:8px;background:var(--purple);color:#fff;
+    font-size:10px;font-weight:700;padding:1px 6px;border-radius:4px;letter-spacing:.04em;
+}
+
+.game-inf{padding:11px 12px;display:flex;flex-direction:column;gap:5px;flex:1 1 auto}
+.game-inf .ttl{font-size:13.5px;font-weight:600;line-height:1.3}
+.game-inf .meta{font-size:11.5px;color:var(--muted)}
+/* margin-top:auto pega el precio abajo, para que todas las tarjetas lo alineen
+   aunque el titulo de una ocupe dos lineas */
+.game-inf .foot{margin-top:auto;display:flex;align-items:center;gap:8px;padding-top:4px}
+
+.price{font-weight:650;font-variant-numeric:tabular-nums}
+.price .old{
+    color:var(--muted);text-decoration:line-through;font-weight:400;
+    font-size:12px;margin-right:5px;
+}
+
+/* El apartado de los juegos de companeros, debajo del catalogo */
+.seccion-col{margin-top:30px}

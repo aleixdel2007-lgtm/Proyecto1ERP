@@ -131,6 +131,7 @@ public class ControllerVideojuego {
     public String vistaPreviaVideojuego(@PathVariable Long id, Model model) {
 
         model.addAttribute("videojuego", videojuegoService.buscarVideojuegoXId(id));
+        model.addAttribute("vistaPrevia", true);
         cargarImagenes(model, id);
 
         return "client/ficha";
