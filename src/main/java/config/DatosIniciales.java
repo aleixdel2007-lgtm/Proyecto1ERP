@@ -3,6 +3,9 @@ package config;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import model.aprovisionamiento.Proveedor;
+import model.catalogo.Categoria;
+import model.catalogo.Plataforma;
+import model.catalogo.Videojuego;
 import model.seguridad.Cliente;
 import model.seguridad.Colaborador;
 import model.seguridad.Departamento;
@@ -14,7 +17,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.List;
 
 @Component
 @Profile("dev")
@@ -162,21 +167,63 @@ public class DatosIniciales implements CommandLineRunner {
         cliente("diego.mas@example.com", "Diego", "Mas", "600777888",
                 "Carrer de Colom 9", "Valencia", LocalDate.of(1993, 8, 22));
 
-        proveedor("Rheinspiel", "Rheinspiel GmbH", "A36666642",
+        Proveedor rheinspiel = proveedor("Rheinspiel", "Rheinspiel GmbH", "A36666642",
                 "ES1000492352082414205402", "vertrieb@rheinspiel.de", "Alemania");
-        proveedor("Albion Games", "Albion Games Ltd", "F45555521",
+        Proveedor albion = proveedor("Albion Games", "Albion Games Ltd", "F45555521",
                 "ES1000492352082414205403", "sales@albiongames.co.uk", "Reino Unido");
-        proveedor("Distribuciones Iberia", "Distribuciones Iberia SA", "Q7222216I",
+        Proveedor iberia = proveedor("Distribuciones Iberia", "Distribuciones Iberia SA", "Q7222216I",
                 "ES1000492352082414205406", "pedidos@disiberia.es", "España");
-        proveedor("Kanal Publishing", "Kanal Publishing BV", "P8999992D",
+        Proveedor kanal = proveedor("Kanal Publishing", "Kanal Publishing BV", "P8999992D",
                 "ES1000492352082414205408", "info@kanalpublishing.nl", "Países Bajos");
 
-        colaborador("jordi.bastida@example.com", "Jordi", "Bastida", "España");
-        colaborador("aina.querol@example.com", "Aina", "Querol", "España");
-        colaborador("victor.salas@example.com", "Victor", "Salas", "España");
+        Colaborador jordi = colaborador("jordi.bastida@example.com", "Jordi", "Bastida", "España");
+        Colaborador aina = colaborador("aina.querol@example.com", "Aina", "Querol", "España");
+        Colaborador victor = colaborador("victor.salas@example.com", "Victor", "Salas", "España");
         colaborador("lucia.herrero@example.com", "Lucia", "Herrero", "España");
         colaborador("marc.ibanez@example.com", "Marc", "Ibanez", "España");
         colaborador("elsa.riquelme@example.com", "Elsa", "Riquelme", "España");
+
+        videojuego("Eclipse Protocol",
+                "RPG tactico por turnos en una estacion orbital a la deriva: cada decision gasta oxigeno.",
+                iberia, null, "59.99", "44.99", 16, LocalDate.of(2026, 3, 14),
+                List.of("RPG", "ESTRATEGIA"), List.of("PC"));
+        videojuego("Neon Drifter",
+                "Carreras nocturnas por una ciudad infinita, sin frenos y con la radio puesta.",
+                rheinspiel, null, "24.99", null, 7, LocalDate.of(2025, 11, 2),
+                List.of("CARRERAS"), List.of("PC", "NSW"));
+        videojuego("Ashen Crown",
+                "Accion medieval en un reino que se cae a pedazos y una corona que nadie quiere.",
+                albion, null, "69.99", null, 18, LocalDate.of(2026, 6, 20),
+                List.of("ACCION", "AVENTURA"), List.of("PS5", "XSX"));
+        videojuego("Mycelium",
+                "Aventura contemplativa bajo tierra: el bosque crece mientras tu duermes.",
+                rheinspiel, null, "19.99", "14.99", 12, LocalDate.of(2026, 1, 30),
+                List.of("INDIE", "AVENTURA"), List.of("NSW"));
+        videojuego("Orbital Foundry",
+                "Simulador de fabrica en orbita baja. Si la cadena se para, el turno se acaba.",
+                kanal, null, "39.99", "34.99", 3, LocalDate.of(2025, 9, 12),
+                List.of("SIMULACION"), List.of("PC"));
+        videojuego("Last Signal",
+                "Terror en una estacion de radio aislada. La senal responde, y no deberia.",
+                iberia, null, "29.99", null, 18, LocalDate.of(2026, 4, 4),
+                List.of("TERROR"), List.of("PC", "XSX"));
+        videojuego("Ironline Tactics",
+                "Estrategia por turnos con trenes blindados y muy pocos raíles.",
+                albion, null, "39.99", null, 12, LocalDate.of(2026, 2, 18),
+                List.of("ESTRATEGIA"), List.of("PC"));
+
+        videojuego("Dust Harbour",
+                "Un puerto abandonado, una linterna y catorce minutos de bateria.",
+                null, jordi, "0.00", null, 12, LocalDate.of(2026, 10, 15),
+                List.of("AVENTURA"), List.of("PC"));
+        videojuego("Hollow Transit",
+                "Metro subterraneo, vagones vacios y algo que cambia de anden cuando no miras.",
+                null, aina, "0.00", null, 7, LocalDate.of(2026, 10, 27),
+                List.of("INDIE", "TERROR"), List.of("PC"));
+        videojuego("Nightjar",
+                "Puzles cortos de logica nocturna, uno por cada noche del mes.",
+                null, victor, "2.99", "1.99", 3, LocalDate.of(2026, 9, 30),
+                List.of("PUZZLE"), List.of("PC"));
     }
 
     private Departamento departamento(String nombre, String descripcion) {
@@ -246,5 +293,43 @@ public class DatosIniciales implements CommandLineRunner {
         p.setPais(pais);
         em.persist(p);
         return p;
+    }
+
+    private Videojuego videojuego(String titulo, String sinopsis, Proveedor proveedor,
+                                  Colaborador colaborador, String precio, String precioDescuento,
+                                  int pegi, LocalDate fechaLanzamiento,
+                                  List<String> categorias, List<String> plataformas) {
+        Videojuego v = new Videojuego();
+        v.setTitulo(titulo);
+        v.setSinopsis(sinopsis);
+        v.setProveedor(proveedor);
+        v.setColaborador(colaborador);
+        v.setPrecio(new BigDecimal(precio));
+        v.setPrecioDescuento(precioDescuento == null ? null : new BigDecimal(precioDescuento));
+        v.setPegi(pegi);
+        v.setFechaLanzamiento(fechaLanzamiento);
+        v.setStockIlimitado(colaborador != null);
+
+        for (String codigo : categorias) {
+            v.getCategorias().add(categoria(codigo));
+        }
+
+        for (String codigo : plataformas) {
+            v.getPlataformas().add(plataforma(codigo));
+        }
+        em.persist(v);
+        return v;
+    }
+
+    private Categoria categoria(String codigo) {
+        return em.createQuery("select c from Categoria c where c.codigo = :codigo", Categoria.class)
+                .setParameter("codigo", codigo)
+                .getSingleResult();
+    }
+
+    private Plataforma plataforma(String codigo) {
+        return em.createQuery("select p from Plataforma p where p.codigo = :codigo", Plataforma.class)
+                .setParameter("codigo", codigo)
+                .getSingleResult();
     }
 }

@@ -31,11 +31,16 @@ public interface PedidoDao extends JpaRepository<Pedido, Long> {
                                 @Param("desde") LocalDateTime desde,
                                 @Param("hasta") LocalDateTime hasta);
 
-    // Un pedido con su cliente y sus lineas (con el videojuego de cada una) ya cargados
+    // Un pedido con su cliente y sus lineas (con el videojuego de cada una) ya cargados.
+    // El proveedor y el colaborador del juego tambien se traen aqui: la vista ensena quien
+    // es el estudio, y con open-in-view desactivado un ManyToOne LAZY sin fetch revienta al
+    // pintarlo
     @Query("select distinct p from Pedido p "
             + "join fetch p.cliente "
             + "left join fetch p.lineas l "
-            + "left join fetch l.videojuego "
+            + "left join fetch l.videojuego v "
+            + "left join fetch v.proveedor "
+            + "left join fetch v.colaborador "
             + "where p.id = :id")
     Optional<Pedido> buscarConDetalle(@Param("id") Long id);
 
