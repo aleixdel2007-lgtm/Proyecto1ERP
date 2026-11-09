@@ -34,7 +34,9 @@ public class ControllerCliente {
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate desde,
             @RequestParam(defaultValue = "0") int pagina,
             Model model) {
-        model.addAttribute("clientes", clienteService.buscarFiltrado(buscar, pais, desde));
+        java.util.List<model.seguridad.Cliente> lista = clienteService.buscarFiltrado(buscar, pais, desde);
+        model.addAttribute("clientes", lista);
+        model.addAttribute("fotos", clienteService.listarImagenesPerfil(lista));
         model.addAttribute("paises", clienteService.listarPaises());
         model.addAttribute("buscar", buscar);
         model.addAttribute("pais", pais);

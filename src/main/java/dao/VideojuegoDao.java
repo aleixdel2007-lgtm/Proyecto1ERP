@@ -46,6 +46,14 @@ public interface VideojuegoDao extends JpaRepository<Videojuego, Long> {
             + "where v.id = :id")
     Optional<Videojuego> buscarConDetalle(@Param("id") Long id);
 
+
+    @Query("select distinct v from Videojuego v "
+            + "left join fetch v.categorias "
+            + "left join fetch v.plataformas "
+            + "where v.colaborador.email = :email "
+            + "order by v.titulo")
+    List<Videojuego> listarDeColaborador(@Param("email") String email);
+
     long countByColaboradorId(Long colaboradorId);
 
     @Query("select v.colaborador.id, count(v) from Videojuego v "

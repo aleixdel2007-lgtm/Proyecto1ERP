@@ -8,6 +8,8 @@ import org.springframework.data.repository.query.Param;
 
 public interface ColaboradorDao extends JpaRepository<Colaborador, Long> {
 
+    java.util.Optional<Colaborador> findByEmail(String email);
+
     @Query("select c from Colaborador c "
             + "where (:texto is null "
             + "       or lower(c.nombre) like lower(concat(:texto, '%')) "
