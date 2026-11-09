@@ -89,7 +89,12 @@
                                         <tr th:each="c : ${clientes.subList(inicio, fin)}">
                                             <td>
                                                 <div style="display:flex;align-items:center;gap:10px">
+                                                    <img class="avatar" style="width:28px;height:28px;object-fit:cover"
+                                                         th:if="${fotos[c.id] != null}"
+                                                         th:src="@{${fotos[c.id]}}"
+                                                         th:alt="'Foto de perfil de ' + ${c.nombre}">
                                                     <div class="avatar" style="width:28px;height:28px;font-size:11px"
+                                                         th:unless="${fotos[c.id] != null}"
                                                          th:text="${#strings.toUpperCase(#strings.substring(c.nombre, 0, 1))}">M</div>
                                                     <div>
                                                         <div class="t-main"

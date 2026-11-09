@@ -4,6 +4,8 @@ import config.AlmacenArchivos;
 import dao.CategoriaDao;
 import dao.ImagenVideojuegoDao;
 import dao.PlataformaDao;
+import dao.VersionJuegoDao;
+import model.publicacion.VersionJuego;
 import dao.ProveedorDao;
 import dao.VideojuegoDao;
 import exception.imagen.ImagenInvalidaException;
@@ -44,6 +46,9 @@ public class VideojuegoServiceImpl implements VideojuegoService {
     private ImagenVideojuegoDao imagenVideojuegoDao;
 
     @Autowired
+    private VersionJuegoDao versionJuegoDao;
+
+    @Autowired
     private AlmacenArchivos almacenArchivos;
 
     @Autowired
@@ -72,6 +77,32 @@ public class VideojuegoServiceImpl implements VideojuegoService {
             ids.add(videojuego.getId());
         }
         return videojuegoDao.listarConClasificacion(ids);
+    }
+
+    @Override
+    public List<Videojuego> listarJuegosDeColaborador(String email) {
+        return videojuegoDao.listarDeColaborador(email);
+    }
+
+    @Override
+    public Map<Long, VersionJuego> listarVersionesActivas(List<Videojuego> videojuegos) {
+
+        Map<Long, VersionJuego> versiones = new HashMap<>();
+
+        if (videojuegos == null || videojuegos.isEmpty()) {
+            return versiones;
+        }
+
+        List<Long> ids = new ArrayList<>();
+
+        for (Videojuego videojuego : videojuegos) {
+            ids.add(videojuego.getId());
+        }
+
+        for (VersionJuego version : versionJuegoDao.buscarActivas(ids)) {
+            versiones.put(version.getVideojuego().getId(), version);
+        }
+        return versiones;
     }
 
     @Override
@@ -357,5 +388,54 @@ public class VideojuegoServiceImpl implements VideojuegoService {
     @Override
     public List<Plataforma> listarPlataformas() {
         return plataformaDao.listarFiltrado(null);
+    }
+
+    @Override
+    public void validarFichaColaborador(String titulo, String sinopsis, String pegi, String version,
+                                        List<Long> categoriaIds, List<Long> plataformaIds) {
+
+        if (titulo == null || titulo.isBlank()) {
+            throw new IllegalArgumentException("El titulo es obligatorio");
+        }
+
+        if (titulo.trim().length() > 150) {
+            throw new IllegalArgumentException("El titulo no puede pasar de 150 caracteres");
+        }
+
+        if (sinopsis == null || sinopsis.isBlank()) {
+            throw new IllegalArgumentException("La descripcion es obligatoria");
+        }
+
+        if (pegi == null || !listarPegis().contains(pegi)) {
+            throw new IllegalArgumentException("La clasificacion PEGI no es valida");
+        }
+
+        // Letras, numeros, puntos, + y guiones; maximo 20, que es lo que cabe en la columna
+        if (version == null || !version.trim().matches("[0-9A-Za-z][0-9A-Za-z.+-]{0,19}")) {
+            throw new IllegalArgumentException(
+                    "La version no es valida: letras, numeros, puntos y guiones, maximo 20 (por ejemplo 1.0.0)");
+        }
+
+        if (categoriaIds == null || categoriaIds.isEmpty()) {
+            throw new IllegalArgumentException("Elige al menos una categoria");
+        }
+
+        if (plataformaIds == null || plataformaIds.isEmpty()) {
+            throw new IllegalArgumentException("Elige al menos una plataforma");
+        }
+
+        // Comprueba que los ids existen: lanzan "Alguna categoria/plataforma no existe"
+        buscarCategorias(categoriaIds);
+        buscarPlataformas(plataformaIds);
+    }
+
+    @Override
+    public List<String> listarPegis() {
+        List<String> pegis = new ArrayList<>();
+
+        for (Integer pegi : PEGI_VALIDOS) {
+            pegis.add(String.valueOf(pegi));
+        }
+        return pegis;
     }
 }

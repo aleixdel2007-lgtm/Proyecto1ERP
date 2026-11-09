@@ -9,6 +9,7 @@ import model.catalogo.ImagenVideojuego;
 import model.catalogo.Plataforma;
 import model.catalogo.TipoImagen;
 import model.catalogo.Videojuego;
+import model.publicacion.VersionJuego;
 import org.springframework.web.multipart.MultipartFile;
 
 public interface VideojuegoService {
@@ -17,6 +18,11 @@ public interface VideojuegoService {
                                        BigDecimal precioMin, BigDecimal precioMax, Boolean activo);
 
     Videojuego buscarVideojuegoXId(Long id);
+
+    List<Videojuego> listarJuegosDeColaborador(String email);
+
+    // id del juego -> su version activa; los que no tienen ninguna no salen en el mapa
+    Map<Long, VersionJuego> listarVersionesActivas(List<Videojuego> videojuegos);
 
     Videojuego guardarVideojuego(Videojuego videojuego, Long proveedorId,
                                  List<Long> categoriaIds, List<Long> plataformaIds);
@@ -37,4 +43,10 @@ public interface VideojuegoService {
     List<Categoria> listarCategorias();
 
     List<Plataforma> listarPlataformas();
+    List<String> listarPegis();
+
+    // Valida la ficha que rellena un colaborador. Lanza IllegalArgumentException con el
+    // mensaje que ve el usuario si algo no cuadra; no guarda nada
+    void validarFichaColaborador(String titulo, String sinopsis, String pegi, String version,
+                                 List<Long> categoriaIds, List<Long> plataformaIds);
 }

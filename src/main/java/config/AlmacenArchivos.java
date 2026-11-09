@@ -86,6 +86,12 @@ public class AlmacenArchivos {
         if (extension == null) {
             throw new ImagenInvalidaException("La imagen tiene que ser JPG, PNG o WEBP");
         }
+
+        // El tope de multipart ya no es de 2 MB (lo subio el ZIP del juego), asi que el
+        // limite de las imagenes se comprueba aqui
+        if (archivo.getSize() > 2L * 1024 * 1024) {
+            throw new ImagenInvalidaException("La imagen no puede pasar de 2 MB");
+        }
         return extension;
     }
 
