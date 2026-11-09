@@ -3,7 +3,9 @@ package controller;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import exception.imagen.ImagenInvalidaException;
 import model.catalogo.Videojuego;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
@@ -48,14 +50,17 @@ public class ControllerColaboradorJuegos {
                                @RequestParam(required = false) String version,
                                @RequestParam(required = false) List<Long> categoriaIds,
                                @RequestParam(required = false) List<Long> plataformaIds,
+                               @RequestParam(required = false) MultipartFile zip,
+                               @RequestParam(required = false) MultipartFile portada,
+                               Authentication authentication,
                                Model model,
                                RedirectAttributes flash) {
 
         try {
-            videojuegoService.validarFichaColaborador(titulo, sinopsis, pegi, version,
-                    categoriaIds, plataformaIds);
+            videojuegoService.publicarJuegoColaborador(authentication.getName(), titulo, sinopsis,
+                    pegi, version, categoriaIds, plataformaIds, zip, portada);
 
-        } catch (IllegalArgumentException e) {
+        } catch (IllegalArgumentException | ImagenInvalidaException e) {
 
             // Se devuelve el formulario con lo que habia escrito y marcado: solo los
             // archivos hay que volver a elegirlos, el navegador no deja rellenarlos
@@ -69,8 +74,8 @@ public class ControllerColaboradorJuegos {
             return "colaboradores/nuevo-juego";
         }
 
-        // De momento solo se valida: guardar el juego es el paso siguiente
-        flash.addFlashAttribute("mensaje", "La ficha es valida (todavia no se guarda nada)");
+        flash.addFlashAttribute("mensaje",
+                "Juego subido. Queda inactivo hasta que se revise y se publique en la tienda");
 
         return "redirect:/colaborador/mis-juegos";
     }

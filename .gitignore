@@ -34,3 +34,6 @@ build/
 
 ### Imagenes subidas ###
 uploads/
+
+### ZIP de juegos (privados) ###
+juegos-privados/

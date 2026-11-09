@@ -1,7 +1,12 @@
 package config;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.DirectoryStream;
+import java.security.DigestInputStream;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.HexFormat;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import exception.imagen.ImagenInvalidaException;
@@ -39,6 +44,101 @@ public class AlmacenArchivos {
     // Carpeta raiz de las subidas, de application.properties. Es relativa al proyecto
     @Value("${app.uploads.dir}")
     private String uploadsDir;
+
+    // Lo que queda apuntado de un ZIP guardado: lo que hay que meter en version_juego
+    public record ZipGuardado(String nombreArchivo, String ruta, long tamanoBytes, String sha256) {
+    }
+
+    // Carpeta de los ZIP, FUERA de app.uploads.dir: WebConfig sirve todo lo que cuelga de
+    // /uploads/, asi que un ZIP ahi lo podria bajar cualquiera sin haber comprado el juego
+    @Value("${app.juegos.dir}")
+    private String juegosDir;
+
+    // Comprueba que lo subido parece un ZIP de verdad. La extension y el tipo los declara el
+    // navegador, asi que lo que cuenta es la firma: todo ZIP con contenido empieza por PK\3\4
+    public void validarZip(MultipartFile zip) {
+
+        if (zip == null || zip.isEmpty()) {
+            throw new IllegalArgumentException("Selecciona el archivo ZIP del juego");
+        }
+
+        String nombre = zip.getOriginalFilename();
+
+        if (nombre == null || !nombre.toLowerCase(Locale.ROOT).endsWith(".zip")) {
+            throw new IllegalArgumentException("El juego tiene que ser un archivo .zip");
+        }
+
+        byte[] firma = new byte[4];
+
+        try (InputStream in = zip.getInputStream()) {
+
+            if (in.readNBytes(firma, 0, 4) < 4
+                    || firma[0] != 'P' || firma[1] != 'K' || firma[2] != 3 || firma[3] != 4) {
+                throw new IllegalArgumentException("El archivo no es un ZIP valido");
+            }
+
+        } catch (IOException e) {
+            throw new IllegalStateException("No se pudo leer el ZIP", e);
+        }
+    }
+
+    // Guarda el ZIP en juegos-privados/<id del juego>/ y calcula el tamano y el SHA-256 al
+    // mismo tiempo que lo copia, sin leer el archivo dos veces. El nombre en disco lo pone
+    // un UUID; el que traia el cliente solo se guarda para mostrarlo
+    public ZipGuardado guardarZip(Long videojuegoId, MultipartFile zip) {
+
+        Path carpeta = raizJuegos().resolve(String.valueOf(videojuegoId));
+        String nombreDisco = UUID.randomUUID() + ".zip";
+
+        try {
+            Files.createDirectories(carpeta);
+            MessageDigest sha = MessageDigest.getInstance("SHA-256");
+
+            try (InputStream in = new DigestInputStream(zip.getInputStream(), sha)) {
+                Files.copy(in, carpeta.resolve(nombreDisco));
+            }
+            return new ZipGuardado(nombreVisible(zip.getOriginalFilename()),
+                    videojuegoId + "/" + nombreDisco, zip.getSize(),
+                    HexFormat.of().formatHex(sha.digest()));
+
+        } catch (IOException | NoSuchAlgorithmException e) {
+            throw new IllegalStateException("No se pudo guardar el ZIP del juego " + videojuegoId, e);
+        }
+    }
+
+    // Borra todos los ZIP de un juego. Se usa si falla el guardado a medias
+    public void borrarZips(Long videojuegoId) {
+
+        Path carpeta = raizJuegos().resolve(String.valueOf(videojuegoId));
+
+        if (!Files.isDirectory(carpeta)) {
+            return;
+        }
+
+        try (Stream<Path> contenido = Files.walk(carpeta)) {
+
+            for (Path ruta : contenido.sorted(Comparator.reverseOrder()).toList()) {
+                Files.deleteIfExists(ruta);
+            }
+
+        } catch (IOException e) {
+            throw new IllegalStateException("No se pudo borrar los ZIP del juego " + videojuegoId, e);
+        }
+    }
+
+    // Solo el nombre, sin carpetas (Internet Explorer manda la ruta entera), y cortado a la
+    // longitud de la columna
+    private String nombreVisible(String original) {
+
+        String nombre = original == null ? "juego.zip" : original;
+        nombre = nombre.substring(Math.max(nombre.lastIndexOf('/'), nombre.lastIndexOf('\\')) + 1);
+
+        return nombre.length() > 255 ? nombre.substring(nombre.length() - 255) : nombre;
+    }
+
+    private Path raizJuegos() {
+        return Path.of(juegosDir).toAbsolutePath().normalize();
+    }
 
     // Escribe la imagen en la carpeta del juego y devuelve la ruta web que se guarda
     // en la base de datos. El titulo solo se usa si la carpeta todavia no existe

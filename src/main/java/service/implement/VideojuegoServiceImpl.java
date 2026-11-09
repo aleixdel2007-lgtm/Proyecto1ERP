@@ -2,6 +2,9 @@ package service.implement;
 
 import config.AlmacenArchivos;
 import dao.CategoriaDao;
+import dao.ColaboradorDao;
+import model.seguridad.Colaborador;
+import org.springframework.transaction.annotation.Transactional;
 import dao.ImagenVideojuegoDao;
 import dao.PlataformaDao;
 import dao.VersionJuegoDao;
@@ -53,6 +56,9 @@ public class VideojuegoServiceImpl implements VideojuegoService {
 
     @Autowired
     private ProveedorDao proveedorDao;
+
+    @Autowired
+    private ColaboradorDao colaboradorDao;
 
     @Autowired
     private CategoriaDao categoriaDao;
@@ -427,6 +433,64 @@ public class VideojuegoServiceImpl implements VideojuegoService {
         // Comprueba que los ids existen: lanzan "Alguna categoria/plataforma no existe"
         buscarCategorias(categoriaIds);
         buscarPlataformas(plataformaIds);
+    }
+
+    @Override
+    @Transactional
+    public Videojuego publicarJuegoColaborador(String emailColaborador, String titulo, String sinopsis,
+                                               String pegi, String version,
+                                               List<Long> categoriaIds, List<Long> plataformaIds,
+                                               MultipartFile zip, MultipartFile portada) {
+
+        // Todo lo que puede fallar por culpa del usuario, antes de escribir nada
+        validarFichaColaborador(titulo, sinopsis, pegi, version, categoriaIds, plataformaIds);
+        almacenArchivos.validarZip(zip);
+        almacenArchivos.extensionDe(portada);
+
+        Colaborador colaborador = colaboradorDao.findByEmail(emailColaborador).orElse(null);
+
+        if (colaborador == null) {
+            throw new IllegalArgumentException("Tu cuenta no es de colaborador");
+        }
+
+        Videojuego videojuego = new Videojuego();
+        videojuego.setTitulo(titulo.trim());
+        videojuego.setSinopsis(sinopsis.trim());
+        videojuego.setPegi(Integer.parseInt(pegi));
+        videojuego.setColaborador(colaborador);
+        videojuego.setCategorias(buscarCategorias(categoriaIds));
+        videojuego.setPlataformas(buscarPlataformas(plataformaIds));
+        // Siempre se crea inactivo esperando a la confirmacion del admin o gestor de videojuegos.
+        videojuego.setActivo(false);
+        // Se pone el precio a 0 ya que un juego de un colaborador sera siempre gratis.
+        videojuego.setPrecio(BigDecimal.ZERO);
+        // Es un archivo descargable: no hay unidades que se agoten
+        videojuego.setStockIlimitado(true);
+
+        Videojuego guardado = videojuegoDao.save(videojuego);
+
+        try {
+            guardarImagen(guardado.getId(), portada, TipoImagen.PORTADA, null);
+
+            AlmacenArchivos.ZipGuardado archivo = almacenArchivos.guardarZip(guardado.getId(), zip);
+
+            VersionJuego nueva = new VersionJuego();
+            nueva.setVideojuego(guardado);
+            nueva.setNumero(version.trim());
+            nueva.setNombreArchivo(archivo.nombreArchivo());
+            nueva.setRutaArchivo(archivo.ruta());
+            nueva.setTamanoBytes(archivo.tamanoBytes());
+            nueva.setSha256(archivo.sha256());
+            nueva.setActiva(true);
+            versionJuegoDao.save(nueva);
+
+        } catch (RuntimeException e) {
+            // La base de datos se deshace sola al propagarse la excepcion; los archivos no
+            almacenArchivos.borrarCarpeta(guardado.getId());
+            almacenArchivos.borrarZips(guardado.getId());
+            throw e;
+        }
+        return guardado;
     }
 
     @Override

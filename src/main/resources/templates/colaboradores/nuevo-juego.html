@@ -5,11 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Subir un juego · LudusERP</title>
     <link rel="stylesheet" th:href="@{/css/navbar.css}" href="../../static/css/navbar.css">
+    <link rel="stylesheet" th:href="@{/css/tienda.css}" href="../../static/css/tienda.css">
     <link rel="stylesheet" th:href="@{/css/colaboradorJuegos.css}" href="../../static/css/colaboradorJuegos.css">
 </head>
 <body>
 
-<div th:replace="~{fragments/navbar :: navbar}"></div>
+<div th:replace="~{fragments/navbar :: barraTienda('misJuegos')}"></div>
 
 <main class="canvas">
 
@@ -20,7 +21,7 @@
         <div>
             <h1>Subir un juego</h1>
             <p>Un solo formulario: rellenas la ficha, adjuntas el ZIP y la portada, y al guardar el
-                juego queda publicado en la tienda.</p>
+                juego queda inactivo hasta que se revise y se publique en la tienda.</p>
         </div>
     </div>
 

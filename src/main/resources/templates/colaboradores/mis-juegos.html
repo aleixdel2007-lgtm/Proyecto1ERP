@@ -5,11 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Mis juegos · LudusERP</title>
     <link rel="stylesheet" th:href="@{/css/navbar.css}" href="../../static/css/navbar.css">
+    <link rel="stylesheet" th:href="@{/css/tienda.css}" href="../../static/css/tienda.css">
     <link rel="stylesheet" th:href="@{/css/colaboradorJuegos.css}" href="../../static/css/colaboradorJuegos.css">
 </head>
 <body>
 
-<div th:replace="~{fragments/navbar :: navbar}"></div>
+<div th:replace="~{fragments/navbar :: barraTienda('misJuegos')}"></div>
 
 <main class="canvas">
 
@@ -68,10 +69,11 @@
                         </td>
                         <td>
                             <span class="badge" th:classappend="${j.activo} ? 'b-good' : 'b-mute'"
-                                  th:text="${j.activo} ? 'PUBLICADO' : 'RETIRADO'">PUBLICADO</span>
+                                  th:text="${j.activo} ? 'PUBLICADO' : 'INACTIVO'">PUBLICADO</span>
                         </td>
                         <td class="num">
-                            <span th:if="${j.precio.signum() == 0}" class="badge b-good">GRATIS</span>
+                            <span th:if="${j.precio.signum() == 0 and j.activo}" class="badge b-good">GRATIS</span>
+                            <span th:if="${j.precio.signum() == 0 and !j.activo}" class="muted">Sin precio</span>
                             <b th:unless="${j.precio.signum() == 0}"
                                th:text="${#numbers.formatDecimal(j.precio, 1, 'POINT', 2, 'COMMA')} + ' €'">9,99 €</b>
                         </td>

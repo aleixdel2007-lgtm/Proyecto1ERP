@@ -49,4 +49,12 @@ public interface VideojuegoService {
     // mensaje que ve el usuario si algo no cuadra; no guarda nada
     void validarFichaColaborador(String titulo, String sinopsis, String pegi, String version,
                                  List<Long> categoriaIds, List<Long> plataformaIds);
+
+    // Crea el juego de un colaborador con su ZIP y su portada. Nace INACTIVO: no sale en la
+    // tienda hasta que alguien lo active. Valida todo antes de tocar nada y, si algo falla
+    // a medias, deshace la base de datos y borra los archivos que hubiera escrito
+    Videojuego publicarJuegoColaborador(String emailColaborador, String titulo, String sinopsis,
+                                        String pegi, String version,
+                                        List<Long> categoriaIds, List<Long> plataformaIds,
+                                        MultipartFile zip, MultipartFile portada);
 }
