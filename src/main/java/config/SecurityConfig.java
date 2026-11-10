@@ -57,6 +57,7 @@ public class SecurityConfig {
                 .requestMatchers("/compras/**").hasAnyRole("ADMIN", "GESTOR_INVENTARIO")
                 .requestMatchers("/ventas/**").hasAnyRole("ADMIN", "GESTOR_INVENTARIO")
                 .requestMatchers("/tienda", "/tienda/**").hasAnyRole("CLIENTE", "COLABORADOR", "ADMIN")
+                .requestMatchers("/valoraciones/**").hasRole("CLIENTE")
                 .requestMatchers("/home").hasAnyRole("ADMIN", "GESTOR_CLIENTES", "GESTOR_PRODUCTOS", "GESTOR_INVENTARIO")
                 .requestMatchers("/admin/**").hasRole("ADMIN")
                 .requestMatchers("/colaborador/**").hasRole("COLABORADOR")
