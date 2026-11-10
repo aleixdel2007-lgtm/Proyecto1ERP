@@ -5,13 +5,15 @@
 package service.implement;
 
 import dao.CestaDao;
+import dao.ClaveLicenciaDao;
 import dao.ClienteDao;
 import dao.VideojuegoDao;
-import exception.cesta.CantidadInvalidaException;
+import exception.cesta.JuegoNoComprableException;
 import exception.cesta.LineaCestaNoEncontradaException;
 import exception.cesta.VideojuegoNoDisponibleException;
 import exception.usuario.UsuarioNoEncontradoException;
 import exception.videojuego.VideojuegoNoEncontradoException;
+import java.math.BigDecimal;
 import model.catalogo.Videojuego;
 import model.seguridad.Cliente;
 import model.ventas.Cesta;
@@ -38,25 +40,25 @@ public class CestaServiceImpl implements CestaService {
     @Autowired
     private VideojuegoDao videojuegoDao;
 
+    @Autowired
+    private ClaveLicenciaDao claveLicenciaDao; //para usar el metodo de estaEnlaBiblio y saber si el cliente ya lo tiene
+
     @Override
     @Transactional
     public void anadirVideojuego(String email, Long videojuegoId) {
 
         Cesta cesta = buscarOCrearCesta(email);
         Videojuego videojuego = buscarVideojuegoDisponible(videojuegoId);
-        LineaCesta linea = buscarLineaXVideojuego(cesta, videojuegoId);
 
-        if (linea == null) {
-            // el juego no estaba en la cesta: creo la linea
-            linea = new LineaCesta();
-            linea.setCesta(cesta);
-            linea.setVideojuego(videojuego);
-            linea.setCantidad(1); //para añadir de uno en uno
-            cesta.getLineas().add(linea);
-        } else {
-            // ya estaba: le sumo uno
-            linea.setCantidad(linea.getCantidad() + 1);
-        }
+        // si no se puede comprar, lanza un error con el motivo y aqui se para
+        comprobarQueSePuedeComprar(email, cesta, videojuego);
+
+        // como mucho 1 unidad de cada juego: siempre se crea una linea nueva
+        LineaCesta linea = new LineaCesta();
+        linea.setCesta(cesta);
+        linea.setVideojuego(videojuego);
+        linea.setCantidad(1); //siempre sera 1 pq lo que compra  es una licencia, una clave por cuenta,no un producto fisico, nucna se suma otra unidad del mismo juego
+        cesta.getLineas().add(linea);
 
         cestaDao.save(cesta);
     }
@@ -82,28 +84,12 @@ public class CestaServiceImpl implements CestaService {
 
     @Override
     @Transactional
-    public void cambiarCantidad(String email, Long lineaId, int cantidad) {
-
-        if (cantidad < 1) {
-            throw new CantidadInvalidaException();
-        }
+    public void quitarLinea(String email, Long lineaId) {
 
         Cesta cesta = buscarOCrearCesta(email);
         // solo busca entre las lineas de ESTA cesta, asi nadie toca las de otro cliente
         LineaCesta linea = buscarLineaXId(cesta, lineaId);
 
-        linea.setCantidad(cantidad);
-        cestaDao.save(cesta);
-    }
-
-    @Override
-    @Transactional
-    public void quitarLinea(String email, Long lineaId) {
-
-        Cesta cesta = buscarOCrearCesta(email);
-        LineaCesta linea = buscarLineaXId(cesta, lineaId);
-
-        // al sacarla de la lista
         cesta.getLineas().remove(linea);
         cestaDao.save(cesta);
     }
@@ -123,6 +109,17 @@ public class CestaServiceImpl implements CestaService {
         cestaDao.save(cesta);
     }
 
+    @Override
+    public BigDecimal calcularTotal(Cesta cesta) {
+
+        BigDecimal total = BigDecimal.ZERO;
+
+        for (LineaCesta linea : cesta.getLineas()) {
+            total = total.add(precioAPagar(linea.getVideojuego()));
+        }
+        return total;
+    }
+
     // ---------- metodos privados (solo se usan dentro de esta clase) ----------
     private Videojuego buscarVideojuegoDisponible(Long id) {
 
@@ -135,6 +132,29 @@ public class CestaServiceImpl implements CestaService {
             throw new VideojuegoNoDisponibleException();
         }
         return videojuego;
+    }
+
+    // las 3 reglas para poder meter un juego en la cesta
+    private void comprobarQueSePuedeComprar(String email, Cesta cesta, Videojuego videojuego) {
+
+        if (precioAPagar(videojuego).signum() == 0) {
+            throw new JuegoNoComprableException("Los juegos gratis se descargan directamente, no van a la cesta");
+        }
+        if (claveLicenciaDao.estaEnBiblioteca(email, videojuego.getId())) {
+            throw new JuegoNoComprableException("Ya tienes este juego en tu biblioteca");
+        }
+        if (buscarLineaXVideojuego(cesta, videojuego.getId()) != null) {
+            throw new JuegoNoComprableException("Este juego ya está en tu cesta");
+        }
+    }
+
+    // el precio que paga el cliente: el de oferta si tiene, y si no el normal
+    private BigDecimal precioAPagar(Videojuego videojuego) {
+
+        if (videojuego.getPrecioDescuento() != null) {
+            return videojuego.getPrecioDescuento();
+        }
+        return videojuego.getPrecio();
     }
 
     // devuelve la linea de la cesta que tiene ese videojuego, o null si no esta

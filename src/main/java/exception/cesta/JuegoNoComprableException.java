@@ -8,9 +8,11 @@ package exception.cesta;
  *
  * @author Sandy
  */
-public class CantidadInvalidaException extends RuntimeException {
+public class JuegoNoComprableException extends RuntimeException {
 
-    public CantidadInvalidaException() {
-        super("La cantidad tiene que ser al menos 1");
+    public JuegoNoComprableException(String mensaje) {
+        super(mensaje);
+
     }
+
 }

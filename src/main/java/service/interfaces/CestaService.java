@@ -4,6 +4,7 @@
  */
 package service.interfaces;
 
+import java.math.BigDecimal;
 import model.ventas.Cesta;
 
 /**
@@ -16,10 +17,10 @@ public interface CestaService {
 
     Cesta buscarOCrearCesta(String email);
 
-    void cambiarCantidad(String email, Long lineaId, int cantidad);
-
     void quitarLinea(String email, Long lineaId);
 
     void vaciarCesta(String email);
+
+    BigDecimal calcularTotal(Cesta cesta);
 
 }
