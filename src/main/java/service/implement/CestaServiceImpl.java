@@ -64,7 +64,7 @@ public class CestaServiceImpl implements CestaService {
     @Override
     public Cesta buscarOCrearCesta(String email) {
 
-        Cesta cesta = cestaDao.findByClienteEmail(email).orElse(null);
+        Cesta cesta = cestaDao.buscarConLineasXEmail(email).orElse(null);
 
         if (cesta == null) {
             // no tiene cesta: la creo en memoria, sin guardar
