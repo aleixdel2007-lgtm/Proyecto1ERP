@@ -105,6 +105,7 @@ public class ControllerTienda {
         model.addAttribute("videojuego", videojuego);
         model.addAttribute("vistaPrevia", false);
         model.addAttribute("vista", videojuego.getColaborador() != null ? "colaboraciones" : "catalogo");
+        model.addAttribute("tieneDescarga", tiendaService.tieneDescarga(id));
         model.addAttribute("valoraciones", valoracionService.listarVisiblesPorVideojuego(id));
         model.addAttribute("yaValorado", valoracionService.haValorado(authentication.getName(), id));
 

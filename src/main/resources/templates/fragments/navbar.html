@@ -46,8 +46,9 @@
 
 <!-- La barra de la tienda. No es la de arriba: aqui la marca lleva al catalogo y no al
      panel y no hay buscador (el filtro vive dentro de la propia pagina). El parametro
-     activo marca en que apartado estas, y vale catalogo, ofertas, colaboraciones o
-     misJuegos. Colaboraciones la ve todo el mundo; Mis juegos, solo el colaborador. -->
+     activo marca en que apartado estas, y vale catalogo, ofertas, colaboraciones,
+     biblioteca o misJuegos. Colaboraciones la ve todo el mundo; Mi biblioteca es de quien
+     compra, o sea del cliente, y Mis juegos, solo del colaborador. -->
 <header class="shop-top" th:fragment="barraTienda(activo)">
     <div class="shop-bar">
 
@@ -63,6 +64,10 @@
                th:classappend="${activo == 'ofertas'} ? 'on' : ''">Ofertas</a>
             <a th:href="@{/tienda/colaboraciones}" href="#"
                th:classappend="${activo == 'colaboraciones'} ? 'on' : ''">Colaboraciones</a>
+            <th:block sec:authorize="hasRole('CLIENTE')">
+                <a th:href="@{/tienda/biblioteca}" href="#"
+                   th:classappend="${activo == 'biblioteca'} ? 'on' : ''">Mi biblioteca</a>
+            </th:block>
             <th:block sec:authorize="hasRole('COLABORADOR')">
                 <a th:href="@{/colaborador/mis-juegos}" href="#"
                    th:classappend="${activo == 'misJuegos'} ? 'on' : ''">Mis juegos</a>

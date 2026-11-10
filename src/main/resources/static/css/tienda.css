@@ -367,3 +367,31 @@ select.inp{
 .form-valoracion{display:flex;flex-direction:column;gap:16px}
 /* display:flex pisaria el display:none del atributo hidden, asi que se repite aqui */
 .form-valoracion[hidden]{display:none}
+/* ===========================================================================
+   Mi biblioteca
+   No usa .cat-grid: una tarjeta de la biblioteca no es una portada con el precio
+   debajo, es una ficha ancha con la clave y los botones al lado del dibujo.
+   =========================================================================== */
+.biblio-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+@media (max-width:1100px){
+    .biblio-grid{grid-template-columns:1fr}
+}
+/* align-items:flex-start para que la portada no se estire al alto de la tarjeta */
+.biblio-row{gap:14px;align-items:flex-start}
+/* La portada manda su ancho y no se encoge; el aspect-ratio 3/4 de .cover pone el alto */
+.biblio-cover{width:78px;flex:0 0 auto;border-radius:6px;overflow:hidden;display:block}
+/* min-width:0 es lo que deja que un titulo largo se corte en vez de ensanchar la tarjeta */
+.biblio-inf{flex:1 1 auto;min-width:0;gap:11px}
+.biblio-inf h3{font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* La caja de la clave. Monoespaciada y seleccionable: lo primero que hace quien entra
+   aqui es copiarla a mano, asi que el texto tiene que poder marcarse de un triple clic */
+.keybox{
+    display:flex;align-items:center;gap:9px;
+    background:var(--surface-2);border:1px solid var(--line-strong);
+    border-radius:var(--r-sm);padding:7px 10px;color:var(--ink-2);
+}
+.keybox .k{
+    font-family:"Cascadia Mono",Consolas,"SF Mono",monospace;font-size:12.5px;
+    letter-spacing:.04em;color:var(--ink);user-select:all;overflow-wrap:anywhere;
+}

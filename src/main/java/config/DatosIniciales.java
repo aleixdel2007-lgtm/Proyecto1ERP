@@ -6,6 +6,8 @@ import model.aprovisionamiento.Proveedor;
 import model.catalogo.Categoria;
 import model.catalogo.Plataforma;
 import model.catalogo.Videojuego;
+import model.inventario.ClaveLicencia;
+import model.inventario.EstadoClave;
 import model.seguridad.Cliente;
 import model.seguridad.Colaborador;
 import model.seguridad.Departamento;
@@ -19,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Component
@@ -158,11 +161,11 @@ public class DatosIniciales implements CommandLineRunner {
         sistemas.setResponsable(inventario8);
         legal.setResponsable(inventario10);
 
-        cliente("ana.torres@example.com", "Ana", "Torres", "600111222",
+        Cliente ana = cliente("ana.torres@example.com", "Ana", "Torres", "600111222",
                 "Carrer de Mallorca 134", "Barcelona", LocalDate.of(1996, 4, 11));
-        cliente("bruno.gil@example.com", "Bruno", "Gil", "600333444",
+        Cliente bruno = cliente("bruno.gil@example.com", "Bruno", "Gil", "600333444",
                 "Avinguda Diagonal 477", "Barcelona", LocalDate.of(1989, 11, 30));
-        cliente("carla.ruiz@example.com", "Carla", "Ruiz", "600555666",
+        Cliente carla = cliente("carla.ruiz@example.com", "Carla", "Ruiz", "600555666",
                 "Calle Gran Via 28", "Madrid", LocalDate.of(2001, 2, 7));
         cliente("diego.mas@example.com", "Diego", "Mas", "600777888",
                 "Carrer de Colom 9", "Valencia", LocalDate.of(1993, 8, 22));
@@ -183,7 +186,7 @@ public class DatosIniciales implements CommandLineRunner {
         colaborador("marc.ibanez@example.com", "Marc", "Ibanez", "España");
         colaborador("elsa.riquelme@example.com", "Elsa", "Riquelme", "España");
 
-        videojuego("Eclipse Protocol",
+        Videojuego eclipse = videojuego("Eclipse Protocol",
                 "RPG tactico por turnos en una estacion orbital a la deriva: cada decision gasta oxigeno.",
                 iberia, null, "59.99", "44.99", 16, LocalDate.of(2026, 3, 14),
                 List.of("RPG", "ESTRATEGIA"), List.of("PC"));
@@ -191,19 +194,19 @@ public class DatosIniciales implements CommandLineRunner {
                 "Carreras nocturnas por una ciudad infinita, sin frenos y con la radio puesta.",
                 rheinspiel, null, "24.99", null, 7, LocalDate.of(2025, 11, 2),
                 List.of("CARRERAS"), List.of("PC", "NSW"));
-        videojuego("Ashen Crown",
+        Videojuego ashen = videojuego("Ashen Crown",
                 "Accion medieval en un reino que se cae a pedazos y una corona que nadie quiere.",
                 albion, null, "69.99", null, 18, LocalDate.of(2026, 6, 20),
                 List.of("ACCION", "AVENTURA"), List.of("PS5", "XSX"));
-        videojuego("Mycelium",
+        Videojuego mycelium = videojuego("Mycelium",
                 "Aventura contemplativa bajo tierra: el bosque crece mientras tu duermes.",
                 rheinspiel, null, "19.99", "14.99", 12, LocalDate.of(2026, 1, 30),
                 List.of("INDIE", "AVENTURA"), List.of("NSW"));
-        videojuego("Orbital Foundry",
+        Videojuego orbital = videojuego("Orbital Foundry",
                 "Simulador de fabrica en orbita baja. Si la cadena se para, el turno se acaba.",
                 kanal, null, "39.99", "34.99", 3, LocalDate.of(2025, 9, 12),
                 List.of("SIMULACION"), List.of("PC"));
-        videojuego("Last Signal",
+        Videojuego lastSignal = videojuego("Last Signal",
                 "Terror en una estacion de radio aislada. La senal responde, y no deberia.",
                 iberia, null, "29.99", null, 18, LocalDate.of(2026, 4, 4),
                 List.of("TERROR"), List.of("PC", "XSX"));
@@ -220,10 +223,22 @@ public class DatosIniciales implements CommandLineRunner {
                 "Metro subterraneo, vagones vacios y algo que cambia de anden cuando no miras.",
                 null, aina, "0.00", null, 7, LocalDate.of(2026, 10, 27),
                 List.of("INDIE", "TERROR"), List.of("PC"));
-        videojuego("Nightjar",
+        Videojuego nightjar = videojuego("Nightjar",
                 "Puzles cortos de logica nocturna, uno por cada noche del mes.",
                 null, victor, "2.99", "1.99", 3, LocalDate.of(2026, 9, 30),
                 List.of("PUZZLE"), List.of("PC"));
+
+        clave(eclipse, ana, "ECLP-7H2M-44QX-ZB18", LocalDateTime.of(2026, 10, 22, 19, 12));
+        clave(mycelium, ana, "MYCL-3T9K-21RF-WD07", LocalDateTime.of(2026, 10, 22, 19, 12));
+        clave(nightjar, ana, "NGTJ-6B4V-90LM-QA55", LocalDateTime.of(2026, 10, 28, 9, 41));
+        clave(ashen, bruno, "ASHN-2P8D-63XC-KV92", LocalDateTime.of(2026, 10, 19, 17, 3));
+        clave(orbital, bruno, "ORBF-9W5S-12NJ-TG40", LocalDateTime.of(2026, 10, 19, 17, 3));
+        clave(lastSignal, carla, "LSTS-5M7Q-38YH-RP61", LocalDateTime.of(2026, 11, 2, 12, 27));
+
+        claveLibre(eclipse, "ECLP-1A1A-2B2B-3C3C");
+        claveLibre(eclipse, "ECLP-4D4D-5E5E-6F6F");
+        claveLibre(lastSignal, "LSTS-7G7G-8H8H-9I9I");
+        claveAnulada(mycelium, "MYCL-0J0J-1K1K-2L2L");
     }
 
     private Departamento departamento(String nombre, String descripcion) {
@@ -319,6 +334,40 @@ public class DatosIniciales implements CommandLineRunner {
         }
         em.persist(v);
         return v;
+    }
+
+    private ClaveLicencia clave(Videojuego videojuego, Cliente cliente,
+                                String codigo, LocalDateTime fechaVenta) {
+        ClaveLicencia c = claveLicencia(videojuego, codigo);
+        c.setCliente(cliente);
+        c.setEstado(EstadoClave.VENDIDA);
+        c.setFechaVenta(fechaVenta);
+        em.persist(c);
+        return c;
+    }
+
+    private ClaveLicencia claveLibre(Videojuego videojuego, String codigo) {
+        ClaveLicencia c = claveLicencia(videojuego, codigo);
+        c.setEstado(EstadoClave.DISPONIBLE);
+        em.persist(c);
+        return c;
+    }
+
+    private ClaveLicencia claveAnulada(Videojuego videojuego, String codigo) {
+        ClaveLicencia c = claveLicencia(videojuego, codigo);
+        c.setEstado(EstadoClave.ANULADA);
+        c.setFechaAnulacion(LocalDateTime.of(2026, 10, 30, 10, 0));
+        c.setMotivoAnulacion("Codigo rechazado por el distribuidor");
+        em.persist(c);
+        return c;
+    }
+
+    private ClaveLicencia claveLicencia(Videojuego videojuego, String codigo) {
+        ClaveLicencia c = new ClaveLicencia();
+        c.setVideojuego(videojuego);
+        c.setCodigo(codigo);
+        c.setCodigoHash(IndiceCiego.hash(codigo));
+        return c;
     }
 
     private Categoria categoria(String codigo) {
