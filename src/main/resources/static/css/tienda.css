@@ -298,3 +298,64 @@ select.inp{
 
 /* El apartado de los juegos de companeros, debajo del catalogo */
 .seccion-col{margin-top:30px}
+
+/* Selector de estrellas (valoraciones). Los radios van en orden inverso en el HTML
+   para poder pintar con CSS las estrellas anteriores a la elegida. */
+.estrellas {
+    display: inline-flex;
+    flex-direction: row-reverse;
+    justify-content: flex-end;
+    gap: 2px;
+}
+.estrellas input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+.estrellas label {
+    font-size: 28px;
+    line-height: 1;
+    color: #c9ccd3;
+    cursor: pointer;
+    transition: color .15s;
+}
+.estrellas input:checked ~ label,
+.estrellas label:hover,
+.estrellas label:hover ~ label {
+    color: #f5b301;
+}
+.estrellas input:focus-visible + label {
+    outline: 2px solid #f5b301;
+    outline-offset: 2px;
+}
+
+/* Formulario de valoración: etiqueta encima del campo y campos a todo el ancho */
+.frow{display:flex;flex-direction:column;gap:5px;width:100%}
+.frow>label{font-size:12.5px;font-weight:550;color:var(--ink-2)}
+.frow>label .req{color:var(--purple-light);margin-left:2px}
+.frow .inp{
+    width:100%;box-sizing:border-box;
+    background:var(--surface-2);border:1px solid var(--line);color:var(--ink);
+    border-radius:var(--r-sm);padding:8px 10px;outline:none;font:inherit;
+}
+.frow .inp:focus{border-color:var(--purple);box-shadow:0 0 0 3px rgba(139,92,246,.18)}
+.frow textarea.inp{resize:vertical;min-height:110px}
+
+/* Reseñas: avatar con inicial, nombre, estrellas, titulo y texto */
+.resena{display:flex;flex-direction:column;gap:6px;padding:16px 0;border-top:1px solid var(--line)}
+.resena-cab{display:flex;align-items:center;gap:12px}
+.resena-avatar{
+    width:40px;height:40px;border-radius:50%;flex:none;
+    display:flex;align-items:center;justify-content:center;
+    background:var(--purple);color:#fff;font-weight:600;font-size:17px;
+}
+.resena-autor{font-weight:600;color:var(--ink)}
+.resena-estrellas{color:#f5b301;font-size:17px;letter-spacing:1px;line-height:1}
+.resena-titulo{color:var(--ink)}
+.resena-texto{margin:0;color:var(--ink-2);font-size:14px;line-height:1.55;white-space:pre-line}
+
+/* Campos de la valoracion (se muestran al elegir estrellas). El gap lo daba el form.stack,
+   que ahora solo separa estrellas y este bloque. */
+.form-valoracion{display:flex;flex-direction:column;gap:16px}
+/* display:flex pisaria el display:none del atributo hidden, asi que se repite aqui */
+.form-valoracion[hidden]{display:none}

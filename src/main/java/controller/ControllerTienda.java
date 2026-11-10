@@ -7,6 +7,8 @@ import lombok.RequiredArgsConstructor;
 import model.catalogo.ImagenVideojuego;
 import model.catalogo.TipoImagen;
 import model.catalogo.Videojuego;
+import model.valoracion.Valoracion;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -14,6 +16,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import service.interfaces.TiendaService;
+import service.interfaces.ValoracionService;
 
 @Controller
 @RequestMapping("/tienda")
@@ -21,6 +24,7 @@ import service.interfaces.TiendaService;
 public class ControllerTienda {
 
     private final TiendaService tiendaService;
+    private final ValoracionService valoracionService;
 
     @GetMapping
     public String listarCatalogo(
@@ -90,10 +94,12 @@ public class ControllerTienda {
     }
 
     @GetMapping("/juego/{id}")
-    public String verFicha(@PathVariable Long id, Model model) {
-
+    public String verFicha(@PathVariable Long id, Model model, Authentication authentication) {
+        List<Valoracion> valoraciones = valoracionService.listarVisiblesPorVideojuego(id);
         model.addAttribute("videojuego", tiendaService.buscarVideojuegoActivoXId(id));
         model.addAttribute("vistaPrevia", false);
+        model.addAttribute("valoraciones", valoraciones);
+        model.addAttribute("yaValorado", valoracionService.haValorado(authentication.getName(), id));
 
         cargarImagenes(model, id);
 
