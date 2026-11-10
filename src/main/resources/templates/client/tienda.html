@@ -123,7 +123,7 @@
                          que no tenga se queda con el avatar generico, que no es una fila de
                          imagen_videojuego: es el hueco por defecto de la plantilla. -->
                     <span class="cover">
-                        <img th:src="${portadas[v.id] != null} ? @{${portadas[v.id]}} : @{/img/placeholder.webp}"
+                        <img th:src="${portadas[v.id] != null} ? @{${portadas[v.id]}} : @{/img/no-cover.jpg}"
                              th:alt="${v.titulo}">
                         <span class="pegi" th:text="'PEGI ' + ${v.pegi}">PEGI 16</span>
                         <span class="off" th:if="${v.precioDescuento != null}">OFERTA</span>
