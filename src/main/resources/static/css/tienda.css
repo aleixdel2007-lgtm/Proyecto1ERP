@@ -185,13 +185,20 @@ h1,h2,h3{margin:0;font-weight:600;letter-spacing:-.01em}
 .shop-nav{display:flex;gap:4px;margin-left:10px;margin-right:auto}
 .shop-nav a{
     padding:6px 11px;border-radius:var(--r-sm);color:var(--ink-2);
-    font-size:13.5px;text-decoration:none;
+    font-size:13.5px;text-decoration:none;white-space:nowrap;
 }
 .shop-nav a:hover{background:var(--surface-2);color:var(--ink);text-decoration:none}
 /* El apartado en el que estas, con el mismo morado que el menu del panel */
 .shop-nav a.on{
     background:rgba(139,92,246,.22);color:#fff;font-weight:600;
     box-shadow:inset 0 0 0 1px rgba(139,92,246,.55);
+}
+/* Con Colaboraciones ya son tres apartados, y cuatro si quien mira es colaborador: en una
+   pantalla estrecha no caben al lado del avatar. En vez de comprimirlos, el menu baja a su
+   propia linea y la marca, el avatar y el boton de salir se quedan arriba */
+@media (max-width:860px){
+    .shop-bar{flex-wrap:wrap;row-gap:8px}
+    .shop-nav{order:3;width:100%;margin-left:0;margin-right:0}
 }
 
 /* ===========================================================================
@@ -296,5 +303,6 @@ select.inp{
     font-size:12px;margin-right:5px;
 }
 
-/* El apartado de los juegos de companeros, debajo del catalogo */
-.seccion-col{margin-top:30px}
+/* Los juegos de companeros ya no son un apartado debajo del catalogo: tienen su propia
+   pantalla, /tienda/colaboraciones, que reaprovecha .cat-grid y .game como las otras dos.
+   Por eso aqui ya no hace falta ninguna regla propia. */

@@ -20,7 +20,10 @@ p{margin:0}
 code{font-family:var(--mono);font-size:12px}
 button,input,select,textarea{font-family:inherit;font-size:inherit}
 
-.canvas{padding:22px 24px 60px;max-width:1500px;width:100%;margin:0 auto}
+/* El envoltorio de la pagina NO se declara aqui: estas dos pantallas llevan la barra de la
+   tienda, asi que usan su mismo .shop-body (tienda.css). Antes habia aqui un .canvas de
+   1500px mientras la barra media 1360, y la barra salia metida hacia dentro: el logo
+   parecia irse al centro. El ancho vive en un solo sitio para que no vuelva a pasar. */
 .page-head{display:flex;align-items:flex-start;gap:16px;margin-bottom:18px;flex-wrap:wrap}
 .page-head h1{font-size:21px}
 .page-head p{margin:5px 0 0;color:var(--muted);font-size:13px;max-width:70ch}

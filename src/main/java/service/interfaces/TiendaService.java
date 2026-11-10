@@ -16,7 +16,8 @@ public interface TiendaService {
     List<Videojuego> listarOfertas(String texto, Long categoriaId, Long plataformaId,
                                    BigDecimal precioMin, BigDecimal precioMax, String orden);
 
-    List<Videojuego> listarJuegosColaboradores();
+    List<Videojuego> listarColaboraciones(String texto, Long categoriaId, Long plataformaId,
+                                          BigDecimal precioMin, BigDecimal precioMax, String orden);
 
     Videojuego buscarVideojuegoActivoXId(Long id);
 

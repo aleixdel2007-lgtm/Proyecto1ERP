@@ -1,25 +1,34 @@
 <!doctype html>
-<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<!-- Esta plantilla sirve a las TRES pantallas de la tienda. La unica diferencia es vista,
+     que vale catalogo, ofertas o colaboraciones: de ella salen el titulo, el texto de la
+     cabecera, la pestana marcada en la barra y el estado vacio. El listado, los filtros y
+     la paginacion son los mismos en las tres, y la ruta de los enlaces llega en ruta. -->
+<html lang="es" xmlns:th="http://www.thymeleaf.org"
+      th:with="esOfertas=${vista == 'ofertas'}, esColaboraciones=${vista == 'colaboraciones'}">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title th:text="${ofertas} ? 'Ofertas · LudusERP' : 'Catálogo · LudusERP'">Catálogo · LudusERP</title>
+    <title th:text="${esOfertas} ? 'Ofertas · LudusERP'
+                  : (${esColaboraciones} ? 'Colaboraciones · LudusERP' : 'Catálogo · LudusERP')">Catálogo · LudusERP</title>
     <link rel="stylesheet" th:href="@{/css/navbar.css}" href="../../static/css/navbar.css">
     <link rel="stylesheet" th:href="@{/css/tienda.css}" href="../../static/css/tienda.css">
 </head>
 <body>
 
-<div th:replace="~{fragments/navbar :: barraTienda(${ofertas} ? 'ofertas' : 'catalogo')}"></div>
+<div th:replace="~{fragments/navbar :: barraTienda(${vista})}"></div>
 
 <main class="shop-body">
 
     <div class="page-head">
         <div>
-            <h1 th:text="${ofertas} ? 'Ofertas' : 'Catálogo'">Catálogo</h1>
-            <p th:unless="${ofertas}">Los juegos que puedes comprar ahora mismo. Un juego retirado
-                no aparece aquí aunque sepas su dirección.</p>
-            <p th:if="${ofertas}">Solo los juegos rebajados. Se cobra el precio con descuento, y al
+            <h1 th:text="${esOfertas} ? 'Ofertas'
+                       : (${esColaboraciones} ? 'Colaboraciones' : 'Catálogo')">Catálogo</h1>
+            <p th:unless="${esOfertas or esColaboraciones}">Los juegos que puedes comprar ahora
+                mismo. Un juego retirado no aparece aquí aunque sepas su dirección.</p>
+            <p th:if="${esOfertas}">Solo los juegos rebajados. Se cobra el precio con descuento, y al
                 lado sale tachado el estándar.</p>
+            <p th:if="${esColaboraciones}">Lo que publican los compañeros con cuenta en LudusERP. Se
+                descargan desde tu biblioteca, con la clave como prueba de que son tuyos.</p>
         </div>
     </div>
 
@@ -35,7 +44,7 @@
                   fin=${actual * tam + tam > total ? total : actual * tam + tam}">
 
         <!-- El filtro vive aqui dentro y no en la barra de arriba. th:action sale de ruta,
-             para que los mismos filtros sirvan en el catalogo y en las ofertas. -->
+             para que los mismos filtros sirvan en las tres pantallas. -->
         <form class="filters" method="get" th:action="@{${ruta}}">
             <div class="fld">
                 <label>Buscar</label>
@@ -96,10 +105,13 @@
         <div class="card-body">
 
             <div class="empty" th:if="${#lists.isEmpty(videojuegos)}">
-                <h4 th:unless="${ofertas}">No hay ningún juego que encaje</h4>
-                <h4 th:if="${ofertas}">Ahora mismo no hay ofertas</h4>
-                <p class="hint" th:unless="${ofertas}">Prueba a quitar algún filtro.</p>
-                <p class="hint" th:if="${ofertas}">Cuando un juego se rebaje, aparecerá aquí.</p>
+                <h4 th:unless="${esOfertas or esColaboraciones}">No hay ningún juego que encaje</h4>
+                <h4 th:if="${esOfertas}">Ahora mismo no hay ofertas</h4>
+                <h4 th:if="${esColaboraciones}">Todavía no hay juegos de colaboradores</h4>
+                <p class="hint" th:unless="${esOfertas or esColaboraciones}">Prueba a quitar algún filtro.</p>
+                <p class="hint" th:if="${esOfertas}">Cuando un juego se rebaje, aparecerá aquí.</p>
+                <p class="hint" th:if="${esColaboraciones}">Aparecerán aquí en cuanto el primero
+                    suba el suyo.</p>
             </div>
 
             <div class="cat-grid" th:unless="${#lists.isEmpty(videojuegos)}">
@@ -130,13 +142,17 @@
                             <span th:if="${v.proveedor == null and v.colaborador == null}">—</span>
                         </div>
 
-                        <div class="foot">
+                        <!-- Un juego de colaborador vale 0 y se anuncia como Gratis, no como
+                             0,00 €. Se mira el precio EFECTIVO y no el estandar, para que un
+                             juego rebajado hasta 0 tambien diga Gratis con su precio tachado -->
+                        <div class="foot"
+                             th:with="efectivo=${v.precioDescuento != null ? v.precioDescuento : v.precio}">
                             <span class="price">
                                 <span class="old" th:if="${v.precioDescuento != null}"
                                       th:text="${#numbers.formatDecimal(v.precio, 1, 'POINT', 2, 'COMMA')} + ' €'">59,99 €</span>
-                                <span th:text="${#numbers.formatDecimal(
-                                        v.precioDescuento != null ? v.precioDescuento : v.precio,
-                                        1, 'POINT', 2, 'COMMA')} + ' €'">44,99 €</span>
+                                <span th:if="${efectivo.signum() == 0}">Gratis</span>
+                                <span th:unless="${efectivo.signum() == 0}"
+                                      th:text="${#numbers.formatDecimal(efectivo, 1, 'POINT', 2, 'COMMA')} + ' €'">44,99 €</span>
                             </span>
                         </div>
                     </div>
@@ -171,54 +187,6 @@
         </div>
 
     </div>
-
-    <!-- Los juegos que suben los companeros. Solo en el catalogo: en las ofertas no pinta nada.
-         Va sin filtros ni paginacion a proposito, es una seccion y no un listado. -->
-    <section class="seccion-col" th:unless="${ofertas}">
-
-        <div class="page-head">
-            <div>
-                <h2>Juegos de colaboradores</h2>
-                <p>Lo que publican los estudios con cuenta en LudusERP. Se descargan desde tu
-                    biblioteca, con la clave como prueba de que son tuyos.</p>
-            </div>
-        </div>
-
-        <div class="card" th:if="${#lists.isEmpty(juegosColaboradores)}">
-            <div class="empty">
-                <h4>Todavía no hay juegos de colaboradores</h4>
-                <p class="hint">Aparecerán aquí en cuanto el primero suba el suyo.</p>
-            </div>
-        </div>
-
-        <div class="cat-grid" th:unless="${#lists.isEmpty(juegosColaboradores)}">
-
-            <a class="game" th:each="v : ${juegosColaboradores}"
-               th:href="@{/tienda/juego/{id}(id=${v.id})}">
-
-                <span class="cover">
-                    <img th:src="${portadasColaboradores[v.id] != null}
-                                 ? @{${portadasColaboradores[v.id]}} : @{/img/placeholder.webp}"
-                         th:alt="${v.titulo}">
-                    <span class="pegi" th:text="'PEGI ' + ${v.pegi}">PEGI 12</span>
-                </span>
-
-                <div class="game-inf">
-                    <div class="ttl" th:text="${v.titulo}">Dust Harbour</div>
-                    <div class="meta" th:text="${v.colaborador != null and v.colaborador.apellidos != null
-                                 ? v.colaborador.nombre + ' ' + v.colaborador.apellidos
-                                 : (v.colaborador != null ? v.colaborador.nombre : '—')}">Aina Querol</div>
-                    <div class="foot">
-                        <span class="price" th:if="${v.precio.signum() == 0}">Gratis</span>
-                        <span class="price" th:unless="${v.precio.signum() == 0}"
-                              th:text="${#numbers.formatDecimal(
-                                      v.precioDescuento != null ? v.precioDescuento : v.precio,
-                                      1, 'POINT', 2, 'COMMA')} + ' €'">2,99 €</span>
-                    </div>
-                </div>
-            </a>
-        </div>
-    </section>
 
 </main>
 

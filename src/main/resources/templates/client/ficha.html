@@ -9,7 +9,9 @@
 </head>
 <body>
 
-<div th:replace="~{fragments/navbar :: barraTienda('catalogo')}"></div>
+<!-- La pestana la decide el controlador: un juego de colaborador marca Colaboraciones y el
+     resto, Catalogo. La vista previa del panel no manda vista, y ahi se queda en catalogo -->
+<div th:replace="~{fragments/navbar :: barraTienda(${vista} != null ? ${vista} : 'catalogo')}"></div>
 
 <main class="shop-body">
 
