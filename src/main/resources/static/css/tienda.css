@@ -367,3 +367,5 @@ select.inp{
 .form-valoracion{display:flex;flex-direction:column;gap:16px}
 /* display:flex pisaria el display:none del atributo hidden, asi que se repite aqui */
 .form-valoracion[hidden]{display:none}
+.resena-avatar{overflow:hidden}
+.resena-avatar img{width:100%;height:100%;object-fit:cover;display:block}

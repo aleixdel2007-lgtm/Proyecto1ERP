@@ -22,7 +22,6 @@ public class ControllerValoracion {
                           @RequestParam("valoracion") int puntuacion,
                           Authentication authentication) {
 
-        // El cliente sale de la sesion (su email), nunca del formulario
         valoracionService.crear(authentication.getName(), videojuegoId, titulo, descripcion, puntuacion);
         return "redirect:/tienda/juego/" + videojuegoId;
     }

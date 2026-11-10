@@ -123,8 +123,13 @@
                     <div class="stack" th:if="${!#lists.isEmpty(valoraciones)}">
                         <article class="resena" th:each="valoracion : ${valoraciones}">
                             <div class="resena-cab">
-                                <span class="resena-avatar"
-                                      th:text="${#strings.toUpperCase(#strings.substring(valoracion.cliente.nombre, 0, 1))}">A</span>
+                                <span class="resena-avatar">
+                                    <img th:if="${fotosResenas != null and fotosResenas.containsKey(valoracion.cliente.id)}"
+                                         th:src="@{${fotosResenas.get(valoracion.cliente.id)}}"
+                                         th:alt="${valoracion.cliente.nombre}">
+                                    <th:block th:unless="${fotosResenas != null and fotosResenas.containsKey(valoracion.cliente.id)}"
+                                              th:text="${#strings.toUpperCase(#strings.substring(valoracion.cliente.nombre, 0, 1))}">A</th:block>
+                                </span>
                                 <span class="resena-autor" th:text="${valoracion.cliente.nombre}">Nombre</span>
                             </div>
                             <div class="resena-estrellas"

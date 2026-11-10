@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import service.interfaces.ClienteService;
 import service.interfaces.TiendaService;
 import service.interfaces.ValoracionService;
 
@@ -25,6 +26,7 @@ public class ControllerTienda {
 
     private final TiendaService tiendaService;
     private final ValoracionService valoracionService;
+    private final ClienteService clienteService;
 
     @GetMapping
     public String listarCatalogo(
@@ -105,7 +107,11 @@ public class ControllerTienda {
         model.addAttribute("videojuego", videojuego);
         model.addAttribute("vistaPrevia", false);
         model.addAttribute("vista", videojuego.getColaborador() != null ? "colaboraciones" : "catalogo");
-        model.addAttribute("valoraciones", valoracionService.listarVisiblesPorVideojuego(id));
+        List<Valoracion> valoraciones = valoracionService.listarVisiblesPorVideojuego(id);
+        model.addAttribute("valoraciones", valoraciones);
+        // id de cliente -> ruta de su foto; quien no tiene foto no sale y la vista pinta la inicial
+        model.addAttribute("fotosResenas", clienteService.listarImagenesPerfil(
+                valoraciones.stream().map(Valoracion::getCliente).distinct().toList()));
         model.addAttribute("yaValorado", valoracionService.haValorado(authentication.getName(), id));
 
         cargarImagenes(model, id);
