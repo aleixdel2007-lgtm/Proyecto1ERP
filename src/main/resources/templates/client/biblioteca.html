@@ -1,0 +1,119 @@
+<!-- La biblioteca del cliente. NO es una tabla propia: son sus claves de licencia VENDIDAS,
+     que es lo unico que prueba que un juego de pago es suyo. Los juegos gratis no salen aqui
+     a proposito: no llevan clave y se descargan desde la tienda, donde siguen estando.
+
+     Cada fila puede llevar dos cosas que no van juntas: la CLAVE, que siempre esta, y la
+     DESCARGA, que solo aparece si ese juego tiene una version con ZIP subida. Un juego
+     comprado a un distribuidor es una clave para canjear fuera y no tiene nada que bajar.
+
+     Del modelo llegan: claves (con su videojuego), portadas y versiones, las dos ultimas
+     mapas con el id del videojuego como clave. -->
+<!doctype html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Mi biblioteca · LudusERP</title>
+    <link rel="stylesheet" th:href="@{/css/navbar.css}" href="../../static/css/navbar.css">
+    <link rel="stylesheet" th:href="@{/css/tienda.css}" href="../../static/css/tienda.css">
+</head>
+<body>
+
+<div th:replace="~{fragments/navbar :: barraTienda('biblioteca')}"></div>
+
+<main class="shop-body">
+
+    <div class="page-head">
+        <div>
+            <h1>Mi biblioteca</h1>
+            <p>Los juegos que has comprado, con su clave. La clave es la prueba de que el juego
+                es tuyo, y el que trae archivo se descarga desde aquí.</p>
+        </div>
+    </div>
+
+    <div class="card" th:if="${#lists.isEmpty(claves)}">
+        <div class="empty">
+            <h4>Todavía no tienes ningún juego</h4>
+            <p class="hint">Lo que compres aparecerá aquí con su clave. Los juegos gratis no pasan
+                por la biblioteca: se descargan desde su ficha.</p>
+        </div>
+    </div>
+
+    <div class="biblio-grid" th:unless="${#lists.isEmpty(claves)}">
+
+        <article class="card" th:each="c : ${claves}">
+            <div class="card-body row biblio-row">
+
+                <a class="biblio-cover" th:href="@{/tienda/juego/{id}(id=${c.videojuego.id})}">
+                    <span class="cover">
+                        <img th:src="${portadas[c.videojuego.id] != null}
+                                     ? @{${portadas[c.videojuego.id]}} : @{/img/placeholder.webp}"
+                             th:alt="${c.videojuego.titulo}">
+                        <span class="pegi" th:text="'PEGI ' + ${c.videojuego.pegi}">PEGI 16</span>
+                    </span>
+                </a>
+
+                <div class="stack biblio-inf">
+
+                    <div class="row" style="justify-content:space-between">
+                        <h3 th:text="${c.videojuego.titulo}">Eclipse Protocol</h3>
+                        <span class="badge b-good" th:if="${versiones[c.videojuego.id] != null}">DESCARGABLE</span>
+                        <span class="badge b-mute" th:unless="${versiones[c.videojuego.id] != null}">SOLO CLAVE</span>
+                    </div>
+
+                    <dl class="kv">
+                        <dt>Estudio</dt>
+                        <dd th:if="${c.videojuego.proveedor != null}"
+                            th:text="${c.videojuego.proveedor.nombreComercial}">Distribuciones Iberia</dd>
+                        <dd th:if="${c.videojuego.proveedor == null and c.videojuego.colaborador != null}"
+                            th:text="${c.videojuego.colaborador.apellidos != null
+                                    ? c.videojuego.colaborador.nombre + ' ' + c.videojuego.colaborador.apellidos
+                                    : c.videojuego.colaborador.nombre}">Victor Salas</dd>
+                        <dd class="muted"
+                            th:if="${c.videojuego.proveedor == null and c.videojuego.colaborador == null}">—</dd>
+
+                        <dt>Adquirido</dt>
+                        <dd th:if="${c.fechaVenta != null}"
+                            th:text="${#temporals.format(c.fechaVenta, 'dd/MM/yyyy')}">22/10/2026</dd>
+                        <dd class="muted" th:if="${c.fechaVenta == null}">—</dd>
+
+                        <dt>Plataforma</dt>
+                        <dd>
+                            <span class="chip" th:each="p : ${c.videojuego.plataformas}"
+                                  th:text="${p.nombre}">PC</span>
+                            <span class="muted" th:if="${c.videojuego.plataformas.isEmpty()}">—</span>
+                        </dd>
+                    </dl>
+
+                    <!-- El codigo va en claro: esta pantalla es la del propio cliente y no la ve
+                         nadie mas. En la base vive cifrado, y lo descifra el converter al leerlo -->
+                    <div class="keybox">
+                        <svg th:replace="~{fragments/iconos :: key}"></svg>
+                        <span class="k" th:text="${c.codigo}">ECLP-7H2M-44QX-ZB18</span>
+                    </div>
+
+                    <div class="row wrap">
+                        <a class="btn btn-primary btn-sm" th:if="${versiones[c.videojuego.id] != null}"
+                           th:href="@{/tienda/descargar/{id}(id=${c.videojuego.id})}">
+                            <svg th:replace="~{fragments/iconos :: down}"></svg>
+                            <span th:text="'Descargar ' + ${#numbers.formatDecimal(
+                                    versiones[c.videojuego.id].tamanoBytes / 1048576.0,
+                                    1, 'POINT', 1, 'COMMA')} + ' MB'">Descargar 1,1 MB</span></a>
+
+                        <button class="btn btn-sm" th:unless="${versiones[c.videojuego.id] != null}" disabled
+                                title="Este juego no tiene archivo: la clave se canjea fuera de LudusERP">
+                            <svg th:replace="~{fragments/iconos :: down}"></svg> Sin descarga</button>
+
+                        <a class="btn btn-sm" th:href="@{/tienda/juego/{id}(id=${c.videojuego.id})}">Ver ficha</a>
+                    </div>
+                </div>
+            </div>
+        </article>
+    </div>
+
+</main>
+
+<footer class="shop-foot">LudusERP · Tus claves son privadas: nadie más que tú las ve</footer>
+
+</body>
+</html>

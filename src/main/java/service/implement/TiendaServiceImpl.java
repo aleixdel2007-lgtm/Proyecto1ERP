@@ -3,6 +3,7 @@ package service.implement;
 import dao.CategoriaDao;
 import dao.ImagenVideojuegoDao;
 import dao.PlataformaDao;
+import dao.VersionJuegoDao;
 import dao.VideojuegoDao;
 import exception.videojuego.VideojuegoNoEncontradoException;
 import java.math.BigDecimal;
@@ -40,27 +41,28 @@ public class TiendaServiceImpl implements TiendaService {
     @Autowired
     private PlataformaDao plataformaDao;
 
+    @Autowired
+    private VersionJuegoDao versionJuegoDao;
+
     @Override
     public List<Videojuego> listarCatalogo(String texto, Long categoriaId, Long plataformaId,
                                            BigDecimal precioMin, BigDecimal precioMax, String orden) {
 
-        return buscar(texto, categoriaId, plataformaId, precioMin, precioMax, orden, false);
+        return buscar(texto, categoriaId, plataformaId, precioMin, precioMax, orden, false, false);
     }
 
     @Override
     public List<Videojuego> listarOfertas(String texto, Long categoriaId, Long plataformaId,
                                           BigDecimal precioMin, BigDecimal precioMax, String orden) {
 
-        return buscar(texto, categoriaId, plataformaId, precioMin, precioMax, orden, true);
+        return buscar(texto, categoriaId, plataformaId, precioMin, precioMax, orden, false, true);
     }
 
     @Override
-    public List<Videojuego> listarJuegosColaboradores() {
+    public List<Videojuego> listarColaboraciones(String texto, Long categoriaId, Long plataformaId,
+                                                 BigDecimal precioMin, BigDecimal precioMax, String orden) {
 
-        List<Videojuego> colaboradores = videojuegoDao.listarCatalogo(
-                null, null, null, null, null, true, false);
-
-        return ordenar(conClasificacion(colaboradores), ORDEN_NOVEDADES);
+        return buscar(texto, categoriaId, plataformaId, precioMin, precioMax, orden, true, false);
     }
 
     @Override
@@ -72,6 +74,11 @@ public class TiendaServiceImpl implements TiendaService {
             throw new VideojuegoNoEncontradoException(id);
         }
         return videojuego;
+    }
+
+    @Override
+    public boolean tieneDescarga(Long videojuegoId) {
+        return versionJuegoDao.findByVideojuegoIdAndActivaTrue(videojuegoId).isPresent();
     }
 
     @Override
@@ -112,11 +119,11 @@ public class TiendaServiceImpl implements TiendaService {
 
     private List<Videojuego> buscar(String texto, Long categoriaId, Long plataformaId,
                                     BigDecimal precioMin, BigDecimal precioMax, String orden,
-                                    boolean soloOfertas) {
+                                    boolean soloColaborador, boolean soloOfertas) {
 
         List<Videojuego> filtrados = videojuegoDao.listarCatalogo(
                 normalizarTexto(texto), categoriaId, plataformaId, precioMin, precioMax,
-                null, soloOfertas);
+                soloColaborador, soloOfertas);
 
         return ordenar(conClasificacion(filtrados), orden);
     }

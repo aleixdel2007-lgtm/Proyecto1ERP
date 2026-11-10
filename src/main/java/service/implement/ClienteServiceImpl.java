@@ -11,6 +11,7 @@ import exception.cliente.ClienteNoEncontradoException;
 import exception.email.CorreoYaRegistradoException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import model.seguridad.Cliente;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,6 +20,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import service.interfaces.ClienteService;
 import service.interfaces.EmailService;
+import java.util.Map;
+import java.util.HashMap;
 
 /**
  *
@@ -35,6 +38,29 @@ public class ClienteServiceImpl implements ClienteService {
     private UsuarioDao usuarioDao;
 
     @Autowired
+    private dao.ImagenUsuarioDao imagenUsuarioDao;
+
+    @Override
+    public Map<Long, String> listarImagenesPerfil(List<Cliente> clientes) {
+
+        Map<Long, String> fotos = new HashMap<>();
+
+        if (clientes == null || clientes.isEmpty()) {
+            return fotos;
+        }
+
+        List<Long> ids = new ArrayList<>();
+        for (Cliente cliente : clientes) {
+            ids.add(cliente.getId());
+        }
+
+        for (Object[] fila : imagenUsuarioDao.buscarPorUsuarios(ids)) {
+            fotos.put((Long) fila[0], (String) fila[1]);
+        }
+        return fotos;
+    }
+
+    @Autowired
     private EmailService emailService;
 
     @Override
@@ -42,8 +68,8 @@ public class ClienteServiceImpl implements ClienteService {
         String textoLimpio = (texto == null || texto.isBlank()) ? null : texto.trim();
         String paisLimpio = (pais == null || pais.isBlank()) ? null : pais;
         LocalDateTime desdeFecha = (desde == null) ? null : desde.atStartOfDay(); //El atStartOfDay() es porque el usuario elige un día (LocalDate)
-        return clienteDao.buscarFiltrado(textoLimpio, paisLimpio, desdeFecha);    // pero en la base de datos la fecha de alta lleva hora (LocalDateTime). 
-    }                                                                             //Convierte “03/11” en “03/11 a las 00:00”
+        return clienteDao.buscarFiltrado(textoLimpio, paisLimpio, desdeFecha);
+    }
 
     @Override
     public List<String> listarPaises() {

@@ -6,6 +6,7 @@ package service.interfaces;
 
 import java.time.LocalDate;
 import model.seguridad.Cliente;
+import java.util.Map;
 
 import java.util.List;
 
@@ -18,6 +19,9 @@ public interface ClienteService {
     List<Cliente> buscarFiltrado(String texto, String pais, LocalDate desde);
 
     List<String> listarPaises();
+
+    // id del cliente -> ruta de su foto de perfil; los que no tienen foto no salen en el mapa
+    Map<Long, String> listarImagenesPerfil(List<Cliente> clientes);
 
     Cliente buscarClienteXId(Long id);
 

@@ -178,16 +178,27 @@ h1,h2,h3{margin:0;font-weight:600;letter-spacing:-.01em}
 /* navbar.css le pone margin-right:auto a la marca para empujar el resto. Aqui el
    que empuja es el menu, que va pegado a la marca */
 .shop-bar .top-brand{margin-right:0}
+/* navbar.css solo quita el color de enlace dentro de .top (".top a"), y esta barra es
+   .shop-top: sin esto "Ludus" sale con el azul por defecto del navegador, casi negro
+   sobre el fondo oscuro. Solo la marca, para no tocar los .btn ni el menu */
+.shop-top .top-brand{color:inherit;text-decoration:none}
 .shop-nav{display:flex;gap:4px;margin-left:10px;margin-right:auto}
 .shop-nav a{
     padding:6px 11px;border-radius:var(--r-sm);color:var(--ink-2);
-    font-size:13.5px;text-decoration:none;
+    font-size:13.5px;text-decoration:none;white-space:nowrap;
 }
 .shop-nav a:hover{background:var(--surface-2);color:var(--ink);text-decoration:none}
 /* El apartado en el que estas, con el mismo morado que el menu del panel */
 .shop-nav a.on{
     background:rgba(139,92,246,.22);color:#fff;font-weight:600;
     box-shadow:inset 0 0 0 1px rgba(139,92,246,.55);
+}
+/* Con Colaboraciones ya son tres apartados, y cuatro si quien mira es colaborador: en una
+   pantalla estrecha no caben al lado del avatar. En vez de comprimirlos, el menu baja a su
+   propia linea y la marca, el avatar y el boton de salir se quedan arriba */
+@media (max-width:860px){
+    .shop-bar{flex-wrap:wrap;row-gap:8px}
+    .shop-nav{order:3;width:100%;margin-left:0;margin-right:0}
 }
 
 /* ===========================================================================
@@ -292,5 +303,98 @@ select.inp{
     font-size:12px;margin-right:5px;
 }
 
-/* El apartado de los juegos de companeros, debajo del catalogo */
-.seccion-col{margin-top:30px}
+/* Los juegos de companeros ya no son un apartado debajo del catalogo: tienen su propia
+   pantalla, /tienda/colaboraciones, que reaprovecha .cat-grid y .game como las otras dos.
+   Por eso aqui ya no hace falta ninguna regla propia. */
+
+/* Selector de estrellas (valoraciones). Los radios van en orden inverso en el HTML
+   para poder pintar con CSS las estrellas anteriores a la elegida. */
+.estrellas {
+    display: inline-flex;
+    flex-direction: row-reverse;
+    justify-content: flex-end;
+    gap: 2px;
+}
+.estrellas input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+.estrellas label {
+    font-size: 28px;
+    line-height: 1;
+    color: #c9ccd3;
+    cursor: pointer;
+    transition: color .15s;
+}
+.estrellas input:checked ~ label,
+.estrellas label:hover,
+.estrellas label:hover ~ label {
+    color: #f5b301;
+}
+.estrellas input:focus-visible + label {
+    outline: 2px solid #f5b301;
+    outline-offset: 2px;
+}
+
+/* Formulario de valoración: etiqueta encima del campo y campos a todo el ancho */
+.frow{display:flex;flex-direction:column;gap:5px;width:100%}
+.frow>label{font-size:12.5px;font-weight:550;color:var(--ink-2)}
+.frow>label .req{color:var(--purple-light);margin-left:2px}
+.frow .inp{
+    width:100%;box-sizing:border-box;
+    background:var(--surface-2);border:1px solid var(--line);color:var(--ink);
+    border-radius:var(--r-sm);padding:8px 10px;outline:none;font:inherit;
+}
+.frow .inp:focus{border-color:var(--purple);box-shadow:0 0 0 3px rgba(139,92,246,.18)}
+.frow textarea.inp{resize:vertical;min-height:110px}
+
+/* Reseñas: avatar con inicial, nombre, estrellas, titulo y texto */
+.resena{display:flex;flex-direction:column;gap:6px;padding:16px 0;border-top:1px solid var(--line)}
+.resena-cab{display:flex;align-items:center;gap:12px}
+.resena-avatar{
+    width:40px;height:40px;border-radius:50%;flex:none;
+    display:flex;align-items:center;justify-content:center;
+    background:var(--purple);color:#fff;font-weight:600;font-size:17px;
+}
+.resena-autor{font-weight:600;color:var(--ink)}
+.resena-estrellas{color:#f5b301;font-size:17px;letter-spacing:1px;line-height:1}
+.resena-titulo{color:var(--ink)}
+.resena-texto{margin:0;color:var(--ink-2);font-size:14px;line-height:1.55;white-space:pre-line}
+
+/* Campos de la valoracion (se muestran al elegir estrellas). El gap lo daba el form.stack,
+   que ahora solo separa estrellas y este bloque. */
+.form-valoracion{display:flex;flex-direction:column;gap:16px}
+/* display:flex pisaria el display:none del atributo hidden, asi que se repite aqui */
+.form-valoracion[hidden]{display:none}
+.resena-avatar{overflow:hidden}
+.resena-avatar img{width:100%;height:100%;object-fit:cover;display:block}
+
+/* ===========================================================================
+   Mi biblioteca
+   No usa .cat-grid: una tarjeta de la biblioteca no es una portada con el precio
+   debajo, es una ficha ancha con la clave y los botones al lado del dibujo.
+   =========================================================================== */
+.biblio-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+@media (max-width:1100px){
+    .biblio-grid{grid-template-columns:1fr}
+}
+/* align-items:flex-start para que la portada no se estire al alto de la tarjeta */
+.biblio-row{gap:14px;align-items:flex-start}
+/* La portada manda su ancho y no se encoge; el aspect-ratio 3/4 de .cover pone el alto */
+.biblio-cover{width:78px;flex:0 0 auto;border-radius:6px;overflow:hidden;display:block}
+/* min-width:0 es lo que deja que un titulo largo se corte en vez de ensanchar la tarjeta */
+.biblio-inf{flex:1 1 auto;min-width:0;gap:11px}
+.biblio-inf h3{font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* La caja de la clave. Monoespaciada y seleccionable: lo primero que hace quien entra
+   aqui es copiarla a mano, asi que el texto tiene que poder marcarse de un triple clic */
+.keybox{
+    display:flex;align-items:center;gap:9px;
+    background:var(--surface-2);border:1px solid var(--line-strong);
+    border-radius:var(--r-sm);padding:7px 10px;color:var(--ink-2);
+}
+.keybox .k{
+    font-family:"Cascadia Mono",Consolas,"SF Mono",monospace;font-size:12.5px;
+    letter-spacing:.04em;color:var(--ink);user-select:all;overflow-wrap:anywhere;
+}

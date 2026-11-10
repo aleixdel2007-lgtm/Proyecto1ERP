@@ -7,6 +7,7 @@
         <div class="brand-mark">L</div>
         <div class="brand-name">Ludus<span>ERP</span></div>
     </a>
+
     <th:block sec:authorize="!hasRole('ADMIN')">
         <div class="top-search">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -44,8 +45,10 @@
 </header>
 
 <!-- La barra de la tienda. No es la de arriba: aqui la marca lleva al catalogo y no al
-     panel, no hay buscador (el filtro vive dentro de la propia pagina) y solo hay dos
-     apartados. El parametro activo marca en cual estas. -->
+     panel y no hay buscador (el filtro vive dentro de la propia pagina). El parametro
+     activo marca en que apartado estas, y vale catalogo, ofertas, colaboraciones,
+     biblioteca o misJuegos. Colaboraciones la ve todo el mundo; Mi biblioteca es de quien
+     compra, o sea del cliente, y Mis juegos, solo del colaborador. -->
 <header class="shop-top" th:fragment="barraTienda(activo)">
     <div class="shop-bar">
 
@@ -59,6 +62,16 @@
                th:classappend="${activo == 'catalogo'} ? 'on' : ''">Catálogo</a>
             <a th:href="@{/tienda/ofertas}" href="#"
                th:classappend="${activo == 'ofertas'} ? 'on' : ''">Ofertas</a>
+            <a th:href="@{/tienda/colaboraciones}" href="#"
+               th:classappend="${activo == 'colaboraciones'} ? 'on' : ''">Colaboraciones</a>
+            <th:block sec:authorize="hasRole('CLIENTE')">
+                <a th:href="@{/tienda/biblioteca}" href="#"
+                   th:classappend="${activo == 'biblioteca'} ? 'on' : ''">Mi biblioteca</a>
+            </th:block>
+            <th:block sec:authorize="hasRole('COLABORADOR')">
+                <a th:href="@{/colaborador/mis-juegos}" href="#"
+                   th:classappend="${activo == 'misJuegos'} ? 'on' : ''">Mis juegos</a>
+            </th:block>
         </nav>
 
         <div class="who">

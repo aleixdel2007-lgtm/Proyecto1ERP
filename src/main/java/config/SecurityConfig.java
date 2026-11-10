@@ -56,9 +56,16 @@ public class SecurityConfig {
                 .requestMatchers("/catalogo/plataformas/**").hasAnyRole("GESTOR_PRODUCTOS", "ADMIN")
                 .requestMatchers("/compras/**").hasAnyRole("ADMIN", "GESTOR_INVENTARIO")
                 .requestMatchers("/ventas/**").hasAnyRole("ADMIN", "GESTOR_INVENTARIO")
+                // Antes de la regla general de /tienda/**: la biblioteca es de quien compra, y
+                // un colaborador o el admin no tienen fila de cliente de la que colgar claves.
+                // La descarga se queda fuera, con la regla general, porque un juego gratis se lo
+                // puede bajar cualquiera que entre en la tienda
+                .requestMatchers("/tienda/biblioteca/**").hasRole("CLIENTE")
                 .requestMatchers("/tienda", "/tienda/**").hasAnyRole("CLIENTE", "COLABORADOR", "ADMIN")
+                .requestMatchers("/valoraciones/**").hasRole("CLIENTE")
                 .requestMatchers("/home").hasAnyRole("ADMIN", "GESTOR_CLIENTES", "GESTOR_PRODUCTOS", "GESTOR_INVENTARIO")
                 .requestMatchers("/admin/**").hasRole("ADMIN")
+                .requestMatchers("/colaborador/**").hasRole("COLABORADOR")
                 .requestMatchers("/user/**").authenticated()
                 .requestMatchers("/clientes/**").hasAnyRole("GESTOR_CLIENTES", "ADMIN")
                 .anyRequest().authenticated()

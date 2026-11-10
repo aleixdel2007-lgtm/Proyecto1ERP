@@ -7,13 +7,17 @@ import lombok.RequiredArgsConstructor;
 import model.catalogo.ImagenVideojuego;
 import model.catalogo.TipoImagen;
 import model.catalogo.Videojuego;
+import model.valoracion.Valoracion;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import service.interfaces.ClienteService;
 import service.interfaces.TiendaService;
+import service.interfaces.ValoracionService;
 
 @Controller
 @RequestMapping("/tienda")
@@ -21,6 +25,8 @@ import service.interfaces.TiendaService;
 public class ControllerTienda {
 
     private final TiendaService tiendaService;
+    private final ValoracionService valoracionService;
+    private final ClienteService clienteService;
 
     @GetMapping
     public String listarCatalogo(
@@ -33,21 +39,9 @@ public class ControllerTienda {
             @RequestParam(defaultValue = "0") int pagina,
             Model model) {
 
-        List<Videojuego> videojuegos = tiendaService.listarCatalogo(
-                texto, categoriaId, plataformaId, precioMin, precioMax, orden);
-
-        List<Videojuego> colaboradores = tiendaService.listarJuegosColaboradores();
-
-        model.addAttribute("videojuegos", videojuegos);
-        model.addAttribute("portadas", tiendaService.listarPortadas(videojuegos));
-        model.addAttribute("juegosColaboradores", colaboradores);
-        model.addAttribute("portadasColaboradores", tiendaService.listarPortadas(colaboradores));
-        model.addAttribute("ofertas", false);
-        model.addAttribute("ruta", "/tienda");
-
-        cargarFiltros(model, texto, categoriaId, plataformaId, precioMin, precioMax, orden, pagina);
-
-        return "client/tienda";
+        return cargarListado(model, "catalogo", "/tienda",
+                tiendaService.listarCatalogo(texto, categoriaId, plataformaId, precioMin, precioMax, orden),
+                texto, categoriaId, plataformaId, precioMin, precioMax, orden, pagina);
     }
 
     @GetMapping("/ofertas")
@@ -61,21 +55,35 @@ public class ControllerTienda {
             @RequestParam(defaultValue = "0") int pagina,
             Model model) {
 
-        List<Videojuego> videojuegos = tiendaService.listarOfertas(
-                texto, categoriaId, plataformaId, precioMin, precioMax, orden);
+        return cargarListado(model, "ofertas", "/tienda/ofertas",
+                tiendaService.listarOfertas(texto, categoriaId, plataformaId, precioMin, precioMax, orden),
+                texto, categoriaId, plataformaId, precioMin, precioMax, orden, pagina);
+    }
+
+    @GetMapping("/colaboraciones")
+    public String listarColaboraciones(
+            @RequestParam(required = false) String texto,
+            @RequestParam(required = false) Long categoriaId,
+            @RequestParam(required = false) Long plataformaId,
+            @RequestParam(required = false) BigDecimal precioMin,
+            @RequestParam(required = false) BigDecimal precioMax,
+            @RequestParam(required = false) String orden,
+            @RequestParam(defaultValue = "0") int pagina,
+            Model model) {
+
+        return cargarListado(model, "colaboraciones", "/tienda/colaboraciones",
+                tiendaService.listarColaboraciones(texto, categoriaId, plataformaId, precioMin, precioMax, orden),
+                texto, categoriaId, plataformaId, precioMin, precioMax, orden, pagina);
+    }
+
+    private String cargarListado(Model model, String vista, String ruta, List<Videojuego> videojuegos,
+                                 String texto, Long categoriaId, Long plataformaId,
+                                 BigDecimal precioMin, BigDecimal precioMax, String orden, int pagina) {
 
         model.addAttribute("videojuegos", videojuegos);
         model.addAttribute("portadas", tiendaService.listarPortadas(videojuegos));
-        model.addAttribute("ofertas", true);
-        model.addAttribute("ruta", "/tienda/ofertas");
-
-        cargarFiltros(model, texto, categoriaId, plataformaId, precioMin, precioMax, orden, pagina);
-
-        return "client/tienda";
-    }
-
-    private void cargarFiltros(Model model, String texto, Long categoriaId, Long plataformaId,
-                               BigDecimal precioMin, BigDecimal precioMax, String orden, int pagina) {
+        model.addAttribute("vista", vista);
+        model.addAttribute("ruta", ruta);
 
         model.addAttribute("categorias", tiendaService.listarCategorias());
         model.addAttribute("plataformas", tiendaService.listarPlataformas());
@@ -87,13 +95,25 @@ public class ControllerTienda {
         model.addAttribute("precioMax", precioMax);
         model.addAttribute("orden", orden);
         model.addAttribute("pagina", Math.max(0, pagina));
+
+        return "client/tienda";
     }
 
     @GetMapping("/juego/{id}")
-    public String verFicha(@PathVariable Long id, Model model) {
+    public String verFicha(@PathVariable Long id, Model model, Authentication authentication) {
 
-        model.addAttribute("videojuego", tiendaService.buscarVideojuegoActivoXId(id));
+        Videojuego videojuego = tiendaService.buscarVideojuegoActivoXId(id);
+
+        model.addAttribute("videojuego", videojuego);
         model.addAttribute("vistaPrevia", false);
+        model.addAttribute("vista", videojuego.getColaborador() != null ? "colaboraciones" : "catalogo");
+        List<Valoracion> valoraciones = valoracionService.listarVisiblesPorVideojuego(id);
+        model.addAttribute("valoraciones", valoraciones);
+        // id de cliente -> ruta de su foto; quien no tiene foto no sale y la vista pinta la inicial
+        model.addAttribute("fotosResenas", clienteService.listarImagenesPerfil(
+                valoraciones.stream().map(Valoracion::getCliente).distinct().toList()));
+        model.addAttribute("tieneDescarga", tiendaService.tieneDescarga(id));
+        model.addAttribute("yaValorado", valoracionService.haValorado(authentication.getName(), id));
 
         cargarImagenes(model, id);
 

@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Subir un juego · LudusERP</title>
+    <link rel="stylesheet" th:href="@{/css/navbar.css}" href="../../static/css/navbar.css">
+    <link rel="stylesheet" th:href="@{/css/tienda.css}" href="../../static/css/tienda.css">
+    <link rel="stylesheet" th:href="@{/css/colaboradorJuegos.css}" href="../../static/css/colaboradorJuegos.css">
+</head>
+<body>
+
+<div th:replace="~{fragments/navbar :: barraTienda('misJuegos')}"></div>
+
+<main class="shop-body">
+
+    <a class="btn btn-ghost btn-sm" style="margin-bottom:12px" th:href="@{/colaborador/mis-juegos}">
+        <svg th:replace="~{fragments/iconos :: back}"></svg> Volver a mis juegos</a>
+
+    <div class="page-head">
+        <div>
+            <h1>Subir un juego</h1>
+            <p>Un solo formulario: rellenas la ficha, adjuntas el ZIP y la portada, y al guardar el
+                juego queda inactivo hasta que se revise y se publique en la tienda.</p>
+        </div>
+    </div>
+
+    <div class="alert alert-err" th:if="${error}" th:text="${error}"></div>
+
+    <form method="post" enctype="multipart/form-data" th:action="@{/colaborador/mis-juegos/guardar}">
+
+        <div class="stack">
+
+            <div class="card">
+                <div class="card-head"><h3>Ficha del juego</h3></div>
+                <div class="card-body">
+                    <div class="form-grid">
+
+                        <div class="frow wide">
+                            <label for="titulo">Título <span class="req">*</span></label>
+                            <input class="inp" type="text" id="titulo" name="titulo" maxlength="150"
+                                   th:value="${titulo}" placeholder="Hollow Transit" required>
+                        </div>
+
+                        <div class="frow wide">
+                            <label for="sinopsis">Descripción <span class="req">*</span></label>
+                            <textarea class="inp" id="sinopsis" name="sinopsis" rows="4"
+                                      placeholder="De qué va el juego" required th:text="${sinopsis}"></textarea>
+                        </div>
+
+                        <div class="frow">
+                            <label for="pegi">Clasificación PEGI <span class="req">*</span></label>
+                            <select class="inp" id="pegi" name="pegi" required>
+                                <option th:each="p : ${pegis}"
+                                        th:value="${p}" th:text="${p}"
+                                        th:selected="${p == pegi}">7</option>
+                            </select>
+                        </div>
+
+                        <div class="frow">
+                            <label for="version">Versión <span class="req">*</span></label>
+                            <input class="inp mono" type="text" id="version" name="version" maxlength="20"
+                                   th:value="${version != null} ? ${version} : '1.0.0'" required>
+                        </div>
+
+                    </div>
+
+                    <div class="stack" style="margin-top:18px">
+                        <div>
+                            <div class="sect-label">Categorías <span class="hint">· elige al menos una</span></div>
+                            <div class="row wrap chip-grupo">
+                                <label class="chip" th:each="c : ${categorias}"
+                                       th:classappend="${categoriasMarcadas.contains(c.id)} ? 'on' : ''">
+                                    <input type="checkbox" name="categoriaIds" th:value="${c.id}"
+                                           th:checked="${categoriasMarcadas.contains(c.id)}">
+                                    <span th:text="${c.nombre}">Acción</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div class="sect-label">Plataformas <span class="hint">· elige al menos una</span></div>
+                            <div class="row wrap chip-grupo">
+                                <label class="chip" th:each="p : ${plataformas}"
+                                       th:classappend="${plataformasMarcadas.contains(p.id)} ? 'on' : ''">
+                                    <input type="checkbox" name="plataformaIds" th:value="${p.id}"
+                                           th:checked="${plataformasMarcadas.contains(p.id)}">
+                                    <span th:text="${p.nombre}">PC</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-head"><h3>El juego</h3></div>
+                <div class="card-body stack">
+                    <div class="frow">
+                        <label for="zip">Archivo del juego (ZIP) <span class="req">*</span></label>
+                        <div class="file-drop">
+                            <input type="file" id="zip" name="zip" accept=".zip,application/zip" required>
+                            <span class="hint">Se guarda en el ERP, fuera de la web pública: solo lo descarga
+                                quien lo haya comprado.</span>
+                        </div>
+                    </div>
+
+                    <div class="frow">
+                        <label for="portada">Portada <span class="req">*</span></label>
+                        <div class="file-drop">
+                            <input type="file" id="portada" name="portada"
+                                   accept="image/png,image/jpeg,image/webp" required>
+                            <span class="hint">JPG, PNG o WEBP, máximo 2 MB.</span>
+                        </div>
+                    </div>
+
+                    <div class="note-box">
+                        <svg th:replace="~{fragments/iconos :: warn}"></svg>
+                        <div>Si algo falla al guardar hay que volver a elegir los dos archivos: el
+                            navegador no deja rellenarlos de nuevo. Un ZIP grande tarda en subir, no cierres
+                            la página hasta que termine.</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row" style="justify-content:flex-end">
+                <a class="btn" th:href="@{/colaborador/mis-juegos}">Cancelar</a>
+                <button type="submit" class="btn btn-primary">
+                    <svg th:replace="~{fragments/iconos :: check}"></svg> Publicar el juego</button>
+            </div>
+
+        </div>
+    </form>
+
+</main>
+
+<script th:src="@{/js/videojuego.js}" src="../../static/js/videojuego.js"></script>
+</body>
+</html>

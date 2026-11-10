@@ -32,6 +32,9 @@ body{
 
 /* El margen automatico empuja todo lo demas a la derecha, haya buscador o no */
 .top-brand{display:flex;align-items:center;gap:10px;margin-right:auto}
+/* Enlace pegado al logo, a la izquierda: el margen automatico pasa del logo al enlace */
+.top-brand:has(+ .top-nav){margin-right:0}
+.top-nav{margin-right:auto;margin-left:16px}
 .top-brand .brand-mark{
     width:28px;height:28px;border-radius:7px;flex:0 0 auto;
     background:linear-gradient(145deg,var(--purple-light),var(--purple) 55%,#6d28d9);

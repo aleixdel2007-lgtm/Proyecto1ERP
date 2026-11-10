@@ -2,8 +2,13 @@ package service.implement;
 
 import config.AlmacenArchivos;
 import dao.CategoriaDao;
+import dao.ColaboradorDao;
+import model.seguridad.Colaborador;
+import org.springframework.transaction.annotation.Transactional;
 import dao.ImagenVideojuegoDao;
 import dao.PlataformaDao;
+import dao.VersionJuegoDao;
+import model.publicacion.VersionJuego;
 import dao.ProveedorDao;
 import dao.VideojuegoDao;
 import exception.imagen.ImagenInvalidaException;
@@ -44,10 +49,16 @@ public class VideojuegoServiceImpl implements VideojuegoService {
     private ImagenVideojuegoDao imagenVideojuegoDao;
 
     @Autowired
+    private VersionJuegoDao versionJuegoDao;
+
+    @Autowired
     private AlmacenArchivos almacenArchivos;
 
     @Autowired
     private ProveedorDao proveedorDao;
+
+    @Autowired
+    private ColaboradorDao colaboradorDao;
 
     @Autowired
     private CategoriaDao categoriaDao;
@@ -72,6 +83,32 @@ public class VideojuegoServiceImpl implements VideojuegoService {
             ids.add(videojuego.getId());
         }
         return videojuegoDao.listarConClasificacion(ids);
+    }
+
+    @Override
+    public List<Videojuego> listarJuegosDeColaborador(String email) {
+        return videojuegoDao.listarDeColaborador(email);
+    }
+
+    @Override
+    public Map<Long, VersionJuego> listarVersionesActivas(List<Videojuego> videojuegos) {
+
+        Map<Long, VersionJuego> versiones = new HashMap<>();
+
+        if (videojuegos == null || videojuegos.isEmpty()) {
+            return versiones;
+        }
+
+        List<Long> ids = new ArrayList<>();
+
+        for (Videojuego videojuego : videojuegos) {
+            ids.add(videojuego.getId());
+        }
+
+        for (VersionJuego version : versionJuegoDao.buscarActivas(ids)) {
+            versiones.put(version.getVideojuego().getId(), version);
+        }
+        return versiones;
     }
 
     @Override
@@ -357,5 +394,112 @@ public class VideojuegoServiceImpl implements VideojuegoService {
     @Override
     public List<Plataforma> listarPlataformas() {
         return plataformaDao.listarFiltrado(null);
+    }
+
+    @Override
+    public void validarFichaColaborador(String titulo, String sinopsis, String pegi, String version,
+                                        List<Long> categoriaIds, List<Long> plataformaIds) {
+
+        if (titulo == null || titulo.isBlank()) {
+            throw new IllegalArgumentException("El titulo es obligatorio");
+        }
+
+        if (titulo.trim().length() > 150) {
+            throw new IllegalArgumentException("El titulo no puede pasar de 150 caracteres");
+        }
+
+        if (sinopsis == null || sinopsis.isBlank()) {
+            throw new IllegalArgumentException("La descripcion es obligatoria");
+        }
+
+        if (pegi == null || !listarPegis().contains(pegi)) {
+            throw new IllegalArgumentException("La clasificacion PEGI no es valida");
+        }
+
+        // Letras, numeros, puntos, + y guiones; maximo 20, que es lo que cabe en la columna
+        if (version == null || !version.trim().matches("[0-9A-Za-z][0-9A-Za-z.+-]{0,19}")) {
+            throw new IllegalArgumentException(
+                    "La version no es valida: letras, numeros, puntos y guiones, maximo 20 (por ejemplo 1.0.0)");
+        }
+
+        if (categoriaIds == null || categoriaIds.isEmpty()) {
+            throw new IllegalArgumentException("Elige al menos una categoria");
+        }
+
+        if (plataformaIds == null || plataformaIds.isEmpty()) {
+            throw new IllegalArgumentException("Elige al menos una plataforma");
+        }
+
+        // Comprueba que los ids existen: lanzan "Alguna categoria/plataforma no existe"
+        buscarCategorias(categoriaIds);
+        buscarPlataformas(plataformaIds);
+    }
+
+    @Override
+    @Transactional
+    public Videojuego publicarJuegoColaborador(String emailColaborador, String titulo, String sinopsis,
+                                               String pegi, String version,
+                                               List<Long> categoriaIds, List<Long> plataformaIds,
+                                               MultipartFile zip, MultipartFile portada) {
+
+        // Todo lo que puede fallar por culpa del usuario, antes de escribir nada
+        validarFichaColaborador(titulo, sinopsis, pegi, version, categoriaIds, plataformaIds);
+        almacenArchivos.validarZip(zip);
+        almacenArchivos.extensionDe(portada);
+
+        Colaborador colaborador = colaboradorDao.findByEmail(emailColaborador).orElse(null);
+
+        if (colaborador == null) {
+            throw new IllegalArgumentException("Tu cuenta no es de colaborador");
+        }
+
+        Videojuego videojuego = new Videojuego();
+        videojuego.setTitulo(titulo.trim());
+        videojuego.setSinopsis(sinopsis.trim());
+        videojuego.setPegi(Integer.parseInt(pegi));
+        videojuego.setColaborador(colaborador);
+        videojuego.setCategorias(buscarCategorias(categoriaIds));
+        videojuego.setPlataformas(buscarPlataformas(plataformaIds));
+        // Siempre se crea inactivo esperando a la confirmacion del admin o gestor de videojuegos.
+        videojuego.setActivo(false);
+        // Se pone el precio a 0 ya que un juego de un colaborador sera siempre gratis.
+        videojuego.setPrecio(BigDecimal.ZERO);
+        // Es un archivo descargable: no hay unidades que se agoten
+        videojuego.setStockIlimitado(true);
+
+        Videojuego guardado = videojuegoDao.save(videojuego);
+
+        try {
+            guardarImagen(guardado.getId(), portada, TipoImagen.PORTADA, null);
+
+            AlmacenArchivos.ZipGuardado archivo = almacenArchivos.guardarZip(guardado.getId(), zip);
+
+            VersionJuego nueva = new VersionJuego();
+            nueva.setVideojuego(guardado);
+            nueva.setNumero(version.trim());
+            nueva.setNombreArchivo(archivo.nombreArchivo());
+            nueva.setRutaArchivo(archivo.ruta());
+            nueva.setTamanoBytes(archivo.tamanoBytes());
+            nueva.setSha256(archivo.sha256());
+            nueva.setActiva(true);
+            versionJuegoDao.save(nueva);
+
+        } catch (RuntimeException e) {
+            // La base de datos se deshace sola al propagarse la excepcion; los archivos no
+            almacenArchivos.borrarCarpeta(guardado.getId());
+            almacenArchivos.borrarZips(guardado.getId());
+            throw e;
+        }
+        return guardado;
+    }
+
+    @Override
+    public List<String> listarPegis() {
+        List<String> pegis = new ArrayList<>();
+
+        for (Integer pegi : PEGI_VALIDOS) {
+            pegis.add(String.valueOf(pegi));
+        }
+        return pegis;
     }
 }

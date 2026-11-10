@@ -40,4 +40,22 @@ function bindGaleria() {
     principal.closest(".gal-main").classList.add("interactiva");
 }
 
+function enseñarForm() {
+    const form = document.querySelector(".form-valoracion");
+    const estrellas = document.querySelectorAll(".estrellas input[type='radio']");
+
+    if (!form || estrellas.length === 0) {
+        return;
+    }
+
+    form.hidden = true;
+
+    estrellas.forEach(estrella => {
+        estrella.addEventListener("change", () => {
+            form.hidden = false;
+        }, { once: true });
+    });
+}
+
 bindGaleria();
+enseñarForm();
