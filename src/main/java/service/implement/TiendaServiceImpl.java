@@ -3,6 +3,7 @@ package service.implement;
 import dao.CategoriaDao;
 import dao.ImagenVideojuegoDao;
 import dao.PlataformaDao;
+import dao.VersionJuegoDao;
 import dao.VideojuegoDao;
 import exception.videojuego.VideojuegoNoEncontradoException;
 import java.math.BigDecimal;
@@ -40,6 +41,9 @@ public class TiendaServiceImpl implements TiendaService {
     @Autowired
     private PlataformaDao plataformaDao;
 
+    @Autowired
+    private VersionJuegoDao versionJuegoDao;
+
     @Override
     public List<Videojuego> listarCatalogo(String texto, Long categoriaId, Long plataformaId,
                                            BigDecimal precioMin, BigDecimal precioMax, String orden) {
@@ -70,6 +74,11 @@ public class TiendaServiceImpl implements TiendaService {
             throw new VideojuegoNoEncontradoException(id);
         }
         return videojuego;
+    }
+
+    @Override
+    public boolean tieneDescarga(Long videojuegoId) {
+        return versionJuegoDao.findByVideojuegoIdAndActivaTrue(videojuegoId).isPresent();
     }
 
     @Override

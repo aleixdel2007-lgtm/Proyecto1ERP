@@ -21,6 +21,8 @@ public interface TiendaService {
 
     Videojuego buscarVideojuegoActivoXId(Long id);
 
+    boolean tieneDescarga(Long videojuegoId);
+
     Map<Long, String> listarPortadas(List<Videojuego> videojuegos);
 
     List<ImagenVideojuego> listarImagenes(Long videojuegoId);

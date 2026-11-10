@@ -171,12 +171,32 @@
                     <span class="hint">claves en stock</span>
                 </div>
 
-                <!-- Deshabilitados a proposito: no hay modulo de cesta, y en una vista previa
-                     tampoco interesa que funcionen. -->
-                <button class="btn btn-primary" style="justify-content:center" disabled
-                        title="La cesta todavia no existe">Anadir a la cesta</button>
-                <button class="btn" style="justify-content:center" disabled
-                        title="El pago con Stripe todavia no existe">Comprar ahora</button>
+                <!-- Un juego gratis no pasa por la cesta ni por la biblioteca: no hay nada que
+                     cobrar y no hace falta clave que pruebe que es tuyo, asi que se baja de
+                     aqui. tieneDescarga lo pone el controlador y dice si hay version con ZIP;
+                     en la vista previa del panel no llega, y entonces no se ofrece nada.
+                     Los de pago siguen deshabilitados hasta que exista la cesta. -->
+                <th:block th:with="gratis=${(videojuego.precioDescuento != null
+                                           ? videojuego.precioDescuento : videojuego.precio).signum() == 0},
+                                   descargable=${#bools.isTrue(tieneDescarga)}">
+
+                    <a class="btn btn-primary" style="justify-content:center"
+                       th:if="${gratis and descargable}"
+                       th:href="@{/tienda/descargar/{id}(id=${videojuego.id})}">
+                        <svg th:replace="~{fragments/iconos :: down}"></svg> Descargar gratis</a>
+
+                    <button class="btn btn-primary" style="justify-content:center"
+                            th:if="${gratis and !descargable}" disabled
+                            title="El estudio todavia no ha subido el archivo del juego">
+                        <svg th:replace="~{fragments/iconos :: down}"></svg> Sin descarga todavía</button>
+
+                    <th:block th:unless="${gratis}">
+                        <button class="btn btn-primary" style="justify-content:center" disabled
+                                title="La cesta todavia no existe">Anadir a la cesta</button>
+                        <button class="btn" style="justify-content:center" disabled
+                                title="El pago con Stripe todavia no existe">Comprar ahora</button>
+                    </th:block>
+                </th:block>
 
                 <div class="sep"></div>
 

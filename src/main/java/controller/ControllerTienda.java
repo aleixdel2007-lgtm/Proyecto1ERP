@@ -112,6 +112,7 @@ public class ControllerTienda {
         // id de cliente -> ruta de su foto; quien no tiene foto no sale y la vista pinta la inicial
         model.addAttribute("fotosResenas", clienteService.listarImagenesPerfil(
                 valoraciones.stream().map(Valoracion::getCliente).distinct().toList()));
+        model.addAttribute("tieneDescarga", tiendaService.tieneDescarga(id));
         model.addAttribute("yaValorado", valoracionService.haValorado(authentication.getName(), id));
 
         cargarImagenes(model, id);

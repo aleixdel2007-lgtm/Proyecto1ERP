@@ -9,6 +9,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.HexFormat;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import exception.biblioteca.DescargaNoDisponibleException;
 import exception.imagen.ImagenInvalidaException;
 import java.text.Normalizer;
 import java.util.Comparator;
@@ -17,6 +18,8 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Stream;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -106,6 +109,46 @@ public class AlmacenArchivos {
         }
     }
 
+    // Abre para lectura el ZIP que tiene apuntado una version del juego, a partir de la
+    // ruta relativa que se guardo en version_juego.ruta_archivo. Devuelve un Resource y no
+    // los bytes: un ZIP puede pesar un giga y no tiene por que cabe en memoria para servirlo.
+    // Quien puede bajarselo NO se decide aqui, eso es cosa del servicio: aqui solo se
+    // comprueba que la ruta es de fiar y que el archivo sigue estando
+    public Resource leerZip(String rutaArchivo) {
+
+        Path archivo = rutaDeZip(rutaArchivo);
+
+        // Ruta que no pasa la comprobacion o archivo que ya no esta en el disco: para el
+        // cliente es lo mismo, no hay nada que descargar
+        if (archivo == null || !Files.isRegularFile(archivo)) {
+            throw new DescargaNoDisponibleException();
+        }
+        return new FileSystemResource(archivo);
+    }
+
+    // El gemelo de rutaDeDisco para los ZIP. La ruta guardada es relativa a juegos-privados
+    // ("<id del juego>/<uuid>.zip"), no una ruta web, porque estos archivos no se sirven
+    // como recurso: los sirve un controlador
+    private Path rutaDeZip(String rutaArchivo) {
+
+        if (rutaArchivo == null || rutaArchivo.isBlank()) {
+            return null;
+        }
+
+        Path base = raizJuegos();
+        // normalize resuelve los .. que pudiera traer la ruta, y resolve se traga una ruta
+        // absoluta entera si se la dan: las dos cosas las caza el startsWith de abajo
+        Path archivo = base.resolve(rutaArchivo).normalize();
+
+        // La comprobacion que cuenta: despues de normalizar, el archivo tiene que seguir
+        // dentro de juegos-privados. Sin ella, una ruta con .. en la base de datos serviria
+        // cualquier archivo del disco a quien pidiera la descarga
+        if (!archivo.startsWith(base)) {
+            return null;
+        }
+        return archivo;
+    }
+
     // Borra todos los ZIP de un juego. Se usa si falla el guardado a medias
     public void borrarZips(Long videojuegoId) {
 
@@ -132,6 +175,16 @@ public class AlmacenArchivos {
 
         String nombre = original == null ? "juego.zip" : original;
         nombre = nombre.substring(Math.max(nombre.lastIndexOf('/'), nombre.lastIndexOf('\\')) + 1);
+
+        // Fuera las comillas y los caracteres de control. Este nombre acaba dentro de la
+        // cabecera Content-Disposition cuando alguien descarga el juego, y una comilla ahi
+        // la partiria en dos. Se limpia al entrar, una vez, en vez de escaparlo en cada sitio
+        // por el que salga
+        nombre = nombre.replaceAll("[\\p{Cntrl}\"]", "").trim();
+
+        if (nombre.isBlank()) {
+            nombre = "juego.zip";
+        }
 
         return nombre.length() > 255 ? nombre.substring(nombre.length() - 255) : nombre;
     }
