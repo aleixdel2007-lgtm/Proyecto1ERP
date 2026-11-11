@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<!--
+Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+Click nbfs://nbhost/SystemFileSystem/Templates/Other/html.html to edit this template
+-->
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Mi cesta · LudusERP</title>
+        <link rel="stylesheet" th:href="@{/css/navbar.css}" href="../../static/css/navbar.css">
+        <link rel="stylesheet" th:href="@{/css/tienda.css}" href="../../static/css/tienda.css">
+    </head>
+    <body>
+
+        <!-- La barra de arriba: viene de fragments/navbar.html, fragmento barraTienda -->
+        <div th:replace="~{fragments/navbar :: barraTienda('cesta')}"></div>
+
+        <main class="shop-body">
+
+            <div class="page-head">
+                <div>
+                    <h1>Mi cesta</h1>
+                    <p>Los juegos que vas a comprar. Cada juego es una licencia: solo puedes llevar una de cada.</p>
+                </div>
+            </div>
+
+            <!-- AVISOS: los manda el controller con flash.addFlashAttribute("mensaje"/"error", ...)
+                 en ControllerCesta.anadirJuego. Solo se dibujan si existen -->
+            <p th:if="${mensaje}" th:text="${mensaje}" style="color:var(--good)">Juego añadido</p>
+            <p th:if="${error}" th:text="${error}" style="color:#ff7b72">Error</p>
+
+            <!-- CESTA VACIA: se ve cuando cesta.lineas no tiene nada.
+                 "cesta" llega del Model de ControllerCesta.verCesta -->
+            <div class="card" th:if="${#lists.isEmpty(cesta.lineas)}">
+                <div class="empty">
+                    <h4>Tu cesta está vacía</h4>
+                    <p class="hint">Añade juegos desde su ficha en el catálogo.</p>
+                    <!-- GET /tienda  →  ControllerTienda -->
+                    <a class="btn btn-primary" th:href="@{/tienda}">Ir al catálogo</a>
+                </div>
+            </div>
+
+            <!-- CESTA CON JUEGOS -->
+            <div class="stack" th:unless="${#lists.isEmpty(cesta.lineas)}">
+
+                <!-- una tarjeta por cada linea de la cesta (l es cada linea) -->
+                <article class="card" th:each="l : ${cesta.lineas}">
+                    <div class="card-body row" style="justify-content:space-between">
+
+                        <div>
+                            <h3 th:text="${l.videojuego.titulo}">Ashen Crown</h3>
+                            <span class="hint">1 licencia</span>
+                        </div>
+
+                        <div class="row">
+                            <!-- precio de oferta si tiene, y si no el normal -->
+                            <b th:text="${#numbers.formatDecimal(l.videojuego.precioDescuento != null ? l.videojuego.precioDescuento : l.videojuego.precio, 1, 'POINT', 2, 'COMMA')} + ' €'">69,99 €</b>
+
+                            <!-- BOTON QUITAR: POST /tienda/cesta/linea/{id}/quitar
+                                 →  ControllerCesta.quitarLinea (el {id} es l.id, el id de esta linea) -->
+                            <form th:action="@{/tienda/cesta/linea/{id}/quitar(id=${l.id})}" method="post">
+                                <button type="submit" class="btn btn-sm">Quitar</button>
+                            </form>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- TOTAL: "total" llega del Model de ControllerCesta.verCesta -->
+                <div class="card">
+                    <div class="card-body row" style="justify-content:space-between">
+                        <h3>Total</h3>
+                        <b th:text="${#numbers.formatDecimal(total, 1, 'POINT', 2, 'COMMA')} + ' €'">69,99 €</b>
+                    </div>
+                </div>
+
+                <div class="row" style="justify-content:space-between">
+
+                    <!-- BOTON VACIAR: POST /tienda/cesta/vaciar  →  ControllerCesta.vaciarCesta -->
+                    <form th:action="@{/tienda/cesta/vaciar}" method="post">
+                        <button type="submit" class="btn">Vaciar cesta</button>
+                    </form>
+
+                    <!-- se activara en la fase B, cuando exista el pedido -->
+                    <button class="btn btn-primary" disabled title="Todavía no está disponible">Tramitar pedido</button>
+                </div>
+            </div>
+
+        </main>
+    </body>
+</html>

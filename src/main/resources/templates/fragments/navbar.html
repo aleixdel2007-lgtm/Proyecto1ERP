@@ -67,6 +67,8 @@
             <th:block sec:authorize="hasRole('CLIENTE')">
                 <a th:href="@{/tienda/biblioteca}" href="#"
                    th:classappend="${activo == 'biblioteca'} ? 'on' : ''">Mi biblioteca</a>
+                <a th:href="@{/tienda/cesta}" href="#"
+                    th:classappend="${activo == 'cesta'} ? 'on' : ''">Cesta</a>
             </th:block>
             <th:block sec:authorize="hasRole('COLABORADOR')">
                 <a th:href="@{/colaborador/mis-juegos}" href="#"
