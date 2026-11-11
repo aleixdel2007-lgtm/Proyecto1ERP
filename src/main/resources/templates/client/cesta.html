@@ -81,8 +81,10 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Other/html.html to edit this temp
                         <button type="submit" class="btn">Vaciar cesta</button>
                     </form>
 
-                    <!-- se activara en la fase B, cuando exista el pedido -->
-                    <button class="btn btn-primary" disabled title="Todavía no está disponible">Tramitar pedido</button>
+                    <!-- POST /tienda/cesta/tramitar  →  ControllerCesta.tramitarPedido -->
+                    <form th:action="@{/tienda/cesta/tramitar}" method="post">
+                        <button type="submit" class="btn btn-primary">Tramitar pedido</button>
+                    </form>
                 </div>
             </div>
 

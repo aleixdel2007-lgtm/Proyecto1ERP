@@ -12,4 +12,6 @@ public interface PedidoService {
     Pedido buscarPedidoXId(Long id);
 
     long contarPorEstado(EstadoPedido estado);
+    
+    Pedido crearPedidoDesdeCesta(String email);
 }
