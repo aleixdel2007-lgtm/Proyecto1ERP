@@ -56,6 +56,9 @@ public class SecurityConfig {
                 .requestMatchers("/catalogo/plataformas/**").hasAnyRole("GESTOR_PRODUCTOS", "ADMIN")
                 .requestMatchers("/compras/**").hasAnyRole("ADMIN", "GESTOR_INVENTARIO")
                 .requestMatchers("/ventas/**").hasAnyRole("ADMIN", "GESTOR_INVENTARIO")
+                // Las claves son el stock: las lleva inventario. Sin esta linea la ruta caeria
+                // en el anyRequest().authenticated() del final, o sea cualquiera con sesion
+                .requestMatchers("/inventario/**").hasAnyRole("ADMIN", "GESTOR_INVENTARIO")
                 // Antes de la regla general de /tienda/**: la biblioteca es de quien compra, y
                 // un colaborador o el admin no tienen fila de cliente de la que colgar claves.
                 // La descarga se queda fuera, con la regla general, porque un juego gratis se lo
