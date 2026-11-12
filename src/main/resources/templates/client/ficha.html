@@ -22,13 +22,15 @@
     <div class="aviso-previa" th:if="${vistaPrevia}">
         <svg th:replace="~{fragments/iconos :: warn}"></svg>
         <div>
-            <b>Vista previa.</b> Asi queda la ficha para el cliente. Nada de lo que hay
-            aqui guarda ni compra.
+            <b th:text="#{ficha.previa.titulo}">Vista previa.</b>
+            <span th:text="#{ficha.previa.texto}">Asi queda la ficha para el cliente. Nada de lo que hay
+            aqui guarda ni compra.</span>
             <span th:unless="${videojuego.activo}">
-                <br><b>Este juego esta inactivo:</b> hoy el cliente no lo ve en el catalogo.</span>
+                <br><b th:text="#{ficha.previa.inactivo}">Este juego esta inactivo:</b>
+                <th:block th:text="#{ficha.previa.inactivoTexto}">hoy el cliente no lo ve en el catalogo.</th:block></span>
         </div>
         <a class="btn btn-sm" th:href="@{/catalogo/videojuegos/editar/{id}(id=${videojuego.id})}">
-            <svg th:replace="~{fragments/iconos :: edit}"></svg> Volver a la ficha</a>
+            <svg th:replace="~{fragments/iconos :: edit}"></svg> <th:block th:text="#{ficha.previa.volver}">Volver a la ficha</th:block></a>
     </div>
 
     <div class="grid g-2-1">
@@ -41,14 +43,14 @@
             <div class="gal" th:with="principal=${banner != null ? banner : portada}">
 
                 <div class="gal-main" th:if="${principal != null}"
-                     title="Pulsa para volver a la imagen de cabecera">
+                     title="Pulsa para volver a la imagen de cabecera" th:title="#{ficha.galeria.volver}">
                     <img id="galeriaPrincipal"
                          th:src="@{${principal.ruta}}"
                          th:alt="${principal.textoAlternativo != null ? principal.textoAlternativo : videojuego.titulo}">
                     <span class="pegi" th:text="'PEGI ' + ${videojuego.pegi}">PEGI 16</span>
                 </div>
 
-                <div class="gal-main vacia" th:if="${principal == null}">
+                <div class="gal-main vacia" th:if="${principal == null}" th:text="#{ficha.sinPortada}">
                     Este juego todavia no tiene portada ni banner: en la tienda saldria con
                     este hueco.
                 </div>
@@ -60,7 +62,7 @@
                 <div class="gal-thumbs" th:unless="${#lists.isEmpty(capturas)}">
 
                     <button type="button" class="thumb" th:each="i : ${capturas}"
-                            th:title="'Ver ' + ${i.textoAlternativo != null ? i.textoAlternativo : videojuego.titulo}">
+                            th:title="#{ficha.ver(${i.textoAlternativo != null ? i.textoAlternativo : videojuego.titulo})}">
                         <img th:src="@{${i.ruta}}"
                              th:alt="${i.textoAlternativo != null ? i.textoAlternativo : videojuego.titulo}">
                     </button>
@@ -83,40 +85,40 @@
                     <p class="sinopsis" th:if="${videojuego.sinopsis != null}"
                        th:text="${videojuego.sinopsis}">De que va el juego.</p>
 
-                    <p class="sinopsis muted" th:if="${videojuego.sinopsis == null}">
+                    <p class="sinopsis muted" th:if="${videojuego.sinopsis == null}" th:text="#{ficha.sinSinopsis}">
                         Este juego no tiene sinopsis. En la tienda, el cliente veria este hueco.</p>
 
                 </div>
             </div>
             <div class="card">
                 <div class="card-body stack">
-                    <h2 style="font-size:19px">Valoraciones</h2>
-                    <p class="sinopsis muted" th:unless="${yaValorado}">Escribe alguna reseña de este juego.</p>
-                    <p class="sinopsis muted" th:if="${yaValorado}">Ya has valorado este juego. Solo se puede dejar una reseña por juego.</p>
+                    <h2 style="font-size:19px" th:text="#{ficha.val.titulo}">Valoraciones</h2>
+                    <p class="sinopsis muted" th:unless="${yaValorado}" th:text="#{ficha.val.escribe}">Escribe alguna reseña de este juego.</p>
+                    <p class="sinopsis muted" th:if="${yaValorado}" th:text="#{ficha.val.yaValorado}">Ya has valorado este juego. Solo se puede dejar una reseña por juego.</p>
                     <form class="stack" th:unless="${yaValorado}" th:action="@{/valoraciones/guardar}" method="post">
                         <input type="hidden" name="videojuegoId" th:value="${videojuego.id}">
 
-                        <div class="estrellas" role="radiogroup" aria-label="Puntuación de 1 a 5">
-                            <input type="radio" id="estrella5" name="valoracion" value="5" required><label for="estrella5" title="5 estrellas">★</label>
-                            <input type="radio" id="estrella4" name="valoracion" value="4"><label for="estrella4" title="4 estrellas">★</label>
-                            <input type="radio" id="estrella3" name="valoracion" value="3"><label for="estrella3" title="3 estrellas">★</label>
-                            <input type="radio" id="estrella2" name="valoracion" value="2"><label for="estrella2" title="2 estrellas">★</label>
-                            <input type="radio" id="estrella1" name="valoracion" value="1"><label for="estrella1" title="1 estrella">★</label>
+                        <div class="estrellas" role="radiogroup" aria-label="Puntuación de 1 a 5" th:aria-label="#{ficha.val.puntuacion}">
+                            <input type="radio" id="estrella5" name="valoracion" value="5" required><label for="estrella5" title="5 estrellas" th:title="#{ficha.val.estrellas(5)}">★</label>
+                            <input type="radio" id="estrella4" name="valoracion" value="4"><label for="estrella4" title="4 estrellas" th:title="#{ficha.val.estrellas(4)}">★</label>
+                            <input type="radio" id="estrella3" name="valoracion" value="3"><label for="estrella3" title="3 estrellas" th:title="#{ficha.val.estrellas(3)}">★</label>
+                            <input type="radio" id="estrella2" name="valoracion" value="2"><label for="estrella2" title="2 estrellas" th:title="#{ficha.val.estrellas(2)}">★</label>
+                            <input type="radio" id="estrella1" name="valoracion" value="1"><label for="estrella1" title="1 estrella" th:title="#{ficha.val.estrella}">★</label>
                         </div>
 
                         <div class="form-valoracion">
                             <div class="frow">
-                                <label for="titulo">Título <span class="req">*</span></label>
-                                <input class="inp" type="text" id="titulo" name="titulo" maxlength="150" placeholder="Resume tu opinión" required>
+                                <label for="titulo"><th:block th:text="#{ficha.val.campoTitulo}">Título</th:block> <span class="req">*</span></label>
+                                <input class="inp" type="text" id="titulo" name="titulo" maxlength="150" placeholder="Resume tu opinión" th:placeholder="#{ficha.val.campoTituloPh}" required>
                             </div>
 
                             <div class="frow">
-                                <label for="descripcion">Descripción</label>
-                                <textarea class="inp" id="descripcion" name="descripcion" rows="4" placeholder="Cuéntanos qué te ha parecido"></textarea>
+                                <label for="descripcion" th:text="#{ficha.val.campoDescripcion}">Descripción</label>
+                                <textarea class="inp" id="descripcion" name="descripcion" rows="4" placeholder="Cuéntanos qué te ha parecido" th:placeholder="#{ficha.val.campoDescripcionPh}"></textarea>
                             </div>
 
                             <div>
-                                <button type="submit" class="btn btn-primary">Publicar valoración</button>
+                                <button type="submit" class="btn btn-primary" th:text="#{ficha.val.publicar}">Publicar valoración</button>
                             </div>
                         </div>
                     </form>
@@ -134,14 +136,14 @@
                             </div>
                             <div class="resena-estrellas"
                                  th:text="${'★'.repeat(valoracion.valoracion) + '☆'.repeat(5 - valoracion.valoracion)}"
-                                 th:attr="aria-label=${valoracion.valoracion + ' de 5 estrellas'}">★★★★☆</div>
+                                 th:attr="aria-label=#{ficha.val.deCinco(${valoracion.valoracion})}">★★★★☆</div>
                             <strong class="resena-titulo" th:text="${valoracion.titulo}">Título</strong>
                             <p class="resena-texto" th:if="${valoracion.descripcion != null}"
                                th:text="${valoracion.descripcion}">Descripción</p>
                         </article>
                     </div>
 
-                    <p class="sinopsis muted" th:if="${#lists.isEmpty(valoraciones)}">
+                    <p class="sinopsis muted" th:if="${#lists.isEmpty(valoraciones)}" th:text="#{ficha.val.ninguna}">
                         Todavía no hay valoraciones de este juego.
                     </p>
                 </div>
@@ -152,8 +154,8 @@
             <div class="buy-box">
 
                 <div class="row" style="justify-content:space-between">
-                    <span class="badge b-mute">Sin stock calculado</span>
-                    <span class="live"><i></i>Stock en vivo</span>
+                    <span class="badge b-mute" th:text="#{ficha.sinStock}">Sin stock calculado</span>
+                    <span class="live"><i></i><th:block th:text="#{ficha.stockVivo}">Stock en vivo</th:block></span>
                 </div>
 
                 <div class="buy-price">
@@ -167,8 +169,8 @@
                      inventado aqui enganaria en la unica pantalla que existe para comprobar
                      como queda, asi que se queda con el mismo guion que el listado. -->
                 <div class="row">
-                    <span class="muted" title="Pendiente de las claves de licencia">—</span>
-                    <span class="hint">claves en stock</span>
+                    <span class="muted" title="Pendiente de las claves de licencia" th:title="#{ficha.pendienteClaves}">—</span>
+                    <span class="hint" th:text="#{ficha.clavesStock}">claves en stock</span>
                 </div>
 
                 <!-- Un juego gratis no pasa por la cesta ni por la biblioteca: no hay nada que
@@ -183,12 +185,13 @@
                     <a class="btn btn-primary" style="justify-content:center"
                        th:if="${gratis and descargable}"
                        th:href="@{/tienda/descargar/{id}(id=${videojuego.id})}">
-                        <svg th:replace="~{fragments/iconos :: down}"></svg> Descargar gratis</a>
+                        <svg th:replace="~{fragments/iconos :: down}"></svg> <th:block th:text="#{ficha.descargarGratis}">Descargar gratis</th:block></a>
 
                     <button class="btn btn-primary" style="justify-content:center"
                             th:if="${gratis and !descargable}" disabled
-                            title="El estudio todavia no ha subido el archivo del juego">
-                        <svg th:replace="~{fragments/iconos :: down}"></svg> Sin descarga todavía</button>
+                            title="El estudio todavia no ha subido el archivo del juego"
+                            th:title="#{ficha.sinDescargaTitle}">
+                        <svg th:replace="~{fragments/iconos :: down}"></svg> <th:block th:text="#{ficha.sinDescarga}">Sin descarga todavía</th:block></button>
 
                         <th:block th:unless="${gratis}">
                         <!-- Solo el CLIENTE puede comprar: manda el id del juego a la cesta.
@@ -197,23 +200,25 @@
                               sec:authorize="hasRole('CLIENTE')">
                             <input type="hidden" name="videojuegoId" th:value="${videojuego.id}">
                             <button type="submit" class="btn btn-primary"
-                                    style="justify-content:center;width:100%">Añadir a la cesta</button>
+                                    style="justify-content:center;width:100%" th:text="#{ficha.anadir}">Añadir a la cesta</button>
                         </form>
 
                         <!-- Colaborador, admin o vista previa del panel: no tienen cesta -->
                         <button class="btn btn-primary" style="justify-content:center" disabled
                                 sec:authorize="!hasRole('CLIENTE')"
-                                title="Solo los clientes pueden comprar">Añadir a la cesta</button>
+                                title="Solo los clientes pueden comprar"
+                                th:title="#{ficha.soloClientes}" th:text="#{ficha.anadir}">Añadir a la cesta</button>
 
                         <button class="btn" style="justify-content:center" disabled
-                                title="El pago con Stripe todavia no existe">Comprar ahora</button>
+                                title="El pago con Stripe todavia no existe"
+                                th:title="#{ficha.comprarTitle}" th:text="#{ficha.comprarAhora}">Comprar ahora</button>
                     </th:block>
                 </th:block>
 
                 <div class="sep"></div>
 
                 <dl class="kv">
-                    <dt>Estudio</dt>
+                    <dt th:text="#{ficha.estudio}">Estudio</dt>
                     <dd th:if="${videojuego.proveedor != null}"
                         th:text="${videojuego.proveedor.nombreComercial}">Iberia Digital Supply</dd>
                     <dd th:if="${videojuego.proveedor == null and videojuego.colaborador != null}"
@@ -222,27 +227,27 @@
                                 : videojuego.colaborador.nombre}">Jordi Bastida</dd>
                     <dd class="muted" th:if="${videojuego.proveedor == null and videojuego.colaborador == null}">—</dd>
 
-                    <dt>Genero</dt>
+                    <dt th:text="#{ficha.genero}">Genero</dt>
                     <dd>
                         <span class="chip" th:each="c : ${videojuego.categorias}" th:text="${c.nombre}">RPG</span>
                         <span class="muted" th:if="${videojuego.categorias.isEmpty()}">—</span>
                     </dd>
 
-                    <dt>Plataforma</dt>
+                    <dt th:text="#{ficha.plataforma}">Plataforma</dt>
                     <dd>
                         <span class="chip" th:each="p : ${videojuego.plataformas}" th:text="${p.nombre}">PC</span>
                         <span class="muted" th:if="${videojuego.plataformas.isEmpty()}">—</span>
                     </dd>
 
-                    <dt>Entrega</dt>
-                    <dd>Clave en tu biblioteca</dd>
+                    <dt th:text="#{ficha.entrega}">Entrega</dt>
+                    <dd th:text="#{ficha.entregaValor}">Clave en tu biblioteca</dd>
                 </dl>
 
                 <!-- El texto del prototipo decia "clave por correo, al instante", y eso
                      contradice las decisiones 2.6 y 2.7: la clave es la prueba de que el
                      juego es tuyo y la descarga la sirve un controlador nuestro que antes
                      comprueba que la clave es de quien la pide y esta VENDIDA. -->
-                <p class="hint" style="margin:0">La clave se asigna al confirmar el pago y queda
+                <p class="hint" style="margin:0" th:text="#{ficha.claveNota}">La clave se asigna al confirmar el pago y queda
                     ligada a tu biblioteca, que es desde donde se descarga.</p>
 
             </div>
@@ -251,8 +256,8 @@
 </main>
 
 <footer class="shop-foot">
-    <span th:if="${vistaPrevia}">LudusERP · Vista previa servida desde el panel de catalogo</span>
-    <span th:unless="${vistaPrevia}">LudusERP · Catálogo privado: sin sesión no se ve nada</span>
+    <span th:if="${vistaPrevia}" th:text="#{ficha.footerPrevia}">LudusERP · Vista previa servida desde el panel de catalogo</span>
+    <span th:unless="${vistaPrevia}" th:text="#{shop.footer}">LudusERP · Catálogo privado: sin sesión no se ve nada</span>
 </footer>
 
 <script th:src="@{/js/ficha.js}" src="../../static/js/ficha.js"></script>

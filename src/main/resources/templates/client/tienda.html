@@ -8,8 +8,8 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title th:text="${esOfertas} ? 'Ofertas · LudusERP'
-                  : (${esColaboraciones} ? 'Colaboraciones · LudusERP' : 'Catálogo · LudusERP')">Catálogo · LudusERP</title>
+    <title th:text="(${esOfertas} ? #{navbar.ofertas}
+                  : (${esColaboraciones} ? #{navbar.colaboraciones} : #{navbar.catalogo})) + ' · LudusERP'">Catálogo · LudusERP</title>
     <link rel="stylesheet" th:href="@{/css/navbar.css}" href="../../static/css/navbar.css">
     <link rel="stylesheet" th:href="@{/css/tienda.css}" href="../../static/css/tienda.css">
 </head>
@@ -21,13 +21,13 @@
 
     <div class="page-head">
         <div>
-            <h1 th:text="${esOfertas} ? 'Ofertas'
-                       : (${esColaboraciones} ? 'Colaboraciones' : 'Catálogo')">Catálogo</h1>
-            <p th:unless="${esOfertas or esColaboraciones}">Los juegos que puedes comprar ahora
+            <h1 th:text="${esOfertas} ? #{navbar.ofertas}
+                       : (${esColaboraciones} ? #{navbar.colaboraciones} : #{navbar.catalogo})">Catálogo</h1>
+            <p th:unless="${esOfertas or esColaboraciones}" th:text="#{tienda.intro.catalogo}">Los juegos que puedes comprar ahora
                 mismo. Un juego retirado no aparece aquí aunque sepas su dirección.</p>
-            <p th:if="${esOfertas}">Solo los juegos rebajados. Se cobra el precio con descuento, y al
+            <p th:if="${esOfertas}" th:text="#{tienda.intro.ofertas}">Solo los juegos rebajados. Se cobra el precio con descuento, y al
                 lado sale tachado el estándar.</p>
-            <p th:if="${esColaboraciones}">Lo que publican los compañeros con cuenta en LudusERP. Se
+            <p th:if="${esColaboraciones}" th:text="#{tienda.intro.colaboraciones}">Lo que publican los compañeros con cuenta en LudusERP. Se
                 descargan desde tu biblioteca, con la clave como prueba de que son tuyos.</p>
         </div>
     </div>
@@ -47,16 +47,16 @@
              para que los mismos filtros sirvan en las tres pantallas. -->
         <form class="filters" method="get" th:action="@{${ruta}}">
             <div class="fld">
-                <label>Buscar</label>
+                <label th:text="#{tienda.filtro.buscar}">Buscar</label>
                 <div class="search-inp">
                     <svg th:replace="~{fragments/iconos :: search}"></svg>
-                    <input name="texto" th:value="${texto}" placeholder="Título...">
+                    <input name="texto" th:value="${texto}" placeholder="Título..." th:placeholder="#{tienda.filtro.titulo}">
                 </div>
             </div>
             <div class="fld">
-                <label>Género</label>
+                <label th:text="#{tienda.filtro.genero}">Género</label>
                 <select class="inp" name="categoriaId">
-                    <option value="">Todos</option>
+                    <option value="" th:text="#{tienda.filtro.todos}">Todos</option>
                     <option th:each="c : ${categorias}"
                             th:value="${c.id}"
                             th:text="${c.nombre}"
@@ -64,9 +64,9 @@
                 </select>
             </div>
             <div class="fld">
-                <label>Plataforma</label>
+                <label th:text="#{tienda.filtro.plataforma}">Plataforma</label>
                 <select class="inp" name="plataformaId">
-                    <option value="">Todas</option>
+                    <option value="" th:text="#{tienda.filtro.todas}">Todas</option>
                     <option th:each="p : ${plataformas}"
                             th:value="${p.id}"
                             th:text="${p.nombre}"
@@ -74,43 +74,43 @@
                 </select>
             </div>
             <div class="fld">
-                <label>Precio</label>
+                <label th:text="#{tienda.filtro.precio}">Precio</label>
                 <div class="fld-precio">
                     <input class="inp" type="number" step="0.01" min="0" name="precioMin"
-                           th:value="${precioMin}" placeholder="min">
+                           th:value="${precioMin}" placeholder="min" th:placeholder="#{tienda.filtro.min}">
                     <span class="muted">—</span>
                     <input class="inp" type="number" step="0.01" min="0" name="precioMax"
-                           th:value="${precioMax}" placeholder="max">
+                           th:value="${precioMax}" placeholder="max" th:placeholder="#{tienda.filtro.max}">
                 </div>
             </div>
             <div class="fld">
-                <label>Ordenar</label>
+                <label th:text="#{tienda.filtro.ordenar}">Ordenar</label>
                 <select class="inp" name="orden">
-                    <option value="">Título</option>
-                    <option value="precioAsc" th:selected="${orden == 'precioAsc'}">Precio: de menor a mayor</option>
-                    <option value="precioDesc" th:selected="${orden == 'precioDesc'}">Precio: de mayor a menor</option>
-                    <option value="novedades" th:selected="${orden == 'novedades'}">Novedades</option>
+                    <option value="" th:text="#{tienda.filtro.ordenTitulo}">Título</option>
+                    <option value="precioAsc" th:selected="${orden == 'precioAsc'}" th:text="#{tienda.filtro.precioAsc}">Precio: de menor a mayor</option>
+                    <option value="precioDesc" th:selected="${orden == 'precioDesc'}" th:text="#{tienda.filtro.precioDesc}">Precio: de mayor a menor</option>
+                    <option value="novedades" th:selected="${orden == 'novedades'}" th:text="#{tienda.filtro.novedades}">Novedades</option>
                 </select>
             </div>
             <div class="fld">
                 <label>&nbsp;</label>
-                <button type="submit" class="btn btn-primary">Filtrar</button>
+                <button type="submit" class="btn btn-primary" th:text="#{tienda.filtro.filtrar}">Filtrar</button>
             </div>
             <div class="fld">
                 <label>&nbsp;</label>
-                <a class="btn" th:href="@{${ruta}}">Limpiar</a>
+                <a class="btn" th:href="@{${ruta}}" th:text="#{tienda.filtro.limpiar}">Limpiar</a>
             </div>
         </form>
 
         <div class="card-body">
 
             <div class="empty" th:if="${#lists.isEmpty(videojuegos)}">
-                <h4 th:unless="${esOfertas or esColaboraciones}">No hay ningún juego que encaje</h4>
-                <h4 th:if="${esOfertas}">Ahora mismo no hay ofertas</h4>
-                <h4 th:if="${esColaboraciones}">Todavía no hay juegos de colaboradores</h4>
-                <p class="hint" th:unless="${esOfertas or esColaboraciones}">Prueba a quitar algún filtro.</p>
-                <p class="hint" th:if="${esOfertas}">Cuando un juego se rebaje, aparecerá aquí.</p>
-                <p class="hint" th:if="${esColaboraciones}">Aparecerán aquí en cuanto el primero
+                <h4 th:unless="${esOfertas or esColaboraciones}" th:text="#{tienda.vacio.catalogo}">No hay ningún juego que encaje</h4>
+                <h4 th:if="${esOfertas}" th:text="#{tienda.vacio.ofertas}">Ahora mismo no hay ofertas</h4>
+                <h4 th:if="${esColaboraciones}" th:text="#{tienda.vacio.colaboraciones}">Todavía no hay juegos de colaboradores</h4>
+                <p class="hint" th:unless="${esOfertas or esColaboraciones}" th:text="#{tienda.vacio.catalogo.hint}">Prueba a quitar algún filtro.</p>
+                <p class="hint" th:if="${esOfertas}" th:text="#{tienda.vacio.ofertas.hint}">Cuando un juego se rebaje, aparecerá aquí.</p>
+                <p class="hint" th:if="${esColaboraciones}" th:text="#{tienda.vacio.colaboraciones.hint}">Aparecerán aquí en cuanto el primero
                     suba el suyo.</p>
             </div>
 
@@ -126,7 +126,7 @@
                         <img th:src="${portadas[v.id] != null} ? @{${portadas[v.id]}} : @{/img/no-cover.jpg}"
                              th:alt="${v.titulo}">
                         <span class="pegi" th:text="'PEGI ' + ${v.pegi}">PEGI 16</span>
-                        <span class="off" th:if="${v.precioDescuento != null}">OFERTA</span>
+                        <span class="off" th:if="${v.precioDescuento != null}" th:text="#{tienda.oferta}">OFERTA</span>
                     </span>
 
                     <div class="game-inf">
@@ -150,7 +150,7 @@
                             <span class="price">
                                 <span class="old" th:if="${v.precioDescuento != null}"
                                       th:text="${#numbers.formatDecimal(v.precio, 1, 'POINT', 2, 'COMMA')} + ' €'">59,99 €</span>
-                                <span th:if="${efectivo.signum() == 0}">Gratis</span>
+                                <span th:if="${efectivo.signum() == 0}" th:text="#{tienda.gratis}">Gratis</span>
                                 <span th:unless="${efectivo.signum() == 0}"
                                       th:text="${#numbers.formatDecimal(efectivo, 1, 'POINT', 2, 'COMMA')} + ' €'">44,99 €</span>
                             </span>
@@ -163,8 +163,8 @@
         <!-- Flechas y numeros de pagina. Cada enlace repite los cinco filtros para no perderlos
              al cambiar de pagina, y .off apaga la flecha del extremo. -->
         <div class="pager" th:unless="${#lists.isEmpty(videojuegos)}">
-            <span>Mostrando <b th:text="${fin - inicio}">12</b>
-                de <b th:text="${total}">12</b> juegos</span>
+            <span><th:block th:text="#{tienda.mostrando}">Mostrando</th:block> <b th:text="${fin - inicio}">12</b>
+                <th:block th:text="#{tienda.de}">de</th:block> <b th:text="${total}">12</b> <th:block th:text="#{tienda.juegos}">juegos</th:block></span>
             <div class="pages">
                 <a class="pg" th:classappend="${actual == 0} ? 'off' : ''"
                    th:href="@{${ruta}(texto=${texto}, categoriaId=${categoriaId},
@@ -190,7 +190,7 @@
 
 </main>
 
-<footer class="shop-foot">LudusERP · Catálogo privado: sin sesión no se ve nada</footer>
+<footer class="shop-foot" th:text="#{shop.footer}">LudusERP · Catálogo privado: sin sesión no se ve nada</footer>
 
 </body>
 </html>
