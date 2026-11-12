@@ -1,8 +1,12 @@
 package dao;
 
+import jakarta.persistence.LockModeType;
 import java.util.List;
+import java.util.Optional;
 import model.inventario.ClaveLicencia;
+import model.inventario.EstadoClave;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -31,5 +35,16 @@ public interface ClaveLicenciaDao extends JpaRepository<ClaveLicencia, Long> {
             + "and c.videojuego.id = :videojuegoId "
             + "and c.estado = model.inventario.EstadoClave.VENDIDA")
     boolean estaEnBiblioteca(@Param("email") String email,
-                             @Param("videojuegoId") Long videojuegoId);
+            @Param("videojuegoId") Long videojuegoId);
+
+    // Hay alguna clave disponible de ese juego? Sirve para avisar ANTES de mandar
+    // al cliente a pagar
+    boolean existsByVideojuegoIdAndEstado(Long videojuegoId, EstadoClave estado);
+
+    // La primera clave por id disponible de un juego. El bloqueo hace que, si dos clientes pagan
+    // a la vez, el segundo espere y no se le entregue la misma clave
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    Optional<ClaveLicencia> findFirstByVideojuegoIdAndEstadoOrderByIdAsc(
+            Long videojuegoId, EstadoClave estado);
+
 }

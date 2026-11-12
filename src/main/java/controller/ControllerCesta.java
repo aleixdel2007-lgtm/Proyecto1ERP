@@ -7,6 +7,8 @@ package controller;
 import exception.cesta.CestaVaciaException;
 import exception.cesta.JuegoNoComprableException;
 import exception.cesta.VideojuegoNoDisponibleException;
+import exception.pago.PagoNoCompletadoException;
+import exception.pago.SinClavesDisponiblesException;
 import model.ventas.Cesta;
 import model.ventas.Pedido;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,6 +21,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import service.interfaces.CestaService;
+import service.interfaces.PagoService;
 import service.interfaces.PedidoService;
 
 /**
@@ -32,7 +35,7 @@ public class ControllerCesta {
     private CestaService cestaService;
 
     @Autowired
-    private PedidoService pedidoService;
+    private PagoService pagoService;
 
     @GetMapping("/tienda/cesta")
     public String verCesta(Authentication authentication, Model model) {
@@ -71,12 +74,13 @@ public class ControllerCesta {
     @PostMapping("/tienda/cesta/tramitar")
     public String tramitarPedido(Authentication authentication, RedirectAttributes flash) {
         try {
-            Pedido pedido = pedidoService.crearPedidoDesdeCesta(authentication.getName());
-            flash.addFlashAttribute("mensaje", "Pedido " + pedido.getNumero() + " creado, pendiente de pago");
-        } catch (CestaVaciaException | VideojuegoNoDisponibleException e) {
+            String urlPago = pagoService.iniciarPago(authentication.getName());
+            // "redirect:" con una direccion externa: el navegador se va a la pagina de Stripe
+            return "redirect:" + urlPago;
+        } catch (CestaVaciaException | VideojuegoNoDisponibleException
+                | SinClavesDisponiblesException | PagoNoCompletadoException e) {
             flash.addFlashAttribute("error", e.getMessage());
+            return "redirect:/tienda/cesta";
         }
-        return "redirect:/tienda/cesta";
     }
-
 }
