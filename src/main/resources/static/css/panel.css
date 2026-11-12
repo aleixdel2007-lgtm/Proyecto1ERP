@@ -104,6 +104,9 @@ button,input,select,textarea{font-family:inherit;font-size:inherit}
 .who-txt{line-height:1.25}
 .who-txt b{display:block;font-size:12.5px;font-weight:600}
 .who-txt span{font-size:11px;color:var(--muted)}
+/* El rol de quien ha entrado va de distintivo debajo del correo: ahi el pildoro se queda
+   un punto mas pequeno que en las tablas para no comerse la barra */
+.who-txt .badge{font-size:10px;padding:1px 7px;letter-spacing:.02em}
 
 /* --- lienzo de página ----------------------------------------------------- */
 .canvas{padding:22px 24px 60px;max-width:1500px;width:100%}
@@ -191,6 +194,12 @@ button,input,select,textarea{font-family:inherit;font-size:inherit}
 .badge.b-rol-gestor_productos{color:#22d3ee;background:rgba(34,211,238,.1);border-color:rgba(34,211,238,.28)}
 .badge.b-rol-gestor_clientes{color:#f9a8d4;background:rgba(249,168,212,.1);border-color:rgba(249,168,212,.28)}
 .badge.b-rol-gestor_inventario{color:#fde047;background:rgba(253,224,71,.1);border-color:rgba(253,224,71,.28)}
+/* Estos dos no salen en el listado de empleados, porque ningun empleado los lleva: salen
+   en la barra de arriba, que ensena el rol de quien ha entrado. Comparten el verde a
+   proposito, que son la misma cara de la tienda con permisos distintos. Por eso el verde
+   entra aqui aunque los de estado tambien lo usen: no conviven en la misma fila. */
+.badge.b-rol-cliente,
+.badge.b-rol-colaborador{color:var(--good);background:rgba(86,211,100,.1);border-color:rgba(86,211,100,.28)}
 
 /* --- etiquetas de clasificacion ------------------------------------------- */
 /* Las usan la categoria y la plataforma del videojuego y el departamento del empleado.

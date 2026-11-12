@@ -56,5 +56,18 @@ public interface VideojuegoService {
     Videojuego publicarJuegoColaborador(String emailColaborador, String titulo, String sinopsis,
                                         String pegi, String version,
                                         List<Long> categoriaIds, List<Long> plataformaIds,
-                                        MultipartFile zip, MultipartFile portada);
+                                        MultipartFile zip, MultipartFile portada,
+                                        MultipartFile banner, List<MultipartFile> capturas);
+
+    Videojuego buscarJuegoDeColaborador(String emailColaborador, Long videojuegoId);
+
+    VersionJuego buscarVersionActiva(Long videojuegoId);
+
+    Videojuego actualizarJuegoColaborador(String emailColaborador, Long videojuegoId, String titulo,
+                                          String sinopsis, String pegi, String version,
+                                          List<Long> categoriaIds, List<Long> plataformaIds,
+                                          MultipartFile zip, MultipartFile portada,
+                                          MultipartFile banner, List<MultipartFile> capturas);
+
+    void eliminarImagenDeColaborador(String emailColaborador, Long videojuegoId, Long imagenId);
 }

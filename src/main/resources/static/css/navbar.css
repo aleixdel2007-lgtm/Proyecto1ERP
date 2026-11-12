@@ -16,6 +16,21 @@
     --font:"Segoe UI Variable Text","Segoe UI",Inter,system-ui,-apple-system,sans-serif;
 }
 
+/* El modelo de caja, en el mismo sitio que el body y las variables, porque TODAS las
+   pantallas que llevan una de estas dos barras cargan este fichero. Lo declaraban por su
+   cuenta panel.css, login.css, configuracionUsuario.css y colaboradorJuegos.css, pero no
+   tienda.css: por eso .shop-bar, con max-width:1360px y padding de 26px, medias 1412px en
+   el catalogo y 1360px en Mis juegos, que carga ademas el CSS del colaborador. La barra
+   entera se recogia 26px por lado al cambiar de pantalla. */
+*{box-sizing:border-box}
+
+/* La barra de la tienda y el cuerpo de la pagina se centran los dos con margin:0 auto
+   dentro de 1360px, asi que el ancho util decide donde cae el logo. Una pagina larga
+   como el catalogo saca barra de scroll y otra corta como Mis juegos no, y esos ~15px
+   de diferencia movian la barra entera al cambiar de pantalla. Reservando el hueco
+   siempre, haya scroll o no, el ancho util es el mismo en todas y nada se desplaza. */
+html{scrollbar-gutter:stable}
+
 body{
     margin:0;
     background:var(--bg);color:var(--ink);
@@ -71,6 +86,21 @@ body{
 .who-txt{line-height:1.25}
 .who-txt b{display:block;font-size:12.5px;font-weight:600}
 .who-txt span{font-size:11px;color:var(--muted)}
+
+/* Distintivo de rol de quien ha iniciado sesion. Antes era texto gris con la autoridad
+   tal cual, corchetes incluidos. Son los mismos colores que el listado de empleados, que
+   los saca de panel.css; aqui se repiten porque las pantallas de la tienda no cargan ese
+   fichero. El pildoro base lo pone el CSS de cada pantalla (.badge), y esto solo ajusta
+   el tamano para que quepa debajo del correo. */
+.who-txt .badge{font-size:10px;padding:1px 7px;letter-spacing:.02em}
+.badge.b-rol-admin{color:var(--purple-light);background:rgba(139,92,246,.14);border-color:rgba(139,92,246,.32)}
+.badge.b-rol-gestor_productos{color:#22d3ee;background:rgba(34,211,238,.1);border-color:rgba(34,211,238,.28)}
+.badge.b-rol-gestor_clientes{color:#f9a8d4;background:rgba(249,168,212,.1);border-color:rgba(249,168,212,.28)}
+.badge.b-rol-gestor_inventario{color:#fde047;background:rgba(253,224,71,.1);border-color:rgba(253,224,71,.28)}
+/* Cliente y colaborador comparten el verde a proposito: son la misma cara de la tienda y
+   lo unico que los separa es que el colaborador ademas publica juegos */
+.badge.b-rol-cliente,
+.badge.b-rol-colaborador{color:#56d364;background:rgba(86,211,100,.1);border-color:rgba(86,211,100,.28)}
 
 /* Cerrar sesion es un <button> dentro de un form POST, no un enlace: hay que quitarle
    el fondo y el borde que el navegador le pone de serie para que siga pareciendo texto */

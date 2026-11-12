@@ -42,6 +42,8 @@ public class VideojuegoServiceImpl implements VideojuegoService {
 
     private static final List<Integer> PEGI_VALIDOS = List.of(3, 7, 12, 16, 18);
 
+    private static final int MAXIMO_CAPTURAS = 4;
+
     @Autowired
     private VideojuegoDao videojuegoDao;
 
@@ -400,6 +402,13 @@ public class VideojuegoServiceImpl implements VideojuegoService {
     public void validarFichaColaborador(String titulo, String sinopsis, String pegi, String version,
                                         List<Long> categoriaIds, List<Long> plataformaIds) {
 
+        validarFicha(titulo, sinopsis, pegi, categoriaIds, plataformaIds);
+        validarVersion(version);
+    }
+
+    private void validarFicha(String titulo, String sinopsis, String pegi,
+                              List<Long> categoriaIds, List<Long> plataformaIds) {
+
         if (titulo == null || titulo.isBlank()) {
             throw new IllegalArgumentException("El titulo es obligatorio");
         }
@@ -416,12 +425,6 @@ public class VideojuegoServiceImpl implements VideojuegoService {
             throw new IllegalArgumentException("La clasificacion PEGI no es valida");
         }
 
-        // Letras, numeros, puntos, + y guiones; maximo 20, que es lo que cabe en la columna
-        if (version == null || !version.trim().matches("[0-9A-Za-z][0-9A-Za-z.+-]{0,19}")) {
-            throw new IllegalArgumentException(
-                    "La version no es valida: letras, numeros, puntos y guiones, maximo 20 (por ejemplo 1.0.0)");
-        }
-
         if (categoriaIds == null || categoriaIds.isEmpty()) {
             throw new IllegalArgumentException("Elige al menos una categoria");
         }
@@ -435,17 +438,31 @@ public class VideojuegoServiceImpl implements VideojuegoService {
         buscarPlataformas(plataformaIds);
     }
 
+    // Letras, numeros, puntos, + y guiones; maximo 20, que es lo que cabe en la columna
+    private void validarVersion(String version) {
+
+        if (version == null || !version.trim().matches("[0-9A-Za-z][0-9A-Za-z.+-]{0,19}")) {
+            throw new IllegalArgumentException(
+                    "La version no es valida: letras, numeros, puntos y guiones, maximo 20 (por ejemplo 1.0.0)");
+        }
+    }
+
     @Override
     @Transactional
     public Videojuego publicarJuegoColaborador(String emailColaborador, String titulo, String sinopsis,
                                                String pegi, String version,
                                                List<Long> categoriaIds, List<Long> plataformaIds,
-                                               MultipartFile zip, MultipartFile portada) {
+                                               MultipartFile zip, MultipartFile portada,
+                                               MultipartFile banner, List<MultipartFile> capturas) {
 
         // Todo lo que puede fallar por culpa del usuario, antes de escribir nada
         validarFichaColaborador(titulo, sinopsis, pegi, version, categoriaIds, plataformaIds);
         almacenArchivos.validarZip(zip);
         almacenArchivos.extensionDe(portada);
+
+        List<MultipartFile> nuevasCapturas = limpiarCapturas(capturas);
+
+        validarImagenesDeColaborador(null, null, banner, nuevasCapturas);
 
         Colaborador colaborador = colaboradorDao.findByEmail(emailColaborador).orElse(null);
 
@@ -470,7 +487,7 @@ public class VideojuegoServiceImpl implements VideojuegoService {
         Videojuego guardado = videojuegoDao.save(videojuego);
 
         try {
-            guardarImagen(guardado.getId(), portada, TipoImagen.PORTADA, null);
+            guardarImagenesDeColaborador(guardado.getId(), portada, banner, nuevasCapturas);
 
             AlmacenArchivos.ZipGuardado archivo = almacenArchivos.guardarZip(guardado.getId(), zip);
 
@@ -501,5 +518,186 @@ public class VideojuegoServiceImpl implements VideojuegoService {
             pegis.add(String.valueOf(pegi));
         }
         return pegis;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Videojuego buscarJuegoDeColaborador(String emailColaborador, Long videojuegoId) {
+
+        Videojuego videojuego = videojuegoDao.buscarConDetalle(videojuegoId).orElse(null);
+
+        if (videojuego == null || videojuego.getColaborador() == null
+                || !videojuego.getColaborador().getEmail().equalsIgnoreCase(emailColaborador)) {
+
+            throw new VideojuegoNoEncontradoException(videojuegoId);
+        }
+        return videojuego;
+    }
+
+    @Override
+    public VersionJuego buscarVersionActiva(Long videojuegoId) {
+        return versionJuegoDao.findByVideojuegoIdAndActivaTrue(videojuegoId).orElse(null);
+    }
+
+    @Override
+    @Transactional
+    public Videojuego actualizarJuegoColaborador(String emailColaborador, Long videojuegoId, String titulo,
+                                                 String sinopsis, String pegi, String version,
+                                                 List<Long> categoriaIds, List<Long> plataformaIds,
+                                                 MultipartFile zip, MultipartFile portada,
+                                                 MultipartFile banner, List<MultipartFile> capturas) {
+
+        Videojuego videojuego = buscarJuegoDeColaborador(emailColaborador, videojuegoId);
+
+        validarFicha(titulo, sinopsis, pegi, categoriaIds, plataformaIds);
+
+        boolean archivoNuevo = !vacio(zip);
+
+        if (archivoNuevo) {
+            validarVersion(version);
+            almacenArchivos.validarZip(zip);
+
+            if (versionJuegoDao.existsByVideojuegoIdAndNumero(videojuegoId, version.trim())) {
+                throw new IllegalArgumentException(
+                        "Ya has subido una version con el numero " + version.trim());
+            }
+        }
+
+        List<MultipartFile> nuevasCapturas = limpiarCapturas(capturas);
+
+        validarImagenesDeColaborador(videojuegoId, portada, banner, nuevasCapturas);
+
+        videojuego.setTitulo(titulo.trim());
+        videojuego.setSinopsis(sinopsis.trim());
+        videojuego.setPegi(Integer.parseInt(pegi));
+        videojuego.setCategorias(buscarCategorias(categoriaIds));
+        videojuego.setPlataformas(buscarPlataformas(plataformaIds));
+        videojuego.setActivo(false);
+
+        Videojuego guardado = videojuegoDao.save(videojuego);
+
+        List<String> escritas = new ArrayList<>();
+        String zipEscrito = null;
+
+        try {
+            escritas = guardarImagenesDeColaborador(videojuegoId, portada, banner, nuevasCapturas);
+
+            if (archivoNuevo) {
+                VersionJuego anterior = versionJuegoDao
+                        .findByVideojuegoIdAndActivaTrue(videojuegoId).orElse(null);
+
+                if (anterior != null) {
+                    anterior.setActiva(false);
+                    versionJuegoDao.save(anterior);
+                }
+
+                AlmacenArchivos.ZipGuardado archivo = almacenArchivos.guardarZip(videojuegoId, zip);
+                zipEscrito = archivo.ruta();
+
+                VersionJuego nueva = new VersionJuego();
+                nueva.setVideojuego(guardado);
+                nueva.setNumero(version.trim());
+                nueva.setNombreArchivo(archivo.nombreArchivo());
+                nueva.setRutaArchivo(archivo.ruta());
+                nueva.setTamanoBytes(archivo.tamanoBytes());
+                nueva.setSha256(archivo.sha256());
+                nueva.setActiva(true);
+                versionJuegoDao.save(nueva);
+            }
+            return guardado;
+
+        } catch (RuntimeException e) {
+
+            for (String ruta : escritas) {
+                almacenArchivos.borrar(ruta);
+            }
+
+            if (zipEscrito != null) {
+                almacenArchivos.borrarZip(zipEscrito);
+            }
+            throw e;
+        }
+    }
+
+    @Override
+    @Transactional
+    public void eliminarImagenDeColaborador(String emailColaborador, Long videojuegoId, Long imagenId) {
+
+        buscarJuegoDeColaborador(emailColaborador, videojuegoId);
+        eliminarImagen(videojuegoId, imagenId);
+    }
+
+    private boolean vacio(MultipartFile archivo) {
+        return archivo == null || archivo.isEmpty();
+    }
+
+    private List<MultipartFile> limpiarCapturas(List<MultipartFile> capturas) {
+
+        List<MultipartFile> utiles = new ArrayList<>();
+
+        if (capturas == null) {
+            return utiles;
+        }
+
+        for (MultipartFile captura : capturas) {
+
+            if (!vacio(captura)) {
+                utiles.add(captura);
+            }
+        }
+        return utiles;
+    }
+
+    private void validarImagenesDeColaborador(Long videojuegoId, MultipartFile portada,
+                                              MultipartFile banner, List<MultipartFile> capturas) {
+
+        if (!vacio(portada)) {
+            almacenArchivos.extensionDe(portada);
+
+            if (videojuegoId != null) {
+                validarQueNoExista(videojuegoId, TipoImagen.PORTADA);
+            }
+        }
+
+        if (!vacio(banner)) {
+            almacenArchivos.extensionDe(banner);
+
+            if (videojuegoId != null) {
+                validarQueNoExista(videojuegoId, TipoImagen.BANNER);
+            }
+        }
+
+        int guardadas = videojuegoId == null ? 0
+                : imagenVideojuegoDao
+                        .findByVideojuegoIdAndTipoOrderByOrdenAscIdAsc(videojuegoId, TipoImagen.CAPTURA)
+                        .size();
+
+        if (guardadas + capturas.size() > MAXIMO_CAPTURAS) {
+            throw new ImagenInvalidaException(
+                    "Un juego no puede tener mas de " + MAXIMO_CAPTURAS + " capturas");
+        }
+
+        for (MultipartFile captura : capturas) {
+            almacenArchivos.extensionDe(captura);
+        }
+    }
+
+    private List<String> guardarImagenesDeColaborador(Long videojuegoId, MultipartFile portada,
+                                                      MultipartFile banner, List<MultipartFile> capturas) {
+
+        List<String> rutas = new ArrayList<>();
+
+        if (!vacio(portada)) {
+            rutas.add(guardarImagen(videojuegoId, portada, TipoImagen.PORTADA, null).getRuta());
+        }
+
+        if (!vacio(banner)) {
+            rutas.add(guardarImagen(videojuegoId, banner, TipoImagen.BANNER, null).getRuta());
+        }
+
+        for (MultipartFile captura : capturas) {
+            rutas.add(guardarImagen(videojuegoId, captura, TipoImagen.CAPTURA, null).getRuta());
+        }
+        return rutas;
     }
 }

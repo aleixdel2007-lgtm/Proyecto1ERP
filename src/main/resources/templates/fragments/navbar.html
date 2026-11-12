@@ -30,9 +30,14 @@
              th:src="${imagenPerfil != null} ? @{${imagenPerfil.rutaImagen}} : @{/img/placeholder.webp}"
              th:alt="${imagenPerfil != null} ? ${imagenPerfil.textoAlternativo} : 'Sin foto de perfil'">
 
-        <div class="who-txt">
+        <!-- El rol va como distintivo de color, el mismo que el del listado de empleados.
+             Se le quita el prefijo ROLE_ que pone Security: lo que se ensena es el valor
+             del enum, igual que en el panel. -->
+        <div class="who-txt"
+             th:with="rol=${#strings.replace(#authentication.authorities[0].authority, 'ROLE_', '')}">
             <b th:text="${#authentication.name}">admin@luduserp.cat</b>
-            <span th:text="${#authentication.authorities[0].authority}">ROLE_ADMIN</span>
+            <span class="badge" th:classappend="${'b-rol-' + #strings.toLowerCase(rol)}"
+                  th:text="${rol}">ADMIN</span>
         </div>
     </div>
 
@@ -81,9 +86,11 @@
                  th:src="${imagenPerfil != null} ? @{${imagenPerfil.rutaImagen}} : @{/img/placeholder.webp}"
                  th:alt="${imagenPerfil != null} ? ${imagenPerfil.textoAlternativo} : 'Sin foto de perfil'">
 
-            <div class="who-txt">
+            <div class="who-txt"
+                 th:with="rol=${#strings.replace(#authentication.authorities[0].authority, 'ROLE_', '')}">
                 <b th:text="${#authentication.name}">cliente@example.com</b>
-                <span th:text="${#authentication.authorities[0].authority}">ROLE_CLIENTE</span>
+                <span class="badge" th:classappend="${'b-rol-' + #strings.toLowerCase(rol)}"
+                      th:text="${rol}">CLIENTE</span>
             </div>
         </div>
 

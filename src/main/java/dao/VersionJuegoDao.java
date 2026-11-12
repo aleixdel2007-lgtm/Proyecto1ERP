@@ -18,4 +18,6 @@ public interface VersionJuegoDao extends JpaRepository<VersionJuego, Long> {
     // La version activa de un solo juego, que es la que se sirve al descargar: de ella
     // salen la ruta del ZIP en disco y el nombre con el que se le entrega al cliente
     Optional<VersionJuego> findByVideojuegoIdAndActivaTrue(Long videojuegoId);
+
+    boolean existsByVideojuegoIdAndNumero(Long videojuegoId, String numero);
 }

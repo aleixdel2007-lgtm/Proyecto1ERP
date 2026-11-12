@@ -13,7 +13,6 @@
     --r:10px;
     --mono:"Cascadia Mono",Consolas,"SF Mono",monospace;
 }
-*{box-sizing:border-box}
 a{color:var(--purple-light);text-decoration:none}
 h1,h2,h3{margin:0;font-weight:600;letter-spacing:-.01em}
 p{margin:0}
@@ -125,3 +124,56 @@ textarea.inp{resize:vertical;min-height:90px}
     color:var(--muted);display:flex;flex-direction:column;gap:8px;
 }
 .file-drop input{max-width:100%;color:var(--ink-2)}
+
+/* Las cuatro casillas de captura del formulario de subida. Cada una es un .file-drop mas
+   pequeno con su etiqueta dentro, para que se vea de un vistazo cuantas caben y cuales
+   quedan vacias. El selector de archivo del navegador no encoge por si solo, asi que la
+   casilla necesita min-width:0 o la rejilla se desborda en cuanto la columna es estrecha */
+.slots-img{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:8px}
+.slots-img .slot{padding:12px;gap:6px;min-width:0}
+.slots-img .slot label{font-size:11.5px;font-weight:550;color:var(--ink-2)}
+.slots-img .slot input{width:100%;font-size:11.5px}
+@media(max-width:1100px){.slots-img{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:600px){.slots-img{grid-template-columns:1fr}}
+
+/* Columna de acciones del listado, con el mismo nombre y el mismo comportamiento que en
+   los listados del panel: pegada a la derecha y sin partir el boton en dos lineas */
+table.tbl td.acts,table.tbl th.acts{text-align:right;white-space:nowrap}
+table.tbl td.acts form{display:inline}
+
+/* --- imagenes ya guardadas (pantalla de editar) --------------------------- */
+/* Calcado de catalogo.css, que es quien viste el CRUD de imagenes del panel. Se repite
+   aqui porque estas pantallas llevan la barra de la tienda y no cargan aquel fichero. */
+.img-grid{
+    display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));
+    gap:12px;margin-top:10px;
+}
+.img-card{
+    border:1px solid var(--line);border-radius:var(--r);overflow:hidden;
+    background:var(--surface-2);
+}
+/* El marco fija la proporcion para que una captura vertical no descoloque la rejilla,
+   y el object-fit recorta en vez de deformar */
+.img-card .marco{position:relative;display:block;aspect-ratio:16/9;background:var(--surface-3)}
+.img-card .marco img{width:100%;height:100%;object-fit:cover;display:block}
+.img-card .img-tipo{
+    position:absolute;top:6px;left:6px;font-size:10px;font-weight:650;letter-spacing:.04em;
+    padding:2px 6px;border-radius:var(--r-sm);background:rgba(0,0,0,.62);color:#fff;
+}
+.img-card .img-foot{
+    display:flex;align-items:center;justify-content:space-between;gap:6px;padding:7px 9px;
+    font-size:11.5px;
+}
+.img-card .img-foot form{display:inline}
+/* Hueco de un tipo que todavia no tiene imagen */
+.img-vacia{
+    border:1.5px dashed var(--line-strong);border-radius:var(--r);padding:18px;
+    margin-top:10px;text-align:center;color:var(--muted);font-size:12.5px;
+}
+
+/* El boton de quitar, el mismo rojo apagado que usa el panel */
+.btn-danger{color:#ffb4ae;border-color:rgba(248,81,73,.35);background:rgba(248,81,73,.1)}
+.btn-danger:hover{background:rgba(248,81,73,.18);border-color:rgba(248,81,73,.5)}
+
+/* Las casillas de subir que llevan su etiqueta DENTRO, en vez de encima dentro de un .frow */
+.file-drop>label{font-size:12.5px;font-weight:550;color:var(--ink-2)}
