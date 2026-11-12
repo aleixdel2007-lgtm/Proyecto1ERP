@@ -26,6 +26,9 @@
   --rojo-claro:#fdecea;
   --ambar:#8a5a00;
   --ambar-claro:#fdf3e2;
+  --verde:#137333;
+  --verde-claro:#e6f4ea;
+  --verde-linea:#a8d5b5;
 }
 
 /* Sin esto Chrome tira los fondos al imprimir y la barra de sprint, las
@@ -89,6 +92,19 @@ code{font-family:Consolas,"Cascadia Mono",monospace;font-size:9.4pt;
   background:var(--ambar-claro);border-left:3px solid var(--ambar);color:#5c3d00;
 }
 .aviso b{color:#5c3d00}
+/* Lo que quedo fuera de un apartado ya realizado: no es un aviso de peligro, es una
+   coletilla, asi que va en verde y no en ambar */
+.resto{
+  margin-top:7pt;padding:6pt 10pt;font-size:9.4pt;
+  background:var(--verde-claro);border-left:3px solid var(--verde);color:#0b4f22;
+}
+.resto b{color:#0b4f22}
+
+/* --- apartados ya realizados --------------------------------------------------- */
+.sprint.hecho{background:var(--verde)}
+.apartado.hecho{border-color:var(--verde-linea);background:#fafdfb}
+.apartado.hecho .num{color:var(--verde)}
+.apartado.hecho .que{border-left-color:var(--verde)}
 
 /* --- etiquetas de necesidad -------------------------------------------------- */
 .tag{
@@ -99,6 +115,7 @@ code{font-family:Consolas,"Cascadia Mono",monospace;font-size:9.4pt;
 .t-med{background:var(--ambar-claro);color:var(--ambar)}
 .t-baj{background:var(--fondo-2);color:var(--suave)}
 .t-new{background:var(--morado-claro);color:var(--morado)}
+.t-ok{background:var(--verde-claro);color:var(--verde)}
 
 /* --- tabla resumen ------------------------------------------------------------ */
 table{width:100%;border-collapse:collapse;font-size:9.4pt;margin-top:6pt}
@@ -110,6 +127,11 @@ td{padding:5pt 7pt;border-bottom:1px solid var(--linea);vertical-align:top}
 td.c{text-align:center}
 td.n{text-align:center;font-weight:700;color:var(--morado)}
 tbody tr:nth-child(even) td{background:var(--fondo-2)}
+/* Las filas de lo ya hecho, en verde. Va DESPUES del nth-child a proposito: las dos
+   reglas tienen la misma especificidad, asi que gana la ultima */
+tbody tr.hecho td{background:var(--verde-claro)}
+tbody tr.hecho td.n{color:var(--verde)}
+tbody tr.hecho td.ok{font-weight:650;color:var(--verde)}
 
 .salto{break-before:page}
 .pie{margin-top:14pt;padding:9pt 12pt;background:var(--morado-claro);
@@ -121,190 +143,70 @@ tbody tr:nth-child(even) td{background:var(--fondo-2)}
 <div class="portada">
     <div class="marca">L</div>
     <div>
-        <h1>Lo que queda por hacer</h1>
+        <h1>Lo que queda y lo que ya está</h1>
         <div class="sub">LudusERP · plan de los dos últimos sprints, por orden de prioridad</div>
     </div>
 </div>
 
 <div class="ficha">
-    <span><b>Fecha:</b> 9 de noviembre de 2026</span>
-    <span><b>Código:</b> master en c8cb7a5, más <code>tienda-cliente</code> sin mergear</span>
-    <span><b>Apartados pendientes:</b> 15</span>
+    <span><b>Fecha:</b> 12 de noviembre de 2026</span>
+    <span><b>Código:</b> master en <code>d81e07c</code></span>
+    <span><b>Pendientes:</b> 7</span>
+    <span><b>Realizados:</b> 6</span>
 </div>
 
 <div class="intro">
     <h3>Cómo leerlo</h3>
-    <p>Los apartados van en el orden en que conviene atacarlos: los de arriba desbloquean a los de
-    abajo. Cada uno lleva una etiqueta de necesidad — <span class="tag t-imp">imprescindible</span>
+    <p>Los apartados pendientes van primero y en el orden en que conviene atacarlos: los de arriba
+    desbloquean a los de abajo. Cada uno lleva una etiqueta — <span class="tag t-imp">imprescindible</span>
     no se puede entregar sin ello, <span class="tag t-med">importante</span> se nota si falta,
     <span class="tag t-baj">si sobra tiempo</span> es deuda que no bloquea la entrega. Lo que ya está
-    terminado no aparece en esta lista: esto es solo lo que falta.</p>
+    terminado lleva <span class="tag t-ok">realizado</span> y se ha movido al final, en verde.
+    <b>Los números no se han cambiado al reordenar</b>: el apartado 8 sigue siendo el 8 aunque ahora
+    aparezca después del 15, para que las referencias de la memoria y de los commits sigan valiendo.
+    Los antiguos apartados 4 y 5 — los datos de prueba de pedidos y el test de contexto — se han
+    <b>descartado</b>: no se van a hacer, y por eso ya no aparecen. <b>El sprint 1 queda cerrado</b>.</p>
 </div>
 
 <div class="intro">
     <h3>Ramas</h3>
-    <p>Una rama corta por apartado, salida de master y mergeada en cuanto el apartado funcione, igual
-    que se ha hecho con <code>apartado-de-ventas</code> o <code>tienda-cliente</code>. Así dos personas
-    no se pisan y cada merge deja master arrancable.</p>
+    <p>Una rama corta por apartado, salida de master y mergeada en cuanto el apartado funcione. Es lo que
+    se ha hecho con <code>tienda-cliente</code>, <code>juegos-colaborador</code> y
+    <code>creacion-de-valoraciones</code>, y ha funcionado: cada merge ha dejado master arrancable.</p>
 </div>
 
 <div class="intro">
     <h3>El camino crítico</h3>
-    <p>Es la cadena <b>6 → 7 → 8</b>: lleva de un colaborador que sube su juego a un cliente que lo
-    compra, recibe su clave y se lo descarga. Es lo que el tercer proyecto necesita que exista de verdad,
-    y la tienda que lo enseña ya está escrita, esperando en su rama.</p>
+    <p>Era la cadena <b>6 → 7 → 8</b>: de un colaborador que sube su juego a un cliente que lo compra,
+    recibe su clave y se lo descarga. <b>El 6 y el 8 ya están</b>, así que hoy solo falta el eslabón del
+    medio: <b>el 7</b>, la cesta y el pago. Mientras no exista, no hay forma de que nazca una clave en la
+    aplicación y las que hay son las que siembra <code>DatosIniciales</code>.</p>
 </div>
 
-<div class="sprint">Sprint 1 · dejar el terreno firme y abrir el circuito</div>
-
-<div class="apartado">
-    <div class="cab"><span class="num">1</span><h2>Punto de control: recrear la base, arrancar y mergear la tienda</h2>
-        <span class="tag t-imp">imprescindible</span></div>
-    <p class="que">Hacer <code>docker compose down -v</code>, arrancar, comprobar que las nueve
-    migraciones se aplican y que Hibernate acepta el esquema, y mergear <code>tienda-cliente</code> en
-    cuanto se vea funcionando.</p>
-    <p>V2 se ha editado a mano varias veces, así que la base que haya en los equipos ya no cuadra con la
-    huella que guarda Flyway. Y hay una rama entera sin arrancar: el compilador no valida ni el esquema,
-    ni las consultas, ni las plantillas. Eso solo sale al arrancar. Es media hora y es la red de
-    seguridad de todo lo demás.</p>
-    <p>Lo que se prueba por primera vez en ejecución: las imágenes de juego, las fotos de perfil, la V9,
-    los diez videojuegos que siembra <code>DatosIniciales</code> y, sobre todo, <b>la tienda entera</b>,
-    que son dos <code>@Query</code> con <code>coalesce</code> y parámetros de tres estados más una
-    plantilla de catálogo que Thymeleaf no valida hasta que la sirve. De paso: que un colaborador entra y
-    cae en la tienda, que un gestor de inventario abre Ventas, que un cliente que escriba
-    <code>/ventas/pedidos</code> se come un 403 y que cerrar sesión cierra de verdad.</p>
-    <p class="rama">Rama recomendada: <code>punto-control-esquema</code></p>
-    <div class="aviso"><b>Primero esto.</b> Cualquier apartado de abajo que se empiece sin este paso se
-    construye encima de algo que no sabemos si arranca.</div>
-</div>
-
-<div class="apartado">
-    <div class="cab"><span class="num">2</span><h2>Cerrar las decisiones que bloquean código</h2>
-        <span class="tag t-imp">imprescindible</span></div>
-    <p class="que">Sentaros veinte minutos, cerrar las cuatro decisiones abiertas que impiden escribir el
-    apartado 6 y dejarlas escritas en la memoria.</p>
-    <p>Son cuatro y las cuatro son baratas de decidir y caras de improvisar a mitad de código: dónde se
-    guarda el ZIP de los juegos (carpeta del servidor o almacenamiento aparte; si el hosting borra el
-    disco en cada despliegue, la carpeta no vale y los juegos desaparecen), si un juego de colaborador
-    nace activo o lo tiene que activar alguien, si el colaborador pone precio o todos sus juegos son
-    gratis, y si en la tienda conviven los juegos de distribuidor con los de colaborador.</p>
-    <p class="rama">Rama recomendada: <code>decisiones-pendientes</code> · solo toca <code>docs/</code></p>
-    <div class="aviso">La primera bloquea el apartado 6 entero. La cuarta ya tiene respuesta provisional
-    escrita en código: el servicio de la tienda pasa <code>soloColaborador = null</code>, o sea que
-    conviven; si se decide lo contrario es cambiar ese <code>null</code> por <code>false</code>.</div>
-</div>
-
-<div class="apartado">
-    <div class="cab"><span class="num">3</span><h2>Arreglar las dos pantallas que hoy están rotas</h2>
-        <span class="tag t-imp">imprescindible</span></div>
-    <p class="que">Un error de plantilla que tumba el detalle de pedido y un formulario que se traga los
-    cambios sin avisar. Las dos son de pantallas ya entregadas.</p>
-    <p><b>El detalle de pedido revienta.</b> <code>ventas/detallePedido.html</code> pinta
-    <code>l.videojuego.estudio</code>, y ese campo ya no existe: la decisión 4.15 lo sustituyó por la
-    clave ajena al proveedor. Cualquier <code>/ventas/pedido/{id}</code> con líneas da un error de
-    expresión y un 500. Es la única referencia a ese campo que queda en todo el código, y se arregla en
-    una línea.</p>
-    <p><b>Mis datos pierde lo que escribes.</b> El formulario de
-    <code>clients/configuracionUsuario.html</code> no tiene <code>th:action</code> ni
-    <code>method</code>, y <code>ControllerHome</code> solo tiene el GET: «Guardar» recarga la página y
-    los cambios se van sin un aviso. La foto sí se guarda, eso ya funciona, y el
-    <code>UsuarioService</code> es el sitio donde colgar el guardado nuevo. Falta decidir qué campos
-    puede editar quien no es cliente.</p>
-    <p class="rama">Rama recomendada: <code>arreglos-rotos</code></p>
-    <div class="aviso">Van en el sprint 1 y no con los arreglos cosméticos del 14 porque no son detalles:
-    una tumba la pantalla y la otra pierde datos del usuario delante de él.</div>
-</div>
-
-<div class="apartado">
-    <div class="cab"><span class="num">4</span><h2>Datos de prueba de pedidos y facturas</h2>
-        <span class="tag t-med">importante</span></div>
-    <p class="que">Sembrar unos cuantos pedidos pagados con sus líneas y sus facturas, para que el
-    módulo de ventas se pueda ver y probar.</p>
-    <p><code>DatosIniciales</code> siembra departamentos, empleados, clientes, proveedores,
-    colaboradores y diez videojuegos, pero <b>ni un pedido</b>. El resultado es que las tres pantallas de
-    ventas que se entregaron el 5 de noviembre (listado, detalle y facturas con su PDF) se ven siempre
-    vacías, y el fallo del apartado 3 ha podido vivir ahí sin que nadie lo notara justamente por eso.
-    Con media docena de pedidos repartidos entre los cuatro clientes, en los cuatro estados, y dos o tres
-    facturas, se prueba el listado, los filtros, los contadores, el detalle y la generación del PDF.</p>
-    <p class="rama">Rama recomendada: <code>datos-prueba-ventas</code></p>
-    <div class="aviso">Va en <code>DatosIniciales</code> con el resto, no en una migración: los datos de
-    prueba no se versionan en Flyway. La versión anterior de este plan mandaba cargar un
-    <code>docs/datosPruebaPedidos.sql</code> que <b>no existe en el repositorio</b>.</div>
-</div>
-
-<div class="apartado">
-    <div class="cab"><span class="num">5</span><h2>Un test que arranque el contexto</h2>
-        <span class="tag t-med">importante</span></div>
-    <p class="que">Una sola clase de prueba que levante la aplicación contra la base y falle si algo no
-    encaja.</p>
-    <p>No hay ni un test y <code>src/test</code> ni siquiera existe, mientras el pom declara ocho
-    starters de prueba. Un test de carga de contexto habría pillado el choque de entidades del 29 de
-    octubre y el de la columna <code>activo</code> del 4 de noviembre, y pillaría hoy mismo cualquier
-    error en las consultas nuevas de la tienda, que es exactamente lo que no sabemos si funciona. Es una
-    clase de quince líneas que convierte «hay que acordarse de arrancar» en «el build falla».</p>
-    <p class="rama">Rama recomendada: <code>test-contexto</code></p>
-    <div class="aviso">Está en el sprint 1 a propósito, aunque el resto de la deuda de pruebas se quede
-    para el final: este test es lo que protege los cinco apartados que vienen después.</div>
-</div>
-
-<div class="apartado">
-    <div class="cab"><span class="num">6</span><h2>El colaborador sube sus juegos</h2>
-        <span class="tag t-imp">imprescindible</span></div>
-    <p class="que">Crear la pantalla donde un colaborador da de alta su juego con sus imágenes y su ZIP,
-    y queda publicado sin que nadie lo revise. Y darle, por fin, una forma de cambiar su contraseña.</p>
-    <p>Es la razón de ser del actor COLABORADOR y hoy no existe ni una línea: no hay paquete
-    <code>templates/colaborador/</code>, ni servicio, ni controlador, y <code>VersionJuego</code> es una
-    entidad que no usa nadie. Hay que crear <code>JuegoColaboradorService</code> y su impl,
-    <code>ControllerJuegoColaborador</code>, <code>VersionJuegoDao</code>, las plantillas y su CSS, y
-    tocar <code>SecurityConfig</code> y el menú lateral. La mitad del trabajo se reaprovecha:
-    <code>AlmacenArchivos</code> ya guarda y borra con las rutas validadas, y el CRUD de imágenes de
-    videojuego sirve de molde. Lo nuevo de verdad es el ZIP y que el juego se guarde con
-    <code>colaborador_id</code> y sin proveedor.</p>
-    <p><b>La contraseña.</b> Hoy no hay ninguna vía para cambiar la de un colaborador: ni el admin ni él
-    mismo. El servicio ya lo soporta, pero el formulario de edición no ofrece el campo, y la pantalla de
-    «mi cuenta» del colaborador no existe. Son seis líneas en
-    <code>admin/formularioEditarCol.html</code>, el mismo campo que ya tiene el de empleado, más la
-    pantalla propia cuando se hagan las suyas.</p>
-    <p class="rama">Rama recomendada: <code>juegos-colaborador</code></p>
-    <div class="aviso">Depende del apartado 2: hasta decidir dónde vive el ZIP no se puede escribir la
-    parte de la entrega del ejecutable.</div>
-</div>
-
-<div class="sprint salto">Sprint 2 · cerrar la venta y entregar</div>
+<div class="sprint">Sprint 2 · cerrar la venta y entregar</div>
 
 <div class="apartado">
     <div class="cab"><span class="num">7</span><h2>Cesta y pago con Stripe</h2>
         <span class="tag t-imp">imprescindible</span></div>
     <p class="que">Montar la cesta del cliente y el pago con Stripe, que al confirmarse convierte la
-    cesta en pedido y factura.</p>
-    <p>Es el apartado más grande que queda y el que el profesor pidió expresamente. <code>Cesta</code> y
-    <code>LineaCesta</code> existen como entidades y no las usa nadie: no hay DAO, ni servicio, ni
-    controlador. Hay que añadir la dependencia de Stripe (todavía no está en el pom), crear la sesión de
-    pago, y recoger la confirmación en un webhook o en la vuelta del pago para marcar el pedido como
-    PAGADO. Los datos de tarjeta los teclea el cliente en Stripe, nunca en un formulario nuestro.</p>
-    <p>Ojo con dos cosas que ya sabemos: una línea de cesta con cantidad 2 se expande en dos líneas de
-    pedido, porque una línea de pedido es una clave; y la factura tiene que guardar copia del nombre y la
-    dirección, o el día que un cliente se mude le cambiarán las facturas viejas.</p>
+    cesta en pedido y factura, y acuña la clave.</p>
+    <p>Es el apartado más grande que queda, el que el profesor pidió expresamente y <b>el único eslabón
+    que falta del camino crítico</b>. Ojo, que el punto de partida es mejor de lo que parece:
+    <code>CestaDao</code> y <code>CestaServiceImpl</code> <b>ya existen</b>, con su
+    <code>@Transactional</code> y comprobando que la línea sea de la cesta de quien la toca. Lo que no
+    existe es el otro lado: <code>ControllerCesta</code> está creado pero <b>vacío, sin una sola ruta</b>,
+    no hay plantilla de cesta, y en la ficha el botón sigue deshabilitado con el aviso de que la cesta no
+    existe. Falta también la dependencia de Stripe, que no está en el pom, crear la sesión de pago y
+    recoger la confirmación en un webhook o en la vuelta del pago para marcar el pedido como PAGADO. Los
+    datos de tarjeta los teclea el cliente en Stripe, nunca en un formulario nuestro.</p>
+    <p>Ojo con tres cosas que ya sabemos: una línea de cesta con cantidad 2 se expande en dos líneas de
+    pedido, porque una línea de pedido es una clave; la factura tiene que guardar copia del nombre y la
+    dirección, o el día que un cliente se mude le cambiarán las facturas viejas; y al confirmar el pago es
+    donde se acuña la clave, con su <code>codigo_hash</code> relleno a mano con
+    <code>IndiceCiego.hash(valor)</code>, que no se calcula solo.</p>
     <p class="rama">Rama recomendada: <code>cesta-y-pago-stripe</code></p>
-</div>
-
-<div class="apartado">
-    <div class="cab"><span class="num">8</span><h2>Claves de licencia, biblioteca y descarga</h2>
-        <span class="tag t-imp">imprescindible</span></div>
-    <p class="que">Acuñar la clave al pagar, enseñarla en la biblioteca del cliente y servir el ZIP solo
-    a quien tenga esa clave.</p>
-    <p><code>ClaveLicencia</code> es hoy una entidad huérfana: no hay DAO, ni servicio, ni una sola clave
-    en la base. Es la pieza que cierra el circuito. Para un juego de colaborador la clave nace vendida al
-    comprar y no cuelga de ninguna línea de compra; para un juego de distribuidor sale de las que
-    entraron por una orden de compra. Falta también declarar la biblioteca en <code>Cliente</code> (el
-    <code>@OneToMany</code> contra <code>ClaveLicencia</code>, el lado dueño ya está) y el controlador de
-    descarga, que antes de servir el ZIP comprueba que la clave es de ese usuario y está VENDIDA.
-    Acuérdate del índice ciego: <code>codigo_hash</code> lo rellena el servicio con
-    <code>IndiceCiego.hash(valor)</code>, no se calcula solo.</p>
-    <p class="rama">Rama recomendada: <code>biblioteca-y-claves</code></p>
-    <div class="aviso"><b>Cuidado con el orden.</b> Sin el apartado 9, los únicos juegos vendibles son
-    los de colaborador y los de stock ilimitado, porque los de distribuidor no tienen claves. Si no da
-    tiempo a hacer compras, la demo se monta con esos y se dice en la memoria.</div>
+    <div class="aviso">Los juegos gratis <b>no pasan por aquí</b>: se descargan directamente desde su
+    ficha y no llevan clave. La cesta y el pago son solo para los de pago.</div>
 </div>
 
 <div class="apartado">
@@ -313,13 +215,14 @@ tbody tr:nth-child(even) td{background:var(--fondo-2)}
     <p class="que">Dar de alta órdenes de compra a un proveedor y recibir las claves que entran por cada
     línea.</p>
     <p>Es la mitad izquierda del esquema: proveedor → compra → línea de compra → clave.
-    <code>Compra</code> y <code>LineaCompra</code> existen como entidades, pero solo las menciona
-    <code>DatosIniciales</code>: no hay CRUD. El CRUD de proveedores ya está hecho y sirve de punto de
-    partida. Dos reglas que el modelo ya lleva dentro: cantidad nula significa ilimitada, y el empleado
-    que firma la compra es obligatorio.</p>
+    <code>Compra</code> y <code>LineaCompra</code> existen como entidades, pero no las usa nadie: no hay
+    DAO ni CRUD. El CRUD de proveedores ya está hecho y sirve de punto de partida. Dos reglas que el
+    modelo ya lleva dentro: cantidad nula significa ilimitada, y el empleado que firma la compra es
+    obligatorio.</p>
     <p class="rama">Rama recomendada: <code>compras-y-recepcion</code></p>
-    <div class="aviso">Es lo primero que se sacrifica si los apartados 7 y 8 se comen el sprint: sin esto
-    el ERP sigue enseñándose entero por el lado de la venta.</div>
+    <div class="aviso">Es lo primero que se sacrifica si el 7 se come el sprint: sin esto el ERP sigue
+    enseñándose entero por el lado de la venta. Las diez claves que hay hoy en la base están sembradas a
+    mano y <b>ninguna</b> tiene línea de compra detrás, que es exactamente lo que este apartado arregla.</div>
 </div>
 
 <div class="apartado">
@@ -335,7 +238,7 @@ tbody tr:nth-child(even) td{background:var(--fondo-2)}
     <p><b>Los hilos.</b> Una configuración con <code>@EnableAsync</code> y un <code>@Async</code> en el
     envío de correo: hoy <code>EmailServiceImpl</code> es síncrono, así que el gestor que activa a un
     cliente se queda esperando a que conteste el servidor de correo. Y un <code>@Scheduled</code> para la
-    purga, que no es un adorno: en cuanto el apartado 8 reserve claves al iniciar el pago, una clave
+    purga, que no es un adorno: en cuanto el apartado 7 reserve claves al iniciar el pago, una clave
     reservada cuyo pago no se termina queda bloqueada <b>para siempre</b> si nadie la libera.
     <code>ClaveLicencia.fechaReserva</code> existe justo para eso.</p>
     <p><b>Los sockets.</b> Un <code>WebSocketConfig</code> con
@@ -347,31 +250,8 @@ tbody tr:nth-child(even) td{background:var(--fondo-2)}
     <p class="rama">Rama recomendada: <code>notificaciones-tiempo-real</code></p>
     <div class="aviso">El canal también tiene rol: un cliente no se puede suscribir a
     <code>/topic/inventario</code>. Las reglas de <code>SecurityConfig</code> son por URL y no cubren el
-    socket, así que eso se configura aparte. El aviso de stock bajo depende del apartado 8; los hilos y
-    la purga se pueden hacer antes.</div>
-</div>
-
-<div class="apartado">
-    <div class="cab"><span class="num">11</span><h2>Valoraciones de los juegos</h2>
-        <span class="tag t-new">nuevo</span><span class="tag t-med">importante</span></div>
-    <p class="que">Que un cliente puntúe y comente un juego que tiene en su biblioteca, y que la nota
-    media salga en la ficha y en la tarjeta del catálogo.</p>
-    <p>Es lo único de toda la lista que <b>necesita una migración nueva</b>, la V10: no hay entidad, ni
-    tabla, ni columna, ni nada en el documento de diseño ni en el prototipo. Hace falta una entidad
-    <code>Valoracion</code> y su tabla con <code>videojuego_id</code>, <code>cliente_id</code>, la
-    puntuación de 1 a 5, un comentario opcional y la fecha, más un
-    <code>UNIQUE (videojuego_id, cliente_id)</code>, que es lo que garantiza una sola valoración por
-    cliente y juego sin comprobarlo a mano.</p>
-    <p><b>La regla que de verdad importa:</b> solo valora quien tiene el juego, o sea quien tiene una
-    clave VENDIDA suya. Si no, cualquiera puntúa cualquier cosa y la nota no significa nada. Eso lo
-    comprueba el servicio contra <code>clave_licencia</code>, así que este apartado depende del 8.</p>
-    <p>La media <b>no se guarda</b>: se calcula con un <code>avg()</code> en el DAO al pintar la ficha o
-    el catálogo. Desnormalizarla a una columna de <code>videojuego</code> solo tiene sentido si algún día
-    pesa, y hoy no pesa. Hay que tocar <code>TiendaServiceImpl</code> para que la tarjeta lleve la nota,
-    igual que ahora lleva la portada.</p>
-    <p class="rama">Rama recomendada: <code>valoraciones-de-juegos</code></p>
-    <div class="aviso">Es alcance nuevo que no está en el documento de diseño: al hacerlo hay que
-    añadirlo al PDF del apartado 14, a la figura de clases y a la del esquema de la base.</div>
+    socket, así que eso se configura aparte. El aviso de stock bajo ya tiene de dónde leer, porque
+    <code>clave_licencia</code> tiene filas; la purga depende del 7.</div>
 </div>
 
 <div class="apartado">
@@ -379,10 +259,11 @@ tbody tr:nth-child(even) td{background:var(--fondo-2)}
         <span class="tag t-med">importante</span></div>
     <p class="que">Los detalles que quedan, los que no rompen nada pero un profesor encuentra en dos
     clics.</p>
-    <p>Al listado de clientes le falta el botón <b>Limpiar</b> que tienen los otros siete. La paginación
-    de <code>ventas/pedidos</code> y <code>ventas/facturas</code> sigue siendo decorativa, con las
-    flechas deshabilitadas y un 1 fijo, mientras los otros siete listados ya la tienen real. Y el filtro
-    de facturas no tiene botón de enviar: solo funciona pulsando Enter.</p>
+    <p>Al listado de clientes le falta el botón <b>Limpiar</b>, y a los de departamentos y facturas
+    también. La paginación de <code>ventas/pedidos</code> y <code>ventas/facturas</code> sigue siendo
+    decorativa, con las flechas deshabilitadas y un 1 fijo escritos a mano en la plantilla, mientras los
+    otros nueve listados ya la tienen real. Y el filtro de facturas no tiene botón de enviar: solo
+    funciona pulsando Enter.</p>
     <p class="rama">Rama recomendada: <code>arreglos-panel</code></p>
 </div>
 
@@ -393,11 +274,12 @@ tbody tr:nth-child(even) td{background:var(--fondo-2)}
     entorno y desplegar la aplicación en algún sitio.</p>
     <p>La aplicación tiene que acabar en producción porque los juegos del tercer proyecto se publicarán
     en ella. Hoy <code>spring.profiles.active=dev</code> está fijado en el fichero, así que un despliegue
-    tal cual cargaría los usuarios de prueba con contraseña conocida, uno de ellos ADMIN. El perfil tiene
-    que venir del entorno, igual que <code>LUDUSERP_AES_KEY</code>, y conviene separar esa clave de la
-    del índice ciego, que ahora es la misma. Y hay que resolver dónde viven las subidas:
-    <code>app.uploads.dir</code> apunta a una carpeta relativa al proyecto, que en un hosting que recrea
-    el disco en cada despliegue se lleva por delante las imágenes y los ZIP.</p>
+    tal cual cargaría los usuarios de prueba con contraseña conocida, uno de ellos ADMIN, y ahora también
+    diez claves de licencia inventadas. El perfil tiene que venir del entorno, igual que
+    <code>LUDUSERP_AES_KEY</code>, y conviene separar esa clave de la del índice ciego, que ahora es la
+    misma. Y hay que resolver dónde viven los archivos subidos: <code>app.uploads.dir</code> y
+    <code>app.juegos.dir</code> apuntan a carpetas relativas al proyecto, y en un hosting que recrea el
+    disco en cada despliegue se lleva por delante las imágenes <b>y los ZIP de los juegos</b>.</p>
     <p class="rama">Rama recomendada: <code>preparar-produccion</code></p>
 </div>
 
@@ -412,29 +294,152 @@ tbody tr:nth-child(even) td{background:var(--fondo-2)}
     Plataforma como clases. Además promete cosas que no se usan (MapStruct, Bootstrap, nombres en inglés)
     y dice Spring Boot 3 cuando el pom es 4.1.1. A esa lista se suman las <b>valoraciones</b> del
     apartado 11 y las <b>notificaciones</b> del 10.</p>
-    <p>La memoria (<code>docs/memoriaClaudeByAleix.txt</code>) se quedó en el 4 de noviembre y no recoge
-    ventas, correo, paginación, el CRUD de videojuegos, las imágenes, las fotos de perfil ni la tienda.
-    Es trabajo de varias horas y no se puede dejar para el último día, porque es la mitad de lo que se
-    corrige.</p>
+    <p><b>La memoria</b> (<code>docs/memoriaClaudeByAleix.txt</code>) se quedó en el 4 de noviembre, y
+    desde entonces no recoge ventas, correo, paginación, el CRUD de videojuegos, las imágenes, las fotos
+    de perfil, la tienda, Colaboraciones, la biblioteca, la descarga ni las valoraciones. Además su
+    decisión <b>2.6</b> ya no es cierta: decía que la clave es la prueba de titularidad «también cuando el
+    juego es gratis», y ahora los juegos gratis no llevan clave.</p>
+    <p><b>El prototipo</b> tiene el mismo problema en una sola pantalla: <code>tienda/biblioteca</code>
+    dice «la clave es la prueba de que el juego es tuyo, y es lo que deja descargarlo» y le pinta un
+    código a un juego gratis. Hay que rehacer ese texto y quitar ese código.</p>
     <p class="rama">Rama recomendada: <code>documentacion-entrega</code></p>
+    <div class="aviso">Es trabajo de varias horas y no se puede dejar para el último día, porque es la
+    mitad de lo que se corrige.</div>
 </div>
 
 <div class="apartado">
-    <div class="cab"><span class="num">15</span><h2>El resto de las pruebas y las chapuzas conocidas</h2>
+    <div class="cab"><span class="num">15</span><h2>Las chapuzas conocidas</h2>
         <span class="tag t-baj">si sobra tiempo</span></div>
-    <p class="que">Cuatro pruebas de servicio sobre el test de contexto del apartado 5, y barrer la deuda
-    pequeña apuntada desde octubre.</p>
-    <p>Ningún servicio lleva <code>@Transactional</code> salvo los de clientes y departamentos, así que
-    validar y guardar no es atómico: dos altas simultáneas con el mismo NIF pasan las dos la
-    comprobación y la segunda muere con un 500 en vez del mensaje. No hay <code>mvnw</code>. El
-    healthcheck de MySQL de <code>compose.yaml</code> debería ser CMD-SHELL. <code>nbactions.xml</code>
-    arrastra <code>-noverify</code>, obsoleta desde JDK 13. Y el pom sigue con artifactId
-    <code>demo</code> y groupId <code>com.example</code>.</p>
-    <p class="rama">Rama recomendada: <code>tests-y-deuda</code></p>
+    <p class="que">Barrer la deuda pequeña que se viene apuntando desde octubre.</p>
+    <p>El <code>@Transactional</code> ya lo llevan clientes, departamentos, cesta, videojuegos y
+    biblioteca, pero el resto de servicios no, así que validar y guardar no es atómico: dos altas
+    simultáneas con el mismo NIF pasan las dos la comprobación y la segunda muere con un 500 en vez del
+    mensaje. <code>listarPortadas</code> está copiado <b>tres veces</b>, en los servicios de tienda, de
+    videojuegos y de biblioteca. No hay <code>mvnw</code>. El healthcheck de MySQL de
+    <code>compose.yaml</code> debería ser CMD-SHELL. <code>nbactions.xml</code> arrastra
+    <code>-noverify</code>, obsoleta desde JDK 13. Y el pom sigue con artifactId <code>demo</code> y
+    groupId <code>com.example</code>.</p>
+    <p class="rama">Rama recomendada: <code>deuda-pequena</code></p>
+</div>
+
+<div class="sprint hecho salto">Ya realizado · 6 apartados</div>
+
+<div class="apartado hecho">
+    <div class="cab"><span class="num">1</span><h2>Punto de control: recrear la base, arrancar y mergear la tienda</h2>
+        <span class="tag t-ok">realizado</span></div>
+    <p class="que">La base se recreó, la aplicación arranca y las ramas están mergeadas.</p>
+    <p>Se hizo el <code>docker compose down -v</code>, Flyway aplicó las migraciones sobre una base limpia
+    y Hibernate aceptó el esquema con <code>ddl-auto=validate</code>. Hoy valida <b>diez</b> migraciones,
+    porque la V10 de valoraciones entró el 10 de noviembre. <code>tienda-cliente</code>,
+    <code>juegos-colaborador</code> y <code>creacion-de-valoraciones</code> están mergeadas en master.</p>
+    <p>Lo que se probó por primera vez en ejecución salió bien: la tienda entera con sus dos
+    <code>@Query</code> de <code>coalesce</code> y parámetros de tres estados, las imágenes de juego, las
+    fotos de perfil, que un colaborador entra y cae en la tienda, que un gestor de inventario abre Ventas,
+    que un cliente que escriba <code>/ventas/pedidos</code> se come un 403 y que cerrar sesión cierra de
+    verdad.</p>
+    <div class="resto"><b>De paso quedó esto:</b> al recrear la base, las fotos de perfil y las imágenes
+    de juego que había subidas se quedaron en <code>uploads/</code> sin ninguna fila que las apunte.
+    Archivos huérfanos, inofensivos, pero ahí siguen.</div>
+</div>
+
+<div class="apartado hecho">
+    <div class="cab"><span class="num">2</span><h2>Cerrar las decisiones que bloquean código</h2>
+        <span class="tag t-ok">realizado</span></div>
+    <p class="que">Las cuatro decisiones están cerradas, y además escritas en código, no solo acordadas.</p>
+    <p><b>Dónde vive el ZIP:</b> en <code>juegos-privados/&lt;id del juego&gt;/</code>, con nombre UUID,
+    <b>fuera</b> de <code>uploads/</code>, porque todo lo que cuelga de ahí lo sirve Spring como recurso y
+    cualquiera se lo podría bajar. Lo sirve un controlador nuestro. <b>Un juego de colaborador nace
+    inactivo</b> y alguien lo tiene que publicar. <b>Todos sus juegos son gratis</b>: el servicio fuerza
+    <code>precio = 0</code> al subirlos. Y <b>no conviven</b> con los de distribuidor en el catálogo: se
+    les hizo su propia pantalla, Colaboraciones, al lado de Ofertas.</p>
+    <p>Después se cerró una quinta que no estaba en esta lista y que cambia el apartado 8: <b>un juego
+    gratis no lleva clave de licencia</b>. Se descarga directamente desde su ficha y no entra en la
+    biblioteca, porque la biblioteca existe para no perder lo que pagaste y un juego gratis no se puede
+    perder: sigue en la tienda.</p>
+    <div class="resto"><b>Queda apuntarlo en la memoria</b>, que es parte del apartado 14. Y la quinta
+    decisión invalida la 2.6 de la memoria, que decía justo lo contrario.</div>
+</div>
+
+<div class="apartado hecho">
+    <div class="cab"><span class="num">3</span><h2>Arreglar las dos pantallas que hoy están rotas</h2>
+        <span class="tag t-ok">realizado</span></div>
+    <p class="que">Las dos arregladas y comprobadas sirviendo la página.</p>
+    <p><b>El detalle de pedido</b> ya no pinta <code>l.videojuego.estudio</code>, el campo que la decisión
+    4.15 sustituyó por la clave ajena al proveedor; era la última referencia a ese campo en todo el
+    código. <b>«Mis datos»</b> tiene ya su <code>th:action</code>, su <code>method</code> y el POST en
+    <code>ControllerHome</code>, con el guardado colgado de <code>UsuarioService</code>: lo que escribes
+    se guarda y sale su aviso.</p>
+</div>
+
+<div class="apartado hecho">
+    <div class="cab"><span class="num">6</span><h2>El colaborador sube sus juegos</h2>
+        <span class="tag t-ok">realizado</span></div>
+    <p class="que">La pantalla existe, funciona y se ha probado subiendo un juego de verdad.</p>
+    <p>Se crearon <code>ControllerColaboradorJuegos</code>, el <code>publicarJuegoColaborador</code> de
+    <code>VideojuegoServiceImpl</code>, <code>VersionJuegoDao</code>, las plantillas
+    <code>colaboradores/mis-juegos.html</code> y <code>colaboradores/nuevo-juego.html</code>, y
+    <code>colaboradorJuegos.css</code>. El ZIP no se cree por la extensión: se comprueba su firma
+    <code>PK\3\4</code>, se guarda con nombre UUID y se calcula su SHA-256 mientras se copia, sin leer el
+    archivo dos veces. El juego queda con <code>colaborador_id</code>, sin proveedor, gratis, inactivo y
+    con stock ilimitado, y su ZIP apuntado en <code>version_juego</code>. Si algo falla a mitad, se
+    deshacen las filas y se borran los archivos.</p>
+    <p>Probado de punta a punta: subida correcta, un ZIP falso rechazado con su mensaje y el formulario
+    devuelto con lo que ya estaba escrito.</p>
+    <div class="resto"><b>Lo que quedó fuera:</b> <b>la contraseña del colaborador</b>. Sigue sin haber
+    ninguna vía, ni para el admin ni para él mismo: el servicio lo soporta, pero
+    <code>admin/formularioEditarCol.html</code> no ofrece el campo. Son seis líneas, las mismas que ya
+    tiene el formulario de empleado. Y dos detalles: el mensaje de éxito promete una revisión que no
+    existe, y no hay ninguna pantalla donde el gestor vea los juegos pendientes de publicar — hay que
+    buscarlos filtrando por inactivo en el CRUD de videojuegos.</div>
+</div>
+
+<div class="apartado hecho">
+    <div class="cab"><span class="num">8</span><h2>Claves de licencia, biblioteca y descarga</h2>
+        <span class="tag t-ok">realizado</span></div>
+    <p class="que">La biblioteca enseña tus claves y la descarga sirve el ZIP solo a quien le toca.</p>
+    <p><b>La biblioteca no es una tabla nueva: es una consulta.</b> Se llegó a plantear una tabla propia
+    para poder guardar propiedad sin clave, y se descartó al decidir que los juegos gratis no entran en la
+    biblioteca. Así que son las claves VENDIDAS del cliente, que es justo lo que decía la decisión 7.4 de
+    la memoria, y no hizo falta ninguna migración. Se crearon <code>ClaveLicenciaDao</code>,
+    <code>BibliotecaService</code> y su impl, <code>ControllerBiblioteca</code>,
+    <code>client/biblioteca.html</code> y dos excepciones propias.</p>
+    <p><b>La descarga</b> la sirve <code>/tienda/descargar/{id}</code>, y el permiso lo decide el
+    servicio con dos motivos para dejarte pasar: o el juego es gratis y está publicado, o tienes una clave
+    VENDIDA suya. El email sale siempre de la sesión y nunca de la URL.
+    <code>AlmacenArchivos.leerZip</code> comprueba que la ruta guardada sigue cayendo dentro de
+    <code>juegos-privados</code>, y el archivo se sirve a trozos, nunca entero en memoria.
+    <code>DatosIniciales</code> siembra diez claves: seis VENDIDAS repartidas entre tres clientes, tres
+    DISPONIBLE y una ANULADA, que son las que demuestran que el filtro de la biblioteca es correcto.</p>
+    <p>Probado: el ZIP se descarga con el md5 idéntico al subido, un cliente no ve ni se baja lo de otro,
+    un juego sin publicar no se descarga y un juego de pago sin clave responde 403.</p>
+    <div class="resto"><b>Lo que quedó fuera:</b> <b>acuñar la clave al pagar</b>, que es del apartado 7 y
+    no se puede hacer sin él. Hasta entonces, las únicas claves de la base son las sembradas. Y queda sin
+    probar el caso «juego de pago, con clave y con ZIP», porque ninguno de los juegos sembrados tiene
+    archivo.</div>
+</div>
+
+<div class="apartado hecho">
+    <div class="cab"><span class="num">11</span><h2>Valoraciones de los juegos</h2>
+        <span class="tag t-new">nuevo</span><span class="tag t-ok">realizado</span></div>
+    <p class="que">Un cliente puntúa y comenta un juego, y las reseñas salen en su ficha.</p>
+    <p>Llegó con la <b>V10</b>, la única migración nueva de todo el plan: tabla <code>valoracion</code>
+    con el cliente, el juego, el estado, el título, la descripción y la puntuación, con un
+    <code>CHECK</code> que obliga a que esté entre 1 y 5. Con ella, la entidad <code>Valoracion</code> y
+    su <code>EstadoValoracion</code>, <code>ValoracionDao</code>, el servicio,
+    <code>ControllerValoracion</code> y, en la ficha, el selector de estrellas y la lista de reseñas
+    debajo. Solo se listan las valoraciones ACTIVAS de clientes que siguen activos, y la consulta trae el
+    cliente con <code>join fetch</code> porque <code>open-in-view</code> está desactivado.</p>
+    <div class="resto"><b>Lo que quedó fuera</b>, y conviene cerrarlo antes de entregar: <b>no se
+    comprueba que el cliente tenga el juego</b>, así que hoy cualquier cliente puede valorar cualquier
+    juego, cuando la regla era que solo valora quien tiene una clave VENDIDA suya. Falta el
+    <code>UNIQUE (videojuego_id, cliente_id)</code> en la tabla, que era lo que debía garantizar una sola
+    valoración por cliente y juego: ahora se comprueba a mano en el servicio. La tabla <b>no guarda la
+    fecha</b> de la valoración. Y <b>la nota media no sale</b> ni en la ficha ni en la tarjeta del
+    catálogo: no hay ningún <code>avg()</code> y <code>TiendaServiceImpl</code> no la lleva.</div>
 </div>
 
 <div class="salto"></div>
-<h2 id="resumen" style="font-size:13pt;margin-bottom:7pt;color:#fff">Resumen</h2>
+<h2 id="resumen" style="font-size:13pt;margin-bottom:7pt">Resumen</h2>
 
 <table>
     <thead>
@@ -443,33 +448,33 @@ tbody tr:nth-child(even) td{background:var(--fondo-2)}
         <th>Apartado</th>
         <th style="width:140pt">Rama</th>
         <th style="width:44pt" class="c">Sprint</th>
-        <th style="width:80pt">Necesidad</th>
+        <th style="width:80pt">Estado</th>
     </tr>
     </thead>
     <tbody>
-    <tr><td class="n">1</td><td>Punto de control: recrear la base, arrancar y mergear</td><td><code>punto-control-esquema</code></td><td class="c">1, día 1</td><td>Imprescindible</td></tr>
-    <tr><td class="n">2</td><td>Cerrar las decisiones abiertas</td><td><code>decisiones-pendientes</code></td><td class="c">1, día 1</td><td>Imprescindible</td></tr>
-    <tr><td class="n">3</td><td>Arreglar las dos pantallas rotas</td><td><code>arreglos-rotos</code></td><td class="c">1</td><td>Imprescindible</td></tr>
-    <tr><td class="n">4</td><td>Datos de prueba de pedidos y facturas</td><td><code>datos-prueba-ventas</code></td><td class="c">1</td><td>Importante</td></tr>
-    <tr><td class="n">5</td><td>Un test que arranque el contexto</td><td><code>test-contexto</code></td><td class="c">1</td><td>Importante</td></tr>
-    <tr><td class="n">6</td><td>El colaborador sube sus juegos</td><td><code>juegos-colaborador</code></td><td class="c">1</td><td>Imprescindible</td></tr>
     <tr><td class="n">7</td><td>Cesta y pago con Stripe</td><td><code>cesta-y-pago-stripe</code></td><td class="c">2</td><td>Imprescindible</td></tr>
-    <tr><td class="n">8</td><td>Claves, biblioteca y descarga</td><td><code>biblioteca-y-claves</code></td><td class="c">2</td><td>Imprescindible</td></tr>
     <tr><td class="n">9</td><td>Órdenes de compra y recepción</td><td><code>compras-y-recepcion</code></td><td class="c">2</td><td>Importante</td></tr>
     <tr><td class="n">10</td><td>Notificaciones en tiempo real y tareas en segundo plano</td><td><code>notificaciones-tiempo-real</code></td><td class="c">2</td><td>Imprescindible</td></tr>
-    <tr><td class="n">11</td><td>Valoraciones de los juegos</td><td><code>valoraciones-de-juegos</code></td><td class="c">2</td><td>Importante</td></tr>
     <tr><td class="n">12</td><td>Arreglos sueltos del panel</td><td><code>arreglos-panel</code></td><td class="c">2</td><td>Importante</td></tr>
     <tr><td class="n">13</td><td>Dejarlo listo para producción</td><td><code>preparar-produccion</code></td><td class="c">2</td><td>Imprescindible</td></tr>
     <tr><td class="n">14</td><td>Documentación de entrega</td><td><code>documentacion-entrega</code></td><td class="c">1 y 2</td><td>Imprescindible</td></tr>
-    <tr><td class="n">15</td><td>El resto de pruebas y deuda pequeña</td><td><code>tests-y-deuda</code></td><td class="c">2</td><td>Si sobra tiempo</td></tr>
+    <tr><td class="n">15</td><td>Las chapuzas conocidas</td><td><code>deuda-pequena</code></td><td class="c">2</td><td>Si sobra tiempo</td></tr>
+    <tr class="hecho"><td class="n">1</td><td>Punto de control: recrear la base, arrancar y mergear</td><td><code>punto-control-esquema</code></td><td class="c">1</td><td class="ok">Realizado</td></tr>
+    <tr class="hecho"><td class="n">2</td><td>Cerrar las decisiones abiertas</td><td><code>decisiones-pendientes</code></td><td class="c">1</td><td class="ok">Realizado</td></tr>
+    <tr class="hecho"><td class="n">3</td><td>Arreglar las dos pantallas rotas</td><td><code>arreglos-rotos</code></td><td class="c">1</td><td class="ok">Realizado</td></tr>
+    <tr class="hecho"><td class="n">6</td><td>El colaborador sube sus juegos</td><td><code>juegos-colaborador</code></td><td class="c">1</td><td class="ok">Realizado</td></tr>
+    <tr class="hecho"><td class="n">8</td><td>Claves, biblioteca y descarga</td><td><code>biblioteca-y-claves</code></td><td class="c">2</td><td class="ok">Realizado</td></tr>
+    <tr class="hecho"><td class="n">11</td><td>Valoraciones de los juegos</td><td><code>valoraciones-de-juegos</code></td><td class="c">2</td><td class="ok">Realizado</td></tr>
     </tbody>
 </table>
 
 <div class="pie">
-    Si el tiempo se tuerce, el orden de recorte es: primero el 15, después el 11, luego el 9 y por último
-    el 12. Lo que no se puede recortar es la cadena 6 → 7 → 8, ni el 10, que es requisito de la
-    asignatura, ni el 13 ni el 14: sin ellos no hay ni aplicación en producción ni documento que
-    entregar.
+    Quedan siete apartados, todos del sprint 2. Si el tiempo se tuerce, el orden de recorte es: primero
+    el 15, luego el 9 y por último el 12. Lo que no se puede recortar es <b>el 7</b>, que es el único
+    eslabón que falta para cerrar la cadena 6 → 7 → 8 y el que pidió el profesor; ni el 10, que es
+    requisito de la asignatura; ni el 13 ni el 14, porque sin ellos no hay ni aplicación en producción ni
+    documento que entregar. Sin test de contexto, cada apartado que se cierre hay que seguir
+    verificándolo a mano: arrancar y pedir las pantallas una por una.
 </div>
 
 </body>
