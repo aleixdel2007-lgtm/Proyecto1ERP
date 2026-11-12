@@ -14,10 +14,10 @@
                  stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                 <circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/>
             </svg>
-            <input placeholder="Buscar en todo el catalogo...">
+            <input placeholder="Buscar en todo el catalogo..." th:placeholder="#{navbar.buscar}">
         </div>
 
-        <select class="lang" title="Idioma de la interfaz"
+        <select class="lang" title="Idioma de la interfaz" th:title="#{navbar.idioma}"
                 onchange="const u=new window.URL(window.location.href);u.searchParams.set('lang',this.value);window.location.href=u.href;">
             <option value="es" th:selected="${#locale.language == 'es'}">ES</option>
             <option value="ca" th:selected="${#locale.language == 'ca'}">CA</option>
@@ -29,7 +29,7 @@
              imagen_usuario para esos: el hueco lo rellena la plantilla. -->
         <img class="avatar" style="object-fit:cover"
              th:src="${imagenPerfil != null} ? @{${imagenPerfil.rutaImagen}} : @{/img/placeholder.webp}"
-             th:alt="${imagenPerfil != null} ? ${imagenPerfil.textoAlternativo} : 'Sin foto de perfil'">
+             th:alt="${imagenPerfil != null} ? ${imagenPerfil.textoAlternativo} : #{navbar.sinFoto}">
 
         <div class="who-txt">
             <b th:text="${#authentication.name}">admin@luduserp.cat</b>
@@ -40,7 +40,7 @@
     <!-- Tiene que ser un POST: desde Security 6 el filtro de logout solo escucha POST, y un
          enlace GET dejaba la sesion abierta. El token CSRF lo pone Thymeleaf solo. -->
     <form th:action="@{/logout}" method="post">
-        <button type="submit" class="top-logout">Cerrar sesión</button>
+        <button type="submit" class="top-logout" th:text="#{navbar.cerrarSesion}">Cerrar sesión</button>
     </form>
     <script th:src="@{/js/client-profile.js}" src="../static/js/client-profile.js"></script>
 </header>
@@ -60,24 +60,24 @@
 
         <nav class="shop-nav">
             <a th:href="@{/tienda}" href="#"
-               th:classappend="${activo == 'catalogo'} ? 'on' : ''">Catálogo</a>
+               th:classappend="${activo == 'catalogo'} ? 'on' : ''" th:text="#{navbar.catalogo}">Catálogo</a>
             <a th:href="@{/tienda/ofertas}" href="#"
-               th:classappend="${activo == 'ofertas'} ? 'on' : ''">Ofertas</a>
+               th:classappend="${activo == 'ofertas'} ? 'on' : ''" th:text="#{navbar.ofertas}">Ofertas</a>
             <a th:href="@{/tienda/colaboraciones}" href="#"
-               th:classappend="${activo == 'colaboraciones'} ? 'on' : ''">Colaboraciones</a>
+               th:classappend="${activo == 'colaboraciones'} ? 'on' : ''" th:text="#{navbar.colaboraciones}">Colaboraciones</a>
             <th:block sec:authorize="hasRole('CLIENTE')">
                 <a th:href="@{/tienda/biblioteca}" href="#"
-                   th:classappend="${activo == 'biblioteca'} ? 'on' : ''">Mi biblioteca</a>
+                   th:classappend="${activo == 'biblioteca'} ? 'on' : ''" th:text="#{navbar.biblioteca}">Mi biblioteca</a>
                 <a th:href="@{/tienda/cesta}" href="#"
-                    th:classappend="${activo == 'cesta'} ? 'on' : ''">Cesta</a>
+                    th:classappend="${activo == 'cesta'} ? 'on' : ''" th:text="#{navbar.cesta}">Cesta</a>
             </th:block>
             <th:block sec:authorize="hasRole('COLABORADOR')">
                 <a th:href="@{/colaborador/mis-juegos}" href="#"
-                   th:classappend="${activo == 'misJuegos'} ? 'on' : ''">Mis juegos</a>
+                   th:classappend="${activo == 'misJuegos'} ? 'on' : ''" th:text="#{navbar.misJuegos}">Mis juegos</a>
             </th:block>
         </nav>
 
-        <select class="lang" title="Idioma de la interfaz"
+        <select class="lang" title="Idioma de la interfaz" th:title="#{navbar.idioma}"
                 onchange="const u=new window.URL(window.location.href);u.searchParams.set('lang',this.value);window.location.href=u.href;">
             <option value="es" th:selected="${#locale.language == 'es'}">ES</option>
             <option value="ca" th:selected="${#locale.language == 'ca'}">CA</option>
@@ -87,7 +87,7 @@
         <div class="who">
             <img class="avatar" style="object-fit:cover"
                  th:src="${imagenPerfil != null} ? @{${imagenPerfil.rutaImagen}} : @{/img/placeholder.webp}"
-                 th:alt="${imagenPerfil != null} ? ${imagenPerfil.textoAlternativo} : 'Sin foto de perfil'">
+                 th:alt="${imagenPerfil != null} ? ${imagenPerfil.textoAlternativo} : #{navbar.sinFoto}">
 
             <div class="who-txt">
                 <b th:text="${#authentication.name}">cliente@example.com</b>
@@ -97,10 +97,10 @@
 
         <!-- Al admin tambien lo manda aqui el successHandler, asi que necesita una puerta
              de vuelta al panel. El cliente y el colaborador no ven este boton. -->
-        <a class="btn" sec:authorize="hasRole('ADMIN')" th:href="@{/home}" href="#">Panel ERP</a>
+        <a class="btn" sec:authorize="hasRole('ADMIN')" th:href="@{/home}" href="#" th:text="#{navbar.panelErp}">Panel ERP</a>
 
         <form th:action="@{/logout}" method="post">
-            <button type="submit" class="top-logout">Cerrar sesión</button>
+            <button type="submit" class="top-logout" th:text="#{navbar.cerrarSesion}">Cerrar sesión</button>
         </form>
 
     </div>
