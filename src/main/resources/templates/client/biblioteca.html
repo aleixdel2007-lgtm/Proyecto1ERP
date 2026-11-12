@@ -13,7 +13,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Mi biblioteca · LudusERP</title>
+    <title th:text="#{navbar.biblioteca} + ' · LudusERP'">Mi biblioteca · LudusERP</title>
     <link rel="stylesheet" th:href="@{/css/navbar.css}" href="../../static/css/navbar.css">
     <link rel="stylesheet" th:href="@{/css/tienda.css}" href="../../static/css/tienda.css">
 </head>
@@ -25,16 +25,16 @@
 
     <div class="page-head">
         <div>
-            <h1>Mi biblioteca</h1>
-            <p>Los juegos que has comprado, con su clave. La clave es la prueba de que el juego
+            <h1 th:text="#{navbar.biblioteca}">Mi biblioteca</h1>
+            <p th:text="#{biblioteca.intro}">Los juegos que has comprado, con su clave. La clave es la prueba de que el juego
                 es tuyo, y el que trae archivo se descarga desde aquí.</p>
         </div>
     </div>
 
     <div class="card" th:if="${#lists.isEmpty(claves)}">
         <div class="empty">
-            <h4>Todavía no tienes ningún juego</h4>
-            <p class="hint">Lo que compres aparecerá aquí con su clave. Los juegos gratis no pasan
+            <h4 th:text="#{biblioteca.vacia}">Todavía no tienes ningún juego</h4>
+            <p class="hint" th:text="#{biblioteca.vacia.hint}">Lo que compres aparecerá aquí con su clave. Los juegos gratis no pasan
                 por la biblioteca: se descargan desde su ficha.</p>
         </div>
     </div>
@@ -57,12 +57,12 @@
 
                     <div class="row" style="justify-content:space-between">
                         <h3 th:text="${c.videojuego.titulo}">Eclipse Protocol</h3>
-                        <span class="badge b-good" th:if="${versiones[c.videojuego.id] != null}">DESCARGABLE</span>
-                        <span class="badge b-mute" th:unless="${versiones[c.videojuego.id] != null}">SOLO CLAVE</span>
+                        <span class="badge b-good" th:if="${versiones[c.videojuego.id] != null}" th:text="#{biblioteca.descargable}">DESCARGABLE</span>
+                        <span class="badge b-mute" th:unless="${versiones[c.videojuego.id] != null}" th:text="#{biblioteca.soloClave}">SOLO CLAVE</span>
                     </div>
 
                     <dl class="kv">
-                        <dt>Estudio</dt>
+                        <dt th:text="#{ficha.estudio}">Estudio</dt>
                         <dd th:if="${c.videojuego.proveedor != null}"
                             th:text="${c.videojuego.proveedor.nombreComercial}">Distribuciones Iberia</dd>
                         <dd th:if="${c.videojuego.proveedor == null and c.videojuego.colaborador != null}"
@@ -72,12 +72,12 @@
                         <dd class="muted"
                             th:if="${c.videojuego.proveedor == null and c.videojuego.colaborador == null}">—</dd>
 
-                        <dt>Adquirido</dt>
+                        <dt th:text="#{biblioteca.adquirido}">Adquirido</dt>
                         <dd th:if="${c.fechaVenta != null}"
                             th:text="${#temporals.format(c.fechaVenta, 'dd/MM/yyyy')}">22/10/2026</dd>
                         <dd class="muted" th:if="${c.fechaVenta == null}">—</dd>
 
-                        <dt>Plataforma</dt>
+                        <dt th:text="#{ficha.plataforma}">Plataforma</dt>
                         <dd>
                             <span class="chip" th:each="p : ${c.videojuego.plataformas}"
                                   th:text="${p.nombre}">PC</span>
@@ -96,15 +96,16 @@
                         <a class="btn btn-primary btn-sm" th:if="${versiones[c.videojuego.id] != null}"
                            th:href="@{/tienda/descargar/{id}(id=${c.videojuego.id})}">
                             <svg th:replace="~{fragments/iconos :: down}"></svg>
-                            <span th:text="'Descargar ' + ${#numbers.formatDecimal(
+                            <span th:text="#{biblioteca.descargar(${#numbers.formatDecimal(
                                     versiones[c.videojuego.id].tamanoBytes / 1048576.0,
-                                    1, 'POINT', 1, 'COMMA')} + ' MB'">Descargar 1,1 MB</span></a>
+                                    1, 'POINT', 1, 'COMMA')})}">Descargar 1,1 MB</span></a>
 
                         <button class="btn btn-sm" th:unless="${versiones[c.videojuego.id] != null}" disabled
-                                title="Este juego no tiene archivo: la clave se canjea fuera de LudusERP">
-                            <svg th:replace="~{fragments/iconos :: down}"></svg> Sin descarga</button>
+                                title="Este juego no tiene archivo: la clave se canjea fuera de LudusERP"
+                                th:title="#{biblioteca.sinDescargaTitle}">
+                            <svg th:replace="~{fragments/iconos :: down}"></svg> <th:block th:text="#{biblioteca.sinDescarga}">Sin descarga</th:block></button>
 
-                        <a class="btn btn-sm" th:href="@{/tienda/juego/{id}(id=${c.videojuego.id})}">Ver ficha</a>
+                        <a class="btn btn-sm" th:href="@{/tienda/juego/{id}(id=${c.videojuego.id})}" th:text="#{biblioteca.verFicha}">Ver ficha</a>
                     </div>
                 </div>
             </div>
@@ -113,7 +114,7 @@
 
 </main>
 
-<footer class="shop-foot">LudusERP · Tus claves son privadas: nadie más que tú las ve</footer>
+<footer class="shop-foot" th:text="#{biblioteca.footer}">LudusERP · Tus claves son privadas: nadie más que tú las ve</footer>
 
 </body>
 </html>

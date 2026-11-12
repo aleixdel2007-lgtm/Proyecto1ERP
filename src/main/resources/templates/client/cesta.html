@@ -7,7 +7,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Other/html.html to edit this temp
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <title>Mi cesta · LudusERP</title>
+        <title th:text="#{cesta.titulo} + ' · LudusERP'">Mi cesta · LudusERP</title>
         <link rel="stylesheet" th:href="@{/css/navbar.css}" href="../../static/css/navbar.css">
         <link rel="stylesheet" th:href="@{/css/tienda.css}" href="../../static/css/tienda.css">
     </head>
@@ -20,8 +20,8 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Other/html.html to edit this temp
 
             <div class="page-head">
                 <div>
-                    <h1>Mi cesta</h1>
-                    <p>Los juegos que vas a comprar. Cada juego es una licencia: solo puedes llevar una de cada.</p>
+                    <h1 th:text="#{cesta.titulo}">Mi cesta</h1>
+                    <p th:text="#{cesta.intro}">Los juegos que vas a comprar. Cada juego es una licencia: solo puedes llevar una de cada.</p>
                 </div>
             </div>
 
@@ -34,10 +34,10 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Other/html.html to edit this temp
                  "cesta" llega del Model de ControllerCesta.verCesta -->
             <div class="card" th:if="${#lists.isEmpty(cesta.lineas)}">
                 <div class="empty">
-                    <h4>Tu cesta está vacía</h4>
-                    <p class="hint">Añade juegos desde su ficha en el catálogo.</p>
+                    <h4 th:text="#{cesta.vacia}">Tu cesta está vacía</h4>
+                    <p class="hint" th:text="#{cesta.vacia.hint}">Añade juegos desde su ficha en el catálogo.</p>
                     <!-- GET /tienda  →  ControllerTienda -->
-                    <a class="btn btn-primary" th:href="@{/tienda}">Ir al catálogo</a>
+                    <a class="btn btn-primary" th:href="@{/tienda}" th:text="#{cesta.irCatalogo}">Ir al catálogo</a>
                 </div>
             </div>
 
@@ -50,7 +50,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Other/html.html to edit this temp
 
                         <div>
                             <h3 th:text="${l.videojuego.titulo}">Ashen Crown</h3>
-                            <span class="hint">1 licencia</span>
+                            <span class="hint" th:text="#{cesta.licencia}">1 licencia</span>
                         </div>
 
                         <div class="row">
@@ -60,7 +60,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Other/html.html to edit this temp
                             <!-- BOTON QUITAR: POST /tienda/cesta/linea/{id}/quitar
                                  →  ControllerCesta.quitarLinea (el {id} es l.id, el id de esta linea) -->
                             <form th:action="@{/tienda/cesta/linea/{id}/quitar(id=${l.id})}" method="post">
-                                <button type="submit" class="btn btn-sm">Quitar</button>
+                                <button type="submit" class="btn btn-sm" th:text="#{cesta.quitar}">Quitar</button>
                             </form>
                         </div>
                     </div>
@@ -69,7 +69,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Other/html.html to edit this temp
                 <!-- TOTAL: "total" llega del Model de ControllerCesta.verCesta -->
                 <div class="card">
                     <div class="card-body row" style="justify-content:space-between">
-                        <h3>Total</h3>
+                        <h3 th:text="#{cesta.total}">Total</h3>
                         <b th:text="${#numbers.formatDecimal(total, 1, 'POINT', 2, 'COMMA')} + ' €'">69,99 €</b>
                     </div>
                 </div>
@@ -78,12 +78,12 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Other/html.html to edit this temp
 
                     <!-- BOTON VACIAR: POST /tienda/cesta/vaciar  →  ControllerCesta.vaciarCesta -->
                     <form th:action="@{/tienda/cesta/vaciar}" method="post">
-                        <button type="submit" class="btn">Vaciar cesta</button>
+                        <button type="submit" class="btn" th:text="#{cesta.vaciar}">Vaciar cesta</button>
                     </form>
 
                     <!-- POST /tienda/cesta/tramitar  →  ControllerCesta.tramitarPedido -->
                     <form th:action="@{/tienda/cesta/tramitar}" method="post">
-                        <button type="submit" class="btn btn-primary">Tramitar pedido</button>
+                        <button type="submit" class="btn btn-primary" th:text="#{cesta.tramitar}">Tramitar pedido</button>
                     </form>
                 </div>
             </div>
