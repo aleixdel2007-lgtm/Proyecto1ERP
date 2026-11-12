@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Anular clave · LudusERP</title>
+    <link rel="stylesheet" th:href="@{/css/panel.css}">
+</head>
+<body>
+
+<div class="app">
+
+    <aside th:replace="~{fragments/panel :: menu('claves')}"></aside>
+
+    <div class="main">
+
+        <header th:replace="~{fragments/panel :: barra('Aprovisionamiento', 'Claves de licencia')}"></header>
+
+        <main class="canvas">
+
+            <a class="btn btn-ghost btn-sm" th:href="@{/inventario/claves}">
+                <svg th:replace="~{fragments/iconos :: back}"></svg> Volver al listado</a>
+
+            <div class="page-head">
+                <div>
+                    <h1>Anular clave</h1>
+                    <p>Una clave anulada no vuelve al stock y no se puede vender. No se borra: se queda
+                        con su fecha y su motivo, para que el día de mañana se sepa qué pasó.</p>
+                </div>
+            </div>
+
+            <div class="alert alert-err" th:if="${error}" th:text="${error}"></div>
+
+            <!-- Esta pantalla existe porque anular pide un motivo, y un motivo no cabe en un
+                 confirm() del navegador. La clave se enseña entera: es stock nuestro, todavia
+                 no es de ningun cliente -->
+            <div class="card">
+                <div class="card-head"><h3>Qué vas a anular</h3></div>
+                <div class="card-body">
+                    <dl class="kv">
+                        <dt>Código</dt>
+                        <dd>
+                            <span class="enc" th:text="${clave.codigo}">ECLP-1A1A-2B2B-3C3C</span>
+                            <span class="enc-tag">AES-256</span>
+                        </dd>
+
+                        <dt>Videojuego</dt>
+                        <dd th:text="${clave.videojuego.titulo}">Eclipse Protocol</dd>
+
+                        <!-- A esta pantalla se puede llegar escribiendo la URL de una clave que
+                             no esta DISPONIBLE, asi que el color sale del estado real y no fijo:
+                             quien entre asi vera el estado de verdad, y al enviar el servicio
+                             le negara la anulacion -->
+                        <dt>Estado</dt>
+                        <dd><span class="badge"
+                                  th:classappend="${clave.estado.name() == 'DISPONIBLE'} ? 'b-good'
+                                                : (${clave.estado.name() == 'RESERVADA'} ? 'b-warn'
+                                                : (${clave.estado.name() == 'VENDIDA'} ? 'b-info' : 'b-crit'))"
+                                  th:text="${clave.estado}">DISPONIBLE</span></dd>
+
+                        <dt>Alta</dt>
+                        <dd th:text="${#temporals.format(clave.fechaAlta, 'dd/MM/yyyy HH:mm')}">10/11/2026 19:02</dd>
+
+                        <dt>Origen</dt>
+                        <dd th:if="${clave.lineaCompra != null}" class="mono"
+                            th:text="${clave.lineaCompra.compra.numero}">OC-2026-0001</dd>
+                        <dd class="muted" th:if="${clave.lineaCompra == null}">No entró por ninguna orden de compra</dd>
+                    </dl>
+                </div>
+            </div>
+
+            <form method="post" th:action="@{/inventario/claves/{id}/anular(id=${clave.id})}">
+                <div class="card" style="margin-top:14px">
+                    <div class="card-body">
+                        <div class="form-grid">
+                            <div class="frow wide">
+                                <label for="motivo">Motivo <span class="req">*</span></label>
+                                <input class="inp" type="text" id="motivo" name="motivo" maxlength="255"
+                                       required placeholder="Por ejemplo: código rechazado por el distribuidor">
+                                <span class="hint">Se guarda con la clave y sale al pasar el ratón por su
+                                    estado en el listado.</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-foot">
+                        <span class="note">Solo se puede anular una clave DISPONIBLE. Esto no se deshace
+                            desde la aplicación.</span>
+                        <a class="btn" th:href="@{/inventario/claves}">Cancelar</a>
+                        <button type="submit" class="btn btn-danger">
+                            <svg th:replace="~{fragments/iconos :: ban}"></svg> Anular clave</button>
+                    </div>
+                </div>
+            </form>
+
+        </main>
+    </div>
+</div>
+
+</body>
+</html>

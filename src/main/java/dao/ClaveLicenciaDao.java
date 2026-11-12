@@ -47,4 +47,37 @@ public interface ClaveLicenciaDao extends JpaRepository<ClaveLicencia, Long> {
     Optional<ClaveLicencia> findFirstByVideojuegoIdAndEstadoOrderByIdAsc(
             Long videojuegoId, EstadoClave estado);
 
+    // El listado del panel. Los tres filtros son opcionales y se saltan solos cuando llegan
+    // a null, igual que en los demas listarFiltrado del proyecto. Trae con fetch el juego,
+    // el cliente y la orden de compra porque la tabla pinta los tres y open-in-view esta
+    // desactivado. Sin distinct a proposito: aqui no se une ninguna coleccion, asi que cada
+    // clave sale una sola vez. El codigo se busca por su hash, nunca por la columna cifrada:
+    // AES-GCM no es determinista y un like contra ella no encontraria nada
+    @Query("select c from ClaveLicencia c "
+            + "join fetch c.videojuego v "
+            + "left join fetch c.cliente "
+            + "left join fetch c.lineaCompra lc "
+            + "left join fetch lc.compra "
+            + "where (:codigoHash is null or c.codigoHash = :codigoHash) "
+            + "and (:videojuegoId is null or v.id = :videojuegoId) "
+            + "and (:estado is null or c.estado = :estado) "
+            + "order by c.fechaAlta desc, c.id desc")
+    List<ClaveLicencia> listarFiltrado(@Param("codigoHash") String codigoHash,
+                                       @Param("videojuegoId") Long videojuegoId,
+                                       @Param("estado") EstadoClave estado);
+
+    // Los cuatro contadores de la cabecera, uno por estado
+    @Query("select count(c) from ClaveLicencia c where c.estado = :estado")
+    long contarPorEstado(@Param("estado") EstadoClave estado);
+
+    // La clave sola, con lo que pinta la pantalla de anular ya cargado. No vale un findById:
+    // con open-in-view desactivado, el juego y la compra llegarian como proxys y la
+    // transaccion ya estaria cerrada cuando la plantilla los lee
+    @Query("select c from ClaveLicencia c "
+            + "join fetch c.videojuego "
+            + "left join fetch c.cliente "
+            + "left join fetch c.lineaCompra lc "
+            + "left join fetch lc.compra "
+            + "where c.id = :id")
+    Optional<ClaveLicencia> buscarConDetalle(@Param("id") Long id);
 }

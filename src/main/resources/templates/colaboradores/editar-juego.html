@@ -1,0 +1,289 @@
+<!doctype html>
+<!-- Edicion de un juego propio del colaborador. Es el mismo formulario que el alta, con dos
+     diferencias: viene relleno con lo que hay guardado, y los archivos son OPCIONALES. Un
+     formulario de archivo no se puede rellenar desde el servidor, asi que la regla es que lo
+     que se deja vacio no se toca. Guardar devuelve el juego a inactivo, siempre. -->
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="'Editar ' + ${juego.titulo} + ' · LudusERP'">Editar juego · LudusERP</title>
+    <link rel="stylesheet" th:href="@{/css/navbar.css}" href="../../static/css/navbar.css">
+    <link rel="stylesheet" th:href="@{/css/tienda.css}" href="../../static/css/tienda.css">
+    <link rel="stylesheet" th:href="@{/css/colaboradorJuegos.css}" href="../../static/css/colaboradorJuegos.css">
+</head>
+<body>
+
+<div th:replace="~{fragments/navbar :: barraTienda('misJuegos')}"></div>
+
+<main class="shop-body">
+
+    <a class="btn btn-ghost btn-sm" style="margin-bottom:12px" th:href="@{/colaborador/mis-juegos}">
+        <svg th:replace="~{fragments/iconos :: back}"></svg> Volver a mis juegos</a>
+
+    <div class="page-head">
+        <div>
+            <h1 th:text="${juego.titulo}">Hollow Transit</h1>
+            <p>Cambia lo que necesites y guarda. Lo que dejes vacío se queda como está.</p>
+        </div>
+        <div class="page-actions">
+            <span class="badge" th:classappend="${juego.activo} ? 'b-good' : 'b-mute'"
+                  th:text="${juego.activo} ? 'PUBLICADO' : 'INACTIVO'">PUBLICADO</span>
+        </div>
+    </div>
+
+    <div class="alert alert-ok" th:if="${mensaje}" th:text="${mensaje}"></div>
+    <div class="alert alert-err" th:if="${error}" th:text="${error}"></div>
+
+    <!-- El aviso solo tiene sentido mientras el juego esta en la tienda: si ya esta inactivo
+         no hay nada que retirar -->
+    <div class="note-box" th:if="${juego.activo}" style="margin-bottom:16px">
+        <svg th:replace="~{fragments/iconos :: warn}"></svg>
+        <div>Este juego está publicado. Al guardar los cambios <b>vuelve a quedar inactivo</b> y
+            desaparece de la tienda hasta que un gestor lo revise y lo publique otra vez.</div>
+    </div>
+
+    <form method="post" enctype="multipart/form-data"
+          th:action="@{/colaborador/mis-juegos/{id}/actualizar(id=${juego.id})}">
+
+        <div class="stack">
+
+            <div class="card">
+                <div class="card-head"><h3>Ficha del juego</h3></div>
+                <div class="card-body">
+                    <div class="form-grid">
+
+                        <div class="frow wide">
+                            <label for="titulo">Título <span class="req">*</span></label>
+                            <input class="inp" type="text" id="titulo" name="titulo" maxlength="150"
+                                   th:value="${titulo != null} ? ${titulo} : ${juego.titulo}" required>
+                        </div>
+
+                        <div class="frow wide">
+                            <label for="sinopsis">Descripción <span class="req">*</span></label>
+                            <textarea class="inp" id="sinopsis" name="sinopsis" rows="4" required
+                                      th:text="${sinopsis != null} ? ${sinopsis} : ${juego.sinopsis}"></textarea>
+                        </div>
+
+                        <div class="frow">
+                            <label for="pegi">Clasificación PEGI <span class="req">*</span></label>
+                            <select class="inp" id="pegi" name="pegi" required>
+                                <option th:each="p : ${pegis}" th:value="${p}" th:text="${p}"
+                                        th:selected="${pegi != null}
+                                                   ? ${p == pegi}
+                                                   : ${p == #strings.toString(juego.pegi)}">7</option>
+                            </select>
+                        </div>
+
+                    </div>
+
+                    <div class="stack" style="margin-top:18px">
+                        <div>
+                            <div class="sect-label">Categorías <span class="hint">· elige al menos una</span></div>
+                            <div class="row wrap chip-grupo">
+                                <label class="chip" th:each="c : ${categorias}"
+                                       th:classappend="${categoriasMarcadas.contains(c.id)} ? 'on' : ''">
+                                    <input type="checkbox" name="categoriaIds" th:value="${c.id}"
+                                           th:checked="${categoriasMarcadas.contains(c.id)}">
+                                    <span th:text="${c.nombre}">Acción</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div class="sect-label">Plataformas <span class="hint">· elige al menos una</span></div>
+                            <div class="row wrap chip-grupo">
+                                <label class="chip" th:each="p : ${plataformas}"
+                                       th:classappend="${plataformasMarcadas.contains(p.id)} ? 'on' : ''">
+                                    <input type="checkbox" name="plataformaIds" th:value="${p.id}"
+                                           th:checked="${plataformasMarcadas.contains(p.id)}">
+                                    <span th:text="${p.nombre}">PC</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Subir un ZIP nuevo es publicar una version nueva: la anterior deja de ser la activa
+                 pero no se borra, que es lo que ya hace version_juego -->
+            <div class="card">
+                <div class="card-head">
+                    <h3>El archivo del juego</h3>
+                    <span class="hint">Solo si quieres publicar una versión nueva</span>
+                </div>
+                <div class="card-body stack">
+
+                    <div class="row wrap" th:if="${versionActiva != null}">
+                        <span class="sect-label">Versión actual</span>
+                        <span class="mono" th:text="${versionActiva.numero}">1.0.0</span>
+                        <span class="muted" th:text="${versionActiva.nombreArchivo}">hollow.zip</span>
+                        <span class="muted"
+                              th:text="'· subida el ' + ${#temporals.format(versionActiva.fechaSubida, 'dd/MM/yyyy')}">
+                            · subida el 12/10/2026</span>
+                    </div>
+                    <div class="img-vacia" th:if="${versionActiva == null}" style="margin-top:0">
+                        Este juego no tiene ningún archivo subido: nadie puede descargarlo.
+                    </div>
+
+                    <div class="form-grid">
+                        <div class="frow">
+                            <label for="zip">Archivo nuevo (ZIP)</label>
+                            <div class="file-drop">
+                                <input type="file" id="zip" name="zip" accept=".zip,application/zip">
+                                <span class="hint">Déjalo vacío para conservar el que ya está subido.</span>
+                            </div>
+                        </div>
+
+                        <div class="frow">
+                            <label for="version">Número de la versión nueva</label>
+                            <input class="inp mono" type="text" id="version" name="version" maxlength="20"
+                                   th:value="${version}" placeholder="1.1.0">
+                            <span class="hint">Obligatorio solo si subes un archivo nuevo.</span>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Las imagenes ya guardadas se quitan de una en una, cada una con su propio POST,
+                 y las casillas de abajo solo aparecen cuando queda hueco: portada y banner son
+                 uno por juego, y de capturas caben cuatro -->
+            <div class="card">
+                <div class="card-head">
+                    <h3>Imágenes de la ficha</h3>
+                    <span class="hint">Lo que subas se añade a lo que ya hay</span>
+                </div>
+                <div class="card-body stack">
+
+                    <div>
+                        <div class="sect-label">Portada</div>
+
+                        <div class="img-grid" th:if="${portada != null}">
+                            <div class="img-card">
+                                <span class="marco">
+                                    <img th:src="@{${portada.ruta}}"
+                                         th:alt="${portada.textoAlternativo != null}
+                                               ? ${portada.textoAlternativo} : ${juego.titulo}">
+                                    <span class="img-tipo">PORTADA</span>
+                                </span>
+                                <div class="img-foot">
+                                    <span class="muted">En el catálogo</span>
+                                    <form method="post"
+                                          th:action="@{/colaborador/mis-juegos/{id}/imagen/{imagenId}/quitar(id=${juego.id}, imagenId=${portada.id})}"
+                                          onsubmit="return confirm('¿Quitar la portada? Se borra también el archivo.');">
+                                        <button type="submit" class="btn btn-sm btn-danger" title="Quitar">
+                                            <svg th:replace="~{fragments/iconos :: trash}"></svg>
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div th:if="${portada == null}">
+                            <div class="img-vacia">Sin portada: en el catálogo este juego sale con un hueco.</div>
+                            <div class="file-drop" style="margin-top:10px">
+                                <label for="portada">Subir la portada</label>
+                                <input type="file" id="portada" name="portada"
+                                       accept="image/png,image/jpeg,image/webp">
+                                <span class="hint">JPG, PNG o WEBP, máximo 2 MB.</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="sect-label">Banner</div>
+
+                        <div class="img-grid" th:if="${banner != null}">
+                            <div class="img-card">
+                                <span class="marco">
+                                    <img th:src="@{${banner.ruta}}"
+                                         th:alt="${banner.textoAlternativo != null}
+                                               ? ${banner.textoAlternativo} : ${juego.titulo}">
+                                    <span class="img-tipo">BANNER</span>
+                                </span>
+                                <div class="img-foot">
+                                    <span class="muted">Cabecera de la ficha</span>
+                                    <form method="post"
+                                          th:action="@{/colaborador/mis-juegos/{id}/imagen/{imagenId}/quitar(id=${juego.id}, imagenId=${banner.id})}"
+                                          onsubmit="return confirm('¿Quitar el banner? Se borra también el archivo.');">
+                                        <button type="submit" class="btn btn-sm btn-danger" title="Quitar">
+                                            <svg th:replace="~{fragments/iconos :: trash}"></svg>
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div th:if="${banner == null}">
+                            <div class="img-vacia">Sin banner: la ficha usa la portada.</div>
+                            <div class="file-drop" style="margin-top:10px">
+                                <label for="banner">Subir el banner</label>
+                                <input type="file" id="banner" name="banner"
+                                       accept="image/png,image/jpeg,image/webp">
+                                <span class="hint">JPG, PNG o WEBP, máximo 2 MB.</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="sect-label">Capturas
+                            <span class="hint" th:text="'· ' + ${#lists.size(capturas)} + ' de 4'">· 0 de 4</span>
+                        </div>
+
+                        <div class="img-grid" th:unless="${#lists.isEmpty(capturas)}">
+                            <div class="img-card" th:each="c : ${capturas}">
+                                <span class="marco">
+                                    <img th:src="@{${c.ruta}}"
+                                         th:alt="${c.textoAlternativo != null}
+                                               ? ${c.textoAlternativo} : ${juego.titulo}">
+                                    <span class="img-tipo">CAPTURA</span>
+                                </span>
+                                <div class="img-foot">
+                                    <span class="muted" th:text="'Orden ' + ${c.orden}">Orden 1</span>
+                                    <form method="post"
+                                          th:action="@{/colaborador/mis-juegos/{id}/imagen/{imagenId}/quitar(id=${juego.id}, imagenId=${c.id})}"
+                                          onsubmit="return confirm('¿Quitar esta captura? Se borra también el archivo.');">
+                                        <button type="submit" class="btn btn-sm btn-danger" title="Quitar">
+                                            <svg th:replace="~{fragments/iconos :: trash}"></svg>
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="img-vacia" th:if="${#lists.isEmpty(capturas)}">
+                            Todavía no has subido ninguna captura.
+                        </div>
+
+                        <!-- Tantas casillas como huecos queden hasta cuatro. Si ya hay cuatro no sale
+                             ninguna, y el aviso explica por que -->
+                        <div class="slots-img" th:if="${#lists.size(capturas) < 4}">
+                            <div class="file-drop slot"
+                                 th:each="i : ${#numbers.sequence(#lists.size(capturas) + 1, 4)}">
+                                <label th:for="'captura' + ${i}" th:text="'Captura ' + ${i}">Captura 1</label>
+                                <input type="file" th:id="'captura' + ${i}" name="capturas"
+                                       accept="image/png,image/jpeg,image/webp">
+                            </div>
+                        </div>
+                        <span class="hint" th:if="${#lists.size(capturas) >= 4}">
+                            Ya tienes las cuatro. Para cambiar alguna, quita una y sube otra.</span>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="row" style="justify-content:flex-end">
+                <a class="btn" th:href="@{/colaborador/mis-juegos}">Cancelar</a>
+                <button type="submit" class="btn btn-primary">
+                    <svg th:replace="~{fragments/iconos :: check}"></svg> Guardar los cambios</button>
+            </div>
+
+        </div>
+    </form>
+
+</main>
+
+<script th:src="@{/js/videojuego.js}" src="../../static/js/videojuego.js"></script>
+</body>
+</html>

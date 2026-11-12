@@ -222,7 +222,9 @@ h1,h2,h3{margin:0;font-weight:600;letter-spacing:-.01em}
 }
 /* Los dos campos del precio, uno al lado del otro dentro del mismo .fld */
 .fld-precio{display:flex;align-items:center;gap:7px}
-.fld-precio .inp{width:84px}
+/* 106 y no 84: ahora el ancho lo mide navbar.css en border-box, asi que los 20px de
+   padding y los 2 del borde van DENTRO. Es el mismo tamano que se veia antes */
+.fld-precio .inp{width:106px}
 
 .inp{
     background:var(--surface-2);border:1px solid var(--line);color:var(--ink);

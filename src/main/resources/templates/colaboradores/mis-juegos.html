@@ -17,7 +17,8 @@
     <div class="page-head">
         <div>
             <h1>Mis juegos</h1>
-            <p>Lo que se sube queda publicado al momento. Para quitarlo de la tienda, se retira el juego.</p>
+            <p>Lo que subes queda inactivo hasta que un gestor lo publica en la tienda. Si lo
+                actualizas vuelve a quedar inactivo, y se revisa otra vez antes de volver a verse.</p>
         </div>
         <div class="page-actions">
             <a class="btn btn-primary" th:href="@{/colaborador/mis-juegos/nuevo}">
@@ -45,6 +46,7 @@
                         <th class="num">Precio</th>
                         <th>Versión</th>
                         <th>Publicado</th>
+                        <th class="acts"></th>
                     </tr>
                     </thead>
                     <tbody>
@@ -86,6 +88,10 @@
                             <span th:if="${versiones[j.id] != null}"
                                   th:text="${#temporals.format(versiones[j.id].fechaSubida, 'dd/MM/yyyy')}">12/10/2026</span>
                             <span class="muted" th:if="${versiones[j.id] == null}">—</span>
+                        </td>
+                        <td class="acts">
+                            <a class="btn btn-sm" th:href="@{/colaborador/mis-juegos/{id}/editar(id=${j.id})}">
+                                <svg th:replace="~{fragments/iconos :: edit}"></svg> Editar</a>
                         </td>
                     </tr>
                     </tbody>

@@ -169,6 +169,26 @@ public class AlmacenArchivos {
         }
     }
 
+    public void borrarZip(String rutaArchivo) {
+
+        if (rutaArchivo == null || rutaArchivo.isBlank()) {
+            return;
+        }
+
+        Path archivo = raizJuegos().resolve(rutaArchivo).normalize();
+
+        if (!archivo.startsWith(raizJuegos())) {
+            throw new IllegalArgumentException("Ruta de ZIP fuera de la carpeta de juegos");
+        }
+
+        try {
+            Files.deleteIfExists(archivo);
+
+        } catch (IOException e) {
+            throw new IllegalStateException("No se pudo borrar el ZIP " + rutaArchivo, e);
+        }
+    }
+
     // Solo el nombre, sin carpetas (Internet Explorer manda la ruta entera), y cortado a la
     // longitud de la columna
     private String nombreVisible(String original) {

@@ -10,7 +10,7 @@
     </div>
 
     <div class="side-scroll">
-        <div class="nav-group">General</div>
+        <div class="nav-group">Panel</div>
         <a class="nav-item" th:classappend="${activo == 'inicio'} ? 'on' : ''"
            th:href="@{/home}">
             <span class="ic"><svg th:replace="~{fragments/iconos :: panel}"></svg></span>Panel de control</a>
@@ -34,6 +34,9 @@
            th:href="@{/compras/proveedores}">
             
             <span class="ic"><svg th:replace="~{fragments/iconos :: truck}"></svg></span>Proveedores</a>
+        <a class="nav-item" th:classappend="${activo == 'claves'} ? 'on' : ''"
+           th:href="@{/inventario/claves}">
+            <span class="ic"><svg th:replace="~{fragments/iconos :: key}"></svg></span>Claves de licencia</a>
         </th:block>
         <th:block sec:authorize="hasAnyRole('ADMIN', 'GESTOR_INVENTARIO')">
             <div class="nav-group">Ventas</div>
@@ -84,9 +87,16 @@
         <img class="avatar" style="object-fit:cover"
              th:src="${imagenPerfil != null} ? @{${imagenPerfil.rutaImagen}} : @{/img/placeholder.webp}"
              th:alt="${imagenPerfil != null} ? ${imagenPerfil.textoAlternativo} : 'Sin foto de perfil'">
-        <div class="who-txt">
+        <!-- El rol va como distintivo de color, el mismo que lleva en el listado de
+             empleados. Antes era principal.authorities, que es una coleccion: imprimia su
+             toString y de ahi salian los corchetes de ROLE_ADMIN. Ahora se toma la
+             primera autoridad, que es la unica que hay (un usuario, un rol), y se le
+             quita el prefijo ROLE_ que le pone Security. -->
+        <div class="who-txt"
+             th:with="rol=${#strings.replace(#authentication.authorities[0].authority, 'ROLE_', '')}">
             <b sec:authentication="name">usuario@luduserp.cat</b>
-            <span sec:authentication="principal.authorities">ROLE_ADMIN</span>
+            <span class="badge" th:classappend="${'b-rol-' + #strings.toLowerCase(rol)}"
+                  th:text="${rol}">ADMIN</span>
         </div>
     </div>
 </header>
