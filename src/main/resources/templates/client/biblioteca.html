@@ -30,7 +30,10 @@
                 es tuyo, y el que trae archivo se descarga desde aquí.</p>
         </div>
     </div>
-
+    
+    <p th:if="${mensaje}" th:text="${mensaje}" style="color:var(--good)">Pago realizado</p>
+    <p th:if="${error}" th:text="${error}" style="color:#ff7b72">Error</p>
+    
     <div class="card" th:if="${#lists.isEmpty(claves)}">
         <div class="empty">
             <h4 th:text="#{biblioteca.vacia}">Todavía no tienes ningún juego</h4>

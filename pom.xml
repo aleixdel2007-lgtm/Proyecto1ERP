@@ -183,6 +183,11 @@
 			<artifactId>spring-boot-starter-mail-test</artifactId>
 			<scope>test</scope>
 		</dependency>
+                <dependency>  <!-- STRIPE -->
+                         <groupId>com.stripe</groupId>
+                         <artifactId>stripe-java</artifactId>
+                         <version>33.2.0</version>
+                </dependency>
 	</dependencies>
 
 	<build>
