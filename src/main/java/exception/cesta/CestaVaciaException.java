@@ -11,6 +11,7 @@ package exception.cesta;
 public class CestaVaciaException extends RuntimeException {
 
     public CestaVaciaException() {
-        super("Tu cesta está vacía");
+        // El mensaje es la clave de traduccion: el controlador la resuelve segun el idioma
+        super("cesta.error.vacia");
     }
 }

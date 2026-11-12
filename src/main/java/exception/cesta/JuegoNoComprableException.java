@@ -10,6 +10,7 @@ package exception.cesta;
  */
 public class JuegoNoComprableException extends RuntimeException {
 
+    // El mensaje es la clave de traduccion (cesta.error.*): el controlador la resuelve segun el idioma
     public JuegoNoComprableException(String mensaje) {
         super(mensaje);
 

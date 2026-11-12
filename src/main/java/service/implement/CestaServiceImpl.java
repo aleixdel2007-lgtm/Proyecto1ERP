@@ -138,13 +138,13 @@ public class CestaServiceImpl implements CestaService {
     private void comprobarQueSePuedeComprar(String email, Cesta cesta, Videojuego videojuego) {
 
         if (precioAPagar(videojuego).signum() == 0) {
-            throw new JuegoNoComprableException("Los juegos gratis se descargan directamente, no van a la cesta");
+            throw new JuegoNoComprableException("cesta.error.gratis");
         }
         if (claveLicenciaDao.estaEnBiblioteca(email, videojuego.getId())) {
-            throw new JuegoNoComprableException("Ya tienes este juego en tu biblioteca");
+            throw new JuegoNoComprableException("cesta.error.enBiblioteca");
         }
         if (buscarLineaXVideojuego(cesta, videojuego.getId()) != null) {
-            throw new JuegoNoComprableException("Este juego ya está en tu cesta");
+            throw new JuegoNoComprableException("cesta.error.yaEnCesta");
         }
     }
 

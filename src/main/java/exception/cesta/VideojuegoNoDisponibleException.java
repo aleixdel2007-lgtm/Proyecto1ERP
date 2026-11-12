@@ -11,6 +11,7 @@ package exception.cesta;
 public class VideojuegoNoDisponibleException extends RuntimeException {
 
     public VideojuegoNoDisponibleException() {
-        super("Este videojuego no esta disponible");
+        // El mensaje es la clave de traduccion: el controlador la resuelve segun el idioma
+        super("cesta.error.noDisponible");
     }
 }
