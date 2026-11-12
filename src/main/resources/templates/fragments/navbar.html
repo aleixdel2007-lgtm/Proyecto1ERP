@@ -17,10 +17,11 @@
             <input placeholder="Buscar en todo el catalogo...">
         </div>
 
-        <select class="lang" title="Idioma de la interfaz">
-            <option>ES</option>
-            <option>CA</option>
-            <option>EN</option>
+        <select class="lang" title="Idioma de la interfaz"
+                onchange="const u=new window.URL(window.location.href);u.searchParams.set('lang',this.value);window.location.href=u.href;">
+            <option value="es" th:selected="${#locale.language == 'es'}">ES</option>
+            <option value="ca" th:selected="${#locale.language == 'ca'}">CA</option>
+            <option value="en" th:selected="${#locale.language == 'en'}">EN</option>
         </select>
     </th:block>
     <div class="who">
@@ -75,6 +76,13 @@
                    th:classappend="${activo == 'misJuegos'} ? 'on' : ''">Mis juegos</a>
             </th:block>
         </nav>
+
+        <select class="lang" title="Idioma de la interfaz"
+                onchange="const u=new window.URL(window.location.href);u.searchParams.set('lang',this.value);window.location.href=u.href;">
+            <option value="es" th:selected="${#locale.language == 'es'}">ES</option>
+            <option value="ca" th:selected="${#locale.language == 'ca'}">CA</option>
+            <option value="en" th:selected="${#locale.language == 'en'}">EN</option>
+        </select>
 
         <div class="who">
             <img class="avatar" style="object-fit:cover"
