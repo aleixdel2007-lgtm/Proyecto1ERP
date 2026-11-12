@@ -40,7 +40,11 @@ public class MongoMessageSource extends AbstractMessageSource {
         Map<String, Map<String, String>> nueva = new HashMap<>();
         try {
             for (Traduccion t : dao.findAll()) {
-                nueva.computeIfAbsent(t.getIdioma(), i -> new HashMap<>()).put(t.getClave(), t.getTexto());
+                if (t.getClave() == null || t.getTextos() == null) {
+                    continue;
+                }
+                t.getTextos().forEach((idioma, texto) ->
+                        nueva.computeIfAbsent(idioma, i -> new HashMap<>()).put(t.getClave(), texto));
             }
         } catch (RuntimeException e) {
             // Si Mongo no responde la web sigue viva, con ??clave?? en lugar de textos

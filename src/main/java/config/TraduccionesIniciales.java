@@ -14,8 +14,10 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
@@ -36,12 +38,25 @@ public class TraduccionesIniciales implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws IOException {
-        Set<String> existentes = new HashSet<>();
+        // Un documento por clave. Los que ya existen se completan con los idiomas que les
+        // falten, sin tocar los que ya tienen texto.
+        Map<String, Traduccion> porClave = new HashMap<>();
+        List<Traduccion> formatoViejo = new ArrayList<>();
         for (Traduccion t : dao.findAll()) {
-            existentes.add(t.getIdioma() + "|" + t.getClave());
+            // Los documentos del formato anterior (uno por clave e idioma, con idioma y texto
+            // en vez de textos) se leen sin textos: se borran y se vuelven a crear de los .properties
+            if (t.getClave() == null || t.getTextos() == null || t.getTextos().isEmpty()) {
+                formatoViejo.add(t);
+            } else {
+                porClave.put(t.getClave(), t);
+            }
+        }
+        if (!formatoViejo.isEmpty()) {
+            dao.deleteAll(formatoViejo);
+            log.info("Borrados {} documentos de traduccion del formato anterior", formatoViejo.size());
         }
 
-        List<Traduccion> nuevas = new ArrayList<>();
+        Set<String> modificadas = new HashSet<>();
         Set<String> clavesBase = new HashSet<>();
         for (String idioma : IDIOMAS) {
             Properties textos = leer(idioma);
@@ -54,15 +69,22 @@ public class TraduccionesIniciales implements CommandLineRunner {
                 log.warn("Faltan {} traducciones al '{}': {}", faltan.size(), idioma, faltan);
             }
             for (String clave : claves) {
-                if (!existentes.contains(idioma + "|" + clave)) {
-                    nuevas.add(new Traduccion(clave, idioma, textos.getProperty(clave)));
+                Traduccion t = porClave.computeIfAbsent(clave, Traduccion::new);
+                if (t.getTextos() == null) {
+                    t.setTextos(new HashMap<>());
+                }
+                if (!t.getTextos().containsKey(idioma)) {
+                    t.getTextos().put(idioma, textos.getProperty(clave));
+                    modificadas.add(clave);
                 }
             }
         }
 
-        if (!nuevas.isEmpty()) {
-            dao.saveAll(nuevas);
-            log.info("Insertadas {} traducciones nuevas en Mongo", nuevas.size());
+        if (!modificadas.isEmpty()) {
+            List<Traduccion> aGuardar = new ArrayList<>();
+            modificadas.forEach(c -> aGuardar.add(porClave.get(c)));
+            dao.saveAll(aGuardar);
+            log.info("Guardadas {} claves de traduccion nuevas o completadas en Mongo", aGuardar.size());
         }
         messageSource.recargar();
     }
