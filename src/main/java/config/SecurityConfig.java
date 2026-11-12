@@ -65,6 +65,7 @@ public class SecurityConfig {
                 // puede bajar cualquiera que entre en la tienda
                 .requestMatchers("/tienda/biblioteca/**").hasRole("CLIENTE")
                 .requestMatchers("/tienda/cesta/**").hasRole("CLIENTE")
+                .requestMatchers("/tienda/pago/**").hasRole("CLIENTE")
                 .requestMatchers("/tienda", "/tienda/**").hasAnyRole("CLIENTE", "COLABORADOR", "ADMIN")
                 .requestMatchers("/valoraciones/**").hasRole("CLIENTE")
                 .requestMatchers("/home").hasAnyRole("ADMIN", "GESTOR_CLIENTES", "GESTOR_PRODUCTOS", "GESTOR_INVENTARIO")
