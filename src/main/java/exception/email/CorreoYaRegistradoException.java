@@ -11,6 +11,7 @@ package exception.email;
 public class CorreoYaRegistradoException extends RuntimeException {
 
     public CorreoYaRegistradoException() {
-        super("Este correo ya tiene una cuenta registrada. Prueba con otro o inicia sesión.");
+        // El mensaje es la clave de traduccion: el controlador la resuelve segun el idioma
+        super("registro.error.correoEnUso");
     }
 }

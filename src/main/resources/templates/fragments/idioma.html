@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!-- Selector de idioma para las pantallas sin barra (login y registro). Sin sesion no hay
+     navbar, y sin este select el usuario no tendria forma de cambiar de idioma. El idioma
+     se guarda en la cookie igual que en el resto: ver WebConfig. -->
+<select class="lang lang-flotante" th:fragment="selector"
+        title="Idioma de la interfaz" th:title="#{navbar.idioma}"
+        onchange="const u=new window.URL(window.location.href);u.searchParams.set('lang',this.value);window.location.href=u.href;">
+    <option value="es" th:selected="${#locale.language == 'es'}">ES</option>
+    <option value="ca" th:selected="${#locale.language == 'ca'}">CA</option>
+    <option value="en" th:selected="${#locale.language == 'en'}">EN</option>
+</select>
+
+</body>
+</html>
