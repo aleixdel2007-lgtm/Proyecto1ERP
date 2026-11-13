@@ -39,4 +39,21 @@ public class EmailServiceImpl implements EmailService {
             log.warn("No se pudo enviar el correo a {}: {}", destino, e.getMessage());
         }
     }
+
+    @Override
+    public void enviarAvisoStockBajo(String destino, String titulo, long quedan) {
+
+        SimpleMailMessage mensaje = new SimpleMailMessage();
+        mensaje.setFrom("no-reply@luduserp.cat");
+        mensaje.setTo(destino);
+        mensaje.setSubject("[LudusERP] Stock bajo: " + titulo + " (quedan " + quedan + ")");
+        mensaje.setText("Quedan " + quedan + " claves disponibles de \"" + titulo + "\".\n\n"
+                + "Conviene reponer stock.\n\nLudusERP");
+
+        try {
+            mailSender.send(mensaje);
+        } catch (MailException e) {
+            log.warn("No se pudo enviar el correo a {}: {}", destino, e.getMessage());
+        }
+    }
 }

@@ -18,4 +18,8 @@ public interface PagoService {
 
     // Pregunta a Stripe si esa sesion esta pagada y, si lo esta, cierra la compra
     Pedido confirmarPago(String email, String sessionId);
+
+    // Pasa a CANCELADO los pedidos que llevan demasiado tiempo pendientes de pago.
+    // Devuelve cuantos ha cancelado
+    int cancelarPedidosCaducados();
 }

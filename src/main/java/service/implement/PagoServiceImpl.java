@@ -15,8 +15,10 @@ import exception.pago.PagoNoCompletadoException;
 import exception.pago.SinClavesDisponiblesException;
 import exception.pedido.PedidoNoEncontradoException;
 import java.math.RoundingMode;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 import model.catalogo.Videojuego;
 import model.inventario.ClaveLicencia;
 import model.inventario.EstadoClave;
@@ -28,7 +30,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import service.interfaces.CestaService;
+import service.interfaces.ClaveLicenciaService;
 import service.interfaces.PagoService;
 import service.interfaces.PedidoService;
 
@@ -44,8 +48,10 @@ public class PagoServiceImpl implements PagoService {
     @Value("${stripe.secret-key}")
     private String claveSecreta;
 
-    @Value("${app.url}")
-    private String urlBase;
+    // Stripe caduca la pagina de pago a los 31 minutos (su minimo es 30). Nosotros cancelamos
+    // un poco despues, para no cancelar un pedido que aun se puede pagar
+    private static final long MINUTOS_CADUCIDAD_STRIPE = 31;
+    private static final long MINUTOS_CANCELAR_PEDIDO = 35;
 
     @Autowired
     private PedidoService pedidoService;
@@ -62,6 +68,11 @@ public class PagoServiceImpl implements PagoService {
     @Autowired
     private CestaService cestaService;
 
+    // Para avisar a los gestores de inventario cuando, despues de vender, quedan pocas claves.
+    // El pago solo vende; contar el stock y mandar el correo lo hace el service de claves
+    @Autowired
+    private ClaveLicenciaService claveLicenciaService; //para avisar a los gestores de inventario cuando, despues de vender, quedan pocas claves.
+
     @Override
     @Transactional
     public String iniciarPago(String email) {
@@ -73,6 +84,9 @@ public class PagoServiceImpl implements PagoService {
         Pedido pedido = pedidoService.crearPedidoDesdeCesta(email);
 
         comprobarQueHayClaves(pedido);
+        // La direccion desde la que ha entrado el usuario (localhost, la del servidor...), para
+        // que Stripe le devuelva al mismo sitio. No hace falta configurarla en ningun archivo
+        String urlBase = ServletUriComponentsBuilder.fromCurrentContextPath().build().toUriString();                    //EL RETORNOOOO
 
         SessionCreateParams.Builder params = SessionCreateParams.builder()
                 .setMode(SessionCreateParams.Mode.PAYMENT)
@@ -81,7 +95,8 @@ public class PagoServiceImpl implements PagoService {
                 .setClientReferenceId(String.valueOf(pedido.getId()))
                 // Stripe cambia {CHECKOUT_SESSION_ID} por el id real de la sesion al volver
                 .setSuccessUrl(urlBase + "/tienda/pago/exito?session_id={CHECKOUT_SESSION_ID}")
-                .setCancelUrl(urlBase + "/tienda/pago/cancelado");
+                .setCancelUrl(urlBase + "/tienda/pago/cancelado")
+                .setExpiresAt(Instant.now().plusSeconds(MINUTOS_CADUCIDAD_STRIPE * 60).getEpochSecond());
 
         // Una linea de Stripe por cada linea del pedido. Los precios salen de NUESTRA base de
         // datos (del pedido ya creado), nunca del formulario
@@ -142,6 +157,9 @@ public class PagoServiceImpl implements PagoService {
         }
 
         asignarClaves(pedido);
+        for (LineaPedido linea : pedido.getLineas()) {
+            claveLicenciaService.avisarSiQuedaPocoStock(linea.getVideojuego()); // Ya vendidas las claves: si de algun juego quedan pocas, se avisa a inventario
+        }
         pedido.setEstado(EstadoPedido.PAGADO);
         pedido.setMetodoPago("STRIPE");
         crearFactura(pedido);
@@ -195,4 +213,20 @@ public class PagoServiceImpl implements PagoService {
         return linea.getPrecioUnitario().subtract(linea.getDescuento())
                 .movePointRight(2).setScale(0, RoundingMode.HALF_UP).longValueExact();
     }
+
+    @Override
+    @Transactional
+    public int cancelarPedidosCaducados() {
+
+        LocalDateTime limite = LocalDateTime.now().minusMinutes(MINUTOS_CANCELAR_PEDIDO);
+
+        List<Pedido> caducados = pedidoDao.buscarPendientesAnterioresA(EstadoPedido.PENDIENTE_PAGO, limite);
+
+        for (Pedido pedido : caducados) {
+            pedido.setEstado(EstadoPedido.CANCELADO);
+            pedidoDao.save(pedido);
+        }
+        return caducados.size();
+    }
+
 }

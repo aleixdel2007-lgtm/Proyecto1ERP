@@ -63,8 +63,8 @@ public interface ClaveLicenciaDao extends JpaRepository<ClaveLicencia, Long> {
             + "and (:estado is null or c.estado = :estado) "
             + "order by c.fechaAlta desc, c.id desc")
     List<ClaveLicencia> listarFiltrado(@Param("codigoHash") String codigoHash,
-                                       @Param("videojuegoId") Long videojuegoId,
-                                       @Param("estado") EstadoClave estado);
+            @Param("videojuegoId") Long videojuegoId,
+            @Param("estado") EstadoClave estado);
 
     // Los cuatro contadores de la cabecera, uno por estado
     @Query("select count(c) from ClaveLicencia c where c.estado = :estado")
@@ -80,4 +80,11 @@ public interface ClaveLicenciaDao extends JpaRepository<ClaveLicencia, Long> {
             + "left join fetch lc.compra "
             + "where c.id = :id")
     Optional<ClaveLicencia> buscarConDetalle(@Param("id") Long id);
+
+    // Cuantas claves quedan en un estado para UN juego. Con DISPONIBLE es el stock de ese juego
+    @Query("select count(c) from ClaveLicencia c "
+            + "where c.videojuego.id = :videojuegoId "
+            + "and c.estado = :estado")
+    long contarPorVideojuegoYEstado(@Param("videojuegoId") Long videojuegoId,
+            @Param("estado") EstadoClave estado);
 }

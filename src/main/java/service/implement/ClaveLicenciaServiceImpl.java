@@ -2,6 +2,7 @@ package service.implement;
 
 import config.IndiceCiego;
 import dao.ClaveLicenciaDao;
+import dao.EmpleadoDao;
 import dao.VideojuegoDao;
 import exception.clave.ClaveNoAnulableException;
 import exception.clave.ClaveNoEncontradaException;
@@ -10,11 +11,14 @@ import java.util.List;
 import model.catalogo.Videojuego;
 import model.inventario.ClaveLicencia;
 import model.inventario.EstadoClave;
+import model.seguridad.Empleado;
+import model.seguridad.Rol;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import service.interfaces.ClaveLicenciaService;
+import service.interfaces.EmailService;
 
 @Service
 @Transactional(readOnly = true)
@@ -27,6 +31,14 @@ public class ClaveLicenciaServiceImpl implements ClaveLicenciaService {
 
     @Autowired
     private VideojuegoDao videojuegoDao;
+    @Autowired
+    private EmpleadoDao empleadoDao;
+
+    @Autowired
+    private EmailService emailService; //el servidor de correo
+
+    // Si quedan estas claves o menos, se avisa a los gestores de inventario
+    private static final long UMBRAL_STOCK_BAJO = 3;
 
     // Las claves del panel. El codigo escrito se convierte en hash antes de bajar al DAO
     @Override
@@ -92,5 +104,22 @@ public class ClaveLicenciaServiceImpl implements ClaveLicenciaService {
             return null;
         }
         return IndiceCiego.hash(codigo);
+    }
+
+    @Override
+    public void avisarSiQuedaPocoStock(Videojuego videojuego) {
+
+        long quedan = claveLicenciaDao.contarPorVideojuegoYEstado(
+                videojuego.getId(), EstadoClave.DISPONIBLE);
+
+        if (quedan > UMBRAL_STOCK_BAJO) {
+            return;
+        }
+
+        List<Empleado> gestores = empleadoDao.listarFiltrado(null, null, Rol.GESTOR_INVENTARIO);
+
+        for (Empleado gestor : gestores) {
+            emailService.enviarAvisoStockBajo(gestor.getEmail(), videojuego.getTitulo(), quedan);
+        }
     }
 }
