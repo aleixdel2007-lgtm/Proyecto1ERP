@@ -42,13 +42,19 @@ public class ControllerVideojuego {
             @RequestParam(required = false) BigDecimal precioMax,
             @RequestParam(required = false) Boolean activo,
             @RequestParam(defaultValue = "0") int pagina,
+            @RequestParam(defaultValue = "0") int paginaColaborador,
             Model model) {
 
-        List<Videojuego> videojuegos = videojuegoService.listarVideojuegos(
+        List<Videojuego> propios = videojuegoService.listarVideojuegosPropios(
                 texto, categoriaId, plataformaId, precioMin, precioMax, activo);
 
-        model.addAttribute("videojuegos", videojuegos);
-        model.addAttribute("portadas", videojuegoService.listarPortadas(videojuegos));
+        List<Videojuego> deColaboradores = videojuegoService.listarVideojuegosDeColaboradores(
+                texto, categoriaId, plataformaId, precioMin, precioMax, activo);
+
+        model.addAttribute("videojuegos", propios);
+        model.addAttribute("portadas", videojuegoService.listarPortadas(propios));
+        model.addAttribute("juegosColaboradores", deColaboradores);
+        model.addAttribute("portadasColaboradores", videojuegoService.listarPortadas(deColaboradores));
         model.addAttribute("categorias", videojuegoService.listarCategorias());
         model.addAttribute("plataformas", videojuegoService.listarPlataformas());
 
@@ -59,6 +65,7 @@ public class ControllerVideojuego {
         model.addAttribute("precioMax", precioMax);
         model.addAttribute("activo", activo);
         model.addAttribute("pagina", Math.max(0, pagina));
+        model.addAttribute("paginaColaborador", Math.max(0, paginaColaborador));
 
         return "catalogo/videojuegos";
     }

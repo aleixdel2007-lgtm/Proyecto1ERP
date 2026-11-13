@@ -10,6 +10,19 @@ import org.springframework.data.repository.query.Param;
 
 public interface VideojuegoDao extends JpaRepository<Videojuego, Long> {
 
+    /*
+     * El listado del CRUD del panel: devuelve los videojuegos que encajan con los filtros,
+     * saltandose cada uno que llegue a null. A diferencia del de la tienda, este NO esconde
+     * los juegos retirados: el gestor tiene que poder verlos y volver a publicarlos, y por eso
+     * activo es un parametro de tres estados y no una condicion fija.
+     *
+     * soloColaborador parte el listado en los dos apartados de la pantalla: null son todos,
+     * true solo los que ha subido un colaborador y false solo los nuestros, los que vienen de
+     * un proveedor. Es el mismo parametro de tres estados que ya usa listarCatalogo.
+     *
+     * Las dos N:M se unen SIN fetch para que el filtro no duplique filas; las colecciones las
+     * trae despues listarConClasificacion.
+     */
     @Query("select distinct v from Videojuego v "
             + "left join fetch v.proveedor "
             + "left join fetch v.colaborador "
@@ -21,13 +34,17 @@ public interface VideojuegoDao extends JpaRepository<Videojuego, Long> {
             + "and (:precioMin is null or v.precio >= :precioMin) "
             + "and (:precioMax is null or v.precio <= :precioMax) "
             + "and (:activo is null or v.activo = :activo) "
+            + "and (:soloColaborador is null "
+            + "     or (:soloColaborador = true and v.colaborador is not null) "
+            + "     or (:soloColaborador = false and v.colaborador is null)) "
             + "order by v.titulo")
     List<Videojuego> listarFiltrado(@Param("texto") String texto,
                                     @Param("categoriaId") Long categoriaId,
                                     @Param("plataformaId") Long plataformaId,
                                     @Param("precioMin") BigDecimal precioMin,
                                     @Param("precioMax") BigDecimal precioMax,
-                                    @Param("activo") Boolean activo);
+                                    @Param("activo") Boolean activo,
+                                    @Param("soloColaborador") Boolean soloColaborador);
 
     @Query("select distinct v from Videojuego v "
             + "left join fetch v.proveedor "

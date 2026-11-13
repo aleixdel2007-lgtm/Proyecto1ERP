@@ -323,6 +323,7 @@ public class DatosIniciales implements CommandLineRunner {
         v.setPrecioDescuento(precioDescuento == null ? null : new BigDecimal(precioDescuento));
         v.setPegi(pegi);
         v.setFechaLanzamiento(fechaLanzamiento);
+        v.setFechaPublicacion(LocalDateTime.now());
         v.setStockIlimitado(colaborador != null);
 
         for (String codigo : categorias) {

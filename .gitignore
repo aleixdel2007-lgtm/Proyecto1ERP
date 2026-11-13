@@ -20,6 +20,9 @@ target/
 *.ipr
 
 ### NetBeans ###
+# Copia temporal que deja NetBeans al reescribir nbactions.xml. No se sube:
+# es el mismo fichero y solo serviria para ensuciar el diff de todos
+nbactions.tmp
 /nbproject/private/
 /nbbuild/
 /dist/

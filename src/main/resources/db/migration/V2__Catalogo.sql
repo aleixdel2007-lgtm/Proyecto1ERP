@@ -5,18 +5,32 @@
 --
 -- precio es el precio estandar y precio_descuento lo que se cobra mientras haya rebaja:
 -- NULL significa sin descuento.
+--
+-- fecha_publicacion es la primera vez que el juego se activo, y se sella una sola vez: si
+-- luego se retira y se vuelve a publicar no cambia. NULL significa que no ha estado nunca
+-- en la tienda. No es lo mismo que fecha_lanzamiento, que es la fecha oficial del juego y
+-- la pone el gestor.
+--
+-- pendiente_revision marca los juegos de colaborador que esperan a que alguien los mire:
+-- lo pone a TRUE el propio colaborador, al subir el juego y cada vez que lo edita, y lo
+-- apaga el gestor al activarlo. Hace falta la columna porque el caso no se deduce de lo que
+-- ya hay: activo a FALSE lo tiene tambien un juego que el gestor retiro a proposito, y la
+-- version nueva solo aparece si el colaborador sube un ZIP, no si cambia la sinopsis o el
+-- PEGI. Es este dato, y no fecha_publicacion, el que decide el distintivo del panel.
 CREATE TABLE videojuego (
-    id                BIGINT        NOT NULL AUTO_INCREMENT,
-    titulo            VARCHAR(150)  NOT NULL,
-    sinopsis          TEXT          NULL,
-    proveedor_id      BIGINT        NULL,
-    precio            DECIMAL(10,2) NOT NULL,
-    precio_descuento  DECIMAL(10,2) NULL,
-    fecha_lanzamiento DATE          NULL,
-    pegi              INT           NOT NULL,
-    activo            BOOLEAN       NOT NULL DEFAULT TRUE,
-    stock_ilimitado   BOOLEAN       NOT NULL DEFAULT FALSE,
-    umbral_stock_bajo INT           NOT NULL DEFAULT 10,
+    id                 BIGINT        NOT NULL AUTO_INCREMENT,
+    titulo             VARCHAR(150)  NOT NULL,
+    sinopsis           TEXT          NULL,
+    proveedor_id       BIGINT        NULL,
+    precio             DECIMAL(10,2) NOT NULL,
+    precio_descuento   DECIMAL(10,2) NULL,
+    fecha_lanzamiento  DATE          NULL,
+    pegi               INT           NOT NULL,
+    activo             BOOLEAN       NOT NULL DEFAULT TRUE,
+    fecha_publicacion  DATETIME      NULL,
+    pendiente_revision BOOLEAN       NOT NULL DEFAULT FALSE,
+    stock_ilimitado    BOOLEAN       NOT NULL DEFAULT FALSE,
+    umbral_stock_bajo  INT           NOT NULL DEFAULT 10,
     PRIMARY KEY (id),
     INDEX idx_videojuego_activo (activo, titulo)
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4;

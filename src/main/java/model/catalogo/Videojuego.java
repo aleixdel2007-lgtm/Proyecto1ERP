@@ -9,6 +9,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -53,6 +54,13 @@ public class Videojuego {
 
     @Column(name = "activo", nullable = false)
     private boolean activo = true;
+
+    // Cuando se publico por primera vez. Nula significa que nunca ha estado en la tienda
+    @Column(name = "fecha_publicacion")
+    private LocalDateTime fechaPublicacion;
+
+    @Column(name = "pendiente_revision", nullable = false)
+    private boolean pendienteRevision = false;
 
     @Column(name = "stock_ilimitado", nullable = false)
     private boolean stockIlimitado = false;

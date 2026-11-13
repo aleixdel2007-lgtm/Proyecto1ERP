@@ -14,8 +14,13 @@ import org.springframework.web.multipart.MultipartFile;
 
 public interface VideojuegoService {
 
-    List<Videojuego> listarVideojuegos(String texto, Long categoriaId, Long plataformaId,
-                                       BigDecimal precioMin, BigDecimal precioMax, Boolean activo);
+    // Los videojuegos que publicamos nosotros, los que vienen de un proveedor
+    List<Videojuego> listarVideojuegosPropios(String texto, Long categoriaId, Long plataformaId,
+                                              BigDecimal precioMin, BigDecimal precioMax, Boolean activo);
+
+    // Los que ha subido un colaborador
+    List<Videojuego> listarVideojuegosDeColaboradores(String texto, Long categoriaId, Long plataformaId,
+                                                      BigDecimal precioMin, BigDecimal precioMax, Boolean activo);
 
     Videojuego buscarVideojuegoXId(Long id);
 

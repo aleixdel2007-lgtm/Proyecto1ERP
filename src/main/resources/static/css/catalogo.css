@@ -101,3 +101,25 @@
 
 /* Sin portada: un hueco del mismo tamano, para que la columna no baile */
 .mini.vacia{display:grid;place-items:center;color:var(--muted)}
+
+/* ===========================================================================
+   Apartados plegables del listado de videojuegos
+   Los dos apartados de la pantalla (nuestro catalogo y los juegos de colaborador)
+   son <details>, y la cabecera de la tarjeta hace de <summary>. Con el catalogo
+   lleno, plegar el nuestro deja los de colaborador arriba en vez de a cien filas
+   de scroll. Solo se estilan los .card que ademas son .sec, para no tocar ninguna
+   de las otras tarjetas del panel.
+   =========================================================================== */
+
+/* El triangulito que pinta el navegador sobra: ya ponemos nuestra flecha.
+   list-style lo quita en casi todos y ::-webkit-details-marker en los Safari viejos */
+.sec > summary{cursor:pointer;list-style:none;user-select:none}
+.sec > summary::-webkit-details-marker{display:none}
+.sec > summary:hover{background:var(--surface-2)}
+
+/* Plegado, la linea de debajo de la cabecera no separa nada: solo seria un rayajo */
+.sec:not([open]) > summary{border-bottom:none}
+
+/* La flecha mira hacia abajo (desplegar) y al abrirse se da la vuelta */
+.sec .chev{display:flex;color:var(--muted);transition:transform .15s ease}
+.sec[open] .chev{transform:rotate(180deg)}

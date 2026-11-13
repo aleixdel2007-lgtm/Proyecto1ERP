@@ -19,6 +19,7 @@ import exception.videojuego.ProveedorObligatorioException;
 import exception.videojuego.VideojuegoConReferenciasException;
 import exception.videojuego.VideojuegoNoEncontradoException;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -69,11 +70,28 @@ public class VideojuegoServiceImpl implements VideojuegoService {
     private PlataformaDao plataformaDao;
 
     @Override
-    public List<Videojuego> listarVideojuegos(String texto, Long categoriaId, Long plataformaId,
-                                              BigDecimal precioMin, BigDecimal precioMax, Boolean activo) {
+    public List<Videojuego> listarVideojuegosPropios(String texto, Long categoriaId, Long plataformaId,
+                                                     BigDecimal precioMin, BigDecimal precioMax, Boolean activo) {
+
+        return buscar(texto, categoriaId, plataformaId, precioMin, precioMax, activo, false);
+    }
+
+    @Override
+    public List<Videojuego> listarVideojuegosDeColaboradores(String texto, Long categoriaId, Long plataformaId,
+                                                             BigDecimal precioMin, BigDecimal precioMax, Boolean activo) {
+
+        return buscar(texto, categoriaId, plataformaId, precioMin, precioMax, activo, true);
+    }
+
+    // Lo que comparten los dos apartados: filtrar y, si hay resultados, volver a por sus
+    // categorias y plataformas en una segunda consulta
+    private List<Videojuego> buscar(String texto, Long categoriaId, Long plataformaId,
+                                    BigDecimal precioMin, BigDecimal precioMax, Boolean activo,
+                                    Boolean soloColaborador) {
 
         List<Videojuego> filtrados = videojuegoDao.listarFiltrado(
-                normalizarTexto(texto), categoriaId, plataformaId, precioMin, precioMax, activo);
+                normalizarTexto(texto), categoriaId, plataformaId, precioMin, precioMax,
+                activo, soloColaborador);
 
         if (filtrados.isEmpty()) {
             return filtrados;
@@ -159,6 +177,16 @@ public class VideojuegoServiceImpl implements VideojuegoService {
         existente.setPrecioDescuento(videojuego.getPrecioDescuento());
         existente.setFechaLanzamiento(videojuego.getFechaLanzamiento());
         existente.setPegi(videojuego.getPegi());
+        // La primera vez que un juego se publica se sella la fecha, y ya no se borra aunque
+        // luego se retire
+        if (videojuego.isActivo() && existente.getFechaPublicacion() == null) {
+            existente.setFechaPublicacion(LocalDateTime.now());
+        }
+
+        if (videojuego.isActivo()) {
+            existente.setPendienteRevision(false);
+        }
+
         existente.setActivo(videojuego.isActivo());
         existente.setUmbralStockBajo(videojuego.getUmbralStockBajo());
         existente.setCategorias(buscarCategorias(categoriaIds));
@@ -479,6 +507,7 @@ public class VideojuegoServiceImpl implements VideojuegoService {
         videojuego.setPlataformas(buscarPlataformas(plataformaIds));
         // Siempre se crea inactivo esperando a la confirmacion del admin o gestor de videojuegos.
         videojuego.setActivo(false);
+        videojuego.setPendienteRevision(true);
         // Se pone el precio a 0 ya que un juego de un colaborador sera siempre gratis.
         videojuego.setPrecio(BigDecimal.ZERO);
         // Es un archivo descargable: no hay unidades que se agoten
@@ -573,6 +602,7 @@ public class VideojuegoServiceImpl implements VideojuegoService {
         videojuego.setCategorias(buscarCategorias(categoriaIds));
         videojuego.setPlataformas(buscarPlataformas(plataformaIds));
         videojuego.setActivo(false);
+        videojuego.setPendienteRevision(true);
 
         Videojuego guardado = videojuegoDao.save(videojuego);
 
