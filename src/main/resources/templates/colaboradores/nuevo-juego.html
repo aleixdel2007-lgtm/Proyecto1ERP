@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Subir un juego · LudusERP</title>
+    <title th:text="#{colab.nuevo.titulo} + ' · LudusERP'">Subir un juego · LudusERP</title>
     <link rel="stylesheet" th:href="@{/css/navbar.css}" href="../../static/css/navbar.css">
     <link rel="stylesheet" th:href="@{/css/tienda.css}" href="../../static/css/tienda.css">
     <link rel="stylesheet" th:href="@{/css/colaboradorJuegos.css}" href="../../static/css/colaboradorJuegos.css">
@@ -15,12 +15,12 @@
 <main class="shop-body">
 
     <a class="btn btn-ghost btn-sm" style="margin-bottom:12px" th:href="@{/colaborador/mis-juegos}">
-        <svg th:replace="~{fragments/iconos :: back}"></svg> Volver a mis juegos</a>
+        <svg th:replace="~{fragments/iconos :: back}"></svg> <th:block th:text="#{colab.volver}">Volver a mis juegos</th:block></a>
 
     <div class="page-head">
         <div>
-            <h1>Subir un juego</h1>
-            <p>Un solo formulario: rellenas la ficha, adjuntas el ZIP y las imágenes, y al guardar el
+            <h1 th:text="#{colab.nuevo.titulo}">Subir un juego</h1>
+            <p th:text="#{colab.nuevo.intro}">Un solo formulario: rellenas la ficha, adjuntas el ZIP y las imágenes, y al guardar el
                 juego queda inactivo hasta que un gestor lo publique en la tienda.</p>
         </div>
     </div>
@@ -32,24 +32,24 @@
         <div class="stack">
 
             <div class="card">
-                <div class="card-head"><h3>Ficha del juego</h3></div>
+                <div class="card-head"><h3 th:text="#{colab.ficha}">Ficha del juego</h3></div>
                 <div class="card-body">
                     <div class="form-grid">
 
                         <div class="frow wide">
-                            <label for="titulo">Título <span class="req">*</span></label>
+                            <label for="titulo"><th:block th:text="#{colab.f.titulo}">Título</th:block> <span class="req">*</span></label>
                             <input class="inp" type="text" id="titulo" name="titulo" maxlength="150"
                                    th:value="${titulo}" placeholder="Hollow Transit" required>
                         </div>
 
                         <div class="frow wide">
-                            <label for="sinopsis">Descripción <span class="req">*</span></label>
+                            <label for="sinopsis"><th:block th:text="#{colab.f.descripcion}">Descripción</th:block> <span class="req">*</span></label>
                             <textarea class="inp" id="sinopsis" name="sinopsis" rows="4"
-                                      placeholder="De qué va el juego" required th:text="${sinopsis}"></textarea>
+                                      placeholder="De qué va el juego" th:placeholder="#{colab.f.descPh}" required th:text="${sinopsis}"></textarea>
                         </div>
 
                         <div class="frow">
-                            <label for="pegi">Clasificación PEGI <span class="req">*</span></label>
+                            <label for="pegi"><th:block th:text="#{colab.f.pegi}">Clasificación PEGI</th:block> <span class="req">*</span></label>
                             <select class="inp" id="pegi" name="pegi" required>
                                 <option th:each="p : ${pegis}"
                                         th:value="${p}" th:text="${p}"
@@ -58,7 +58,7 @@
                         </div>
 
                         <div class="frow">
-                            <label for="version">Versión <span class="req">*</span></label>
+                            <label for="version"><th:block th:text="#{colab.f.version}">Versión</th:block> <span class="req">*</span></label>
                             <input class="inp mono" type="text" id="version" name="version" maxlength="20"
                                    th:value="${version != null} ? ${version} : '1.0.0'" required>
                         </div>
@@ -67,7 +67,7 @@
 
                     <div class="stack" style="margin-top:18px">
                         <div>
-                            <div class="sect-label">Categorías <span class="hint">· elige al menos una</span></div>
+                            <div class="sect-label"><th:block th:text="#{colab.f.categorias}">Categorías</th:block> <span class="hint" th:text="#{colab.f.alMenosUna}">· elige al menos una</span></div>
                             <div class="row wrap chip-grupo">
                                 <label class="chip" th:each="c : ${categorias}"
                                        th:classappend="${categoriasMarcadas.contains(c.id)} ? 'on' : ''">
@@ -79,7 +79,7 @@
                         </div>
 
                         <div>
-                            <div class="sect-label">Plataformas <span class="hint">· elige al menos una</span></div>
+                            <div class="sect-label"><th:block th:text="#{colab.f.plataformas}">Plataformas</th:block> <span class="hint" th:text="#{colab.f.alMenosUna}">· elige al menos una</span></div>
                             <div class="row wrap chip-grupo">
                                 <label class="chip" th:each="p : ${plataformas}"
                                        th:classappend="${plataformasMarcadas.contains(p.id)} ? 'on' : ''">
@@ -94,20 +94,20 @@
             </div>
 
             <div class="card">
-                <div class="card-head"><h3>El juego</h3></div>
+                <div class="card-head"><h3 th:text="#{colab.juego}">El juego</h3></div>
                 <div class="card-body stack">
                     <div class="frow">
-                        <label for="zip">Archivo del juego (ZIP) <span class="req">*</span></label>
+                        <label for="zip"><th:block th:text="#{colab.zip}">Archivo del juego (ZIP)</th:block> <span class="req">*</span></label>
                         <div class="file-drop">
                             <input type="file" id="zip" name="zip" accept=".zip,application/zip" required>
-                            <span class="hint">Se guarda en el ERP, fuera de la web pública: solo lo descarga
+                            <span class="hint" th:text="#{colab.zip.hint}">Se guarda en el ERP, fuera de la web pública: solo lo descarga
                                 quien lo haya comprado.</span>
                         </div>
                     </div>
 
                     <div class="note-box">
                         <svg th:replace="~{fragments/iconos :: warn}"></svg>
-                        <div>Si algo falla al guardar hay que volver a elegir los archivos: el
+                        <div th:text="#{colab.nuevo.nota}">Si algo falla al guardar hay que volver a elegir los archivos: el
                             navegador no deja rellenarlos de nuevo. Un ZIP grande tarda en subir, no cierres
                             la página hasta que termine.</div>
                     </div>
@@ -121,38 +121,38 @@
                  capturas a proposito, para que lleguen como una lista. -->
             <div class="card">
                 <div class="card-head">
-                    <h3>Imágenes de la ficha</h3>
-                    <span class="hint">Solo la portada es obligatoria</span>
+                    <h3 th:text="#{colab.img.titulo}">Imágenes de la ficha</h3>
+                    <span class="hint" th:text="#{colab.img.soloPortada}">Solo la portada es obligatoria</span>
                 </div>
                 <div class="card-body stack">
 
                     <div class="frow">
-                        <label for="portada">Portada <span class="req">*</span></label>
+                        <label for="portada"><th:block th:text="#{colab.img.portada}">Portada</th:block> <span class="req">*</span></label>
                         <div class="file-drop">
                             <input type="file" id="portada" name="portada"
                                    accept="image/png,image/jpeg,image/webp" required>
-                            <span class="hint">Es la que sale en el catálogo y en el listado. JPG, PNG
+                            <span class="hint" th:text="#{colab.img.portada.hint}">Es la que sale en el catálogo y en el listado. JPG, PNG
                                 o WEBP, máximo 2 MB.</span>
                         </div>
                     </div>
 
                     <div class="frow">
-                        <label for="banner">Banner</label>
+                        <label for="banner" th:text="#{colab.img.banner}">Banner</label>
                         <div class="file-drop">
                             <input type="file" id="banner" name="banner"
                                    accept="image/png,image/jpeg,image/webp">
-                            <span class="hint">La imagen ancha de la cabecera de la ficha. Si no la
+                            <span class="hint" th:text="#{colab.img.banner.hint}">La imagen ancha de la cabecera de la ficha. Si no la
                                 pones, la ficha usa la portada.</span>
                         </div>
                     </div>
 
                     <div>
-                        <div class="sect-label">Capturas
-                            <span class="hint">· hasta cuatro, y se ven en el orden en que las pongas</span>
+                        <div class="sect-label"><th:block th:text="#{colab.img.capturas}">Capturas</th:block>
+                            <span class="hint" th:text="#{colab.img.capturas.hint}">· hasta cuatro, y se ven en el orden en que las pongas</span>
                         </div>
                         <div class="slots-img">
                             <div class="file-drop slot" th:each="i : ${#numbers.sequence(1, 4)}">
-                                <label th:for="'captura' + ${i}" th:text="'Captura ' + ${i}">Captura 1</label>
+                                <label th:for="'captura' + ${i}" th:text="#{colab.img.captura(${i})}">Captura 1</label>
                                 <input type="file" th:id="'captura' + ${i}" name="capturas"
                                        accept="image/png,image/jpeg,image/webp">
                             </div>
@@ -163,9 +163,9 @@
             </div>
 
             <div class="row" style="justify-content:flex-end">
-                <a class="btn" th:href="@{/colaborador/mis-juegos}">Cancelar</a>
+                <a class="btn" th:href="@{/colaborador/mis-juegos}" th:text="#{colab.cancelar}">Cancelar</a>
                 <button type="submit" class="btn btn-primary">
-                    <svg th:replace="~{fragments/iconos :: check}"></svg> Publicar el juego</button>
+                    <svg th:replace="~{fragments/iconos :: check}"></svg> <th:block th:text="#{colab.nuevo.publicar}">Publicar el juego</th:block></button>
             </div>
 
         </div>

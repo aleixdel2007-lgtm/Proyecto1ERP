@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Mis juegos · LudusERP</title>
+    <title th:text="#{navbar.misJuegos} + ' · LudusERP'">Mis juegos · LudusERP</title>
     <link rel="stylesheet" th:href="@{/css/navbar.css}" href="../../static/css/navbar.css">
     <link rel="stylesheet" th:href="@{/css/tienda.css}" href="../../static/css/tienda.css">
     <link rel="stylesheet" th:href="@{/css/colaboradorJuegos.css}" href="../../static/css/colaboradorJuegos.css">
@@ -16,13 +16,13 @@
 
     <div class="page-head">
         <div>
-            <h1>Mis juegos</h1>
-            <p>Lo que subes queda inactivo hasta que un gestor lo publica en la tienda. Si lo
+            <h1 th:text="#{navbar.misJuegos}">Mis juegos</h1>
+            <p th:text="#{colab.mis.intro}">Lo que subes queda inactivo hasta que un gestor lo publica en la tienda. Si lo
                 actualizas vuelve a quedar inactivo, y se revisa otra vez antes de volver a verse.</p>
         </div>
         <div class="page-actions">
             <a class="btn btn-primary" th:href="@{/colaborador/mis-juegos/nuevo}">
-                <svg th:replace="~{fragments/iconos :: plus}"></svg> Subir un juego</a>
+                <svg th:replace="~{fragments/iconos :: plus}"></svg> <th:block th:text="#{colab.mis.subir}">Subir un juego</th:block></a>
         </div>
     </div>
 
@@ -33,19 +33,19 @@
         <div class="card-body tight">
 
             <div class="empty" th:if="${#lists.isEmpty(juegos)}">
-                <h4>Todavía no has subido ningún juego</h4>
-                <p>Empieza con el botón «Subir un juego»: rellenas la ficha y adjuntas el ZIP.</p>
+                <h4 th:text="#{colab.mis.vacia}">Todavía no has subido ningún juego</h4>
+                <p th:text="#{colab.mis.vacia.hint}">Empieza con el botón «Subir un juego»: rellenas la ficha y adjuntas el ZIP.</p>
             </div>
 
             <div class="tbl-wrap" th:unless="${#lists.isEmpty(juegos)}">
                 <table class="tbl">
                     <thead>
                     <tr>
-                        <th>Juego</th>
-                        <th>Estado</th>
-                        <th class="num">Precio</th>
-                        <th>Versión</th>
-                        <th>Publicado</th>
+                        <th th:text="#{colab.col.juego}">Juego</th>
+                        <th th:text="#{colab.col.estado}">Estado</th>
+                        <th class="num" th:text="#{colab.col.precio}">Precio</th>
+                        <th th:text="#{colab.col.version}">Versión</th>
+                        <th th:text="#{colab.col.publicado}">Publicado</th>
                         <th class="acts"></th>
                     </tr>
                     </thead>
@@ -55,7 +55,7 @@
                             <div class="row">
                                 <img class="juego-portada"
                                      th:src="${portadas[j.id] != null} ? @{${portadas[j.id]}} : @{/img/placeholder.webp}"
-                                     th:alt="'Portada de ' + ${j.titulo}">
+                                     th:alt="#{colab.mis.portadaDe(${j.titulo})}">
                                 <div>
                                     <div class="t-main" th:text="${j.titulo}">Hollow Transit</div>
                                     <div class="t-sub">
@@ -71,11 +71,11 @@
                         </td>
                         <td>
                             <span class="badge" th:classappend="${j.activo} ? 'b-good' : 'b-mute'"
-                                  th:text="${j.activo} ? 'PUBLICADO' : 'INACTIVO'">PUBLICADO</span>
+                                  th:text="${j.activo} ? #{colab.estado.publicado} : #{colab.estado.inactivo}">PUBLICADO</span>
                         </td>
                         <td class="num">
-                            <span th:if="${j.precio.signum() == 0 and j.activo}" class="badge b-good">GRATIS</span>
-                            <span th:if="${j.precio.signum() == 0 and !j.activo}" class="muted">Sin precio</span>
+                            <span th:if="${j.precio.signum() == 0 and j.activo}" class="badge b-good" th:text="#{colab.gratis}">GRATIS</span>
+                            <span th:if="${j.precio.signum() == 0 and !j.activo}" class="muted" th:text="#{colab.sinPrecio}">Sin precio</span>
                             <b th:unless="${j.precio.signum() == 0}"
                                th:text="${#numbers.formatDecimal(j.precio, 1, 'POINT', 2, 'COMMA')} + ' €'">9,99 €</b>
                         </td>
@@ -91,7 +91,7 @@
                         </td>
                         <td class="acts">
                             <a class="btn btn-sm" th:href="@{/colaborador/mis-juegos/{id}/editar(id=${j.id})}">
-                                <svg th:replace="~{fragments/iconos :: edit}"></svg> Editar</a>
+                                <svg th:replace="~{fragments/iconos :: edit}"></svg> <th:block th:text="#{colab.editar}">Editar</th:block></a>
                         </td>
                     </tr>
                     </tbody>
