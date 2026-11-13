@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -93,6 +93,7 @@
             <div class="card">
                 <div class="card-body stack">
                     <h2 style="font-size:19px" th:text="#{ficha.val.titulo}">Valoraciones</h2>
+                    <th:block sec:authorize="hasRole('CLIENTE')">
                     <p class="sinopsis muted" th:unless="${yaValorado}" th:text="#{ficha.val.escribe}">Escribe alguna reseña de este juego.</p>
                     <p class="sinopsis muted" th:if="${yaValorado}" th:text="#{ficha.val.yaValorado}">Ya has valorado este juego. Solo se puede dejar una reseña por juego.</p>
                     <form class="stack" th:unless="${yaValorado}" th:action="@{/valoraciones/guardar}" method="post">
@@ -122,6 +123,7 @@
                             </div>
                         </div>
                     </form>
+                    </th:block>
                     <div class="stack" th:if="${!#lists.isEmpty(valoraciones)}">
                         <article class="resena" th:each="valoracion : ${valoraciones}">
                             <div class="resena-cab">

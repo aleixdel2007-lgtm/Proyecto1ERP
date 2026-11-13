@@ -8,22 +8,12 @@
         <div class="brand-name">Ludus<span>ERP</span></div>
     </a>
 
-    <th:block sec:authorize="!hasRole('ADMIN')">
-        <div class="top-search">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/>
-            </svg>
-            <input placeholder="Buscar en todo el catalogo..." th:placeholder="#{navbar.buscar}">
-        </div>
-
         <select class="lang" title="Idioma de la interfaz" th:title="#{navbar.idioma}"
                 onchange="const u=new window.URL(window.location.href);u.searchParams.set('lang',this.value);window.location.href=u.href;">
             <option value="es" th:selected="${#locale.language == 'es'}">ES</option>
             <option value="ca" th:selected="${#locale.language == 'ca'}">CA</option>
             <option value="en" th:selected="${#locale.language == 'en'}">EN</option>
         </select>
-    </th:block>
     <div class="who">
         <!-- Sin foto va el avatar generico de /img/placeholder.webp. No hay fila de
              imagen_usuario para esos: el hueco lo rellena la plantilla. -->

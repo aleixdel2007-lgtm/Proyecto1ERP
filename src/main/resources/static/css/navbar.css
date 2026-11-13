@@ -14,7 +14,20 @@
     --r-xl:24px;
     --topbar:58px;
     --font:"Segoe UI Variable Text","Segoe UI",Inter,system-ui,-apple-system,sans-serif;
+
+    /* Los controles que dibuja el navegador (lista del select, fechas, scroll) en oscuro */
+    color-scheme:dark;
 }
+
+/* Barra de scroll fina, con los colores del tema. La primera linea es el estandar y es la
+   que manda en Firefox, Chrome y Edge recientes; las reglas ::-webkit-scrollbar solo
+   cuentan en Safari y navegadores antiguos. Mismo bloque que panel.css, que no carga
+   este fichero. */
+*{scrollbar-width:thin;scrollbar-color:#31313a transparent}
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:#31313a;border-radius:6px;border:2px solid transparent;background-clip:content-box}
+::-webkit-scrollbar-thumb:hover{background:var(--purple);background-clip:content-box}
 
 /* El modelo de caja, en el mismo sitio que el body y las variables, porque TODAS las
    pantallas que llevan una de estas dos barras cargan este fichero. Lo declaraban por su
