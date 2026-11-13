@@ -238,6 +238,30 @@ public class DatosIniciales implements CommandLineRunner {
         claveLibre(eclipse, "ECLP-1A1A-2B2B-3C3C");
         claveLibre(eclipse, "ECLP-4D4D-5E5E-6F6F");
         claveLibre(lastSignal, "LSTS-7G7G-8H8H-9I9I");
+        
+                // Orbital: 4 libres. Comprar una deja 3 y SI avisa (umbral: 3 o menos)
+        claveLibre(orbital, "ORBF-1A1A-2B2B-3C3C");
+        claveLibre(orbital, "ORBF-4D4D-5E5E-6F6F");
+        claveLibre(orbital, "ORBF-7G7G-8H8H-9I9I");
+        claveLibre(orbital, "ORBF-0J0J-1K1K-2L2L");
+        
+                // Stock de demo. Cada juego se va a comprar con un cliente que aun no lo tiene
+        // Ashen: 6 libres -> comprar una deja 5, NO avisa (para enseñar que no salta siempre)
+        claveLibre(ashen, "ASHN-1A1A-2B2B-3C3C");
+        claveLibre(ashen, "ASHN-4D4D-5E5E-6F6F");
+        claveLibre(ashen, "ASHN-7G7G-8H8H-9I9I");
+        claveLibre(ashen, "ASHN-0J0J-1K1K-2L2L");
+        claveLibre(ashen, "ASHN-3M3M-4N4N-5O5O");
+        claveLibre(ashen, "ASHN-6P6P-7Q7Q-8R8R");
+        // Nightjar: 4 libres -> comprar una deja 3, SI avisa
+        claveLibre(nightjar, "NGTJ-1A1A-2B2B-3C3C");
+        claveLibre(nightjar, "NGTJ-4D4D-5E5E-6F6F");
+        claveLibre(nightjar, "NGTJ-7G7G-8H8H-9I9I");
+        claveLibre(nightjar, "NGTJ-0J0J-1K1K-2L2L");
+        // Mycelium: 2 libres -> comprar una deja 1, SI avisa
+        claveLibre(mycelium, "MYCL-5M5M-6N6N-7O7O");
+        claveLibre(mycelium, "MYCL-8P8P-9Q9Q-0R0R");
+        
         claveAnulada(mycelium, "MYCL-0J0J-1K1K-2L2L");
     }
 
