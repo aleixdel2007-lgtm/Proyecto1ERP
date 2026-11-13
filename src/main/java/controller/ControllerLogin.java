@@ -11,7 +11,10 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import org.springframework.context.MessageSource;
+
 import java.time.LocalDate;
+import java.util.Locale;
 import java.util.regex.Pattern;
 import org.springframework.ui.Model;
 import service.interfaces.ClienteService;
@@ -26,6 +29,7 @@ public class ControllerLogin {
     private final UsuarioDao usuarioDao;
     private final PasswordEncoder codificador;
     private final ClienteService clienteService;
+    private final MessageSource messageSource;
 
     @GetMapping("/")
     public String index() {
@@ -50,14 +54,14 @@ public class ControllerLogin {
             @RequestParam(required = false) String pais,
             @RequestParam(required = false) LocalDate fechaNacimiento,
             @RequestParam(required = false) String aceptaCondiciones,
-            Model model) {
+            Model model, Locale locale) {
         String correo = email.trim().toLowerCase();
 
         try {
             clienteService.comprobarCorreoLibre(correo);
         } catch (CorreoYaRegistradoException e) {
             // devolvemos el formulario sin redirect para no perder lo que escribio (las contraseñas no se devuelven)
-            model.addAttribute("errorEmail", e.getMessage());
+            model.addAttribute("errorEmail", messageSource.getMessage(e.getMessage(), null, e.getMessage(), locale));
             model.addAttribute("nombre", nombre);
             model.addAttribute("apellidos", apellidos);
             model.addAttribute("email", email);

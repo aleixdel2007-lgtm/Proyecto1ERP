@@ -3,12 +3,13 @@
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <title>Crear cuenta · LudusERP</title>
+        <title th:text="#{registro.titulo} + ' · LudusERP'">Crear cuenta · LudusERP</title>
         <link rel="stylesheet" th:href="@{/css/login.css}" href="../../static/css/login.css">
     </head>
     <body>
 
         <main class="auth">
+            <select th:replace="~{fragments/idioma :: selector}"></select>
             <div class="auth-box auth-box-wide">
 
                 <div class="auth-brand">
@@ -17,65 +18,68 @@
                 </div>
 
                 <div class="card">
-                    <form th:action="@{/registro}" method="post">
+                    <form th:action="@{/registro}" method="post"
+                          th:attr="data-msg-min=#{registro.js.min},data-msg-mayus=#{registro.js.mayus},data-msg-numero=#{registro.js.numero},data-msg-coinciden=#{registro.js.coinciden}">
 
                         <div class="card-head">
-                            <h2 class="auth-title">Crear una cuenta de cliente</h2>
+                            <h2 class="auth-title" th:text="#{registro.cabecera}">Crear una cuenta de cliente</h2>
                         </div>
 
                         <div class="card-body">
 
-                            <div class="alert alert-err form-alert" th:if="${param.error}">
+                            <div class="alert alert-err form-alert" th:if="${param.error}" th:text="#{registro.error}">
                                 No se ha podido crear la cuenta. Revisa los datos e inténtalo de nuevo.
                             </div>
 
                             <div class="form-grid">
                                 <div class="frow">
-                                    <label for="nombre">Nombre <span class="req">*</span></label>
+                                    <label for="nombre"><th:block th:text="#{registro.nombre}">Nombre</th:block> <span class="req">*</span></label>
                                     <input class="inp" type="text" id="nombre" name="nombre"
                                            th:value="${nombre}" autocomplete="given-name" required autofocus>
                                 </div>
 
                                 <div class="frow">
-                                    <label for="apellidos">Apellidos <span class="req">*</span></label>
+                                    <label for="apellidos"><th:block th:text="#{registro.apellidos}">Apellidos</th:block> <span class="req">*</span></label>
                                     <input class="inp" type="text" id="apellidos" name="apellidos"
                                            th:value="${apellidos}" autocomplete="family-name" required>
                                 </div>
 
                                 <div class="frow wide">
-                                    <label for="email">Correo electrónico <span class="req">*</span></label>
+                                    <label for="email"><th:block th:text="#{login.email}">Correo electrónico</th:block> <span class="req">*</span></label>
                                     <input class="inp" type="email" id="email" name="email"
                                            th:value="${email}" autocomplete="email" required>
                                     <!-- solo sale si el correo ya tiene cuenta -->
                                     <span class="hint" style="color:var(--crit)" th:if="${errorEmail}" th:text="${errorEmail}"></span>
-                                    <span class="hint">Será tu identificador de acceso.</span>
+                                    <span class="hint" th:text="#{registro.emailHint}">Será tu identificador de acceso.</span>
                                 </div>
 
                                 <div class="frow">
-                                    <label for="password">Contraseña <span class="req">*</span></label>
+                                    <label for="password"><th:block th:text="#{login.password}">Contraseña</th:block> <span class="req">*</span></label>
                                     <input class="inp" type="password" id="password" name="password"
                                            autocomplete="new-password" required>
-                                    <span class="hint">Mínimo 8 caracteres, una mayúscula y un número.</span>
+                                    <span class="hint" th:text="#{registro.passHint}">Mínimo 8 caracteres, una mayúscula y un número.</span>
                                 </div>
 
                                 <div class="frow">
-                                    <label for="repetirPassword">Repetir contraseña <span class="req">*</span></label>
+                                    <label for="repetirPassword"><th:block th:text="#{registro.repetir}">Repetir contraseña</th:block> <span class="req">*</span></label>
                                     <input class="inp" type="password" id="repetirPassword" name="repetirPassword"
                                            autocomplete="new-password" required>
                                 </div>
 
+                                <!-- El valor que viaja sigue siendo el nombre en castellano (es lo que se guarda);
+                                     solo cambia el texto que se ve -->
                                 <div class="frow">
-                                    <label for="pais">País</label>
+                                    <label for="pais" th:text="#{registro.pais}">País</label>
                                     <select class="inp" id="pais" name="pais">
-                                        <option value="">Selecciona…</option>
-                                        <option th:selected="${pais == 'España'}">España</option>
-                                        <option th:selected="${pais == 'Francia'}">Francia</option>
-                                        <option th:selected="${pais == 'Italia'}">Italia</option>
+                                        <option value="" th:text="#{registro.selecciona}">Selecciona…</option>
+                                        <option value="España" th:selected="${pais == 'España'}" th:text="#{registro.pais.es}">España</option>
+                                        <option value="Francia" th:selected="${pais == 'Francia'}" th:text="#{registro.pais.fr}">Francia</option>
+                                        <option value="Italia" th:selected="${pais == 'Italia'}" th:text="#{registro.pais.it}">Italia</option>
                                     </select>
                                 </div>
 
                                 <div class="frow">
-                                    <label for="fechaNacimiento">Fecha de nacimiento</label>
+                                    <label for="fechaNacimiento" th:text="#{registro.fecha}">Fecha de nacimiento</label>
                                     <input class="inp" type="date" id="fechaNacimiento" name="fechaNacimiento"
                                            th:value="${fechaNacimiento}">
                                 </div>
@@ -83,15 +87,15 @@
                                 <div class="frow wide">
                                     <label class="cbx">
                                         <input type="checkbox" name="aceptaCondiciones" required>
-                                        Acepto las condiciones y la política de privacidad
+                                        <th:block th:text="#{registro.condiciones}">Acepto las condiciones y la política de privacidad</th:block>
                                     </label>
                                 </div>
                             </div>
                         </div>
 
                         <div class="form-foot">
-                            <a class="btn" th:href="@{/login}" href="login.html">Cancelar</a>
-                            <button type="submit" class="btn btn-primary">Crear cuenta</button>
+                            <a class="btn" th:href="@{/login}" href="login.html" th:text="#{registro.cancelar}">Cancelar</a>
+                            <button type="submit" class="btn btn-primary" th:text="#{registro.crear}">Crear cuenta</button>
                         </div>
 
                     </form>
