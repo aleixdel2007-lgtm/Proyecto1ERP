@@ -3,7 +3,9 @@ package controller;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
+import org.springframework.context.MessageSource;
 import exception.imagen.ImagenInvalidaException;
 import model.catalogo.Categoria;
 import model.catalogo.ImagenVideojuego;
@@ -27,6 +29,9 @@ public class ControllerColaboradorJuegos {
 
     @Autowired
     private VideojuegoService videojuegoService;
+
+    @Autowired
+    private MessageSource messageSource;
 
     @GetMapping("/colaborador/mis-juegos")
     public String misJuegos(Authentication authentication, Model model) {
@@ -62,7 +67,8 @@ public class ControllerColaboradorJuegos {
                                @RequestParam(required = false) List<MultipartFile> capturas,
                                Authentication authentication,
                                Model model,
-                               RedirectAttributes flash) {
+                               RedirectAttributes flash,
+                               Locale locale) {
 
         try {
             videojuegoService.publicarJuegoColaborador(authentication.getName(), titulo, sinopsis,
@@ -82,8 +88,7 @@ public class ControllerColaboradorJuegos {
             return "colaboradores/nuevo-juego";
         }
 
-        flash.addFlashAttribute("mensaje",
-                "Juego subido. Queda inactivo hasta que un gestor lo publique en la tienda");
+        flash.addFlashAttribute("mensaje", messageSource.getMessage("colab.ok.subido", null, locale));
 
         return "redirect:/colaborador/mis-juegos";
     }
@@ -112,7 +117,8 @@ public class ControllerColaboradorJuegos {
                                   @RequestParam(required = false) List<MultipartFile> capturas,
                                   Authentication authentication,
                                   Model model,
-                                  RedirectAttributes flash) {
+                                  RedirectAttributes flash,
+                                  Locale locale) {
 
         try {
             videojuegoService.actualizarJuegoColaborador(authentication.getName(), id, titulo,
@@ -132,8 +138,7 @@ public class ControllerColaboradorJuegos {
             return "colaboradores/editar-juego";
         }
 
-        flash.addFlashAttribute("mensaje",
-                "Cambios guardados. El juego queda inactivo hasta que un gestor lo vuelva a publicar");
+        flash.addFlashAttribute("mensaje", messageSource.getMessage("colab.ok.actualizado", null, locale));
 
         return "redirect:/colaborador/mis-juegos";
     }
@@ -142,11 +147,12 @@ public class ControllerColaboradorJuegos {
     public String quitarImagen(@PathVariable Long id,
                                @PathVariable Long imagenId,
                                Authentication authentication,
-                               RedirectAttributes flash) {
+                               RedirectAttributes flash,
+                               Locale locale) {
 
         try {
             videojuegoService.eliminarImagenDeColaborador(authentication.getName(), id, imagenId);
-            flash.addFlashAttribute("mensaje", "Imagen quitada");
+            flash.addFlashAttribute("mensaje", messageSource.getMessage("colab.ok.imagenQuitada", null, locale));
 
         } catch (ImagenInvalidaException e) {
             flash.addFlashAttribute("error", e.getMessage());

@@ -7,7 +7,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title th:text="'Editar ' + ${juego.titulo} + ' · LudusERP'">Editar juego · LudusERP</title>
+    <title th:text="#{colab.editar.titulo(${juego.titulo})} + ' · LudusERP'">Editar juego · LudusERP</title>
     <link rel="stylesheet" th:href="@{/css/navbar.css}" href="../../static/css/navbar.css">
     <link rel="stylesheet" th:href="@{/css/tienda.css}" href="../../static/css/tienda.css">
     <link rel="stylesheet" th:href="@{/css/colaboradorJuegos.css}" href="../../static/css/colaboradorJuegos.css">
@@ -19,16 +19,16 @@
 <main class="shop-body">
 
     <a class="btn btn-ghost btn-sm" style="margin-bottom:12px" th:href="@{/colaborador/mis-juegos}">
-        <svg th:replace="~{fragments/iconos :: back}"></svg> Volver a mis juegos</a>
+        <svg th:replace="~{fragments/iconos :: back}"></svg> <th:block th:text="#{colab.volver}">Volver a mis juegos</th:block></a>
 
     <div class="page-head">
         <div>
             <h1 th:text="${juego.titulo}">Hollow Transit</h1>
-            <p>Cambia lo que necesites y guarda. Lo que dejes vacío se queda como está.</p>
+            <p th:text="#{colab.editar.intro}">Cambia lo que necesites y guarda. Lo que dejes vacío se queda como está.</p>
         </div>
         <div class="page-actions">
             <span class="badge" th:classappend="${juego.activo} ? 'b-good' : 'b-mute'"
-                  th:text="${juego.activo} ? 'PUBLICADO' : 'INACTIVO'">PUBLICADO</span>
+                  th:text="${juego.activo} ? #{colab.estado.publicado} : #{colab.estado.inactivo}">PUBLICADO</span>
         </div>
     </div>
 
@@ -36,10 +36,11 @@
     <div class="alert alert-err" th:if="${error}" th:text="${error}"></div>
 
     <!-- El aviso solo tiene sentido mientras el juego esta en la tienda: si ya esta inactivo
-         no hay nada que retirar -->
+         no hay nada que retirar. Lleva una negrita, asi que el texto va con utext: es una
+         clave nuestra, no algo que escriba el usuario -->
     <div class="note-box" th:if="${juego.activo}" style="margin-bottom:16px">
         <svg th:replace="~{fragments/iconos :: warn}"></svg>
-        <div>Este juego está publicado. Al guardar los cambios <b>vuelve a quedar inactivo</b> y
+        <div th:utext="#{colab.editar.avisoPublicado}">Este juego está publicado. Al guardar los cambios <b>vuelve a quedar inactivo</b> y
             desaparece de la tienda hasta que un gestor lo revise y lo publique otra vez.</div>
     </div>
 
@@ -49,24 +50,24 @@
         <div class="stack">
 
             <div class="card">
-                <div class="card-head"><h3>Ficha del juego</h3></div>
+                <div class="card-head"><h3 th:text="#{colab.ficha}">Ficha del juego</h3></div>
                 <div class="card-body">
                     <div class="form-grid">
 
                         <div class="frow wide">
-                            <label for="titulo">Título <span class="req">*</span></label>
+                            <label for="titulo"><th:block th:text="#{colab.f.titulo}">Título</th:block> <span class="req">*</span></label>
                             <input class="inp" type="text" id="titulo" name="titulo" maxlength="150"
                                    th:value="${titulo != null} ? ${titulo} : ${juego.titulo}" required>
                         </div>
 
                         <div class="frow wide">
-                            <label for="sinopsis">Descripción <span class="req">*</span></label>
+                            <label for="sinopsis"><th:block th:text="#{colab.f.descripcion}">Descripción</th:block> <span class="req">*</span></label>
                             <textarea class="inp" id="sinopsis" name="sinopsis" rows="4" required
                                       th:text="${sinopsis != null} ? ${sinopsis} : ${juego.sinopsis}"></textarea>
                         </div>
 
                         <div class="frow">
-                            <label for="pegi">Clasificación PEGI <span class="req">*</span></label>
+                            <label for="pegi"><th:block th:text="#{colab.f.pegi}">Clasificación PEGI</th:block> <span class="req">*</span></label>
                             <select class="inp" id="pegi" name="pegi" required>
                                 <option th:each="p : ${pegis}" th:value="${p}" th:text="${p}"
                                         th:selected="${pegi != null}
@@ -79,7 +80,7 @@
 
                     <div class="stack" style="margin-top:18px">
                         <div>
-                            <div class="sect-label">Categorías <span class="hint">· elige al menos una</span></div>
+                            <div class="sect-label"><th:block th:text="#{colab.f.categorias}">Categorías</th:block> <span class="hint" th:text="#{colab.f.alMenosUna}">· elige al menos una</span></div>
                             <div class="row wrap chip-grupo">
                                 <label class="chip" th:each="c : ${categorias}"
                                        th:classappend="${categoriasMarcadas.contains(c.id)} ? 'on' : ''">
@@ -91,7 +92,7 @@
                         </div>
 
                         <div>
-                            <div class="sect-label">Plataformas <span class="hint">· elige al menos una</span></div>
+                            <div class="sect-label"><th:block th:text="#{colab.f.plataformas}">Plataformas</th:block> <span class="hint" th:text="#{colab.f.alMenosUna}">· elige al menos una</span></div>
                             <div class="row wrap chip-grupo">
                                 <label class="chip" th:each="p : ${plataformas}"
                                        th:classappend="${plataformasMarcadas.contains(p.id)} ? 'on' : ''">
@@ -109,37 +110,38 @@
                  pero no se borra, que es lo que ya hace version_juego -->
             <div class="card">
                 <div class="card-head">
-                    <h3>El archivo del juego</h3>
-                    <span class="hint">Solo si quieres publicar una versión nueva</span>
+                    <h3 th:text="#{colab.arch.titulo}">El archivo del juego</h3>
+                    <span class="hint" th:text="#{colab.arch.hint}">Solo si quieres publicar una versión nueva</span>
                 </div>
                 <div class="card-body stack">
 
                     <div class="row wrap" th:if="${versionActiva != null}">
-                        <span class="sect-label">Versión actual</span>
+                        <span class="sect-label" th:text="#{colab.arch.actual}">Versión actual</span>
                         <span class="mono" th:text="${versionActiva.numero}">1.0.0</span>
                         <span class="muted" th:text="${versionActiva.nombreArchivo}">hollow.zip</span>
                         <span class="muted"
-                              th:text="'· subida el ' + ${#temporals.format(versionActiva.fechaSubida, 'dd/MM/yyyy')}">
+                              th:text="#{colab.arch.subidaEl(${#temporals.format(versionActiva.fechaSubida, 'dd/MM/yyyy')})}">
                             · subida el 12/10/2026</span>
                     </div>
-                    <div class="img-vacia" th:if="${versionActiva == null}" style="margin-top:0">
+                    <div class="img-vacia" th:if="${versionActiva == null}" style="margin-top:0"
+                         th:text="#{colab.arch.ninguno}">
                         Este juego no tiene ningún archivo subido: nadie puede descargarlo.
                     </div>
 
                     <div class="form-grid">
                         <div class="frow">
-                            <label for="zip">Archivo nuevo (ZIP)</label>
+                            <label for="zip" th:text="#{colab.arch.nuevo}">Archivo nuevo (ZIP)</label>
                             <div class="file-drop">
                                 <input type="file" id="zip" name="zip" accept=".zip,application/zip">
-                                <span class="hint">Déjalo vacío para conservar el que ya está subido.</span>
+                                <span class="hint" th:text="#{colab.arch.nuevoHint}">Déjalo vacío para conservar el que ya está subido.</span>
                             </div>
                         </div>
 
                         <div class="frow">
-                            <label for="version">Número de la versión nueva</label>
+                            <label for="version" th:text="#{colab.arch.numero}">Número de la versión nueva</label>
                             <input class="inp mono" type="text" id="version" name="version" maxlength="20"
                                    th:value="${version}" placeholder="1.1.0">
-                            <span class="hint">Obligatorio solo si subes un archivo nuevo.</span>
+                            <span class="hint" th:text="#{colab.arch.numeroHint}">Obligatorio solo si subes un archivo nuevo.</span>
                         </div>
                     </div>
 
@@ -148,16 +150,18 @@
 
             <!-- Las imagenes ya guardadas se quitan de una en una, cada una con su propio POST,
                  y las casillas de abajo solo aparecen cuando queda hueco: portada y banner son
-                 uno por juego, y de capturas caben cuatro -->
+                 uno por juego, y de capturas caben cuatro. El texto de confirmacion va en
+                 data-confirmar y no dentro del onsubmit, para que un apostrofo del texto
+                 (en catalan hay muchos) no rompa el JavaScript. -->
             <div class="card">
                 <div class="card-head">
-                    <h3>Imágenes de la ficha</h3>
-                    <span class="hint">Lo que subas se añade a lo que ya hay</span>
+                    <h3 th:text="#{colab.img.titulo}">Imágenes de la ficha</h3>
+                    <span class="hint" th:text="#{colab.img.hintEditar}">Lo que subas se añade a lo que ya hay</span>
                 </div>
                 <div class="card-body stack">
 
                     <div>
-                        <div class="sect-label">Portada</div>
+                        <div class="sect-label" th:text="#{colab.img.portada}">Portada</div>
 
                         <div class="img-grid" th:if="${portada != null}">
                             <div class="img-card">
@@ -165,14 +169,15 @@
                                     <img th:src="@{${portada.ruta}}"
                                          th:alt="${portada.textoAlternativo != null}
                                                ? ${portada.textoAlternativo} : ${juego.titulo}">
-                                    <span class="img-tipo">PORTADA</span>
+                                    <span class="img-tipo" th:text="#{colab.img.tipo.portada}">PORTADA</span>
                                 </span>
                                 <div class="img-foot">
-                                    <span class="muted">En el catálogo</span>
+                                    <span class="muted" th:text="#{colab.img.enCatalogo}">En el catálogo</span>
                                     <form method="post"
                                           th:action="@{/colaborador/mis-juegos/{id}/imagen/{imagenId}/quitar(id=${juego.id}, imagenId=${portada.id})}"
-                                          onsubmit="return confirm('¿Quitar la portada? Se borra también el archivo.');">
-                                        <button type="submit" class="btn btn-sm btn-danger" title="Quitar">
+                                          th:attr="data-confirmar=#{colab.img.confirmarPortada}"
+                                          onsubmit="return confirm(this.dataset.confirmar);">
+                                        <button type="submit" class="btn btn-sm btn-danger" title="Quitar" th:title="#{colab.img.quitar}">
                                             <svg th:replace="~{fragments/iconos :: trash}"></svg>
                                         </button>
                                     </form>
@@ -181,18 +186,18 @@
                         </div>
 
                         <div th:if="${portada == null}">
-                            <div class="img-vacia">Sin portada: en el catálogo este juego sale con un hueco.</div>
+                            <div class="img-vacia" th:text="#{colab.img.sinPortada}">Sin portada: en el catálogo este juego sale con un hueco.</div>
                             <div class="file-drop" style="margin-top:10px">
-                                <label for="portada">Subir la portada</label>
+                                <label for="portada" th:text="#{colab.img.subirPortada}">Subir la portada</label>
                                 <input type="file" id="portada" name="portada"
                                        accept="image/png,image/jpeg,image/webp">
-                                <span class="hint">JPG, PNG o WEBP, máximo 2 MB.</span>
+                                <span class="hint" th:text="#{colab.img.formato}">JPG, PNG o WEBP, máximo 2 MB.</span>
                             </div>
                         </div>
                     </div>
 
                     <div>
-                        <div class="sect-label">Banner</div>
+                        <div class="sect-label" th:text="#{colab.img.banner}">Banner</div>
 
                         <div class="img-grid" th:if="${banner != null}">
                             <div class="img-card">
@@ -200,14 +205,15 @@
                                     <img th:src="@{${banner.ruta}}"
                                          th:alt="${banner.textoAlternativo != null}
                                                ? ${banner.textoAlternativo} : ${juego.titulo}">
-                                    <span class="img-tipo">BANNER</span>
+                                    <span class="img-tipo" th:text="#{colab.img.tipo.banner}">BANNER</span>
                                 </span>
                                 <div class="img-foot">
-                                    <span class="muted">Cabecera de la ficha</span>
+                                    <span class="muted" th:text="#{colab.img.cabecera}">Cabecera de la ficha</span>
                                     <form method="post"
                                           th:action="@{/colaborador/mis-juegos/{id}/imagen/{imagenId}/quitar(id=${juego.id}, imagenId=${banner.id})}"
-                                          onsubmit="return confirm('¿Quitar el banner? Se borra también el archivo.');">
-                                        <button type="submit" class="btn btn-sm btn-danger" title="Quitar">
+                                          th:attr="data-confirmar=#{colab.img.confirmarBanner}"
+                                          onsubmit="return confirm(this.dataset.confirmar);">
+                                        <button type="submit" class="btn btn-sm btn-danger" title="Quitar" th:title="#{colab.img.quitar}">
                                             <svg th:replace="~{fragments/iconos :: trash}"></svg>
                                         </button>
                                     </form>
@@ -216,19 +222,19 @@
                         </div>
 
                         <div th:if="${banner == null}">
-                            <div class="img-vacia">Sin banner: la ficha usa la portada.</div>
+                            <div class="img-vacia" th:text="#{colab.img.sinBanner}">Sin banner: la ficha usa la portada.</div>
                             <div class="file-drop" style="margin-top:10px">
-                                <label for="banner">Subir el banner</label>
+                                <label for="banner" th:text="#{colab.img.subirBanner}">Subir el banner</label>
                                 <input type="file" id="banner" name="banner"
                                        accept="image/png,image/jpeg,image/webp">
-                                <span class="hint">JPG, PNG o WEBP, máximo 2 MB.</span>
+                                <span class="hint" th:text="#{colab.img.formato}">JPG, PNG o WEBP, máximo 2 MB.</span>
                             </div>
                         </div>
                     </div>
 
                     <div>
-                        <div class="sect-label">Capturas
-                            <span class="hint" th:text="'· ' + ${#lists.size(capturas)} + ' de 4'">· 0 de 4</span>
+                        <div class="sect-label"><th:block th:text="#{colab.img.capturas}">Capturas</th:block>
+                            <span class="hint" th:text="#{colab.img.contador(${#lists.size(capturas)})}">· 0 de 4</span>
                         </div>
 
                         <div class="img-grid" th:unless="${#lists.isEmpty(capturas)}">
@@ -237,14 +243,15 @@
                                     <img th:src="@{${c.ruta}}"
                                          th:alt="${c.textoAlternativo != null}
                                                ? ${c.textoAlternativo} : ${juego.titulo}">
-                                    <span class="img-tipo">CAPTURA</span>
+                                    <span class="img-tipo" th:text="#{colab.img.tipo.captura}">CAPTURA</span>
                                 </span>
                                 <div class="img-foot">
-                                    <span class="muted" th:text="'Orden ' + ${c.orden}">Orden 1</span>
+                                    <span class="muted" th:text="#{colab.img.orden(${c.orden})}">Orden 1</span>
                                     <form method="post"
                                           th:action="@{/colaborador/mis-juegos/{id}/imagen/{imagenId}/quitar(id=${juego.id}, imagenId=${c.id})}"
-                                          onsubmit="return confirm('¿Quitar esta captura? Se borra también el archivo.');">
-                                        <button type="submit" class="btn btn-sm btn-danger" title="Quitar">
+                                          th:attr="data-confirmar=#{colab.img.confirmarCaptura}"
+                                          onsubmit="return confirm(this.dataset.confirmar);">
+                                        <button type="submit" class="btn btn-sm btn-danger" title="Quitar" th:title="#{colab.img.quitar}">
                                             <svg th:replace="~{fragments/iconos :: trash}"></svg>
                                         </button>
                                     </form>
@@ -252,7 +259,7 @@
                             </div>
                         </div>
 
-                        <div class="img-vacia" th:if="${#lists.isEmpty(capturas)}">
+                        <div class="img-vacia" th:if="${#lists.isEmpty(capturas)}" th:text="#{colab.img.sinCapturas}">
                             Todavía no has subido ninguna captura.
                         </div>
 
@@ -261,12 +268,12 @@
                         <div class="slots-img" th:if="${#lists.size(capturas) < 4}">
                             <div class="file-drop slot"
                                  th:each="i : ${#numbers.sequence(#lists.size(capturas) + 1, 4)}">
-                                <label th:for="'captura' + ${i}" th:text="'Captura ' + ${i}">Captura 1</label>
+                                <label th:for="'captura' + ${i}" th:text="#{colab.img.captura(${i})}">Captura 1</label>
                                 <input type="file" th:id="'captura' + ${i}" name="capturas"
                                        accept="image/png,image/jpeg,image/webp">
                             </div>
                         </div>
-                        <span class="hint" th:if="${#lists.size(capturas) >= 4}">
+                        <span class="hint" th:if="${#lists.size(capturas) >= 4}" th:text="#{colab.img.tiene4}">
                             Ya tienes las cuatro. Para cambiar alguna, quita una y sube otra.</span>
                     </div>
 
@@ -274,9 +281,9 @@
             </div>
 
             <div class="row" style="justify-content:flex-end">
-                <a class="btn" th:href="@{/colaborador/mis-juegos}">Cancelar</a>
+                <a class="btn" th:href="@{/colaborador/mis-juegos}" th:text="#{colab.cancelar}">Cancelar</a>
                 <button type="submit" class="btn btn-primary">
-                    <svg th:replace="~{fragments/iconos :: check}"></svg> Guardar los cambios</button>
+                    <svg th:replace="~{fragments/iconos :: check}"></svg> <th:block th:text="#{colab.editar.guardar}">Guardar los cambios</th:block></button>
             </div>
 
         </div>
