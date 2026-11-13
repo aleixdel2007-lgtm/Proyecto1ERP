@@ -10,8 +10,16 @@ package exception.pago;
  */
 public class SinClavesDisponiblesException extends RuntimeException {
 
+    private final String titulo;
+
+    // El mensaje es la clave de traduccion (pago.error.sinClaves) y el titulo es su {0}:
+    // el controlador la resuelve segun el idioma del usuario
     public SinClavesDisponiblesException(String titulo) {
-        super("De momento no quedan claves de \"" + titulo
-                + "\". Retira ese juego de la cesta o inténtalo más tarde");
+        super("pago.error.sinClaves");
+        this.titulo = titulo;
+    }
+
+    public String getTitulo() {
+        return titulo;
     }
 }

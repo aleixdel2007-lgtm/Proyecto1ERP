@@ -117,7 +117,7 @@ public class PagoServiceImpl implements PagoService {
             Session sesion = stripe.v1().checkout().sessions().create(params.build());
             return sesion.getUrl();
         } catch (StripeException e) {
-            throw new PagoNoCompletadoException("No se ha podido conectar con Stripe");
+            throw new PagoNoCompletadoException("pago.error.conectar");
         }
     }
 
@@ -132,11 +132,11 @@ public class PagoServiceImpl implements PagoService {
         try {
             sesion = stripe.v1().checkout().sessions().retrieve(sessionId);
         } catch (StripeException e) {
-            throw new PagoNoCompletadoException("No se ha podido comprobar el pago con Stripe");
+            throw new PagoNoCompletadoException("pago.error.comprobar");
         }
 
         if (!"paid".equals(sesion.getPaymentStatus())) {
-            throw new PagoNoCompletadoException("El pago no se ha completado");
+            throw new PagoNoCompletadoException("pago.error.noCompletado");
         }
 
         Long pedidoId = Long.valueOf(sesion.getClientReferenceId());
@@ -153,7 +153,7 @@ public class PagoServiceImpl implements PagoService {
             return pedido;
         }
         if (pedido.getEstado() != EstadoPedido.PENDIENTE_PAGO) {
-            throw new PagoNoCompletadoException("Este pedido ya no se puede pagar");
+            throw new PagoNoCompletadoException("pago.error.yaNoPagable");
         }
 
         asignarClaves(pedido);
@@ -170,7 +170,7 @@ public class PagoServiceImpl implements PagoService {
 
     private StripeClient clienteStripe() {
         if (claveSecreta == null || claveSecreta.isBlank()) {
-            throw new PagoNoCompletadoException("Falta configurar la clave de Stripe (STRIPE_SECRET_KEY)");
+            throw new PagoNoCompletadoException("pago.error.sinClaveStripe");
         }
         return new StripeClient(claveSecreta);
     }
