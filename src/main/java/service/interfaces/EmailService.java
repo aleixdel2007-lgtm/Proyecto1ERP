@@ -10,5 +10,7 @@ package service.interfaces;
  */
 public interface EmailService {
 
-    void enviarCuentaActivada(String destino, String nombre);
+    void enviarCuentaActivada(String destino, String nombre); //para clientes
+    
+    void enviarAvisoStockBajo(String destino, String titulo, long quedan); //para gestor de inventario
 }

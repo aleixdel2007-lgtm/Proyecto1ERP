@@ -21,4 +21,7 @@ public interface ClaveLicenciaService {
 
     // Deja una clave DISPONIBLE inservible para siempre, con su fecha y su motivo
     void anularClave(Long id, String motivo);
+
+    // Mira cuantas claves quedan de un juego y, si son pocas, avisa por correo a los gestores de inventario
+    void avisarSiQuedaPocoStock(Videojuego videojuego);
 }

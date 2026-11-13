@@ -27,9 +27,9 @@ public interface PedidoDao extends JpaRepository<Pedido, Long> {
             + "and p.fecha >= :desde and p.fecha < :hasta "
             + "order by p.fecha desc")
     List<Pedido> listarFiltrado(@Param("texto") String texto,
-                                @Param("estado") EstadoPedido estado,
-                                @Param("desde") LocalDateTime desde,
-                                @Param("hasta") LocalDateTime hasta);
+            @Param("estado") EstadoPedido estado,
+            @Param("desde") LocalDateTime desde,
+            @Param("hasta") LocalDateTime hasta);
 
     // Un pedido con su cliente y sus lineas (con el videojuego de cada una) ya cargados.
     // El proveedor y el colaborador del juego tambien se traen aqui: la vista ensena quien
@@ -45,4 +45,11 @@ public interface PedidoDao extends JpaRepository<Pedido, Long> {
     Optional<Pedido> buscarConDetalle(@Param("id") Long id);
 
     long countByEstado(EstadoPedido estado);
+
+    // Pedidos que siguen pendientes de pago y se crearon antes del limite que llega
+    @Query("select p from Pedido p "
+            + "where p.estado = :estado "
+            + "and p.fecha < :limite")
+    List<Pedido> buscarPendientesAnterioresA(@Param("estado") EstadoPedido estado,
+            @Param("limite") LocalDateTime limite);
 }
