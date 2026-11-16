@@ -89,13 +89,12 @@
                                         <tr th:each="c : ${clientes.subList(inicio, fin)}">
                                             <td>
                                                 <div style="display:flex;align-items:center;gap:10px">
+                                                    <!-- Sin foto va el mismo placeholder que
+                                                         lleva cualquier usuario del sistema, no
+                                                         la inicial del nombre -->
                                                     <img class="avatar" style="width:28px;height:28px;object-fit:cover"
-                                                         th:if="${fotos[c.id] != null}"
-                                                         th:src="@{${fotos[c.id]}}"
+                                                         th:src="${fotos[c.id] != null} ? @{${fotos[c.id]}} : @{/img/placeholder.webp}"
                                                          th:alt="#{clientes.fotoDe(${c.nombre})}">
-                                                    <div class="avatar" style="width:28px;height:28px;font-size:11px"
-                                                         th:unless="${fotos[c.id] != null}"
-                                                         th:text="${#strings.toUpperCase(#strings.substring(c.nombre, 0, 1))}">M</div>
                                                     <div>
                                                         <div class="t-main"
                                                              th:text="${c.apellidos != null ? c.nombre + ' ' + c.apellidos : c.nombre}">Marta Ribas</div>
