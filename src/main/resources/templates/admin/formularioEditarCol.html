@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<html th:lang="${#locale.language}" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Editar colaborador · LudusERP</title>
+    <title th:text="#{colaboradores.editar} + ' · LudusERP'">Editar colaborador · LudusERP</title>
     <link rel="stylesheet" th:href="@{/css/panel.css}">
     <link rel="stylesheet" th:href="@{/css/colaboradores.css}">
 </head>
@@ -15,7 +15,7 @@
 
     <div class="main">
 
-        <header th:replace="~{fragments/panel :: barra('Administración', 'Colaboradores')}"></header>
+        <header th:replace="~{fragments/panel :: barra(#{panel.seccion.admin}, #{panel.menu.colaboradores})}"></header>
 
         <main class="canvas">
 
@@ -24,8 +24,8 @@
 
             <div class="page-head">
                 <div>
-                    <h1>Editar colaborador</h1>
-                    <p>El estado de alta o baja se cambia aquí, en el apartado de acceso.</p>
+                    <h1 th:text="#{colaboradores.editar}">Editar colaborador</h1>
+                    <p th:text="#{empleados.editar.intro}">El estado de alta o baja se cambia aquí.</p>
                 </div>
             </div>
 
@@ -41,73 +41,72 @@
 
                         <div class="card-body stack">
 
-                            <div class="sect-label">Datos personales</div>
+                            <div class="sect-label" th:text="#{perfil.datos.personales}">Datos personales</div>
                             <div class="form-grid">
 
                                 <div class="frow">
-                                    <label for="nombre">Nombre <span class="req">*</span></label>
+                                    <label for="nombre"><span th:text="#{comun.nombre}">Nombre</span> <span class="req">*</span></label>
                                     <input class="inp" type="text" th:field="*{nombre}" maxlength="80"
-                                           placeholder="Jordi" required>
+                                           th:placeholder="#{colaboradores.nombrePh}" placeholder="Jordi" required>
                                 </div>
 
                                 <div class="frow">
-                                    <label for="apellidos">Apellidos <span class="req">*</span></label>
+                                    <label for="apellidos"><span th:text="#{perfil.apellidos}">Apellidos</span> <span class="req">*</span></label>
                                     <input class="inp" type="text" th:field="*{apellidos}" maxlength="120"
-                                           placeholder="Bastida" required>
+                                           th:placeholder="#{colaboradores.apellidosPh}" placeholder="Bastida" required>
                                 </div>
 
                                 <div class="frow">
-                                    <label for="pais">País</label>
+                                    <label for="pais" th:text="#{comun.pais}">País</label>
                                     <select class="inp" th:field="*{pais}">
-                                        <option value="">Sin indicar</option>
-                                        <option value="España">España</option>
-                                        <option value="Suecia">Suecia</option>
-                                        <option value="Alemania">Alemania</option>
-                                        <option value="Reino Unido">Reino Unido</option>
-                                        <option value="Países Bajos">Países Bajos</option>
+                                        <option value="" th:text="#{comun.sinIndicar}">Sin indicar</option>
+                                        <option value="España" th:text="#{pais.ES}">España</option>
+                                        <option value="Suecia" th:text="#{pais.SE}">Suecia</option>
+                                        <option value="Alemania" th:text="#{pais.DE}">Alemania</option>
+                                        <option value="Reino Unido" th:text="#{pais.GB}">Reino Unido</option>
+                                        <option value="Países Bajos" th:text="#{pais.NL}">Países Bajos</option>
                                     </select>
                                 </div>
 
                             </div>
 
-                            <div class="sect-label">Acceso</div>
+                            <div class="sect-label" th:text="#{empleados.acceso}">Acceso</div>
                             <div class="form-grid">
 
                                 <div class="frow wide">
-                                    <label for="email">Correo de acceso <span class="req">*</span></label>
+                                    <label for="email"><span th:text="#{colaboradores.correoAcceso}">Correo de acceso</span> <span class="req">*</span></label>
                                     <input class="inp" type="email" th:field="*{email}" maxlength="180"
-                                           placeholder="jordi.bastida@example.com" required>
-                                    <span class="hint">Si lo cambias, cambia el usuario con el que inicia sesión.</span>
+                                           th:placeholder="#{colaboradores.correoPh}" placeholder="jordi.bastida@example.com" required>
+                                    <span class="hint" th:text="#{empleados.hint.correoEditar}">Si lo cambias, cambia el usuario con el que inicia sesión.</span>
                                 </div>
 
                                 <div class="frow">
-                                    <label>Estado</label>
+                                    <label th:text="#{comun.estado}">Estado</label>
                                     <label class="switch" style="margin-top:6px">
-                                        <input type="checkbox" th:field="*{activo}"><i></i> Activo
+                                        <input type="checkbox" th:field="*{activo}"><i></i> <span th:text="#{comun.activo}">Activo</span>
                                     </label>
-                                    <span class="hint">Si lo desmarcas, no podrá iniciar sesión, pero sus
-                                        juegos siguen publicados en la tienda.</span>
+                                    <span class="hint" th:text="#{colaboradores.hint.activo}">Si lo desmarcas, no podrá iniciar sesión.</span>
                                 </div>
 
                                 <div class="frow">
-                                    <label>Contraseña</label>
+                                    <label th:text="#{colaboradores.col.password}">Contraseña</label>
                                     <div class="col-estado-pwd">
                                         <span class="badge"
                                               th:classappend="${colaborador.debeCambiarPassword} ? 'b-warn' : 'b-good'"
-                                              th:text="${colaborador.debeCambiarPassword} ? 'PENDIENTE DE CAMBIAR' : 'ACTIVA'">ACTIVA</span>
+                                              th:text="${colaborador.debeCambiarPassword} ? #{colaboradores.passPendiente} : #{colaboradores.passActiva}">ACTIVA</span>
                                     </div>
-                                    <span class="hint">No se edita desde aquí.</span>
+                                    <span class="hint" th:text="#{colaboradores.hint.passwordEditar}">No se edita desde aquí.</span>
                                 </div>
 
                             </div>
 
                             <!-- La foto actual, o el avatar generico si todavia no tiene. Vacio
                                  significa no tocarla, igual que en el formulario del empleado. -->
-                            <div class="sect-label">Foto de perfil</div>
+                            <div class="sect-label" th:text="#{perfil.foto}">Foto de perfil</div>
                             <div class="form-grid">
 
                                 <div class="frow wide">
-                                    <label for="foto">Cambiar la foto</label>
+                                    <label for="foto" th:text="#{empleados.cambiarFoto}">Cambiar la foto</label>
                                     <div class="row">
                                         <img class="avatar col-avatar" style="object-fit:cover"
                                              th:src="${imagenColaborador != null}
@@ -115,12 +114,11 @@
                                                      : @{/img/placeholder.webp}"
                                              th:alt="${imagenColaborador != null}
                                                      ? ${imagenColaborador.textoAlternativo}
-                                                     : 'Sin foto de perfil'">
+                                                     : #{navbar.sinFoto}">
                                         <input class="inp" type="file" id="foto" name="foto"
                                                accept="image/png,image/jpeg,image/webp">
                                     </div>
-                                    <span class="hint">JPG, PNG o WEBP, máximo 2 MB. Déjalo vacío para no
-                                        cambiarla; la anterior se borra al subir una nueva.</span>
+                                    <span class="hint" th:text="#{empleados.hint.fotoEditar}">JPG, PNG o WEBP, máximo 2 MB.</span>
                                 </div>
 
                             </div>
@@ -128,9 +126,9 @@
                         </div>
 
                         <div class="form-foot">
-                            <span class="note">La fecha de alta del usuario no se modifica nunca.</span>
-                            <a class="btn" th:href="@{/admin/colaboradores}">Cancelar</a>
-                            <button type="submit" class="btn btn-primary">Guardar cambios</button>
+                            <span class="note" th:text="#{colaboradores.nota.editar}">La fecha de alta del usuario no se modifica nunca.</span>
+                            <a class="btn" th:href="@{/admin/colaboradores}" th:text="#{comun.cancelar}">Cancelar</a>
+                            <button type="submit" class="btn btn-primary" th:text="#{comun.guardarCambios}">Guardar cambios</button>
                         </div>
 
                     </form>
@@ -139,25 +137,23 @@
                 <div class="stack">
 
                     <div class="card">
-                        <div class="card-head"><h3>Ficha del colaborador</h3></div>
+                        <div class="card-head"><h3 th:text="#{colaboradores.ficha}">Ficha del colaborador</h3></div>
                         <div class="card-body">
                             <dl class="kv">
-                                <dt>Fecha de alta</dt>
+                                <dt th:text="#{colaboradores.col.alta}">Fecha de alta</dt>
                                 <dd th:text="${colaborador.fechaAlta != null
                                         ? #temporals.format(colaborador.fechaAlta, 'dd/MM/yyyy HH:mm') : '—'}">12/10/2026 18:42</dd>
-                                <dt>Juegos publicados</dt>
+                                <dt th:text="#{colaboradores.col.juegos}">Juegos publicados</dt>
                                 <dd th:text="${juegosPublicados}">0</dd>
-                                <dt>Rol</dt>
-                                <dd><span class="badge b-purple" th:text="${colaborador.rol}">COLABORADOR</span></dd>
+                                <dt th:text="#{comun.rol}">Rol</dt>
+                                <dd><span class="badge b-purple" th:text="#{'rol.' + ${colaborador.rol}}">COLABORADOR</span></dd>
                             </dl>
                         </div>
                     </div>
 
                     <div class="note-box">
                         <svg th:replace="~{fragments/iconos :: warn}"></svg>
-                        <div>Desmarcar <b>Activo</b> le quita el acceso pero conserva su ficha y sus juegos.
-                            Eliminarlo desde la papelera del listado lo borra de la base, y solo es posible
-                            si no tiene ningún juego publicado.</div>
+                        <div th:text="#{colaboradores.aviso.desactivar}">Desmarcar Activo le quita el acceso pero conserva su ficha.</div>
                     </div>
 
                 </div>

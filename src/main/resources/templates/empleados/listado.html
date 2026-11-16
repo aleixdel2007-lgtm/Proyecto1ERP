@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<html th:lang="${#locale.language}" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Empleados · LudusERP</title>
+    <title th:text="#{panel.menu.empleados} + ' · LudusERP'">Empleados · LudusERP</title>
     <link rel="stylesheet" th:href="@{/css/panel.css}">
     <link rel="stylesheet" th:href="@{/css/empleados.css}">
 </head>
@@ -15,7 +15,7 @@
 
     <div class="main">
 
-        <header th:replace="~{fragments/panel :: barra('Administración', 'Empleados')}"></header>
+        <header th:replace="~{fragments/panel :: barra(#{panel.seccion.admin}, #{panel.menu.empleados})}"></header>
 
         <main class="canvas">
 
@@ -24,13 +24,12 @@
 
             <div class="page-head">
                 <div>
-                    <h1>Empleados</h1>
-                    <p>Dar de alta un empleado crea su usuario en la misma operación, con un rol y una
-                        contraseña inicial. El NIF y el IBAN se guardan cifrados.</p>
+                    <h1 th:text="#{panel.menu.empleados}">Empleados</h1>
+                    <p th:text="#{empleados.intro}">Dar de alta un empleado crea su usuario en la misma operación.</p>
                 </div>
                 <div class="page-actions">
                     <a class="btn btn-primary" th:href="@{/empleados/nuevo}">
-                        <svg th:replace="~{fragments/iconos :: plus}"></svg> Nuevo empleado</a>
+                        <svg th:replace="~{fragments/iconos :: plus}"></svg> <span th:text="#{empleados.nuevo}">Nuevo empleado</span></a>
                 </div>
             </div>
 
@@ -47,16 +46,16 @@
 
                 <form class="filters" method="get" th:action="@{/empleados}">
                     <div class="fld">
-                        <label>Buscar</label>
+                        <label th:text="#{comun.buscar}">Buscar</label>
                         <div class="search-inp">
                             <svg th:replace="~{fragments/iconos :: search}"></svg>
-                            <input name="texto" th:value="${texto}" placeholder="Nombre o correo">
+                            <input name="texto" th:value="${texto}" th:placeholder="#{empleados.buscarPh}" placeholder="Nombre o correo">
                         </div>
                     </div>
                     <div class="fld">
-                        <label>Departamento</label>
+                        <label th:text="#{comun.departamento}">Departamento</label>
                         <select class="inp" name="departamentoId">
-                            <option value="">Todos</option>
+                            <option value="" th:text="#{comun.todos}">Todos</option>
                             <option th:each="d : ${departamentos}"
                                     th:value="${d.id}"
                                     th:text="${d.nombre}"
@@ -64,9 +63,9 @@
                         </select>
                     </div>
                     <div class="fld">
-                        <label>Rol</label>
+                        <label th:text="#{comun.rol}">Rol</label>
                         <select class="inp" name="rol">
-                            <option value="">Todos</option>
+                            <option value="" th:text="#{comun.todos}">Todos</option>
                             <option th:each="r : ${rolesDisponibles}"
                                     th:value="${r}"
                                     th:text="${r}"
@@ -75,31 +74,31 @@
                     </div>
                     <div class="fld">
                         <label>&nbsp;</label>
-                        <button type="submit" class="btn btn-primary">Filtrar</button>
+                        <button type="submit" class="btn btn-primary" th:text="#{comun.filtrar}">Filtrar</button>
                     </div>
                     <div class="fld">
                         <label>&nbsp;</label>
-                        <a class="btn" th:href="@{/empleados}">Limpiar</a>
+                        <a class="btn" th:href="@{/empleados}" th:text="#{comun.limpiar}">Limpiar</a>
                     </div>
                 </form>
 
                 <div class="card-body tight">
 
                     <div class="empty" th:if="${#lists.isEmpty(empleados)}">
-                        <h4>Todavía no hay empleados</h4>
-                        <p class="hint">Crea el primero con el botón «Nuevo empleado».</p>
+                        <h4 th:text="#{empleados.vacio}">Todavía no hay empleados</h4>
+                        <p class="hint" th:text="#{empleados.vacio.hint}">Crea el primero.</p>
                     </div>
 
                     <div class="tbl-wrap" th:unless="${#lists.isEmpty(empleados)}">
                         <table class="tbl">
                             <thead>
                             <tr>
-                                <th>Empleado</th>
-                                <th>Departamento</th>
-                                <th>Cargo</th>
-                                <th>Rol</th>
-                                <th>Contratación</th>
-                                <th>Estado</th>
+                                <th th:text="#{empleados.col.empleado}">Empleado</th>
+                                <th th:text="#{comun.departamento}">Departamento</th>
+                                <th th:text="#{empleados.col.cargo}">Cargo</th>
+                                <th th:text="#{comun.rol}">Rol</th>
+                                <th th:text="#{empleados.col.contratacion}">Contratación</th>
+                                <th th:text="#{comun.estado}">Estado</th>
                                 <th class="acts"></th>
                             </tr>
                             </thead>
@@ -114,8 +113,8 @@
                                                      ? @{${fotos[e.id]}}
                                                      : @{/img/placeholder.webp}"
                                              th:alt="${fotos[e.id] != null}
-                                                     ? 'Foto de perfil de ' + ${e.nombre}
-                                                     : 'Sin foto de perfil'">
+                                                     ? #{empleados.fotoDe(${e.nombre})}
+                                                     : #{navbar.sinFoto}">
                                         <div>
                                             <div class="t-main" th:text="${e.nombre} + ' ' + ${e.apellidos}">Aleix Delgado</div>
                                             <div class="t-sub" th:text="${e.email}">admin@luduserp.cat</div>
@@ -126,20 +125,22 @@
                                 <td th:text="${e.cargo}">Administrador del sistema</td>
                                 <td><span class="badge"
                                           th:classappend="${'b-rol-' + #strings.toLowerCase(e.rol)}"
-                                          th:text="${e.rol}">ADMIN</span></td>
+                                          th:text="#{'rol.' + ${e.rol}}">ADMIN</span></td>
                                 <td th:text="${e.fechaContratacion}">2024-09-02</td>
                                 <td>
                                     <span class="badge" th:classappend="${e.activo} ? 'b-good' : 'b-mute'"
-                                          th:text="${e.activo} ? 'ACTIVO' : 'INACTIVO'">ACTIVO</span>
+                                          th:text="${e.activo} ? #{comun.activo} : #{comun.inactivo}">ACTIVO</span>
                                 </td>
                                 <td class="acts">
-                                    <a class="btn btn-sm btn-ghost" title="Editar"
+                                    <a class="btn btn-sm btn-ghost" title="Editar" th:title="#{comun.editar}"
                                        th:href="@{/empleados/editar/{id}(id=${e.id})}">
                                         <svg th:replace="~{fragments/iconos :: edit}"></svg>
                                     </a>
                                     <form th:action="@{/empleados/eliminar/{id}(id=${e.id})}" method="post"
-                                          onsubmit="return confirm('¿Seguro que quieres eliminar este empleado? No se puede deshacer.');">
-                                        <button type="submit" class="btn btn-sm btn-danger" title="Eliminar">
+                                          th:data-confirmar="#{empleados.confirmarEliminar}"
+                                          onsubmit="return confirm(this.dataset.confirmar);">
+                                        <button type="submit" class="btn btn-sm btn-danger" title="Eliminar"
+                                                th:title="#{comun.eliminar}">
                                             <svg th:replace="~{fragments/iconos :: trash}"></svg>
                                         </button>
                                     </form>
@@ -153,8 +154,8 @@
                 <!-- Flechas y numeros de pagina. Cada enlace repite los tres filtros para no
                      perderlos al cambiar de pagina, y .off apaga la flecha del extremo. -->
                 <div class="pager" th:unless="${#lists.isEmpty(empleados)}">
-                    <span>Mostrando <b th:text="${fin - inicio}">10</b>
-                        de <b th:text="${total}">31</b> registros</span>
+                    <span><span th:text="#{comun.mostrando}">Mostrando</span> <b th:text="${fin - inicio}">10</b>
+                        <span th:text="#{comun.de}">de</span> <b th:text="${total}">31</b> <span th:text="#{comun.registros}">registros</span></span>
                     <div class="pages">
                         <a class="pg" th:classappend="${actual == 0} ? 'off' : ''"
                            th:href="@{/empleados(texto=${texto}, departamentoId=${departamentoId},

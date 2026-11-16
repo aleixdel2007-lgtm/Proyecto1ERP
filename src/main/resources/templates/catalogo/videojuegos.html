@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<html th:lang="${#locale.language}" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Videojuegos · LudusERP</title>
+    <title th:text="#{panel.menu.videojuegos} + ' · LudusERP'">Videojuegos · LudusERP</title>
     <link rel="stylesheet" th:href="@{/css/panel.css}">
     <link rel="stylesheet" th:href="@{/css/catalogo.css}">
 </head>
@@ -15,7 +15,7 @@
 
     <div class="main">
 
-        <header th:replace="~{fragments/panel :: barra('Catálogo', 'Videojuegos')}"></header>
+        <header th:replace="~{fragments/panel :: barra(#{panel.seccion.catalogo}, #{panel.menu.videojuegos})}"></header>
 
         <main class="canvas">
 
@@ -24,14 +24,12 @@
 
             <div class="page-head">
                 <div>
-                    <h1>Videojuegos</h1>
-                    <p>El CRUD principal del catálogo. Relaciona categorías y plataformas (N:M),
-                        imágenes (1:N), el proveedor que lo suministra y, en los juegos que sube un
-                        colaborador, el colaborador que los publicó.</p>
+                    <h1 th:text="#{panel.menu.videojuegos}">Videojuegos</h1>
+                    <p th:text="#{videojuegos.intro}">El CRUD principal del catálogo.</p>
                 </div>
                 <div class="page-actions">
                     <a class="btn btn-primary" th:href="@{/catalogo/videojuegos/nuevo}">
-                        <svg th:replace="~{fragments/iconos :: plus}"></svg> Nuevo videojuego</a>
+                        <svg th:replace="~{fragments/iconos :: plus}"></svg> <span th:text="#{videojuegos.nuevo}">Nuevo videojuego</span></a>
                 </div>
             </div>
 
@@ -48,16 +46,16 @@
             <div class="card">
                 <form class="filters" method="get" th:action="@{/catalogo/videojuegos}">
                     <div class="fld">
-                        <label>Buscar por título</label>
+                        <label th:text="#{videojuegos.buscarTitulo}">Buscar por título</label>
                         <div class="search-inp">
                             <svg th:replace="~{fragments/iconos :: search}"></svg>
-                            <input name="texto" th:value="${texto}" placeholder="Título...">
+                            <input name="texto" th:value="${texto}" th:placeholder="#{videojuegos.tituloPh}" placeholder="Título...">
                         </div>
                     </div>
                     <div class="fld">
-                        <label>Categoría</label>
+                        <label th:text="#{videojuegos.categoria}">Categoría</label>
                         <select class="inp" name="categoriaId">
-                            <option value="">Todas</option>
+                            <option value="" th:text="#{comun.todas}">Todas</option>
                             <option th:each="c : ${categorias}"
                                     th:value="${c.id}"
                                     th:text="${c.nombre}"
@@ -65,9 +63,9 @@
                         </select>
                     </div>
                     <div class="fld">
-                        <label>Plataforma</label>
+                        <label th:text="#{videojuegos.plataforma}">Plataforma</label>
                         <select class="inp" name="plataformaId">
-                            <option value="">Todas</option>
+                            <option value="" th:text="#{comun.todas}">Todas</option>
                             <option th:each="p : ${plataformas}"
                                     th:value="${p.id}"
                                     th:text="${p.nombre}"
@@ -75,30 +73,30 @@
                         </select>
                     </div>
                     <div class="fld">
-                        <label>Precio</label>
+                        <label th:text="#{comun.precio}">Precio</label>
                         <div class="fld-precio">
                             <input class="inp" type="number" step="0.01" min="0" name="precioMin"
-                                   th:value="${precioMin}" placeholder="min">
+                                   th:value="${precioMin}" th:placeholder="#{videojuegos.min}" placeholder="min">
                             <span class="muted">—</span>
                             <input class="inp" type="number" step="0.01" min="0" name="precioMax"
-                                   th:value="${precioMax}" placeholder="max">
+                                   th:value="${precioMax}" th:placeholder="#{videojuegos.max}" placeholder="max">
                         </div>
                     </div>
                     <div class="fld">
-                        <label>Estado</label>
+                        <label th:text="#{comun.estado}">Estado</label>
                         <select class="inp" name="activo">
-                            <option value="">Todos</option>
-                            <option value="true" th:selected="${activo != null and activo}">Activo</option>
-                            <option value="false" th:selected="${activo != null and !activo}">Inactivo</option>
+                            <option value="" th:text="#{comun.todos}">Todos</option>
+                            <option value="true" th:selected="${activo != null and activo}" th:text="#{comun.activo}">Activo</option>
+                            <option value="false" th:selected="${activo != null and !activo}" th:text="#{comun.inactivo}">Inactivo</option>
                         </select>
                     </div>
                     <div class="fld">
                         <label>&nbsp;</label>
-                        <button type="submit" class="btn btn-primary">Filtrar</button>
+                        <button type="submit" class="btn btn-primary" th:text="#{comun.filtrar}">Filtrar</button>
                     </div>
                     <div class="fld">
                         <label>&nbsp;</label>
-                        <a class="btn" th:href="@{/catalogo/videojuegos}">Limpiar</a>
+                        <a class="btn" th:href="@{/catalogo/videojuegos}" th:text="#{comun.limpiar}">Limpiar</a>
                     </div>
                 </form>
             </div>
@@ -113,30 +111,30 @@
 
                 <summary class="card-head">
                     <span class="chev"><svg th:replace="~{fragments/iconos :: chevron}"></svg></span>
-                    <h3>Nuestro catálogo</h3>
-                    <span class="sub">Los que compramos a un proveedor</span>
-                    <span class="right" th:text="${total} + ' juegos'">7 juegos</span>
+                    <h3 th:text="#{videojuegos.nuestro}">Nuestro catálogo</h3>
+                    <span class="sub" th:text="#{videojuegos.nuestro.sub}">Los que compramos a un proveedor</span>
+                    <span class="right" th:text="${total} + ' ' + #{videojuegos.contador}">7 juegos</span>
                 </summary>
 
                 <div class="card-body tight">
 
                     <div class="empty" th:if="${#lists.isEmpty(videojuegos)}">
-                        <h4>Ningún juego nuestro encaja con el filtro</h4>
-                        <p class="hint">Crea uno con el botón «Nuevo videojuego», o quita algún filtro.</p>
+                        <h4 th:text="#{videojuegos.vacio.nuestro}">Ningún juego nuestro encaja con el filtro</h4>
+                        <p class="hint" th:text="#{videojuegos.vacio.nuestro.hint}">Crea uno o quita algún filtro.</p>
                     </div>
 
                     <div class="tbl-wrap" th:unless="${#lists.isEmpty(videojuegos)}">
                         <table class="tbl">
                             <thead>
                             <tr>
-                                <th>Juego</th>
-                                <th>Estudio</th>
-                                <th>Categoría</th>
-                                <th>Plataforma</th>
+                                <th th:text="#{videojuegos.col.juego}">Juego</th>
+                                <th th:text="#{videojuegos.col.estudio}">Estudio</th>
+                                <th th:text="#{videojuegos.categoria}">Categoría</th>
+                                <th th:text="#{videojuegos.plataforma}">Plataforma</th>
                                 <th class="num">PEGI</th>
-                                <th class="num">Precio</th>
-                                <th class="num">Stock</th>
-                                <th>Estado</th>
+                                <th class="num" th:text="#{comun.precio}">Precio</th>
+                                <th class="num" th:text="#{videojuegos.col.stock}">Stock</th>
+                                <th th:text="#{comun.estado}">Estado</th>
                                 <th class="acts"></th>
                             </tr>
                             </thead>
@@ -188,30 +186,30 @@
 
                 <summary class="card-head">
                     <span class="chev"><svg th:replace="~{fragments/iconos :: chevron}"></svg></span>
-                    <h3>Juegos de colaboradores</h3>
-                    <span class="sub">Los que suben ellos; nacen inactivos y hay que publicarlos</span>
-                    <span class="right" th:text="${totalCol} + ' juegos'">4 juegos</span>
+                    <h3 th:text="#{videojuegos.deColaboradores}">Juegos de colaboradores</h3>
+                    <span class="sub" th:text="#{videojuegos.deColaboradores.sub}">Los que suben ellos.</span>
+                    <span class="right" th:text="${totalCol} + ' ' + #{videojuegos.contador}">4 juegos</span>
                 </summary>
 
                 <div class="card-body tight">
 
                     <div class="empty" th:if="${#lists.isEmpty(juegosColaboradores)}">
-                        <h4>Ningún juego de colaborador encaja con el filtro</h4>
-                        <p class="hint">Aquí aparecen en cuanto un colaborador sube el suyo.</p>
+                        <h4 th:text="#{videojuegos.vacio.colaborador}">Ningún juego de colaborador encaja con el filtro</h4>
+                        <p class="hint" th:text="#{videojuegos.vacio.colaborador.hint}">Aquí aparecen en cuanto un colaborador sube el suyo.</p>
                     </div>
 
                     <div class="tbl-wrap" th:unless="${#lists.isEmpty(juegosColaboradores)}">
                         <table class="tbl">
                             <thead>
                             <tr>
-                                <th>Juego</th>
-                                <th>Colaborador</th>
-                                <th>Categoría</th>
-                                <th>Plataforma</th>
+                                <th th:text="#{videojuegos.col.juego}">Juego</th>
+                                <th th:text="#{panel.menu.colaboradores}">Colaborador</th>
+                                <th th:text="#{videojuegos.categoria}">Categoría</th>
+                                <th th:text="#{videojuegos.plataforma}">Plataforma</th>
                                 <th class="num">PEGI</th>
-                                <th class="num">Precio</th>
-                                <th class="num">Stock</th>
-                                <th>Estado</th>
+                                <th class="num" th:text="#{comun.precio}">Precio</th>
+                                <th class="num" th:text="#{videojuegos.col.stock}">Stock</th>
+                                <th th:text="#{comun.estado}">Estado</th>
                                 <th class="acts"></th>
                             </tr>
                             </thead>

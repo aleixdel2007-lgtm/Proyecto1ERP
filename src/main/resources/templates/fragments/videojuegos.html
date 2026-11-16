@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<html th:lang="${#locale.language}" xmlns:th="http://www.thymeleaf.org">
 <body>
 
 <!-- Las filas del listado de videojuegos del panel. Viven aqui y no dentro de la pantalla
@@ -16,7 +16,7 @@
                 <img th:src="@{${portadas[v.id]}}" th:alt="${v.titulo}">
             </span>
             <span class="mini vacia" th:if="${portadas[v.id] == null}"
-                  title="Este juego todavía no tiene portada">
+                  th:title="#{videojuegos.sinPortada}">
                 <svg th:replace="~{fragments/iconos :: image}"></svg>
             </span>
             <div>
@@ -37,7 +37,7 @@
             <div th:text="${v.colaborador.apellidos != null
                     ? v.colaborador.nombre + ' ' + v.colaborador.apellidos
                     : v.colaborador.nombre}">Jordi Bastida</div>
-            <div class="t-sub">colaborador</div>
+            <div class="t-sub" th:text="#{videojuegos.esColaborador}">colaborador</div>
         </div>
         <span class="muted"
               th:if="${v.proveedor == null and v.colaborador == null}">—</span>
@@ -56,15 +56,15 @@
                 v.precioDescuento != null ? v.precioDescuento : v.precio,
                 1, 'POINT', 2, 'COMMA')} + ' €'">44,99 €</b>
         <div class="t-sub" th:if="${v.precioDescuento != null}"
-             th:text="'estándar ' + ${#numbers.formatDecimal(v.precio, 1, 'POINT', 2, 'COMMA')} + ' €'">
+             th:text="#{videojuegos.estandar} + ' ' + ${#numbers.formatDecimal(v.precio, 1, 'POINT', 2, 'COMMA')} + ' €'">
             estándar 59,99 €</div>
     </td>
     <td class="num">
-        <span class="muted" title="Pendiente de las claves de licencia">—</span>
+        <span class="muted" th:title="#{videojuegos.pendienteClaves}">—</span>
     </td>
     <td>
         <span class="badge" th:classappend="${v.activo} ? 'b-good' : 'b-mute'"
-              th:text="${v.activo} ? 'ACTIVO' : 'INACTIVO'">ACTIVO</span>
+              th:text="${v.activo} ? #{comun.activo} : #{comun.inactivo}">ACTIVO</span>
         <!-- El amarillo solo en los juegos de colaborador que esperan a que alguien los
              mire: los acaban de subir o los han vuelto a editar, y en los dos casos el
              servicio los deja inactivos con pendiente_revision a true. Lo que lo distingue
@@ -73,23 +73,26 @@
              nuestro inactivo no esta pendiente de nada, es un borrador. -->
         <span class="badge b-warn"
               th:if="${v.colaborador != null and v.pendienteRevision}"
-              title="Lo subió un colaborador y está esperando a que se publique">Pendiente de activación</span>
+              th:title="#{videojuegos.pendienteRevision.hint}"
+              th:text="#{videojuegos.pendienteRevision}">Pendiente de activación</span>
     </td>
     <td class="acts">
-        <a class="btn btn-sm btn-ghost" title="Editar"
+        <a class="btn btn-sm btn-ghost" title="Editar" th:title="#{comun.editar}"
            th:href="@{/catalogo/videojuegos/editar/{id}(id=${v.id})}">
             <svg th:replace="~{fragments/iconos :: edit}"></svg>
         </a>
         <!-- Vista previa de como queda la ficha para el cliente. En
              pestana nueva para no perder los filtros ni la pagina. -->
-        <a class="btn btn-sm btn-ghost" title="Ver como lo verá el cliente"
+        <a class="btn btn-sm btn-ghost" title="Ver como lo verá el cliente" th:title="#{videojuegos.vistaPrevia}"
            target="_blank"
            th:href="@{/catalogo/videojuegos/{id}/vista-previa(id=${v.id})}">
             <svg th:replace="~{fragments/iconos :: eye}"></svg>
         </a>
         <form th:action="@{/catalogo/videojuegos/eliminar/{id}(id=${v.id})}" method="post"
-              onsubmit="return confirm(&quot;¿Seguro que quieres eliminar este videojuego? No se puede deshacer.&quot;);">
-            <button type="submit" class="btn btn-sm btn-danger" title="Eliminar">
+              th:data-confirmar="#{videojuegos.confirmarEliminar}"
+              onsubmit="return confirm(this.dataset.confirmar);">
+            <button type="submit" class="btn btn-sm btn-danger" title="Eliminar"
+                    th:title="#{comun.eliminar}">
                 <svg th:replace="~{fragments/iconos :: trash}"></svg>
             </button>
         </form>

@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<html th:lang="${#locale.language}" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title th:text="${videojuego.id} == null ? 'Nuevo videojuego · LudusERP' : 'Editar videojuego · LudusERP'">Videojuego · LudusERP</title>
+    <title th:text="(${videojuego.id} == null ? #{videojuegos.nuevo} : #{videojuegos.editar}) + ' · LudusERP'">Videojuego · LudusERP</title>
     <link rel="stylesheet" th:href="@{/css/panel.css}">
     <link rel="stylesheet" th:href="@{/css/catalogo.css}">
 </head>
@@ -15,7 +15,7 @@
 
     <div class="main">
 
-        <header th:replace="~{fragments/panel :: barra('Catálogo', 'Videojuegos')}"></header>
+        <header th:replace="~{fragments/panel :: barra(#{panel.seccion.catalogo}, #{panel.menu.videojuegos})}"></header>
 
         <main class="canvas">
 
@@ -24,13 +24,13 @@
 
             <div class="page-head">
                 <div>
-                    <h1 th:text="${videojuego.id} == null ? 'Nuevo videojuego' : 'Editar videojuego'">Nuevo videojuego</h1>
-                    <p th:if="${videojuego.id != null}" th:text="'Ficha #' + ${videojuego.id}">Ficha #318</p>
+                    <h1 th:text="${videojuego.id} == null ? #{videojuegos.nuevo} : #{videojuegos.editar}">Nuevo videojuego</h1>
+                    <p th:if="${videojuego.id != null}" th:text="#{videojuegos.ficha} + ' #' + ${videojuego.id}">Ficha #318</p>
                 </div>
                 <div class="page-actions" th:if="${videojuego.id != null}">
                     <a class="btn" target="_blank"
                        th:href="@{/catalogo/videojuegos/{id}/vista-previa(id=${videojuego.id})}">
-                        <svg th:replace="~{fragments/iconos :: eye}"></svg> Vista previa</a>
+                        <svg th:replace="~{fragments/iconos :: eye}"></svg> <span th:text="#{videojuegos.vistaPreviaBoton}">Vista previa</span></a>
                 </div>
             </div>
 
@@ -42,10 +42,10 @@
                 <!-- Los botones son type=button a proposito: dentro de un form, un boton sin tipo
                      envia el formulario, y estos solo cambian de pestana. -->
                 <div class="tabs" data-tabs>
-                    <button type="button" class="tab on" data-tab="0">Datos generales</button>
-                    <button type="button" class="tab" data-tab="1">Clasificación</button>
-                    <button type="button" class="tab" data-tab="2">Precio y stock</button>
-                    <button type="button" class="tab" data-tab="3">Imágenes</button>
+                    <button type="button" class="tab on" data-tab="0" th:text="#{videojuegos.tab.generales}">Datos generales</button>
+                    <button type="button" class="tab" data-tab="1" th:text="#{videojuegos.tab.clasificacion}">Clasificación</button>
+                    <button type="button" class="tab" data-tab="2" th:text="#{videojuegos.tab.precio}">Precio y stock</button>
+                    <button type="button" class="tab" data-tab="3" th:text="#{videojuegos.tab.imagenes}">Imágenes</button>
                 </div>
 
                 <div class="card-body">
@@ -62,49 +62,47 @@
                             <div class="form-grid">
 
                                 <div class="frow">
-                                    <label for="titulo">Título <span class="req">*</span></label>
+                                    <label for="titulo"><span th:text="#{videojuegos.titulo}">Título</span> <span class="req">*</span></label>
                                     <input class="inp" type="text" th:field="*{titulo}" maxlength="150"
-                                           placeholder="Eclipse Protocol" required>
+                                           th:placeholder="#{videojuegos.tituloEjemploPh}" placeholder="Eclipse Protocol" required>
                                 </div>
 
                                 <div class="frow" th:if="${videojuego.colaborador == null}">
-                                    <label for="proveedorId">Proveedor <span class="req">*</span></label>
+                                    <label for="proveedorId"><span th:text="#{proveedores.col.proveedor}">Proveedor</span> <span class="req">*</span></label>
                                     <select class="inp" id="proveedorId" name="proveedorId" required>
-                                        <option value="">Selecciona un proveedor</option>
+                                        <option value="" th:text="#{videojuegos.eligeProveedor}">Selecciona un proveedor</option>
                                         <option th:each="p : ${proveedores}"
                                                 th:value="${p.id}"
                                                 th:text="${p.nombreComercial}"
                                                 th:selected="${proveedorId != null and proveedorId == p.id}">Nordic Keys</option>
                                     </select>
-                                    <span class="hint">Sale de la tabla de proveedores, no es texto libre, y solo
-                                        aparecen los activos.</span>
+                                    <span class="hint" th:text="#{videojuegos.hint.proveedor}">Sale de la tabla de proveedores.</span>
                                 </div>
 
                                 <div class="frow" th:unless="${videojuego.colaborador == null}">
-                                    <label>Estudio</label>
+                                    <label th:text="#{videojuegos.col.estudio}">Estudio</label>
                                     <div style="margin-top:6px">
                                         <span class="badge b-purple"
                                               th:text="${videojuego.colaborador.apellidos != null
                                                       ? videojuego.colaborador.nombre + ' ' + videojuego.colaborador.apellidos
                                                       : videojuego.colaborador.nombre}">Jordi Bastida</span>
                                     </div>
-                                    <span class="hint">Este juego lo subió un colaborador: no tiene proveedor y el
-                                        estudio es su nombre. No se cambia desde aquí.</span>
+                                    <span class="hint" th:text="#{videojuegos.hint.estudioColaborador}">Este juego lo subió un colaborador.</span>
                                 </div>
 
                                 <div class="frow wide">
-                                    <label for="sinopsis">Descripción</label>
+                                    <label for="sinopsis" th:text="#{comun.descripcion}">Descripción</label>
                                     <textarea class="inp" th:field="*{sinopsis}" rows="4"
-                                              placeholder="De qué va el juego"></textarea>
+                                              th:placeholder="#{videojuegos.sinopsisPh}" placeholder="De qué va el juego"></textarea>
                                 </div>
 
                                 <div class="frow">
-                                    <label for="fechaLanzamiento">Fecha de lanzamiento</label>
+                                    <label for="fechaLanzamiento" th:text="#{videojuegos.fechaLanzamiento}">Fecha de lanzamiento</label>
                                     <input class="inp" type="date" th:field="*{fechaLanzamiento}">
                                 </div>
 
                                 <div class="frow">
-                                    <label for="pegi">Clasificación PEGI <span class="req">*</span></label>
+                                    <label for="pegi"><span th:text="#{videojuegos.pegi}">Clasificación PEGI</span> <span class="req">*</span></label>
                                     <select class="inp" th:field="*{pegi}" required>
                                         <option value="3">3</option>
                                         <option value="7">7</option>
@@ -115,9 +113,9 @@
                                 </div>
 
                                 <div class="frow">
-                                    <label>Estado</label>
+                                    <label th:text="#{comun.estado}">Estado</label>
                                     <label class="switch" style="margin-top:6px">
-                                        <input type="checkbox" th:field="*{activo}"><i></i> Visible en el catálogo
+                                        <input type="checkbox" th:field="*{activo}"><i></i> <span th:text="#{videojuegos.visible}">Visible en el catálogo</span>
                                     </label>
                                 </div>
 
@@ -128,7 +126,7 @@
                             <div class="stack">
 
                                 <div>
-                                    <div class="sect-label">Categorías <span class="hint">· puede tener varias</span></div>
+                                    <div class="sect-label"><span th:text="#{panel.menu.categorias}">Categorías</span> <span class="hint" th:text="#{videojuegos.hint.variasCategorias}">· puede tener varias</span></div>
                                     <div class="row wrap chip-grupo">
                                         <label class="chip" th:each="c : ${categorias}"
                                                th:classappend="${categoriasMarcadas.contains(c.id)} ? 'on' : ''">
@@ -142,7 +140,7 @@
                                 </div>
 
                                 <div>
-                                    <div class="sect-label">Plataformas <span class="hint">· puede estar en varias</span></div>
+                                    <div class="sect-label"><span th:text="#{panel.menu.plataformas}">Plataformas</span> <span class="hint" th:text="#{videojuegos.hint.variasPlataformas}">· puede estar en varias</span></div>
                                     <div class="row wrap chip-grupo">
                                         <label class="chip" th:each="p : ${plataformas}"
                                                th:classappend="${plataformasMarcadas.contains(p.id)} ? 'on' : ''">
@@ -162,51 +160,47 @@
                             <div class="form-grid">
 
                                 <div class="frow">
-                                    <label for="precio">Precio estándar <span class="req">*</span></label>
+                                    <label for="precio"><span th:text="#{videojuegos.precioEstandar}">Precio estándar</span> <span class="req">*</span></label>
                                     <input class="inp" type="number" step="0.01" min="0" th:field="*{precio}" required>
-                                    <span class="hint">En euros, y 0 significa gratis.</span>
+                                    <span class="hint" th:text="#{videojuegos.hint.precio}">En euros, y 0 significa gratis.</span>
                                 </div>
 
                                 <div class="frow">
-                                    <label>Descuento</label>
+                                    <label th:text="#{videojuegos.descuento}">Descuento</label>
                                     <label class="switch" style="margin-top:6px">
                                         <input type="checkbox" data-enables="frow-precio-desc"
                                                th:checked="${videojuego.precioDescuento != null}"><i></i>
-                                        El juego está rebajado
+                                        <span th:text="#{videojuegos.rebajado}">El juego está rebajado</span>
                                     </label>
-                                    <span class="hint">Apagado, se vende al precio estándar y el precio rebajado
-                                        se guarda vacío.</span>
+                                    <span class="hint" th:text="#{videojuegos.hint.descuento}">Apagado, se vende al precio estándar.</span>
                                 </div>
 
                                 <div class="frow" id="frow-precio-desc">
-                                    <label for="precioDescuento">Precio con descuento</label>
+                                    <label for="precioDescuento" th:text="#{videojuegos.precioDescuento}">Precio con descuento</label>
                                     <input class="inp" type="number" step="0.01" min="0" th:field="*{precioDescuento}">
-                                    <span class="hint">Es lo que se cobra mientras el descuento esté encendido, y
-                                        tiene que ser menor que el estándar.</span>
+                                    <span class="hint" th:text="#{videojuegos.hint.precioDescuento}">Es lo que se cobra mientras el descuento esté encendido.</span>
                                 </div>
 
                                 <div class="frow">
-                                    <label for="umbralStockBajo">Umbral de stock bajo</label>
+                                    <label for="umbralStockBajo" th:text="#{videojuegos.umbral}">Umbral de stock bajo</label>
                                     <input class="inp" type="number" min="0" th:field="*{umbralStockBajo}">
-                                    <span class="hint">Por debajo de este número saltará el aviso al gestor de
-                                        inventario.</span>
+                                    <span class="hint" th:text="#{videojuegos.hint.umbral}">Por debajo de este número saltará el aviso.</span>
                                 </div>
 
                                 <div class="frow">
-                                    <label>Stock actual</label>
+                                    <label th:text="#{videojuegos.stockActual}">Stock actual</label>
                                     <div style="margin-top:6px"><span class="muted">—</span></div>
-                                    <span class="hint">Saldrá de las claves de licencia, que todavía no existen.</span>
+                                    <span class="hint" th:text="#{videojuegos.hint.stock}">Saldrá de las claves de licencia.</span>
                                 </div>
 
                             </div>
                         </div>
 
                         <div class="form-foot foot-dentro">
-                            <span class="note">Las validaciones de verdad están en el servicio; en el navegador solo
-                                los atributos HTML5.</span>
-                            <a class="btn" th:href="@{/catalogo/videojuegos}">Cancelar</a>
+                            <span class="note" th:text="#{videojuegos.nota.validaciones}">Las validaciones de verdad están en el servicio.</span>
+                            <a class="btn" th:href="@{/catalogo/videojuegos}" th:text="#{comun.cancelar}">Cancelar</a>
                             <button type="submit" class="btn btn-primary"
-                                    th:text="${videojuego.id} == null ? 'Crear videojuego' : 'Guardar cambios'">Crear videojuego</button>
+                                    th:text="${videojuego.id} == null ? #{videojuegos.crear} : #{comun.guardarCambios}">Crear videojuego</button>
                         </div>
 
                     </form>
@@ -218,9 +212,7 @@
 
                         <div class="note-box" th:if="${videojuego.id == null}">
                             <svg th:replace="~{fragments/iconos :: warn}"></svg>
-                            <div>Guarda primero la ficha. Las imágenes se cuelgan del juego por su
-                                <code>id</code>, y hasta que no existe no hay dónde ponerlas ni carpeta en la que
-                                guardarlas. Al crear el videojuego vuelves aquí y ya puedes subirlas.</div>
+                            <div th:text="#{videojuegos.aviso.guardaPrimero}">Guarda primero la ficha.</div>
                         </div>
 
                         <div class="grid g-2-1" th:unless="${videojuego.id == null}">
@@ -228,8 +220,8 @@
                             <div>
 
                                 <div class="img-grupo">
-                                    <div class="sect-label">PORTADA
-                                        <span class="hint">· una por juego · listado, tienda y cesta</span></div>
+                                    <div class="sect-label"><span th:text="#{tipoImagen.PORTADA}">PORTADA</span>
+                                        <span class="hint" th:text="#{videojuegos.img.portadaHint}">· una por juego</span></div>
 
                                     <div class="img-grid" th:if="${portada != null}">
                                         <div class="img-card">
@@ -237,15 +229,16 @@
                                                 <img th:src="@{${portada.ruta}}"
                                                      th:alt="${portada.textoAlternativo != null
                                                              ? portada.textoAlternativo : videojuego.titulo}">
-                                                <span class="img-tipo">PORTADA</span>
+                                                <span class="img-tipo" th:text="#{tipoImagen.PORTADA}">PORTADA</span>
                                             </span>
                                             <div class="img-foot">
                                                 <span class="t-sub" th:text="'Orden ' + ${portada.orden}">Orden 1</span>
                                                 <form th:action="@{/catalogo/videojuegos/{id}/imagenes/{imagenId}/eliminar(id=${videojuego.id},
                                                                   imagenId=${portada.id})}"
                                                       method="post"
-                                                      onsubmit="return confirm('¿Quitar la portada? Se borra también el archivo.');">
-                                                    <button type="submit" class="btn btn-sm btn-danger" title="Quitar">
+                                                      th:data-confirmar="#{videojuegos.img.confirmarPortada}"
+                                                      onsubmit="return confirm(this.dataset.confirmar);">
+                                                    <button type="submit" class="btn btn-sm btn-danger" title="Quitar" th:title="#{videojuegos.img.quitar}">
                                                         <svg th:replace="~{fragments/iconos :: trash}"></svg>
                                                     </button>
                                                 </form>
@@ -259,8 +252,8 @@
                                 </div>
 
                                 <div class="img-grupo">
-                                    <div class="sect-label">BANNER
-                                        <span class="hint">· uno por juego · cabecera de la ficha de la tienda</span></div>
+                                    <div class="sect-label"><span th:text="#{tipoImagen.BANNER}">BANNER</span>
+                                        <span class="hint" th:text="#{videojuegos.img.bannerHint}">· uno por juego</span></div>
 
                                     <div class="img-grid" th:if="${banner != null}">
                                         <div class="img-card">
@@ -268,15 +261,16 @@
                                                 <img th:src="@{${banner.ruta}}"
                                                      th:alt="${banner.textoAlternativo != null
                                                              ? banner.textoAlternativo : videojuego.titulo}">
-                                                <span class="img-tipo">BANNER</span>
+                                                <span class="img-tipo" th:text="#{tipoImagen.BANNER}">BANNER</span>
                                             </span>
                                             <div class="img-foot">
                                                 <span class="t-sub" th:text="'Orden ' + ${banner.orden}">Orden 1</span>
                                                 <form th:action="@{/catalogo/videojuegos/{id}/imagenes/{imagenId}/eliminar(id=${videojuego.id},
                                                                   imagenId=${banner.id})}"
                                                       method="post"
-                                                      onsubmit="return confirm('¿Quitar el banner? Se borra también el archivo.');">
-                                                    <button type="submit" class="btn btn-sm btn-danger" title="Quitar">
+                                                      th:data-confirmar="#{videojuegos.img.confirmarBanner}"
+                                                      onsubmit="return confirm(this.dataset.confirmar);">
+                                                    <button type="submit" class="btn btn-sm btn-danger" title="Quitar" th:title="#{videojuegos.img.quitar}">
                                                         <svg th:replace="~{fragments/iconos :: trash}"></svg>
                                                     </button>
                                                 </form>
@@ -290,8 +284,8 @@
                                 </div>
 
                                 <div class="img-grupo">
-                                    <div class="sect-label">CAPTURAS
-                                        <span class="hint">· las que hagan falta</span></div>
+                                    <div class="sect-label"><span th:text="#{videojuegos.img.capturas}">CAPTURAS</span>
+                                        <span class="hint" th:text="#{videojuegos.img.capturasHint}">· las que hagan falta</span></div>
 
                                     <div class="img-grid" th:unless="${#lists.isEmpty(capturas)}">
                                         <div class="img-card" th:each="i : ${capturas}">
@@ -299,7 +293,7 @@
                                                 <img th:src="@{${i.ruta}}"
                                                      th:alt="${i.textoAlternativo != null
                                                              ? i.textoAlternativo : videojuego.titulo}">
-                                                <span class="img-tipo">CAPTURA</span>
+                                                <span class="img-tipo" th:text="#{tipoImagen.CAPTURA}">CAPTURA</span>
                                             </span>
                                             <div class="img-foot">
                                                 <span class="t-sub" th:text="'Orden ' + ${i.orden}">Orden 1</span>
@@ -307,8 +301,9 @@
                                                     <form th:action="@{/catalogo/videojuegos/{id}/imagenes/{imagenId}/eliminar(id=${videojuego.id},
                                                                       imagenId=${i.id})}"
                                                           method="post"
-                                                          onsubmit="return confirm('¿Quitar esta captura? Se borra también el archivo.');">
-                                                        <button type="submit" class="btn btn-sm btn-danger" title="Quitar">
+                                                          th:data-confirmar="#{videojuegos.img.confirmarCaptura}"
+                                                          onsubmit="return confirm(this.dataset.confirmar);">
+                                                        <button type="submit" class="btn btn-sm btn-danger" title="Quitar" th:title="#{videojuegos.img.quitar}">
                                                             <svg th:replace="~{fragments/iconos :: trash}"></svg>
                                                         </button>
                                                     </form>
@@ -329,40 +324,38 @@
                                 <form class="card" method="post" enctype="multipart/form-data"
                                       th:action="@{/catalogo/videojuegos/{id}/imagenes(id=${videojuego.id})}">
 
-                                    <div class="card-head"><h3>Añadir una imagen</h3></div>
+                                    <div class="card-head"><h3 th:text="#{videojuegos.img.anadir}">Añadir una imagen</h3></div>
 
                                     <div class="card-body stack">
 
                                         <div class="img-drop">
                                             <svg th:replace="~{fragments/iconos :: upload}"></svg>
-                                            <div style="margin-top:8px">Selecciona un archivo</div>
+                                            <div style="margin-top:8px" th:text="#{imagenes.error.sinArchivo}">Selecciona un archivo</div>
                                             <input type="file" name="archivo" required
                                                    accept="image/png,image/jpeg,image/webp"
                                                    style="margin-top:10px;max-width:100%">
-                                            <span class="hint nombre">JPG, PNG o WEBP, máximo 2 MB. Una imagen por
-                                                vez: el límite de la petición es el mismo que el del archivo.</span>
+                                            <span class="hint nombre" th:text="#{videojuegos.img.formato}">JPG, PNG o WEBP, máximo 2 MB.</span>
                                         </div>
 
                                         <div class="frow">
-                                            <label for="tipo">Tipo <span class="req">*</span></label>
+                                            <label for="tipo"><span th:text="#{videojuegos.img.tipo}">Tipo</span> <span class="req">*</span></label>
                                             <select class="inp" id="tipo" name="tipo" required>
-                                                <option value="CAPTURA">CAPTURA</option>
-                                                <option value="PORTADA">PORTADA</option>
-                                                <option value="BANNER">BANNER</option>
+                                                <option value="CAPTURA" th:text="#{tipoImagen.CAPTURA}">CAPTURA</option>
+                                                <option value="PORTADA" th:text="#{tipoImagen.PORTADA}">PORTADA</option>
+                                                <option value="BANNER" th:text="#{tipoImagen.BANNER}">BANNER</option>
                                             </select>
-                                            <span class="hint">Solo puede haber una PORTADA y un BANNER por juego.
-                                                Si ya hay uno, quítalo antes de subir el nuevo.</span>
+                                            <span class="hint" th:text="#{videojuegos.img.hintTipo}">Solo puede haber una portada y un banner por juego.</span>
                                         </div>
 
                                         <div class="frow">
-                                            <label for="textoAlternativo">Texto alternativo</label>
+                                            <label for="textoAlternativo" th:text="#{perfil.foto.alt}">Texto alternativo</label>
                                             <input class="inp" type="text" id="textoAlternativo"
                                                    name="textoAlternativo" maxlength="160"
-                                                   placeholder="Descripción para lectores de pantalla">
+                                                   th:placeholder="#{videojuegos.img.altPh}" placeholder="Descripción para lectores de pantalla">
                                         </div>
 
                                         <button type="submit" class="btn btn-primary">
-                                            <svg th:replace="~{fragments/iconos :: plus}"></svg> Añadir a la galería</button>
+                                            <svg th:replace="~{fragments/iconos :: plus}"></svg> <span th:text="#{videojuegos.img.anadirGaleria}">Añadir a la galería</span></button>
 
                                     </div>
                                 </form>

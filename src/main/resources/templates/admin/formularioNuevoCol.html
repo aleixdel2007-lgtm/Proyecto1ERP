@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<html th:lang="${#locale.language}" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Nuevo colaborador · LudusERP</title>
+    <title th:text="#{colaboradores.nuevo} + ' · LudusERP'">Nuevo colaborador · LudusERP</title>
     <link rel="stylesheet" th:href="@{/css/panel.css}">
     <link rel="stylesheet" th:href="@{/css/colaboradores.css}">
 </head>
@@ -15,7 +15,7 @@
 
     <div class="main">
 
-        <header th:replace="~{fragments/panel :: barra('Administración', 'Colaboradores')}"></header>
+        <header th:replace="~{fragments/panel :: barra(#{panel.seccion.admin}, #{panel.menu.colaboradores})}"></header>
 
         <main class="canvas">
 
@@ -24,9 +24,8 @@
 
             <div class="page-head">
                 <div>
-                    <h1>Nuevo colaborador</h1>
-                    <p>Se crea el usuario con el rol de colaborador y una contraseña inicial que
-                        tendrá que cambiar en su primer acceso.</p>
+                    <h1 th:text="#{colaboradores.nuevo}">Nuevo colaborador</h1>
+                    <p th:text="#{colaboradores.nuevo.intro}">Se crea el usuario con el rol de colaborador.</p>
                 </div>
             </div>
 
@@ -40,53 +39,51 @@
 
                         <div class="card-body stack">
 
-                            <div class="sect-label">Datos personales</div>
+                            <div class="sect-label" th:text="#{perfil.datos.personales}">Datos personales</div>
                             <div class="form-grid">
 
                                 <div class="frow">
-                                    <label for="nombre">Nombre <span class="req">*</span></label>
+                                    <label for="nombre"><span th:text="#{comun.nombre}">Nombre</span> <span class="req">*</span></label>
                                     <input class="inp" type="text" th:field="*{nombre}" maxlength="80"
-                                           placeholder="Jordi" required>
-                                    <span class="hint">Aparecerá junto a sus juegos en la tienda.</span>
+                                           th:placeholder="#{colaboradores.nombrePh}" placeholder="Jordi" required>
+                                    <span class="hint" th:text="#{colaboradores.hint.nombre}">Aparecerá junto a sus juegos en la tienda.</span>
                                 </div>
 
                                 <div class="frow">
-                                    <label for="apellidos">Apellidos <span class="req">*</span></label>
+                                    <label for="apellidos"><span th:text="#{perfil.apellidos}">Apellidos</span> <span class="req">*</span></label>
                                     <input class="inp" type="text" th:field="*{apellidos}" maxlength="120"
-                                           placeholder="Bastida" required>
+                                           th:placeholder="#{colaboradores.apellidosPh}" placeholder="Bastida" required>
                                 </div>
 
                                 <div class="frow">
-                                    <label for="pais">País</label>
+                                    <label for="pais" th:text="#{comun.pais}">País</label>
                                     <select class="inp" th:field="*{pais}">
-                                        <option value="">Sin indicar</option>
-                                        <option value="España">España</option>
-                                        <option value="Suecia">Suecia</option>
-                                        <option value="Alemania">Alemania</option>
-                                        <option value="Reino Unido">Reino Unido</option>
-                                        <option value="Países Bajos">Países Bajos</option>
+                                        <option value="" th:text="#{comun.sinIndicar}">Sin indicar</option>
+                                        <option value="España" th:text="#{pais.ES}">España</option>
+                                        <option value="Suecia" th:text="#{pais.SE}">Suecia</option>
+                                        <option value="Alemania" th:text="#{pais.DE}">Alemania</option>
+                                        <option value="Reino Unido" th:text="#{pais.GB}">Reino Unido</option>
+                                        <option value="Países Bajos" th:text="#{pais.NL}">Países Bajos</option>
                                     </select>
                                 </div>
 
                             </div>
 
-                            <div class="sect-label">Acceso</div>
+                            <div class="sect-label" th:text="#{empleados.acceso}">Acceso</div>
                             <div class="form-grid">
 
                                 <div class="frow">
-                                    <label for="email">Correo de acceso <span class="req">*</span></label>
+                                    <label for="email"><span th:text="#{colaboradores.correoAcceso}">Correo de acceso</span> <span class="req">*</span></label>
                                     <input class="inp" type="email" th:field="*{email}" maxlength="180"
-                                           placeholder="jordi.bastida@example.com" required>
-                                    <span class="hint">Es su identificador de acceso. No puede estar en uso
-                                        por ningún otro usuario, ni cliente ni empleado.</span>
+                                           th:placeholder="#{colaboradores.correoPh}" placeholder="jordi.bastida@example.com" required>
+                                    <span class="hint" th:text="#{colaboradores.hint.correoNuevo}">Es su identificador de acceso.</span>
                                 </div>
 
                                 <div class="frow">
-                                    <label for="password">Contraseña inicial <span class="req">*</span></label>
+                                    <label for="password"><span th:text="#{empleados.passwordInicial}">Contraseña inicial</span> <span class="req">*</span></label>
                                     <input class="inp" type="text" id="password" name="password"
-                                           placeholder="La que le entregues" required>
-                                    <span class="hint">No se guarda en claro: la base solo conserva su hash.
-                                        Apúntala al crearla, porque no se vuelve a mostrar.</span>
+                                           th:placeholder="#{empleados.passwordPh}" placeholder="La que le entregues" required>
+                                    <span class="hint" th:text="#{colaboradores.hint.password}">No se guarda en claro.</span>
                                 </div>
 
                             </div>
@@ -94,19 +91,18 @@
                             <!-- La foto no es obligatoria. Sin ella, en toda la aplicacion sale
                                  el avatar generico de /img/placeholder.webp, que no es una fila
                                  de imagen_usuario: es el hueco por defecto de la plantilla. -->
-                            <div class="sect-label">Foto de perfil</div>
+                            <div class="sect-label" th:text="#{perfil.foto}">Foto de perfil</div>
                             <div class="form-grid">
 
                                 <div class="frow wide">
-                                    <label for="foto">Foto</label>
+                                    <label for="foto" th:text="#{empleados.foto}">Foto</label>
                                     <div class="row">
                                         <img class="avatar col-avatar" th:src="@{/img/placeholder.webp}"
-                                             alt="Sin foto de perfil" style="object-fit:cover">
+                                             th:alt="#{navbar.sinFoto}" alt="Sin foto de perfil" style="object-fit:cover">
                                         <input class="inp" type="file" id="foto" name="foto"
                                                accept="image/png,image/jpeg,image/webp">
                                     </div>
-                                    <span class="hint">JPG, PNG o WEBP, máximo 2 MB. Si lo dejas vacío se
-                                        queda con el avatar genérico.</span>
+                                    <span class="hint" th:text="#{empleados.hint.fotoNueva}">JPG, PNG o WEBP, máximo 2 MB.</span>
                                 </div>
 
                             </div>
@@ -114,9 +110,9 @@
                         </div>
 
                         <div class="form-foot">
-                            <span class="note">Nace activo y con la contraseña marcada como pendiente de cambiar.</span>
-                            <a class="btn" th:href="@{/admin/colaboradores}">Cancelar</a>
-                            <button type="submit" class="btn btn-primary">Crear colaborador</button>
+                            <span class="note" th:text="#{colaboradores.nota.nuevo}">Nace activo y con la contraseña marcada como pendiente de cambiar.</span>
+                            <a class="btn" th:href="@{/admin/colaboradores}" th:text="#{comun.cancelar}">Cancelar</a>
+                            <button type="submit" class="btn btn-primary" th:text="#{colaboradores.crear}">Crear colaborador</button>
                         </div>
 
                     </form>
@@ -125,19 +121,15 @@
                 <div class="stack">
                     <div class="note-box">
                         <svg th:replace="~{fragments/iconos :: warn}"></svg>
-                        <div>Un colaborador y un cliente comparten la tabla <code>usuario</code>: lo que
-                            cambia es la tabla hija que le cuelga, con su misma clave primaria, y el rol
-                            que tiene.</div>
+                        <div th:text="#{colaboradores.aviso.tablaUsuario}">Un colaborador y un cliente comparten la tabla usuario.</div>
                     </div>
 
                     <div class="card">
-                        <div class="card-head"><h3>Qué podrá hacer</h3>
-                            <span class="sub">con el rol COLABORADOR</span></div>
+                        <div class="card-head"><h3 th:text="#{empleados.quePodraHacer}">Qué podrá hacer</h3>
+                            <span class="sub" th:text="#{colaboradores.conRol}">con el rol COLABORADOR</span></div>
                         <div class="card-body stack">
-                            <p class="hint">Entrar con su correo y subir sus propios juegos, que salen
-                                publicados en el apartado de colaboradores de la tienda.</p>
-                            <p class="hint">No ve compras, ni claves, ni clientes, ni el resto del ERP.
-                                Tampoco se le pide NIF ni IBAN: no se le compra nada.</p>
+                            <p class="hint" th:text="#{colaboradores.puede.subir}">Entrar con su correo y subir sus propios juegos.</p>
+                            <p class="hint" th:text="#{colaboradores.puede.noVe}">No ve compras, ni claves, ni clientes.</p>
                         </div>
                     </div>
                 </div>

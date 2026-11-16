@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<html th:lang="${#locale.language}" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Pedido · LudusERP</title>
+    <title th:text="#{pedidos.uno} + ' · LudusERP'">Pedido · LudusERP</title>
     <link rel="stylesheet" th:href="@{/css/panel.css}">
 </head>
 <body>
@@ -14,48 +14,48 @@
 
     <div class="main">
 
-        <header th:replace="~{fragments/panel :: barra('Ventas', 'Pedidos / ' + ${pedido.numero})}"></header>
+        <header th:replace="~{fragments/panel :: barra(#{panel.seccion.ventas}, #{panel.menu.pedidos} + ' / ' + ${pedido.numero})}"></header>
 
         <main class="canvas">
 
             <a class="btn btn-ghost btn-sm" style="margin-bottom:12px" th:href="@{/ventas/pedidos}">
-                <svg th:replace="~{fragments/iconos :: back}"></svg> Volver a los pedidos</a>
+                <svg th:replace="~{fragments/iconos :: back}"></svg> <span th:text="#{pedidos.volver}">Volver a los pedidos</span></a>
 
             <div class="page-head">
                 <div>
-                    <h1 th:text="'Pedido ' + ${pedido.numero}">Pedido C-2026-1884</h1>
+                    <h1 th:text="#{pedidos.uno} + ' ' + ${pedido.numero}">Pedido C-2026-1884</h1>
                     <p>
                         <span th:text="${pedido.cliente.nombre} + (${pedido.cliente.apellidos} != null ? ' ' + ${pedido.cliente.apellidos} : '')">Marta Ribas</span>
                         · <span th:text="${#temporals.format(pedido.fecha, 'dd/MM/yyyy HH:mm')}">22/10/2026 11:48</span>
-                        <span th:if="${pedido.metodoPago != null}"> · pago con <span th:text="${pedido.metodoPago}">Stripe</span></span>
+                        <span th:if="${pedido.metodoPago != null}"> · <span th:text="#{pedidos.pagoCon}">pago con</span> <span th:text="${pedido.metodoPago}">Stripe</span></span>
                     </p>
                 </div>
                 <div class="page-actions">
                     <span class="badge"
                           th:classappend="${pedido.estado.name() == 'PAGADO'} ? 'b-good' : (${pedido.estado.name() == 'PENDIENTE_PAGO'} ? 'b-warn' : (${pedido.estado.name() == 'CANCELADO'} ? 'b-crit' : 'b-serious'))"
-                          th:text="${#strings.replace(pedido.estado.name(), '_', ' ')}">PAGADO</span>
+                          th:text="#{'estadoPedido.' + ${pedido.estado.name()}}">PAGADO</span>
                 </div>
             </div>
 
             <div class="grid g-2-1">
 
                 <div class="card">
-                    <div class="card-head"><h3>Líneas del pedido</h3></div>
+                    <div class="card-head"><h3 th:text="#{pedidos.lineas}">Líneas del pedido</h3></div>
 
                     <div class="card-body tight">
 
                         <div class="empty" th:if="${#lists.isEmpty(pedido.lineas)}">
-                            <h4>Este pedido no tiene líneas</h4>
+                            <h4 th:text="#{pedidos.sinLineas}">Este pedido no tiene líneas</h4>
                         </div>
 
                         <div class="tbl-wrap" th:if="${!#lists.isEmpty(pedido.lineas)}">
                             <table class="tbl">
                                 <thead>
                                 <tr>
-                                    <th>Videojuego</th>
-                                    <th class="num">Precio</th>
-                                    <th class="num">Dto.</th>
-                                    <th class="num">Subtotal</th>
+                                    <th th:text="#{panel.menu.videojuegos}">Videojuego</th>
+                                    <th class="num" th:text="#{comun.precio}">Precio</th>
+                                    <th class="num" th:text="#{pedidos.col.dto}">Dto.</th>
+                                    <th class="num" th:text="#{pedidos.col.subtotal}">Subtotal</th>
                                 </tr>
                                 </thead>
                                 <tbody>
@@ -88,18 +88,18 @@
 
                     <div class="form-foot">
                         <div class="totals" style="min-width:250px;margin-left:auto">
-                            <div class="r"><span>Base imponible</span>
+                            <div class="r"><span th:text="#{pedidos.col.baseImponible}">Base imponible</span>
                                 <span th:text="${#numbers.formatDecimal(pedido.baseImponible, 1, 'POINT', 2, 'COMMA')} + ' €'">0,00 €</span></div>
-                            <div class="r"><span>IVA</span>
+                            <div class="r"><span th:text="#{pedidos.col.iva}">IVA</span>
                                 <span th:text="${#numbers.formatDecimal(pedido.iva, 1, 'POINT', 2, 'COMMA')} + ' €'">0,00 €</span></div>
-                            <div class="r big"><span>Total</span>
+                            <div class="r big"><span th:text="#{comun.total}">Total</span>
                                 <span th:text="${#numbers.formatDecimal(pedido.total, 1, 'POINT', 2, 'COMMA')} + ' €'">0,00 €</span></div>
                         </div>
                     </div>
                 </div>
 
                 <div class="card">
-                    <div class="card-head"><h3>Cliente</h3></div>
+                    <div class="card-head"><h3 th:text="#{clientes.col.cliente}">Cliente</h3></div>
                     <div class="card-body">
                         <div style="margin-bottom:12px">
                             <div class="t-main"
@@ -107,11 +107,11 @@
                             <div class="t-sub" th:text="${pedido.cliente.email}">correo@ejemplo.com</div>
                         </div>
                         <dl class="kv" style="grid-template-columns:110px 1fr">
-                            <dt>Cliente desde</dt>
+                            <dt th:text="#{pedidos.clienteDesde}">Cliente desde</dt>
                             <dd th:text="${#temporals.format(pedido.cliente.fechaAlta, 'dd/MM/yyyy')}">11/02/2025</dd>
-                            <dt>Ciudad</dt>
+                            <dt th:text="#{comun.ciudad}">Ciudad</dt>
                             <dd th:text="${pedido.cliente.ciudad != null} ? ${pedido.cliente.ciudad} : '—'">Barcelona</dd>
-                            <dt>País</dt>
+                            <dt th:text="#{comun.pais}">País</dt>
                             <dd th:text="${pedido.cliente.pais != null} ? ${pedido.cliente.pais} : '—'">España</dd>
                         </dl>
                     </div>

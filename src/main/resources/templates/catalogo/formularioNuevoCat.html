@@ -41,7 +41,7 @@
                                 <div class="frow">
                                     <label for="nombre"><span th:text="#{comun.nombre}">Nombre</span> <span class="req">*</span></label>
                                     <input class="inp" type="text" th:field="*{nombre}" maxlength="60"
-                                           placeholder="Aventura" required>
+                                           th:placeholder="#{categorias.nombrePh}" placeholder="Aventura" required>
                                     <span class="hint" th:text="#{categorias.hint.nombre}">Es lo que se ve en la tienda. Único en la tabla.</span>
                                 </div>
 

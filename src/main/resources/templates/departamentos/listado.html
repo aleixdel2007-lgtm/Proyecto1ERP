@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<html th:lang="${#locale.language}" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Departamentos · LudusERP</title>
+    <title th:text="#{panel.menu.departamentos} + ' · LudusERP'">Departamentos · LudusERP</title>
     <link rel="stylesheet" th:href="@{/css/panel.css}">
     <link rel="stylesheet" th:href="@{/css/departamentos.css}">
 </head>
@@ -15,7 +15,7 @@
 
     <div class="main">
 
-        <header th:replace="~{fragments/panel :: barra('Administración', 'Departamentos')}"></header>
+        <header th:replace="~{fragments/panel :: barra(#{panel.seccion.admin}, #{panel.menu.departamentos})}"></header>
 
         <main class="canvas">
 
@@ -24,9 +24,8 @@
 
             <div class="page-head">
                 <div>
-                    <h1>Departamentos</h1>
-                    <p>Tabla relacionada con el perfil de empleado en 1:N. Cada trabajador pertenece a un
-                        departamento, y un departamento tiene como máximo un responsable.</p>
+                    <h1 th:text="#{panel.menu.departamentos}">Departamentos</h1>
+                    <p th:text="#{departamentos.intro}">Tabla relacionada con el perfil de empleado en 1:N.</p>
                 </div>
                 <div class="page-actions">
                     <a class="btn btn-primary" th:href="@{/departamentos/nuevo}">
@@ -50,17 +49,17 @@
                     <div class="card-body tight">
 
                         <div class="empty" th:if="${#lists.isEmpty(departamentos)}">
-                            <h4>Todavía no hay departamentos</h4>
-                            <p class="hint">Crea el primero con el botón «Nuevo departamento».</p>
+                            <h4 th:text="#{departamentos.vacio}">Todavía no hay departamentos</h4>
+                            <p class="hint" th:text="#{departamentos.vacio.hint}">Crea el primero.</p>
                         </div>
 
                         <div class="tbl-wrap" th:unless="${#lists.isEmpty(departamentos)}">
                             <table class="tbl">
                                 <thead>
                                 <tr>
-                                    <th>Departamento</th>
-                                    <th class="num">Trabajadores</th>
-                                    <th>Responsable</th>
+                                    <th th:text="#{comun.departamento}">Departamento</th>
+                                    <th class="num" th:text="#{departamentos.col.trabajadores}">Trabajadores</th>
+                                    <th th:text="#{departamentos.col.responsable}">Responsable</th>
                                     <th class="acts"></th>
                                 </tr>
                                 </thead>
@@ -76,16 +75,18 @@
                                     <td class="num" th:text="${#lists.size(d.trabajadores)}">0</td>
                                     <td>
                                         <span th:if="${d.responsable}" th:text="${d.responsable.apellidos != null ? d.responsable.nombre + ' ' + d.responsable.apellidos : d.responsable.nombre}">Aleix Delgado</span>
-                                        <span class="dep-vacio" th:unless="${d.responsable}">Sin asignar</span>
+                                        <span class="dep-vacio" th:unless="${d.responsable}" th:text="#{comun.sinAsignar}">Sin asignar</span>
                                     </td>
                                     <td class="acts">
-                                        <a class="btn btn-sm btn-ghost" title="Editar"
+                                        <a class="btn btn-sm btn-ghost" title="Editar" th:title="#{comun.editar}"
                                            th:href="@{/departamentos/editar/{id}(id=${d.id})}">
                                             <svg th:replace="~{fragments/iconos :: edit}"></svg>
                                         </a>
                                         <form th:action="@{/departamentos/eliminar/{id}(id=${d.id})}" method="post"
-                                              onsubmit="return confirm('¿Seguro que quieres eliminar este departamento?');">
-                                            <button type="submit" class="btn btn-sm btn-danger" title="Eliminar">
+                                              th:data-confirmar="#{departamentos.confirmarEliminar}"
+                                              onsubmit="return confirm(this.dataset.confirmar);">
+                                            <button type="submit" class="btn btn-sm btn-danger" title="Eliminar"
+                                                    th:title="#{comun.eliminar}">
                                                 <svg th:replace="~{fragments/iconos :: trash}"></svg>
                                             </button>
                                         </form>
@@ -99,8 +100,8 @@
                     <!-- Flechas y numeros de pagina. Este listado no tiene filtros, asi que el
                          enlace solo lleva la pagina, y .off apaga la flecha del extremo. -->
                     <div class="pager" th:unless="${#lists.isEmpty(departamentos)}">
-                        <span>Mostrando <b th:text="${fin - inicio}">10</b>
-                            de <b th:text="${total}">10</b> registros</span>
+                        <span><span th:text="#{comun.mostrando}">Mostrando</span> <b th:text="${fin - inicio}">10</b>
+                            <span th:text="#{comun.de}">de</span> <b th:text="${total}">10</b> <span th:text="#{comun.registros}">registros</span></span>
                         <div class="pages">
                             <a class="pg" th:classappend="${actual == 0} ? 'off' : ''"
                                th:href="@{/departamentos(pagina=${actual - 1})}">&lsaquo;</a>
@@ -116,18 +117,17 @@
                 </div>
 
                 <div class="card">
-                    <div class="card-head"><h3>Cómo funciona</h3></div>
+                    <div class="card-head"><h3 th:text="#{departamentos.comoFunciona}">Cómo funciona</h3></div>
                     <div class="card-body stack">
                         <div class="note-box">
                             <svg th:replace="~{fragments/iconos :: warn}"></svg>
-                            <div>No se puede borrar un departamento con trabajadores dentro: el validador de
-                                negocio lo impide antes de tocar la base.</div>
+                            <div th:text="#{departamentos.aviso.borrar}">No se puede borrar un departamento con trabajadores dentro.</div>
                         </div>
                         <div class="sep"></div>
                         <div class="dep-reglas">
-                            <p class="hint">El nombre es único en la tabla.</p>
-                            <p class="hint">Un trabajador solo puede ser responsable de un departamento.</p>
-                            <p class="hint">El responsable es opcional: un departamento puede quedar sin asignar.</p>
+                            <p class="hint" th:text="#{departamentos.regla.nombre}">El nombre es único en la tabla.</p>
+                            <p class="hint" th:text="#{departamentos.regla.responsable}">Un trabajador solo puede ser responsable de un departamento.</p>
+                            <p class="hint" th:text="#{departamentos.regla.opcional}">El responsable es opcional.</p>
                         </div>
                     </div>
                 </div>

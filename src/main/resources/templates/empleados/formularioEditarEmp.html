@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<html th:lang="${#locale.language}" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Editar empleado · LudusERP</title>
+    <title th:text="#{empleados.editar} + ' · LudusERP'">Editar empleado · LudusERP</title>
     <link rel="stylesheet" th:href="@{/css/panel.css}">
     <link rel="stylesheet" th:href="@{/css/empleados.css}">
 </head>
@@ -15,7 +15,7 @@
 
     <div class="main">
 
-        <header th:replace="~{fragments/panel :: barra('Administración', 'Empleados')}"></header>
+        <header th:replace="~{fragments/panel :: barra(#{panel.seccion.admin}, #{panel.menu.empleados})}"></header>
 
         <main class="canvas">
 
@@ -24,8 +24,8 @@
 
             <div class="page-head">
                 <div>
-                    <h1>Editar empleado</h1>
-                    <p>El estado de alta o baja se cambia aquí, en el apartado de acceso.</p>
+                    <h1 th:text="#{empleados.editar}">Editar empleado</h1>
+                    <p th:text="#{empleados.editar.intro}">El estado de alta o baja se cambia aquí, en el apartado de acceso.</p>
                 </div>
             </div>
 
@@ -41,56 +41,56 @@
 
                         <div class="card-body stack">
 
-                            <div class="sect-label">Datos personales</div>
+                            <div class="sect-label" th:text="#{perfil.datos.personales}">Datos personales</div>
                             <div class="form-grid">
 
                                 <div class="frow">
-                                    <label for="nombre">Nombre <span class="req">*</span></label>
+                                    <label for="nombre"><span th:text="#{comun.nombre}">Nombre</span> <span class="req">*</span></label>
                                     <input class="inp" type="text" th:field="*{nombre}" maxlength="80"
-                                           placeholder="Marta" required>
+                                           th:placeholder="#{empleados.nombrePh}" placeholder="Marta" required>
                                 </div>
 
                                 <div class="frow">
-                                    <label for="apellidos">Apellidos <span class="req">*</span></label>
+                                    <label for="apellidos"><span th:text="#{perfil.apellidos}">Apellidos</span> <span class="req">*</span></label>
                                     <input class="inp" type="text" th:field="*{apellidos}" maxlength="120"
-                                           placeholder="Ferrer" required>
+                                           th:placeholder="#{empleados.apellidosPh}" placeholder="Ferrer" required>
                                 </div>
 
                                 <div class="frow">
-                                    <label for="email">Correo corporativo <span class="req">*</span></label>
+                                    <label for="email"><span th:text="#{empleados.correoCorp}">Correo corporativo</span> <span class="req">*</span></label>
                                     <input class="inp" type="email" th:field="*{email}" maxlength="180"
-                                           placeholder="nombre@luduserp.cat" required>
-                                    <span class="hint">Si lo cambias, cambia el usuario con el que inicia sesión.</span>
+                                           th:placeholder="#{empleados.correoPh}" placeholder="nombre@luduserp.cat" required>
+                                    <span class="hint" th:text="#{empleados.hint.correoEditar}">Si lo cambias, cambia el usuario con el que inicia sesión.</span>
                                 </div>
 
                                 <div class="frow">
-                                    <label for="nif">NIF</label>
+                                    <label for="nif" th:text="#{empleados.nif}">NIF</label>
                                     <input class="inp" type="text" th:field="*{nif}" maxlength="20"
                                            placeholder="00000000A">
-                                    <span class="hint">Se guarda cifrado con AES-256-GCM.</span>
+                                    <span class="hint" th:text="#{empleados.hint.nif}">Se guarda cifrado con AES-256-GCM.</span>
                                 </div>
 
                                 <div class="frow">
-                                    <label for="iban">IBAN</label>
+                                    <label for="iban" th:text="#{empleados.iban}">IBAN</label>
                                     <input class="inp" type="text" th:field="*{iban}" maxlength="34"
                                            placeholder="ES00 0000 0000 0000 0000 0000">
-                                    <span class="hint">También cifrado.</span>
+                                    <span class="hint" th:text="#{empleados.hint.iban}">También cifrado.</span>
                                 </div>
 
                                 <div class="frow">
-                                    <label for="fechaContratacion">Fecha de contratación</label>
+                                    <label for="fechaContratacion" th:text="#{empleados.fechaContratacion}">Fecha de contratación</label>
                                     <input class="inp" type="date" th:field="*{fechaContratacion}">
                                 </div>
 
                             </div>
 
-                            <div class="sect-label">Puesto</div>
+                            <div class="sect-label" th:text="#{empleados.puesto}">Puesto</div>
                             <div class="form-grid">
 
                                 <div class="frow">
-                                    <label for="departamentoId">Departamento <span class="req">*</span></label>
+                                    <label for="departamentoId"><span th:text="#{comun.departamento}">Departamento</span> <span class="req">*</span></label>
                                     <select class="inp" name="departamentoId" required>
-                                        <option value="">Selecciona un departamento</option>
+                                        <option value="" th:text="#{empleados.eligeDepartamento}">Selecciona un departamento</option>
                                         <option th:each="d : ${departamentos}"
                                                 th:value="${d.id}"
                                                 th:text="${d.nombre}"
@@ -100,49 +100,49 @@
                                 </div>
 
                                 <div class="frow">
-                                    <label for="cargo">Cargo</label>
+                                    <label for="cargo" th:text="#{empleados.col.cargo}">Cargo</label>
                                     <input class="inp" type="text" th:field="*{cargo}" maxlength="80"
-                                           placeholder="Gestora de productos">
+                                           th:placeholder="#{empleados.cargoPh}" placeholder="Gestora de productos">
                                 </div>
 
                             </div>
 
-                            <div class="sect-label">Acceso</div>
+                            <div class="sect-label" th:text="#{empleados.acceso}">Acceso</div>
                             <div class="form-grid">
 
                                 <div class="frow">
-                                    <label for="rol">Rol <span class="req">*</span></label>
+                                    <label for="rol"><span th:text="#{comun.rol}">Rol</span> <span class="req">*</span></label>
                                     <select class="inp" th:field="*{rol}" required>
-                                        <option value="">Selecciona un rol</option>
+                                        <option value="" th:text="#{empleados.eligeRol}">Selecciona un rol</option>
                                         <option th:each="r : ${rolesDisponibles}" th:value="${r}" th:text="${r}">ADMIN</option>
                                     </select>
-                                    <span class="hint">Un empleado tiene un solo rol, y de él dependen sus permisos.</span>
+                                    <span class="hint" th:text="#{empleados.hint.rol}">Un empleado tiene un solo rol.</span>
                                 </div>
 
                                 <div class="frow">
-                                    <label for="password">Contraseña nueva</label>
+                                    <label for="password" th:text="#{empleados.passwordNueva}">Contraseña nueva</label>
                                     <input class="inp" type="text" name="password"
-                                           placeholder="Déjalo vacío para no cambiarla">
-                                    <span class="hint">Si pones una, el empleado tendrá que cambiarla al entrar.</span>
+                                           th:placeholder="#{empleados.passwordNuevaPh}" placeholder="Déjalo vacío para no cambiarla">
+                                    <span class="hint" th:text="#{empleados.hint.passwordNueva}">Si pones una, el empleado tendrá que cambiarla al entrar.</span>
                                 </div>
 
                                 <div class="frow">
-                                    <label>Estado</label>
+                                    <label th:text="#{comun.estado}">Estado</label>
                                     <label class="switch" style="margin-top:6px">
-                                        <input type="checkbox" th:field="*{activo}"><i></i> Activo
+                                        <input type="checkbox" th:field="*{activo}"><i></i> <span th:text="#{comun.activo}">Activo</span>
                                     </label>
-                                    <span class="hint">Si lo desmarcas, el empleado no podrá iniciar sesión.</span>
+                                    <span class="hint" th:text="#{empleados.hint.activo}">Si lo desmarcas, el empleado no podrá iniciar sesión.</span>
                                 </div>
 
                             </div>
 
                             <!-- La foto actual, o el avatar generico si todavia no tiene. Como el
                                  campo de contrasena: vacio significa no tocarla. -->
-                            <div class="sect-label">Foto de perfil</div>
+                            <div class="sect-label" th:text="#{perfil.foto}">Foto de perfil</div>
                             <div class="form-grid">
 
                                 <div class="frow wide">
-                                    <label for="foto">Cambiar la foto</label>
+                                    <label for="foto" th:text="#{empleados.cambiarFoto}">Cambiar la foto</label>
                                     <div class="row">
                                         <img class="avatar emp-avatar" style="object-fit:cover"
                                              th:src="${imagenEmpleado != null}
@@ -150,12 +150,11 @@
                                                      : @{/img/placeholder.webp}"
                                              th:alt="${imagenEmpleado != null}
                                                      ? ${imagenEmpleado.textoAlternativo}
-                                                     : 'Sin foto de perfil'">
+                                                     : #{navbar.sinFoto}">
                                         <input class="inp" type="file" id="foto" name="foto"
                                                accept="image/png,image/jpeg,image/webp">
                                     </div>
-                                    <span class="hint">JPG, PNG o WEBP, máximo 2 MB. Déjalo vacío para no
-                                        cambiarla; la anterior se borra al subir una nueva.</span>
+                                    <span class="hint" th:text="#{empleados.hint.fotoEditar}">JPG, PNG o WEBP, máximo 2 MB.</span>
                                 </div>
 
                             </div>
@@ -163,9 +162,9 @@
                         </div>
 
                         <div class="form-foot">
-                            <span class="note">La fecha de alta del usuario no se modifica nunca. Para borrarlo, usa la papelera del listado.</span>
-                            <a class="btn" th:href="@{/empleados}">Cancelar</a>
-                            <button type="submit" class="btn btn-primary">Guardar cambios</button>
+                            <span class="note" th:text="#{empleados.nota.editar}">La fecha de alta del usuario no se modifica nunca. Para borrarlo, usa la papelera del listado.</span>
+                            <a class="btn" th:href="@{/empleados}" th:text="#{comun.cancelar}">Cancelar</a>
+                            <button type="submit" class="btn btn-primary" th:text="#{comun.guardarCambios}">Guardar cambios</button>
                         </div>
 
                     </form>
@@ -174,9 +173,7 @@
                 <div class="stack">
                     <div class="note-box">
                         <svg th:replace="~{fragments/iconos :: warn}"></svg>
-                        <div>Desmarcar <b>Activo</b> le quita el acceso pero conserva su ficha y su historial.
-                            Eliminarlo desde la papelera del listado lo borra de la base de datos, y solo
-                            es posible si no es responsable de un departamento ni tiene compras a su nombre.</div>
+                        <div th:text="#{empleados.aviso.desactivar}">Desmarcar Activo le quita el acceso pero conserva su ficha.</div>
                     </div>
                 </div>
 

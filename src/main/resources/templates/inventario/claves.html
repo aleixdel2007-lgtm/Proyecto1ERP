@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<html th:lang="${#locale.language}" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Claves de licencia · LudusERP</title>
+    <title th:text="#{panel.menu.claves} + ' · LudusERP'">Claves de licencia · LudusERP</title>
     <link rel="stylesheet" th:href="@{/css/panel.css}">
 </head>
 <body>
@@ -14,7 +14,7 @@
 
     <div class="main">
 
-        <header th:replace="~{fragments/panel :: barra('Aprovisionamiento', 'Claves de licencia')}"></header>
+        <header th:replace="~{fragments/panel :: barra(#{panel.seccion.aprovisionamiento}, #{panel.menu.claves})}"></header>
 
         <main class="canvas">
 
@@ -23,9 +23,8 @@
 
             <div class="page-head">
                 <div>
-                    <h1>Claves de licencia</h1>
-                    <p>El stock no es un contador: cada clave es una fila con su propia trazabilidad,
-                        de la línea de compra a la línea de pedido.</p>
+                    <h1 th:text="#{panel.menu.claves}">Claves de licencia</h1>
+                    <p th:text="#{claves.intro}">El stock no es un contador: cada clave es una fila.</p>
                 </div>
             </div>
 
@@ -33,22 +32,22 @@
                  panel.css y no merece una regla nueva para una sola pantalla -->
             <div class="grid" style="grid-template-columns:repeat(4,1fr);margin-bottom:16px">
                 <div class="kpi accent">
-                    <span class="k-label">Disponibles</span>
+                    <span class="k-label" th:text="#{estadoClave.DISPONIBLE}">Disponibles</span>
                     <span class="k-val" th:text="${disponibles}">0</span>
-                    <span class="k-foot">stock sin vender</span>
+                    <span class="k-foot" th:text="#{claves.kpi.disponibles}">stock sin vender</span>
                 </div>
                 <div class="kpi">
-                    <span class="k-label">Reservadas</span>
+                    <span class="k-label" th:text="#{estadoClave.RESERVADA}">Reservadas</span>
                     <span class="k-val" th:text="${reservadas}">0</span>
-                    <span class="k-foot">pago sin terminar</span>
+                    <span class="k-foot" th:text="#{claves.kpi.reservadas}">pago sin terminar</span>
                 </div>
                 <div class="kpi">
-                    <span class="k-label">Vendidas</span>
+                    <span class="k-label" th:text="#{estadoClave.VENDIDA}">Vendidas</span>
                     <span class="k-val" th:text="${vendidas}">0</span>
-                    <span class="k-foot">en la biblioteca de un cliente</span>
+                    <span class="k-foot" th:text="#{claves.kpi.vendidas}">en la biblioteca de un cliente</span>
                 </div>
                 <div class="kpi">
-                    <span class="k-label">Anuladas</span>
+                    <span class="k-label" th:text="#{estadoClave.ANULADA}">Anuladas</span>
                     <span class="k-val" th:text="${anuladas}">0</span>
                     <span class="k-foot"></span>
                 </div>
@@ -67,16 +66,16 @@
                      El servicio lo pasa por IndiceCiego.hash() y compara contra codigo_hash -->
                 <form class="filters" method="get" th:action="@{/inventario/claves}">
                     <div class="fld">
-                        <label>Código exacto</label>
+                        <label th:text="#{claves.codigoExacto}">Código exacto</label>
                         <div class="search-inp">
                             <svg th:replace="~{fragments/iconos :: search}"></svg>
-                            <input name="codigo" th:value="${codigo}" placeholder="ECLP-7H2M-44QX-ZB18">
+                            <input name="codigo" th:value="${codigo}" th:placeholder="#{claves.codigoPh}" placeholder="ECLP-7H2M-44QX-ZB18">
                         </div>
                     </div>
                     <div class="fld">
-                        <label>Videojuego</label>
+                        <label th:text="#{panel.menu.videojuegos}">Videojuego</label>
                         <select class="inp" name="videojuegoId">
-                            <option value="">Todos</option>
+                            <option value="" th:text="#{comun.todos}">Todos</option>
                             <option th:each="v : ${videojuegos}"
                                     th:value="${v.id}"
                                     th:text="${v.titulo}"
@@ -84,44 +83,43 @@
                         </select>
                     </div>
                     <div class="fld">
-                        <label>Estado</label>
+                        <label th:text="#{comun.estado}">Estado</label>
                         <select class="inp" name="estado">
-                            <option value="">Todos</option>
+                            <option value="" th:text="#{comun.todos}">Todos</option>
                             <option th:each="e : ${estados}"
                                     th:value="${e}"
-                                    th:text="${e}"
+                                    th:text="#{'estadoClave.' + ${e}}"
                                     th:selected="${estado != null and estado == e}">DISPONIBLE</option>
                         </select>
                     </div>
                     <div class="fld">
                         <label>&nbsp;</label>
-                        <button type="submit" class="btn btn-primary">Filtrar</button>
+                        <button type="submit" class="btn btn-primary" th:text="#{comun.filtrar}">Filtrar</button>
                     </div>
                     <div class="fld">
                         <label>&nbsp;</label>
-                        <a class="btn" th:href="@{/inventario/claves}">Limpiar</a>
+                        <a class="btn" th:href="@{/inventario/claves}" th:text="#{comun.limpiar}">Limpiar</a>
                     </div>
                 </form>
 
                 <div class="card-body tight">
 
                     <div class="empty" th:if="${#lists.isEmpty(claves)}">
-                        <h4>No hay ninguna clave que encaje</h4>
-                        <p class="hint">Prueba a quitar algún filtro. Las claves nacen al recibir una
-                            orden de compra o al pagarse un pedido.</p>
+                        <h4 th:text="#{claves.vacio}">No hay ninguna clave que encaje</h4>
+                        <p class="hint" th:text="#{claves.vacio.hint}">Prueba a quitar algún filtro.</p>
                     </div>
 
                     <div class="tbl-wrap" th:unless="${#lists.isEmpty(claves)}">
                         <table class="tbl">
                             <thead>
                             <tr>
-                                <th>Código</th>
-                                <th>Videojuego</th>
-                                <th>Cliente</th>
-                                <th>Origen</th>
-                                <th>Alta</th>
-                                <th>Venta</th>
-                                <th>Estado</th>
+                                <th th:text="#{comun.codigo}">Código</th>
+                                <th th:text="#{panel.menu.videojuegos}">Videojuego</th>
+                                <th th:text="#{clientes.col.cliente}">Cliente</th>
+                                <th th:text="#{claves.col.origen}">Origen</th>
+                                <th th:text="#{clientes.col.alta}">Alta</th>
+                                <th th:text="#{claves.col.venta}">Venta</th>
+                                <th th:text="#{comun.estado}">Estado</th>
                                 <th></th>
                             </tr>
                             </thead>
@@ -156,7 +154,7 @@
                                     <span class="mono" th:if="${c.lineaCompra != null}"
                                           th:text="${c.lineaCompra.compra.numero}">OC-2026-0001</span>
                                     <span class="muted" th:if="${c.lineaCompra == null}"
-                                          title="No entró por ninguna orden de compra">—</span>
+                                          th:title="#{claves.sinOrden}">—</span>
                                 </td>
 
                                 <td th:text="${#temporals.format(c.fechaAlta, 'dd/MM/yyyy')}">10/11/2026</td>
@@ -183,7 +181,7 @@
                                 <td>
                                     <a class="btn btn-sm btn-danger"
                                        th:if="${c.estado.name() == 'DISPONIBLE'}"
-                                       th:href="@{/inventario/claves/{id}/anular(id=${c.id})}" title="Anular clave">
+                                       th:href="@{/inventario/claves/{id}/anular(id=${c.id})}" th:title="#{claves.anular}">
                                         <svg th:replace="~{fragments/iconos :: ban}"></svg>
                                     </a>
                                 </td>
@@ -194,8 +192,8 @@
                 </div>
 
                 <div class="pager" th:unless="${#lists.isEmpty(claves)}">
-                    <span>Mostrando <b th:text="${fin - inicio}">10</b>
-                        de <b th:text="${total}">10</b> claves</span>
+                    <span><span th:text="#{comun.mostrando}">Mostrando</span> <b th:text="${fin - inicio}">10</b>
+                        <span th:text="#{comun.de}">de</span> <b th:text="${total}">10</b> <span th:text="#{claves.contador}">claves</span></span>
                     <div class="pages">
                         <a class="pg" th:classappend="${actual == 0} ? 'off' : ''"
                            th:href="@{/inventario/claves(codigo=${codigo}, videojuegoId=${videojuegoId},
@@ -216,14 +214,11 @@
             <div class="grid g2" style="margin-top:16px">
                 <div class="note-box">
                     <svg th:replace="~{fragments/iconos :: warn}"></svg>
-                    <div>El código está cifrado en la base de datos: es literalmente dinero y no debe
-                        quedar legible para quien acceda a un volcado. Las que ya son de un cliente se
-                        enseñan tapadas por el medio.</div>
+                    <div th:text="#{claves.aviso.cifrado}">El código está cifrado en la base de datos.</div>
                 </div>
                 <div class="note-box">
                     <svg th:replace="~{fragments/iconos :: check}"></svg>
-                    <div>Una clave no se borra nunca: se anula, y queda con su fecha y su motivo. Solo
-                        se puede anular una que esté DISPONIBLE, porque una vendida ya es de alguien.</div>
+                    <div th:text="#{claves.aviso.anular}">Una clave no se borra nunca: se anula.</div>
                 </div>
             </div>
 

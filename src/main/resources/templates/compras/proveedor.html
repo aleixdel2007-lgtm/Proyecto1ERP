@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<html th:lang="${#locale.language}" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title th:text="${proveedor.id} == null ? 'Nuevo proveedor · LudusERP' : 'Editar proveedor · LudusERP'">Proveedor · LudusERP</title>
+    <title th:text="(${proveedor.id} == null ? #{proveedores.nuevo} : #{proveedores.editar}) + ' · LudusERP'">Proveedor · LudusERP</title>
     <link rel="stylesheet" th:href="@{/css/panel.css}">
 </head>
 <body>
@@ -14,16 +14,16 @@
 
     <div class="main">
 
-        <header th:replace="~{fragments/panel :: barra('Aprovisionamiento', 'Proveedores')}"></header>
+        <header th:replace="~{fragments/panel :: barra(#{panel.seccion.aprovisionamiento}, #{panel.menu.proveedores})}"></header>
 
         <main class="canvas">
 
             <a class="btn btn-ghost btn-sm" style="margin-bottom:12px" th:href="@{/compras/proveedores}">
-                <svg th:replace="~{fragments/iconos :: back}"></svg> Volver al listado</a>
+                <svg th:replace="~{fragments/iconos :: back}"></svg> <span th:text="#{comun.volverListado}">Volver al listado</span></a>
 
             <div class="page-head">
                 <div>
-                    <h1 th:text="${proveedor.id} == null ? 'Nuevo proveedor' : 'Editar proveedor'">Nuevo proveedor</h1>
+                    <h1 th:text="${proveedor.id} == null ? #{proveedores.nuevo} : #{proveedores.editar}">Nuevo proveedor</h1>
                 </div>
             </div>
 
@@ -40,59 +40,59 @@
                             <div class="form-grid">
 
                                 <div class="frow">
-                                    <label for="nombreComercial">Nombre comercial <span class="req">*</span></label>
+                                    <label for="nombreComercial"><span th:text="#{proveedores.nombreComercial}">Nombre comercial</span> <span class="req">*</span></label>
                                     <input class="inp" type="text" th:field="*{nombreComercial}" maxlength="120"
-                                           placeholder="Nordic Keys Distribution" required>
+                                           th:placeholder="#{proveedores.nombreComercialPh}" placeholder="Nordic Keys Distribution" required>
                                 </div>
 
                                 <div class="frow">
-                                    <label for="razonSocial">Razón social <span class="req">*</span></label>
+                                    <label for="razonSocial"><span th:text="#{proveedores.razonSocial}">Razón social</span> <span class="req">*</span></label>
                                     <input class="inp" type="text" th:field="*{razonSocial}" maxlength="150"
-                                           placeholder="Nordic Keys AB" required>
+                                           th:placeholder="#{proveedores.razonSocialPh}" placeholder="Nordic Keys AB" required>
                                 </div>
 
                                 <div class="frow">
-                                    <label for="cif">CIF / VAT <span class="req">*</span></label>
+                                    <label for="cif"><span th:text="#{proveedores.cifVat}">CIF / VAT</span> <span class="req">*</span></label>
                                     <input class="inp" type="text" th:field="*{cif}" maxlength="20"
                                            placeholder="SE556000-0000" required>
-                                    <span class="hint">Se almacena cifrado; en el volcado de la base no es legible.</span>
+                                    <span class="hint" th:text="#{proveedores.hint.cif}">Se almacena cifrado.</span>
                                 </div>
 
                                 <div class="frow">
-                                    <label for="iban">IBAN</label>
+                                    <label for="iban" th:text="#{empleados.iban}">IBAN</label>
                                     <input class="inp" type="text" th:field="*{iban}" maxlength="34"
                                            placeholder="SE00 0000 0000 0000 0000 0000">
-                                    <span class="hint">También cifrado.</span>
+                                    <span class="hint" th:text="#{empleados.hint.iban}">También cifrado.</span>
                                 </div>
 
                                 <div class="frow">
-                                    <label for="email">Correo de pedidos <span class="req">*</span></label>
+                                    <label for="email"><span th:text="#{proveedores.correoPedidos}">Correo de pedidos</span> <span class="req">*</span></label>
                                     <input class="inp" type="email" th:field="*{email}" maxlength="180"
-                                           placeholder="pedidos@proveedor.com" required>
+                                           th:placeholder="#{proveedores.correoPh}" placeholder="pedidos@proveedor.com" required>
                                 </div>
 
                                 <div class="frow">
-                                    <label for="telefono">Teléfono</label>
+                                    <label for="telefono" th:text="#{comun.telefono}">Teléfono</label>
                                     <input class="inp" type="text" th:field="*{telefono}" maxlength="20"
                                            placeholder="+46 ...">
                                 </div>
 
                                 <div class="frow">
-                                    <label for="pais">País</label>
+                                    <label for="pais" th:text="#{comun.pais}">País</label>
                                     <select class="inp" th:field="*{pais}">
-                                        <option value="">Sin indicar</option>
-                                        <option value="España">España</option>
-                                        <option value="Suecia">Suecia</option>
-                                        <option value="Alemania">Alemania</option>
-                                        <option value="Reino Unido">Reino Unido</option>
-                                        <option value="Países Bajos">Países Bajos</option>
+                                        <option value="" th:text="#{comun.sinIndicar}">Sin indicar</option>
+                                        <option value="España" th:text="#{pais.ES}">España</option>
+                                        <option value="Suecia" th:text="#{pais.SE}">Suecia</option>
+                                        <option value="Alemania" th:text="#{pais.DE}">Alemania</option>
+                                        <option value="Reino Unido" th:text="#{pais.GB}">Reino Unido</option>
+                                        <option value="Países Bajos" th:text="#{pais.NL}">Países Bajos</option>
                                     </select>
                                 </div>
 
                                 <div class="frow">
-                                    <label>Estado</label>
+                                    <label th:text="#{comun.estado}">Estado</label>
                                     <label class="switch" style="margin-top:6px">
-                                        <input type="checkbox" th:field="*{activo}"><i></i> Activo
+                                        <input type="checkbox" th:field="*{activo}"><i></i> <span th:text="#{comun.activo}">Activo</span>
                                     </label>
                                 </div>
 
@@ -100,10 +100,10 @@
                         </div>
 
                         <div class="form-foot">
-                            <span class="note">El estado se cambia aqui. Para borrarlo del todo, usa la papelera del listado.</span>
-                            <a class="btn" th:href="@{/compras/proveedores}">Cancelar</a>
+                            <span class="note" th:text="#{proveedores.nota.estado}">El estado se cambia aquí.</span>
+                            <a class="btn" th:href="@{/compras/proveedores}" th:text="#{comun.cancelar}">Cancelar</a>
                             <button type="submit" class="btn btn-primary"
-                                    th:text="${proveedor.id} == null ? 'Crear proveedor' : 'Guardar cambios'">Crear proveedor</button>
+                                    th:text="${proveedor.id} == null ? #{proveedores.crear} : #{comun.guardarCambios}">Crear proveedor</button>
                         </div>
 
                     </form>
@@ -112,16 +112,14 @@
                 <div class="stack">
                     <div class="note-box">
                         <svg th:replace="~{fragments/iconos :: warn}"></svg>
-                        <div>Los campos marcados como cifrados pasan por un <code>AttributeConverter</code>:
-                            el cifrado y el descifrado ocurren al entrar y salir de la base de datos, y el código
-                            de negocio no se entera.</div>
+                        <div th:text="#{proveedores.aviso.cifrado}">Los campos cifrados pasan por un AttributeConverter.</div>
                     </div>
 
                     <div class="card">
-                        <div class="card-head"><h3>Últimas órdenes</h3></div>
+                        <div class="card-head"><h3 th:text="#{proveedores.ultimasOrdenes}">Últimas órdenes</h3></div>
                         <div class="empty">
-                            <h4>Todavía no hay órdenes</h4>
-                            <p class="hint">Aparecerán aquí cuando se cree la primera.</p>
+                            <h4 th:text="#{proveedores.sinOrdenes}">Todavía no hay órdenes</h4>
+                            <p class="hint" th:text="#{proveedores.sinOrdenes.hint}">Aparecerán aquí cuando se cree la primera.</p>
                         </div>
                     </div>
                 </div>
