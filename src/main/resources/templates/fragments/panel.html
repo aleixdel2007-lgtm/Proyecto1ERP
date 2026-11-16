@@ -102,6 +102,10 @@
         </div>
     </div>
 <script th:src="@{/js/client-profile.js}" src="../static/js/client-profile.js"></script>
+    <th:block sec:authorize="hasAnyRole('GESTOR_CLIENTES', 'GESTOR_PRODUCTOS', 'ADMIN')">
+        <script th:src="@{/js/stomp.umd.min.js}"></script>
+        <script th:src="@{/js/notificaciones.js}"></script>
+    </th:block>
 </header>
 
 </body>
