@@ -163,11 +163,6 @@
         <div>
             <div class="buy-box">
 
-                <div class="row" style="justify-content:space-between">
-                    <span class="badge b-mute" th:text="#{ficha.sinStock}">Sin stock calculado</span>
-                    <span class="live"><i></i><th:block th:text="#{ficha.stockVivo}">Stock en vivo</th:block></span>
-                </div>
-
                 <div class="buy-price">
                     <span class="old" th:if="${videojuego.precioDescuento != null}"
                           th:text="${#numbers.formatDecimal(videojuego.precio, 1, 'POINT', 2, 'COMMA')} + ' €'">59,99 €</span>
