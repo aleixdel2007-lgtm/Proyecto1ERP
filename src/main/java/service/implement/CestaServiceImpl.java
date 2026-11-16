@@ -53,11 +53,13 @@ public class CestaServiceImpl implements CestaService {
         // si no se puede comprar, lanza un error con el motivo y aqui se para
         comprobarQueSePuedeComprar(email, cesta, videojuego);
 
-        // como mucho 1 unidad de cada juego: siempre se crea una linea nueva
+        // Una linea es un juego y nada mas: lo que se compra es una licencia, una clave
+        // por cuenta, y no un producto fisico del que se puedan llevar varias unidades.
+        // Por eso la linea no tiene cantidad: el UNIQUE (cesta_id, videojuego_id) es el
+        // que impide que el mismo juego entre dos veces
         LineaCesta linea = new LineaCesta();
         linea.setCesta(cesta);
         linea.setVideojuego(videojuego);
-        linea.setCantidad(1); //siempre sera 1 pq lo que compra  es una licencia, una clave por cuenta,no un producto fisico, nucna se suma otra unidad del mismo juego
         cesta.getLineas().add(linea);
 
         cestaDao.save(cesta);

@@ -24,7 +24,4 @@ public class LineaCesta {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "videojuego_id", nullable = false)
     private Videojuego videojuego;
-
-    @Column(name = "cantidad", nullable = false)
-    private int cantidad = 1;
 }

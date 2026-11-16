@@ -13,8 +13,9 @@ CREATE TABLE linea_cesta (
     id            BIGINT NOT NULL AUTO_INCREMENT,
     cesta_id      BIGINT NOT NULL,
     videojuego_id BIGINT NOT NULL,
-    cantidad      INT    NOT NULL,
     PRIMARY KEY (id),
+    -- Sin columna de cantidad: una linea es un juego. El UNIQUE es el que impide
+    -- que el mismo juego entre dos veces en la misma cesta
     CONSTRAINT uk_linea_cesta_videojuego UNIQUE (cesta_id, videojuego_id),
     CONSTRAINT fk_linea_cesta_cesta
         FOREIGN KEY (cesta_id) REFERENCES cesta (id),
