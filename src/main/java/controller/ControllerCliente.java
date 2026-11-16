@@ -6,7 +6,9 @@ package controller;
 
 import exception.cliente.ClienteConDatosAsociadosException;
 import java.time.LocalDate;
+import java.util.Locale;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.MessageSource;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -26,6 +28,9 @@ public class ControllerCliente {
 
     @Autowired
     private ClienteService clienteService;
+
+    @Autowired
+    private MessageSource messageSource;
 
     @GetMapping("/clientes")
     public String listarClientes(@RequestParam(required = false) String buscar,
@@ -47,22 +52,23 @@ public class ControllerCliente {
 
     @PostMapping("/clientes/{id}/estado")
     public String cambiarEstado(@PathVariable Long id, @RequestParam boolean activo,
-            RedirectAttributes flash) {
+            RedirectAttributes flash, Locale locale) {
         clienteService.cambiarEstado(id, activo);
-        flash.addFlashAttribute("mensaje", "Estado del cliente actualizado");
+        flash.addFlashAttribute("mensaje", messageSource.getMessage("clientes.ok.estadoActualizado", null, locale));
         return "redirect:/clientes";
     }
 
     @PostMapping("/clientes/{id}/eliminar")
-    public String eliminarCliente(@PathVariable Long id, RedirectAttributes flash) {
+    public String eliminarCliente(@PathVariable Long id, RedirectAttributes flash,
+            Locale locale) {
         try {
             clienteService.eliminarCliente(id);
         } catch (ClienteConDatosAsociadosException e) {
-            flash.addFlashAttribute("error", e.getMessage());
+            flash.addFlashAttribute("error", traducir(e, locale));
             return "redirect:/clientes";
         }
         // flash: guarda el mensaje para la pagina siguiente, porque el redirect pierde el Model
-        flash.addFlashAttribute("mensaje", "Cliente eliminado");
+        flash.addFlashAttribute("mensaje", messageSource.getMessage("clientes.ok.eliminado", null, locale));
         return "redirect:/clientes";
     }
 
@@ -71,6 +77,10 @@ public class ControllerCliente {
     public String solicitarActivacion(@RequestParam String email) {
         clienteService.solicitarActivacion(email);
         return "redirect:/login?solicitada";
+    }
+
+    private String traducir(RuntimeException e, Locale locale) {
+        return messageSource.getMessage(e.getMessage(), null, e.getMessage(), locale);
     }
 
 }

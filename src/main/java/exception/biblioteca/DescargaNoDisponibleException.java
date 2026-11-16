@@ -7,6 +7,6 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 public class DescargaNoDisponibleException extends RuntimeException {
 
     public DescargaNoDisponibleException() {
-        super("Este videojuego todavia no tiene ningun archivo para descargar");
+        super("biblioteca.error.sinArchivo");
     }
 }

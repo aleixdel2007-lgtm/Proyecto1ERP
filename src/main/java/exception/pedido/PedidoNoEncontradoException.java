@@ -6,7 +6,14 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @ResponseStatus(HttpStatus.NOT_FOUND)
 public class PedidoNoEncontradoException extends RuntimeException {
 
+    private final Long id;
+
     public PedidoNoEncontradoException(Long id) {
-        super("No existe el pedido " + id);
+        super("pedidos.error.noExiste");
+        this.id = id;
+    }
+
+    public Long getId() {
+        return id;
     }
 }

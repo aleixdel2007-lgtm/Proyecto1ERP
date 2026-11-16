@@ -41,6 +41,10 @@ public interface ClaveLicenciaDao extends JpaRepository<ClaveLicencia, Long> {
     // al cliente a pagar
     boolean existsByVideojuegoIdAndEstado(Long videojuegoId, EstadoClave estado);
 
+    // Hay ya una clave con ese hash? Lo pregunta el acunado antes de dar un codigo por bueno,
+    // que codigo_hash es UNIQUE y un choque reventaria el insert entero
+    boolean existsByCodigoHash(String codigoHash);
+
     // La primera clave por id disponible de un juego. El bloqueo hace que, si dos clientes pagan
     // a la vez, el segundo espere y no se le entregue la misma clave
     @Lock(LockModeType.PESSIMISTIC_WRITE)

@@ -1,6 +1,7 @@
 package service.interfaces;
 
 import java.util.List;
+import model.aprovisionamiento.LineaCompra;
 import model.catalogo.Videojuego;
 import model.inventario.ClaveLicencia;
 import model.inventario.EstadoClave;
@@ -24,4 +25,8 @@ public interface ClaveLicenciaService {
 
     // Mira cuantas claves quedan de un juego y, si son pocas, avisa por correo a los gestores de inventario
     void avisarSiQuedaPocoStock(Videojuego videojuego);
+
+    // Crea las claves de una linea recibida, DISPONIBLES y colgadas de esa linea.
+    // Devuelve cuantas ha creado
+    int acunarClaves(LineaCompra linea, int cantidad);
 }

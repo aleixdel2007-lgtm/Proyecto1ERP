@@ -1,10 +1,10 @@
 <!doctype html>
-<html lang="es" xmlns:th="http://www.thymeleaf.org"
+<html th:lang="${#locale.language}" xmlns:th="http://www.thymeleaf.org"
       xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Página no encontrada · LudusERP</title>
+    <title th:text="#{error.404.titulo} + ' · LudusERP'">Página no encontrada · LudusERP</title>
     <link rel="stylesheet" th:href="@{/css/login.css}" href="../../static/css/login.css">
     <link rel="stylesheet" th:href="@{/css/error.css}" href="../../static/css/error.css">
 </head>
@@ -22,12 +22,15 @@
             <div class="card-body stack error-card">
                 <div class="error-code">404</div>
                 <div>
-                    <h2 class="error-title">Página no encontrada</h2>
-                    <p class="hint auth-sub error-text">La dirección que buscas no existe o se ha movido a otro sitio.</p>
+                    <h2 class="error-title" th:text="#{error.404.titulo}">Página no encontrada</h2>
+                    <p class="hint auth-sub error-text"
+                       th:text="#{error.404.texto}">La dirección que buscas no existe o se ha movido a otro sitio.</p>
                 </div>
                 <div class="error-actions">
-                    <a class="btn btn-primary" sec:authorize="hasAnyRole('CLIENTE','COLABORADOR')" th:href="@{/tienda}" href="#">Volver al inicio</a>
-                    <a class="btn btn-primary" sec:authorize="!hasAnyRole('CLIENTE','COLABORADOR')" th:href="@{/home}" href="#">Volver al inicio</a>
+                    <a class="btn btn-primary" sec:authorize="hasAnyRole('CLIENTE','COLABORADOR')"
+                       th:href="@{/tienda}" href="#" th:text="#{error.volver}">Volver al inicio</a>
+                    <a class="btn btn-primary" sec:authorize="!hasAnyRole('CLIENTE','COLABORADOR')"
+                       th:href="@{/home}" href="#" th:text="#{error.volver}">Volver al inicio</a>
                 </div>
             </div>
         </div>

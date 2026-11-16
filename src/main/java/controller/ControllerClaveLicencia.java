@@ -2,9 +2,11 @@ package controller;
 
 import exception.clave.ClaveNoAnulableException;
 import java.util.List;
+import java.util.Locale;
 import lombok.RequiredArgsConstructor;
 import model.inventario.ClaveLicencia;
 import model.inventario.EstadoClave;
+import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -21,6 +23,7 @@ import service.interfaces.ClaveLicenciaService;
 public class ControllerClaveLicencia {
 
     private final ClaveLicenciaService claveLicenciaService;
+    private final MessageSource messageSource;
 
     // El listado del panel, con los tres filtros y los cuatro contadores de la cabecera
     @GetMapping("/claves")
@@ -63,24 +66,30 @@ public class ControllerClaveLicencia {
     @PostMapping("/claves/{id}/anular")
     public String anularClave(@PathVariable Long id,
                               @RequestParam(required = false) String motivo,
-                              RedirectAttributes flash) {
+                              RedirectAttributes flash,
+                              Locale locale) {
 
         try {
             claveLicenciaService.anularClave(id, motivo);
 
         } catch (ClaveNoAnulableException e) {
             // La clave ya no esta DISPONIBLE: volver al formulario no arregla nada
-            flash.addFlashAttribute("error", e.getMessage());
+            flash.addFlashAttribute("error", messageSource.getMessage(e.getMessage(),
+                    new Object[]{e.getEstado()}, e.getMessage(), locale));
             return "redirect:/inventario/claves";
 
         } catch (IllegalArgumentException e) {
             // Esto si lo puede arreglar quien lo escribio, asi que se le devuelve la pantalla
-            flash.addFlashAttribute("error", e.getMessage());
+            flash.addFlashAttribute("error", traducir(e, locale));
             return "redirect:/inventario/claves/{id}/anular";
         }
 
-        flash.addFlashAttribute("mensaje", "Clave anulada.");
+        flash.addFlashAttribute("mensaje", messageSource.getMessage("claves.ok.anulada", null, locale));
 
         return "redirect:/inventario/claves";
+    }
+
+    private String traducir(RuntimeException e, Locale locale) {
+        return messageSource.getMessage(e.getMessage(), null, e.getMessage(), locale);
     }
 }

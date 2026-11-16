@@ -5,6 +5,7 @@ import exception.cif.CifInvalidoException;
 import exception.proveedor.ProveedorConReferenciasException;
 import lombok.RequiredArgsConstructor;
 import model.aprovisionamiento.Proveedor;
+import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -16,12 +17,15 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import service.interfaces.ProveedorService;
 
+import java.util.Locale;
+
 @Controller
 @RequestMapping("/compras/proveedores")
 @RequiredArgsConstructor
 public class ControllerProveedor {
 
     private final ProveedorService proveedorService;
+    private final MessageSource messageSource;
 
     @GetMapping
     public String listarProveedores(
@@ -56,33 +60,38 @@ public class ControllerProveedor {
 
     @PostMapping
     public String guardarProveedor(@ModelAttribute("proveedor") Proveedor proveedor,
-                                   Model model, RedirectAttributes flash) {
+                                   Model model, RedirectAttributes flash, Locale locale) {
 
         try {
             proveedorService.guardarProveedor(proveedor);
 
         } catch (CifInvalidoException | CifDuplicadoException e) {
-            model.addAttribute("error", e.getMessage());
+            model.addAttribute("error", traducir(e, locale));
             return "compras/proveedor";
         }
 
-        flash.addFlashAttribute("mensaje", "Proveedor guardado");
+        flash.addFlashAttribute("mensaje", messageSource.getMessage("proveedores.ok.guardado", null, locale));
         return "redirect:/compras/proveedores";
     }
 
     @PostMapping("/{id}/eliminar")
-    public String eliminarProveedor(@PathVariable Long id, RedirectAttributes flash) {
+    public String eliminarProveedor(@PathVariable Long id, RedirectAttributes flash,
+                                    Locale locale) {
 
         try {
             proveedorService.eliminarProveedor(id);
 
         } catch (ProveedorConReferenciasException e) {
-            flash.addFlashAttribute("error", e.getMessage());
+            flash.addFlashAttribute("error", traducir(e, locale));
             return "redirect:/compras/proveedores";
         }
 
-        flash.addFlashAttribute("mensaje", "Proveedor eliminado");
+        flash.addFlashAttribute("mensaje", messageSource.getMessage("proveedores.ok.eliminado", null, locale));
 
         return "redirect:/compras/proveedores";
+    }
+
+    private String traducir(RuntimeException e, Locale locale) {
+        return messageSource.getMessage(e.getMessage(), null, e.getMessage(), locale);
     }
 }

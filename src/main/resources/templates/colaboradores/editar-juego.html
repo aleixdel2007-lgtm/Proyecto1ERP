@@ -3,7 +3,7 @@
      diferencias: viene relleno con lo que hay guardado, y los archivos son OPCIONALES. Un
      formulario de archivo no se puede rellenar desde el servidor, asi que la regla es que lo
      que se deja vacio no se toca. Guardar devuelve el juego a inactivo, siempre. -->
-<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<html th:lang="${#locale.language}" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">

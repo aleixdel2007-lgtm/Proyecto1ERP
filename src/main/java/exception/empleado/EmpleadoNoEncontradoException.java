@@ -6,7 +6,14 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @ResponseStatus(HttpStatus.NOT_FOUND)
 public class EmpleadoNoEncontradoException extends RuntimeException {
 
+    private final Long id;
+
     public EmpleadoNoEncontradoException(Long id) {
-        super("No existe el empleado " + id);
+        super("empleados.error.noExiste");
+        this.id = id;
+    }
+
+    public Long getId() {
+        return id;
     }
 }

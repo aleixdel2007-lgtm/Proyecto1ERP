@@ -3,6 +3,6 @@ package exception.departamento;
 public class DepartamentoConTrabajadoresException extends RuntimeException {
 
     public DepartamentoConTrabajadoresException() {
-        super("No se puede eliminar un departamento con trabajadores asociados");
+        super("departamentos.error.conTrabajadores");
     }
 }

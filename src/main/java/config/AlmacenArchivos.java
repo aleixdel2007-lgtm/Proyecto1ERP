@@ -62,13 +62,13 @@ public class AlmacenArchivos {
     public void validarZip(MultipartFile zip) {
 
         if (zip == null || zip.isEmpty()) {
-            throw new IllegalArgumentException("Selecciona el archivo ZIP del juego");
+            throw new IllegalArgumentException("juegos.error.zipObligatorio");
         }
 
         String nombre = zip.getOriginalFilename();
 
         if (nombre == null || !nombre.toLowerCase(Locale.ROOT).endsWith(".zip")) {
-            throw new IllegalArgumentException("El juego tiene que ser un archivo .zip");
+            throw new IllegalArgumentException("juegos.error.zipExtension");
         }
 
         byte[] firma = new byte[4];
@@ -77,7 +77,7 @@ public class AlmacenArchivos {
 
             if (in.readNBytes(firma, 0, 4) < 4
                     || firma[0] != 'P' || firma[1] != 'K' || firma[2] != 3 || firma[3] != 4) {
-                throw new IllegalArgumentException("El archivo no es un ZIP valido");
+                throw new IllegalArgumentException("juegos.error.zipInvalido");
             }
 
         } catch (IOException e) {
@@ -250,20 +250,20 @@ public class AlmacenArchivos {
     public String extensionDe(MultipartFile archivo) {
 
         if (archivo == null || archivo.isEmpty()) {
-            throw new ImagenInvalidaException("Selecciona un archivo");
+            throw new ImagenInvalidaException("imagenes.error.sinArchivo");
         }
 
         String extension = archivo.getContentType() == null
                 ? null : EXTENSIONES.get(archivo.getContentType());
 
         if (extension == null) {
-            throw new ImagenInvalidaException("La imagen tiene que ser JPG, PNG o WEBP");
+            throw new ImagenInvalidaException("imagenes.error.formato");
         }
 
         // El tope de multipart ya no es de 2 MB (lo subio el ZIP del juego), asi que el
         // limite de las imagenes se comprueba aqui
         if (archivo.getSize() > 2L * 1024 * 1024) {
-            throw new ImagenInvalidaException("La imagen no puede pasar de 2 MB");
+            throw new ImagenInvalidaException("imagenes.error.tamano");
         }
         return extension;
     }

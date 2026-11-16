@@ -83,9 +83,11 @@ public class ControllerCesta {
             return "redirect:" + urlPago;
         } catch (CestaVaciaException | VideojuegoNoDisponibleException
                 | SinClavesDisponiblesException | PagoNoCompletadoException e) {
-            // Las de la cesta llevan una clave y se traducen; las de pago aun llevan el texto
-            // en castellano, y traducir() lo devuelve tal cual al no existir esa clave
-            flash.addFlashAttribute("error", traducir(e.getMessage(), locale));
+            // Todas llevan clave de traduccion, tambien las de pago. La de "sin claves"
+            // ademas lleva el titulo del juego, que va como parametro {0} del texto.
+            Object[] args = e instanceof SinClavesDisponiblesException sinClaves
+                    ? new Object[]{sinClaves.getTitulo()} : new Object[0];
+            flash.addFlashAttribute("error", traducir(e.getMessage(), locale, args));
             return "redirect:/tienda/cesta";
         }
     }

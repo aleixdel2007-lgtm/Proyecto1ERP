@@ -91,7 +91,7 @@ public class DepartamentoServiceImpl implements DepartamentoService {
             Empleado responsable = empleadoDao.findById(responsableId).orElse(null);
 
             if (responsable == null) {
-                throw new IllegalArgumentException("El responsable no existe");
+                throw new IllegalArgumentException("departamentos.error.responsableNoExiste");
             }
 
             departamento.setResponsable(responsable);

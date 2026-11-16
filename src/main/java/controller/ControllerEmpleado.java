@@ -5,10 +5,12 @@ import exception.empleado.EmpleadoConReferenciasException;
 import exception.imagen.ImagenInvalidaException;
 import exception.nif.NifDuplicadoException;
 import java.util.List;
+import java.util.Locale;
 import model.seguridad.Departamento;
 import model.seguridad.Empleado;
 import model.seguridad.Rol;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -25,6 +27,9 @@ public class ControllerEmpleado {
 
     @Autowired
     private EmpleadoService empleadoService;
+
+    @Autowired
+    private MessageSource messageSource;
 
     @ModelAttribute("rolesDisponibles")
     public Rol[] rolesDisponibles() {
@@ -84,7 +89,8 @@ public class ControllerEmpleado {
             @RequestParam(required = false) String password,
             @RequestParam(value = "foto", required = false) MultipartFile foto,
             Model model,
-            RedirectAttributes flash) {
+            RedirectAttributes flash,
+            Locale locale) {
 
         Empleado guardado;
 
@@ -93,7 +99,7 @@ public class ControllerEmpleado {
 
         } catch (EmailDuplicadoException | NifDuplicadoException | IllegalArgumentException e) {
 
-            model.addAttribute("error", e.getMessage());
+            model.addAttribute("error", traducir(e, locale));
             model.addAttribute("departamentos", empleadoService.listarDepartamentos());
 
             if (empleado.getId() == null) {
@@ -117,24 +123,29 @@ public class ControllerEmpleado {
             }
         }
 
-        flash.addFlashAttribute("mensaje", "Empleado guardado correctamente");
+        flash.addFlashAttribute("mensaje", messageSource.getMessage("empleados.ok.guardado", null, locale));
 
         return "redirect:/empleados";
     }
 
     @PostMapping("/empleados/eliminar/{id}")
-    public String eliminarEmpleado(@PathVariable Long id, RedirectAttributes flash) {
+    public String eliminarEmpleado(@PathVariable Long id, RedirectAttributes flash,
+            Locale locale) {
 
         try {
             empleadoService.eliminarEmpleado(id);
 
         } catch (EmpleadoConReferenciasException e) {
-            flash.addFlashAttribute("error", e.getMessage());
+            flash.addFlashAttribute("error", traducir(e, locale));
             return "redirect:/empleados";
         }
 
-        flash.addFlashAttribute("mensaje", "Empleado eliminado correctamente");
+        flash.addFlashAttribute("mensaje", messageSource.getMessage("empleados.ok.eliminado", null, locale));
 
         return "redirect:/empleados";
+    }
+
+    private String traducir(RuntimeException e, Locale locale) {
+        return messageSource.getMessage(e.getMessage(), null, e.getMessage(), locale);
     }
 }

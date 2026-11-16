@@ -3,7 +3,7 @@
      que vale catalogo, ofertas o colaboraciones: de ella salen el titulo, el texto de la
      cabecera, la pestana marcada en la barra y el estado vacio. El listado, los filtros y
      la paginacion son los mismos en las tres, y la ruta de los enlaces llega en ruta. -->
-<html lang="es" xmlns:th="http://www.thymeleaf.org"
+<html th:lang="${#locale.language}" xmlns:th="http://www.thymeleaf.org"
       th:with="esOfertas=${vista == 'ofertas'}, esColaboraciones=${vista == 'colaboraciones'}">
 <head>
     <meta charset="utf-8">

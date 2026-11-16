@@ -78,7 +78,7 @@ public class ControllerColaboradorJuegos {
 
             // Se devuelve el formulario con lo que habia escrito y marcado: solo los
             // archivos hay que volver a elegirlos, el navegador no deja rellenarlos
-            model.addAttribute("error", e.getMessage());
+            model.addAttribute("error", traducir(e, locale));
             model.addAttribute("titulo", titulo);
             model.addAttribute("sinopsis", sinopsis);
             model.addAttribute("pegi", pegi);
@@ -128,7 +128,7 @@ public class ControllerColaboradorJuegos {
 
             Videojuego juego = videojuegoService.buscarJuegoDeColaborador(authentication.getName(), id);
 
-            model.addAttribute("error", e.getMessage());
+            model.addAttribute("error", traducir(e, locale));
             model.addAttribute("titulo", titulo);
             model.addAttribute("sinopsis", sinopsis);
             model.addAttribute("pegi", pegi);
@@ -155,10 +155,16 @@ public class ControllerColaboradorJuegos {
             flash.addFlashAttribute("mensaje", messageSource.getMessage("colab.ok.imagenQuitada", null, locale));
 
         } catch (ImagenInvalidaException e) {
-            flash.addFlashAttribute("error", e.getMessage());
+            flash.addFlashAttribute("error", traducir(e, locale));
         }
 
         return "redirect:/colaborador/mis-juegos/" + id + "/editar";
+    }
+
+    // El mensaje de la excepcion es la clave de traduccion: aqui se pasa al idioma del
+    // usuario. Si la clave no existiera se ensena la propia clave.
+    private String traducir(RuntimeException e, Locale locale) {
+        return messageSource.getMessage(e.getMessage(), null, e.getMessage(), locale);
     }
 
     // Lo que necesita el formulario tanto en blanco como al volver con un error. Los dos

@@ -5,6 +5,7 @@ import exception.categoria.CodigoCategoriaDuplicadoException;
 import exception.categoria.NombreCategoriaDuplicadoException;
 import model.catalogo.Categoria;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -15,11 +16,16 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import service.interfaces.CategoriaService;
 
+import java.util.Locale;
+
 @Controller
 public class ControllerCategoria {
 
     @Autowired
     private CategoriaService categoriaService;
+
+    @Autowired
+    private MessageSource messageSource;
 
     @GetMapping("/catalogo/categorias")
     public String listarCategorias(
@@ -57,7 +63,8 @@ public class ControllerCategoria {
     public String guardarCategoria(
             @ModelAttribute("categoria") Categoria categoria,
             Model model,
-            RedirectAttributes flash) {
+            RedirectAttributes flash,
+            Locale locale) {
 
         try {
             categoriaService.guardarCategoria(categoria);
@@ -65,7 +72,7 @@ public class ControllerCategoria {
         } catch (CodigoCategoriaDuplicadoException | NombreCategoriaDuplicadoException
                 | IllegalArgumentException e) {
 
-            model.addAttribute("error", e.getMessage());
+            model.addAttribute("error", traducir(e, locale));
 
             if (categoria.getId() == null) {
                 return "catalogo/formularioNuevoCat";
@@ -77,24 +84,29 @@ public class ControllerCategoria {
             return "catalogo/formularioEditarCat";
         }
 
-        flash.addFlashAttribute("mensaje", "Categoria guardada correctamente");
+        flash.addFlashAttribute("mensaje", messageSource.getMessage("categorias.ok.guardada", null, locale));
 
         return "redirect:/catalogo/categorias";
     }
 
     @PostMapping("/catalogo/categorias/eliminar/{id}")
-    public String eliminarCategoria(@PathVariable Long id, RedirectAttributes flash) {
+    public String eliminarCategoria(@PathVariable Long id, RedirectAttributes flash,
+            Locale locale) {
 
         try {
             categoriaService.eliminarCategoria(id);
 
         } catch (CategoriaConJuegosException e) {
-            flash.addFlashAttribute("error", e.getMessage());
+            flash.addFlashAttribute("error", traducir(e, locale));
             return "redirect:/catalogo/categorias";
         }
 
-        flash.addFlashAttribute("mensaje", "Categoria eliminada correctamente");
+        flash.addFlashAttribute("mensaje", messageSource.getMessage("categorias.ok.eliminada", null, locale));
 
         return "redirect:/catalogo/categorias";
+    }
+
+    private String traducir(RuntimeException e, Locale locale) {
+        return messageSource.getMessage(e.getMessage(), null, e.getMessage(), locale);
     }
 }

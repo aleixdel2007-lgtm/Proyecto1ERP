@@ -212,19 +212,19 @@ public class VideojuegoServiceImpl implements VideojuegoService {
     private void validarObligatorios(Videojuego videojuego) {
 
         if (videojuego.getTitulo() == null || videojuego.getTitulo().isBlank()) {
-            throw new IllegalArgumentException("El titulo es obligatorio");
+            throw new IllegalArgumentException("videojuegos.error.tituloObligatorio");
         }
 
         if (videojuego.getPrecio() == null) {
-            throw new IllegalArgumentException("El precio es obligatorio");
+            throw new IllegalArgumentException("videojuegos.error.precioObligatorio");
         }
 
         if (!PEGI_VALIDOS.contains(videojuego.getPegi())) {
-            throw new IllegalArgumentException("La clasificacion PEGI no es valida");
+            throw new IllegalArgumentException("videojuegos.error.pegiInvalido");
         }
 
         if (videojuego.getUmbralStockBajo() < 0) {
-            throw new IllegalArgumentException("El umbral de stock bajo no puede ser negativo");
+            throw new IllegalArgumentException("videojuegos.error.umbralNegativo");
         }
     }
 
@@ -254,7 +254,7 @@ public class VideojuegoServiceImpl implements VideojuegoService {
         Proveedor proveedor = proveedorDao.findById(proveedorId).orElse(null);
 
         if (proveedor == null) {
-            throw new IllegalArgumentException("El proveedor no existe");
+            throw new IllegalArgumentException("videojuegos.error.proveedorNoExiste");
         }
         return proveedor;
     }
@@ -268,7 +268,7 @@ public class VideojuegoServiceImpl implements VideojuegoService {
         Set<Categoria> encontradas = new HashSet<>(categoriaDao.findAllById(ids));
 
         if (encontradas.size() != new HashSet<>(ids).size()) {
-            throw new IllegalArgumentException("Alguna categoria no existe");
+            throw new IllegalArgumentException("videojuegos.error.categoriaNoExiste");
         }
         return encontradas;
     }
@@ -282,7 +282,7 @@ public class VideojuegoServiceImpl implements VideojuegoService {
         Set<Plataforma> encontradas = new HashSet<>(plataformaDao.findAllById(ids));
 
         if (encontradas.size() != new HashSet<>(ids).size()) {
-            throw new IllegalArgumentException("Alguna plataforma no existe");
+            throw new IllegalArgumentException("videojuegos.error.plataformaNoExiste");
         }
         return encontradas;
     }
@@ -344,7 +344,7 @@ public class VideojuegoServiceImpl implements VideojuegoService {
         Videojuego videojuego = buscarVideojuegoXId(videojuegoId);
 
         if (tipo == null) {
-            throw new IllegalArgumentException("El tipo de imagen es obligatorio");
+            throw new IllegalArgumentException("videojuegos.error.tipoImagenObligatorio");
         }
 
         String extension = almacenArchivos.extensionDe(archivo);
@@ -388,8 +388,7 @@ public class VideojuegoServiceImpl implements VideojuegoService {
 
         if (!imagenVideojuegoDao.findByVideojuegoIdAndTipoOrderByOrdenAscIdAsc(videojuegoId, tipo).isEmpty()) {
 
-            throw new ImagenInvalidaException("Ya hay una imagen de tipo " + tipo
-                    + ": quitala antes de subir otra");
+            throw new ImagenInvalidaException("imagenes.error.tipoRepetido");
         }
     }
 
@@ -438,30 +437,30 @@ public class VideojuegoServiceImpl implements VideojuegoService {
                               List<Long> categoriaIds, List<Long> plataformaIds) {
 
         if (titulo == null || titulo.isBlank()) {
-            throw new IllegalArgumentException("El titulo es obligatorio");
+            throw new IllegalArgumentException("colab.error.tituloObligatorio");
         }
 
         if (titulo.trim().length() > 150) {
-            throw new IllegalArgumentException("El titulo no puede pasar de 150 caracteres");
+            throw new IllegalArgumentException("colab.error.tituloLargo");
         }
 
         if (sinopsis == null || sinopsis.isBlank()) {
-            throw new IllegalArgumentException("La descripcion es obligatoria");
+            throw new IllegalArgumentException("colab.error.descripcionObligatoria");
         }
 
         if (pegi == null || !listarPegis().contains(pegi)) {
-            throw new IllegalArgumentException("La clasificacion PEGI no es valida");
+            throw new IllegalArgumentException("colab.error.pegiInvalido");
         }
 
         if (categoriaIds == null || categoriaIds.isEmpty()) {
-            throw new IllegalArgumentException("Elige al menos una categoria");
+            throw new IllegalArgumentException("colab.error.categoriaMinima");
         }
 
         if (plataformaIds == null || plataformaIds.isEmpty()) {
-            throw new IllegalArgumentException("Elige al menos una plataforma");
+            throw new IllegalArgumentException("colab.error.plataformaMinima");
         }
 
-        // Comprueba que los ids existen: lanzan "Alguna categoria/plataforma no existe"
+        // Comprueba que los ids existen: lanzan videojuegos.error.categoriaNoExiste/plataformaNoExiste
         buscarCategorias(categoriaIds);
         buscarPlataformas(plataformaIds);
     }
@@ -495,7 +494,7 @@ public class VideojuegoServiceImpl implements VideojuegoService {
         Colaborador colaborador = colaboradorDao.findByEmail(emailColaborador).orElse(null);
 
         if (colaborador == null) {
-            throw new IllegalArgumentException("Tu cuenta no es de colaborador");
+            throw new IllegalArgumentException("colab.error.noEsColaborador");
         }
 
         Videojuego videojuego = new Videojuego();

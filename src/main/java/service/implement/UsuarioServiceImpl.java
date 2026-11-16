@@ -44,7 +44,7 @@ public class UsuarioServiceImpl implements UsuarioService {
         Usuario usuario = buscarUsuarioXId(usuarioId);
 
         if (nombre == null || nombre.isBlank()) {
-            throw new IllegalArgumentException("El nombre es obligatorio");
+            throw new IllegalArgumentException("perfil.error.nombreObligatorio");
         }
 
         usuario.setNombre(nombre.trim());
