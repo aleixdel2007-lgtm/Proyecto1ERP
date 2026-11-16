@@ -32,11 +32,11 @@
         </div>
     </div>
 
-    <!-- Tiene que ser un POST: desde Security 6 el filtro de logout solo escucha POST, y un
-         enlace GET dejaba la sesion abierta. El token CSRF lo pone Thymeleaf solo. -->
-    <form th:action="@{/logout}" method="post">
-        <button type="submit" class="top-logout" th:text="#{navbar.cerrarSesion}">Cerrar sesión</button>
-    </form>
+    <!-- Salir pregunta antes. El POST vive dentro del pop-up (Security 6 solo escucha POST
+         y el token CSRF lo pone Thymeleaf); este boton solo lo abre. -->
+    <button type="button" class="top-logout" th:text="#{navbar.cerrarSesion}"
+            onclick="document.getElementById('dlg-salir').showModal()">Cerrar sesión</button>
+    <th:block th:replace="~{fragments/dialogos :: confirmarSalida}"></th:block>
     <script th:src="@{/js/client-profile.js}" src="../static/js/client-profile.js"></script>
 </header>
 
@@ -103,9 +103,9 @@
              de vuelta al panel. El cliente y el colaborador no ven este boton. -->
         <a class="btn" sec:authorize="hasRole('ADMIN')" th:href="@{/home}" href="#" th:text="#{navbar.panelErp}">Panel ERP</a>
 
-        <form th:action="@{/logout}" method="post">
-            <button type="submit" class="top-logout" th:text="#{navbar.cerrarSesion}">Cerrar sesión</button>
-        </form>
+        <button type="button" class="top-logout" th:text="#{navbar.cerrarSesion}"
+                onclick="document.getElementById('dlg-salir').showModal()">Cerrar sesión</button>
+        <th:block th:replace="~{fragments/dialogos :: confirmarSalida}"></th:block>
 
     </div>
     <script th:src="@{/js/client-profile.js}" src="../static/js/client-profile.js"></script>

@@ -33,10 +33,9 @@
                        th:href="@{/tienda}" href="#" th:text="#{error.volver}">Volver al inicio</a>
                     <a class="btn btn-primary" sec:authorize="!hasAnyRole('CLIENTE','COLABORADOR')"
                        th:href="@{/home}" href="#" th:text="#{error.volver}">Volver al inicio</a>
-                    <form th:action="@{/logout}" method="post">
-                        <button type="submit" class="btn"
-                                th:text="#{navbar.cerrarSesion}">Cerrar sesión</button>
-                    </form>
+                    <button type="button" class="btn" th:text="#{navbar.cerrarSesion}"
+                            onclick="document.getElementById('dlg-salir').showModal()">Cerrar sesión</button>
+                    <th:block th:replace="~{fragments/dialogos :: confirmarSalida}"></th:block>
                 </div>
             </div>
         </div>

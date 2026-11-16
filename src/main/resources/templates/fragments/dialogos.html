@@ -1,0 +1,31 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!-- Pop-up de confirmacion al cerrar sesion.
+
+     Viaja pegado a cada boton de salir en vez de incluirse pagina a pagina: donde hay un
+     boton hay un dialogo, y como cada pantalla tiene un solo boton de salir, nunca se
+     repite el id. El POST de verdad sale de aqui dentro (Security 6 solo escucha POST y el
+     token CSRF lo pone Thymeleaf); el boton de la barra solo abre el dialogo. -->
+<th:block th:fragment="confirmarSalida">
+
+    <link rel="stylesheet" th:href="@{/css/dialogos.css}">
+
+    <dialog id="dlg-salir" class="dlg-confirm">
+        <h3 th:text="#{logout.confirmar.titulo}">¿Cerrar sesión?</h3>
+        <p th:text="#{logout.confirmar.texto}">Se cerrará tu sesión y volverás a la pantalla de acceso.</p>
+        <div class="dlg-acts">
+            <form th:action="@{/logout}" method="post">
+                <button type="submit" class="btn btn-primary"
+                        th:text="#{logout.confirmar.si}">Sí, cerrar sesión</button>
+            </form>
+            <button type="button" class="btn btn-ghost" onclick="this.closest('dialog').close()"
+                    th:text="#{comun.cancelar}">Cancelar</button>
+        </div>
+    </dialog>
+
+</th:block>
+
+</body>
+</html>

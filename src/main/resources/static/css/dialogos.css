@@ -1,0 +1,28 @@
+/* ===========================================================================
+   Pop-ups de confirmacion
+
+   Mismo molde que el .dlg-inactivo del login, pero sin la franja roja: salir
+   no es un error, solo es algo que conviene preguntar antes de hacerlo. Las
+   variables (--surface, --ink, --purple...) las define el :root de panel.css,
+   navbar.css, tienda.css o login.css, que son los que ya carga cada pantalla
+   donde aparece este dialogo.
+   =========================================================================== */
+
+.dlg-confirm{
+    background:var(--surface);color:var(--ink);
+    border:1px solid var(--line-strong);
+    border-top:4px solid var(--purple);
+    border-radius:var(--r);padding:24px;
+    width:calc(100% - 40px);max-width:380px;
+    box-shadow:0 20px 60px rgba(0,0,0,.6);
+}
+
+.dlg-confirm h3{margin:0 0 8px;font-size:17px;color:var(--ink)}
+.dlg-confirm p{margin:0;color:var(--ink-2);font-size:13.5px;line-height:1.5}
+.dlg-confirm .dlg-acts{display:flex;gap:8px;margin-top:18px}
+
+/* El fondo que queda detras: oscuro, con el morado de la casa y desenfocado */
+.dlg-confirm::backdrop{
+    background:radial-gradient(circle at 50% 40%,rgba(139,92,246,.18),rgba(0,0,0,.88) 70%);
+    backdrop-filter:blur(6px);
+}
