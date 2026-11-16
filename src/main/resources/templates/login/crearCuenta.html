@@ -72,9 +72,10 @@
                                     <label for="pais" th:text="#{registro.pais}">País</label>
                                     <select class="inp" id="pais" name="pais">
                                         <option value="" th:text="#{registro.selecciona}">Selecciona…</option>
-                                        <option value="España" th:selected="${pais == 'España'}" th:text="#{registro.pais.es}">España</option>
-                                        <option value="Francia" th:selected="${pais == 'Francia'}" th:text="#{registro.pais.fr}">Francia</option>
-                                        <option value="Italia" th:selected="${pais == 'Italia'}" th:text="#{registro.pais.it}">Italia</option>
+                                        <option th:each="p : ${paises}"
+                                                th:value="${p.nombre}"
+                                                th:text="${p.nombre}"
+                                                th:selected="${p.nombre == pais}">España</option>
                                     </select>
                                 </div>
 

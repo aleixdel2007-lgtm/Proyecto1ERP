@@ -116,7 +116,9 @@
                             <div class="frow">
                                 <label for="pais">País</label>
                                 <input class="inp" type="text" id="pais" name="pais" autocomplete="country-name"
-                                       th:value="${cliente.pais}">
+                                       th:value="${cliente.pais}" readonly>
+                                <span class="hint">El país no se puede cambiar.</span>
+
                             </div>
 
                             <div class="frow wide"><div class="sect-label">Datos de contacto</div></div>
@@ -130,7 +132,8 @@
                             <div class="frow">
                                 <label for="ciudad">Ciudad</label>
                                 <input class="inp" type="text" id="ciudad" name="ciudad" autocomplete="address-level2"
-                                       th:value="${cliente.ciudad}">
+                                       th:value="${cliente.ciudad}" readonly>
+                                <span class="hint">La ciudad no se puede cambiar.</span>
                             </div>
 
                             <div class="frow wide">
