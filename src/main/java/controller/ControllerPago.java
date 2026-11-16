@@ -7,7 +7,6 @@ package controller;
 import exception.pago.PagoNoCompletadoException;
 import exception.pago.SinClavesDisponiblesException;
 import exception.pedido.PedidoNoEncontradoException;
-import model.ventas.Pedido;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.security.core.Authentication;
@@ -37,9 +36,10 @@ public class ControllerPago {
     public String pagoRealizado(@RequestParam("session_id") String sessionId,
             Authentication authentication, RedirectAttributes flash, Locale locale) {
         try {
-            Pedido pedido = pagoService.confirmarPago(authentication.getName(), sessionId);
+            // El numero del pedido no se le ensena al cliente: es un dato administrativo
+            pagoService.confirmarPago(authentication.getName(), sessionId);
             flash.addFlashAttribute("mensaje", messageSource.getMessage("pago.ok.realizado",
-                    new Object[]{String.valueOf(pedido.getNumero())}, locale));
+                    null, locale));
             return "redirect:/tienda/biblioteca";
         } catch (PagoNoCompletadoException | PedidoNoEncontradoException | SinClavesDisponiblesException e) {
             flash.addFlashAttribute("error", mensajeDeError(e, locale));
