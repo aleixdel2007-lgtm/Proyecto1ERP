@@ -90,7 +90,7 @@ public class CompraClavesServiceImpl implements CompraClavesService {
     public Compra guardarCompra(Compra compra, Long proveedorId, String emailEmpleado) {
 
         if (compra.getFecha() == null) {
-            throw new IllegalArgumentException("La fecha de la orden es obligatoria");
+            throw new IllegalArgumentException("compras.error.fechaObligatoria");
         }
 
         if (compra.getId() == null) {
@@ -120,7 +120,7 @@ public class CompraClavesServiceImpl implements CompraClavesService {
         Compra existente = buscarCompraXId(compra.getId());
 
         if (existente.getEstado() != EstadoCompra.BORRADOR) {
-            throw new EstadoCompraInvalidoException("editar", existente.getEstado());
+            throw new EstadoCompraInvalidoException("compras.accion.editar", existente.getEstado());
         }
 
         existente.setProveedor(buscarProveedor(proveedorId));
@@ -144,7 +144,7 @@ public class CompraClavesServiceImpl implements CompraClavesService {
         }
 
         if (costeUnitario == null || costeUnitario.signum() < 0) {
-            throw new LineaCompraInvalidaException("El coste unitario no puede ser negativo");
+            throw new LineaCompraInvalidaException("compras.error.costeNegativo");
         }
 
         Videojuego videojuego = videojuegoDao.findById(videojuegoId).orElse(null);
@@ -159,7 +159,7 @@ public class CompraClavesServiceImpl implements CompraClavesService {
         }
 
         if (buscarLineaXVideojuego(compra, videojuegoId) != null) {
-            throw new LineaCompraInvalidaException("Ese juego ya tiene una linea en esta orden");
+            throw new LineaCompraInvalidaException("compras.error.lineaDuplicada");
         }
 
         LineaCompra linea = new LineaCompra();
@@ -183,7 +183,7 @@ public class CompraClavesServiceImpl implements CompraClavesService {
         LineaCompra linea = buscarLineaXId(compra, lineaId);
 
         if (linea.getCantidadRecibida() != null) {
-            throw new LineaCompraInvalidaException("Esa linea ya se ha recibido");
+            throw new LineaCompraInvalidaException("compras.error.lineaRecibida");
         }
 
         compra.getLineas().remove(linea);
@@ -199,7 +199,7 @@ public class CompraClavesServiceImpl implements CompraClavesService {
         Compra compra = buscarCompraXId(id);
 
         if (compra.getEstado() != EstadoCompra.BORRADOR) {
-            throw new EstadoCompraInvalidoException("confirmar", compra.getEstado());
+            throw new EstadoCompraInvalidoException("compras.accion.confirmar", compra.getEstado());
         }
 
         if (compra.getLineas().isEmpty()) {
@@ -219,7 +219,7 @@ public class CompraClavesServiceImpl implements CompraClavesService {
 
         if (compra.getEstado() != EstadoCompra.BORRADOR
                 && compra.getEstado() != EstadoCompra.CONFIRMADA) {
-            throw new EstadoCompraInvalidoException("cancelar", compra.getEstado());
+            throw new EstadoCompraInvalidoException("compras.accion.cancelar", compra.getEstado());
         }
 
         compra.setEstado(EstadoCompra.CANCELADA);
@@ -237,7 +237,7 @@ public class CompraClavesServiceImpl implements CompraClavesService {
         Compra compra = buscarCompraXId(id);
 
         if (compra.getEstado() != EstadoCompra.CONFIRMADA) {
-            throw new EstadoCompraInvalidoException("recibir", compra.getEstado());
+            throw new EstadoCompraInvalidoException("compras.accion.recibir", compra.getEstado());
         }
 
         if (lineaIds == null || recibidas == null
@@ -295,7 +295,7 @@ public class CompraClavesServiceImpl implements CompraClavesService {
 
         if (compra.getEstado() != EstadoCompra.BORRADOR
                 && compra.getEstado() != EstadoCompra.CONFIRMADA) {
-            throw new EstadoCompraInvalidoException("tocar las lineas de", compra.getEstado());
+            throw new EstadoCompraInvalidoException("compras.accion.tocarLineas", compra.getEstado());
         }
     }
 
@@ -330,13 +330,13 @@ public class CompraClavesServiceImpl implements CompraClavesService {
     private Proveedor buscarProveedor(Long proveedorId) {
 
         if (proveedorId == null) {
-            throw new IllegalArgumentException("El proveedor es obligatorio");
+            throw new IllegalArgumentException("compras.error.proveedorObligatorio");
         }
 
         Proveedor proveedor = proveedorDao.findById(proveedorId).orElse(null);
 
         if (proveedor == null) {
-            throw new IllegalArgumentException("El proveedor no existe");
+            throw new IllegalArgumentException("compras.error.proveedorNoExiste");
         }
         return proveedor;
     }
@@ -359,7 +359,7 @@ public class CompraClavesServiceImpl implements CompraClavesService {
                 return linea;
             }
         }
-        throw new LineaCompraInvalidaException("Esa linea no es de esta orden");
+        throw new LineaCompraInvalidaException("compras.error.lineaAjena");
     }
 
     private LineaCompra buscarLineaXVideojuego(Compra compra, Long videojuegoId) {

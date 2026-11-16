@@ -250,8 +250,14 @@ public class ControllerCompraClaves {
 
         Object[] argumentos = null;
 
+        // Los dos parametros del texto son a su vez traducibles: la accion viaja como
+        // clave (compras.accion.*) y el estado es un enum, que se resuelve por su nombre
         if (e instanceof EstadoCompraInvalidoException estadoInvalido) {
-            argumentos = new Object[]{estadoInvalido.getAccion(), estadoInvalido.getEstado()};
+            argumentos = new Object[]{
+                messageSource.getMessage(estadoInvalido.getAccion(), null,
+                        estadoInvalido.getAccion(), locale),
+                messageSource.getMessage("estadoCompra." + estadoInvalido.getEstado(), null,
+                        String.valueOf(estadoInvalido.getEstado()), locale)};
         }
 
         return messageSource.getMessage(e.getMessage(), argumentos, e.getMessage(), locale);

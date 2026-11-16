@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<html th:lang="${#locale.language}" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Órdenes de compra · LudusERP</title>
+    <title th:text="#{panel.menu.ordenes} + ' · LudusERP'">Órdenes de compra · LudusERP</title>
     <link rel="stylesheet" th:href="@{/css/panel.css}">
     <link rel="stylesheet" th:href="@{/css/compras.css}">
 </head>
@@ -15,7 +15,7 @@
 
     <div class="main">
 
-        <header th:replace="~{fragments/panel :: barra('Aprovisionamiento', 'Órdenes de compra')}"></header>
+        <header th:replace="~{fragments/panel :: barra(#{panel.seccion.aprovisionamiento}, #{panel.menu.ordenes})}"></header>
 
         <main class="canvas">
 
@@ -24,13 +24,12 @@
 
             <div class="page-head">
                 <div>
-                    <h1>Órdenes de compra</h1>
-                    <p>El ciclo es BORRADOR → CONFIRMADA → RECIBIDA. Recibir una orden es lo que
-                        convierte unidades compradas en claves vendibles.</p>
+                    <h1 th:text="#{panel.menu.ordenes}">Órdenes de compra</h1>
+                    <p th:text="#{compras.intro}">El ciclo es BORRADOR → CONFIRMADA → RECIBIDA.</p>
                 </div>
                 <div class="page-actions">
                     <a class="btn btn-primary" th:href="@{/compras/ordenes/nueva}">
-                        <svg th:replace="~{fragments/iconos :: plus}"></svg> Nueva orden</a>
+                        <svg th:replace="~{fragments/iconos :: plus}"></svg> <span th:text="#{compras.nueva}">Nueva orden</span></a>
                 </div>
             </div>
 
@@ -38,22 +37,22 @@
                  No hay .g4 en panel.css y no merece una regla nueva para una sola pantalla -->
             <div class="grid" style="grid-template-columns:repeat(4,1fr);margin-bottom:16px">
                 <div class="kpi">
-                    <span class="k-label">Borradores</span>
+                    <span class="k-label" th:text="#{compras.kpi.borradores}">Borradores</span>
                     <span class="k-val" th:text="${borradores}">0</span>
-                    <span class="k-foot">sin confirmar al proveedor</span>
+                    <span class="k-foot" th:text="#{compras.kpi.borradoresPie}">sin confirmar al proveedor</span>
                 </div>
                 <div class="kpi accent">
-                    <span class="k-label">Confirmadas</span>
+                    <span class="k-label" th:text="#{estadoCompra.CONFIRMADA}">Confirmadas</span>
                     <span class="k-val" th:text="${confirmadas}">0</span>
-                    <span class="k-foot">a la espera de recibirlas</span>
+                    <span class="k-foot" th:text="#{compras.kpi.confirmadasPie}">a la espera de recibirlas</span>
                 </div>
                 <div class="kpi">
-                    <span class="k-label">Recibidas</span>
+                    <span class="k-label" th:text="#{estadoCompra.RECIBIDA}">Recibidas</span>
                     <span class="k-val" th:text="${recibidas}">0</span>
-                    <span class="k-foot">ya dieron claves</span>
+                    <span class="k-foot" th:text="#{compras.kpi.recibidasPie}">ya dieron claves</span>
                 </div>
                 <div class="kpi">
-                    <span class="k-label">Canceladas</span>
+                    <span class="k-label" th:text="#{estadoCompra.CANCELADA}">Canceladas</span>
                     <span class="k-val" th:text="${canceladas}">0</span>
                     <span class="k-foot"></span>
                 </div>
@@ -69,9 +68,9 @@
 
                 <form class="filters" method="get" th:action="@{/compras/ordenes}">
                     <div class="fld">
-                        <label>Proveedor</label>
+                        <label th:text="#{proveedores.col.proveedor}">Proveedor</label>
                         <select class="inp" name="proveedorId">
-                            <option value="">Todos</option>
+                            <option value="" th:text="#{comun.todos}">Todos</option>
                             <option th:each="p : ${proveedores}"
                                     th:value="${p.id}"
                                     th:text="${p.nombreComercial}"
@@ -79,52 +78,52 @@
                         </select>
                     </div>
                     <div class="fld">
-                        <label>Estado</label>
+                        <label th:text="#{comun.estado}">Estado</label>
                         <select class="inp" name="estado">
-                            <option value="">Todos</option>
+                            <option value="" th:text="#{comun.todos}">Todos</option>
                             <option th:each="e : ${estados}"
                                     th:value="${e}"
-                                    th:text="${e}"
+                                    th:text="#{'estadoCompra.' + ${e}}"
                                     th:selected="${estado != null and estado == e}">BORRADOR</option>
                         </select>
                     </div>
                     <div class="fld">
-                        <label>Desde</label>
+                        <label th:text="#{pedidos.desde}">Desde</label>
                         <input class="inp" type="date" name="desde" th:value="${desde}">
                     </div>
                     <div class="fld">
-                        <label>Hasta</label>
+                        <label th:text="#{pedidos.hasta}">Hasta</label>
                         <input class="inp" type="date" name="hasta" th:value="${hasta}">
                     </div>
                     <div class="fld">
                         <label>&nbsp;</label>
-                        <button type="submit" class="btn btn-primary">Filtrar</button>
+                        <button type="submit" class="btn btn-primary" th:text="#{comun.filtrar}">Filtrar</button>
                     </div>
                     <div class="fld">
                         <label>&nbsp;</label>
-                        <a class="btn" th:href="@{/compras/ordenes}">Limpiar</a>
+                        <a class="btn" th:href="@{/compras/ordenes}" th:text="#{comun.limpiar}">Limpiar</a>
                     </div>
                 </form>
 
                 <div class="card-body tight">
 
                     <div class="empty" th:if="${#lists.isEmpty(ordenes)}">
-                        <h4>No hay ninguna orden que encaje</h4>
-                        <p class="hint">Crea una con el botón «Nueva orden», o quita algún filtro.</p>
+                        <h4 th:text="#{compras.vacio}">No hay ninguna orden que encaje</h4>
+                        <p class="hint" th:text="#{compras.vacio.hint}">Crea una o quita algún filtro.</p>
                     </div>
 
                     <div class="tbl-wrap" th:unless="${#lists.isEmpty(ordenes)}">
                         <table class="tbl">
                             <thead>
                             <tr>
-                                <th>Número</th>
-                                <th>Proveedor</th>
-                                <th>Fecha</th>
-                                <th>Recepción</th>
-                                <th class="num">Líneas</th>
-                                <th class="num">Unidades</th>
-                                <th class="num">Coste total</th>
-                                <th>Estado</th>
+                                <th th:text="#{pedidos.col.numero}">Número</th>
+                                <th th:text="#{proveedores.col.proveedor}">Proveedor</th>
+                                <th th:text="#{comun.fecha}">Fecha</th>
+                                <th th:text="#{compras.col.recepcion}">Recepción</th>
+                                <th class="num" th:text="#{compras.col.lineas}">Líneas</th>
+                                <th class="num" th:text="#{compras.col.unidades}">Unidades</th>
+                                <th class="num" th:text="#{compras.col.coste}">Coste total</th>
+                                <th th:text="#{comun.estado}">Estado</th>
                                 <th class="acts"></th>
                             </tr>
                             </thead>
@@ -173,7 +172,7 @@
                                           th:classappend="${c.estado.name() == 'BORRADOR'} ? 'b-mute'
                                                         : (${c.estado.name() == 'CONFIRMADA'} ? 'b-warn'
                                                         : (${c.estado.name() == 'RECIBIDA'} ? 'b-good' : 'b-crit'))"
-                                          th:text="${c.estado}">BORRADOR</span>
+                                          th:text="#{'estadoCompra.' + ${c.estado}}">BORRADOR</span>
                                 </td>
 
                                 <!-- Abrir vale para las cuatro: la ficha es la misma pantalla que edita
@@ -181,11 +180,11 @@
                                      solo sale sobre una CONFIRMADA, que es el unico estado desde el
                                      que se puede acunar algo. -->
                                 <td class="acts">
-                                    <a class="btn btn-sm btn-ghost" title="Abrir la orden"
+                                    <a class="btn btn-sm btn-ghost" title="Abrir la orden" th:title="#{compras.abrir}"
                                        th:href="@{/compras/ordenes/{id}(id=${c.id})}">
                                         <svg th:replace="~{fragments/iconos :: eye}"></svg>
                                     </a>
-                                    <a class="btn btn-sm btn-primary" title="Recibir mercancía"
+                                    <a class="btn btn-sm btn-primary" title="Recibir mercancía" th:title="#{compras.recibir}"
                                        th:if="${c.estado.name() == 'CONFIRMADA'}"
                                        th:href="@{/compras/ordenes/{id}/recepcion(id=${c.id})}">
                                         <svg th:replace="~{fragments/iconos :: truck}"></svg>
@@ -198,8 +197,8 @@
                 </div>
 
                 <div class="pager" th:unless="${#lists.isEmpty(ordenes)}">
-                    <span>Mostrando <b th:text="${fin - inicio}">10</b>
-                        de <b th:text="${total}">10</b> órdenes</span>
+                    <span><span th:text="#{comun.mostrando}">Mostrando</span> <b th:text="${fin - inicio}">10</b>
+                        <span th:text="#{comun.de}">de</span> <b th:text="${total}">10</b> <span th:text="#{compras.contador}">órdenes</span></span>
                     <div class="pages">
                         <a class="pg" th:classappend="${actual == 0} ? 'off' : ''"
                            th:href="@{/compras/ordenes(proveedorId=${proveedorId}, estado=${estado},
@@ -223,13 +222,11 @@
             <div class="grid g2" style="margin-top:16px">
                 <div class="note-box">
                     <svg th:replace="~{fragments/iconos :: key}"></svg>
-                    <div>Las claves no se teclean a mano: nacen al recibir una orden, una por cada
-                        unidad que haya llegado de verdad, y quedan colgadas de su línea de compra.</div>
+                    <div th:text="#{compras.aviso.claves}">Las claves no se teclean a mano.</div>
                 </div>
                 <div class="note-box">
                     <svg th:replace="~{fragments/iconos :: warn}"></svg>
-                    <div>Una orden recibida no se deshace desde la aplicación: las claves que salieron
-                        de ella ya son stock, y alguna puede estar vendida.</div>
+                    <div th:text="#{compras.aviso.irreversible}">Una orden recibida no se deshace desde la aplicación.</div>
                 </div>
             </div>
 
