@@ -77,13 +77,15 @@ public class PagoServiceImpl implements PagoService {
     @Transactional
     public String iniciarPago(String email) {
 
+        cancelarPendientesDe(email);
         StripeClient stripe = clienteStripe();
 
         // Si algo falla despues de esta linea, la transaccion entera se deshace y el pedido
         // no se queda guardado a medias
         Pedido pedido = pedidoService.crearPedidoDesdeCesta(email);
 
-        comprobarQueHayClaves(pedido);
+        reservarClaves(pedido);
+        
         // La direccion desde la que ha entrado el usuario (localhost, la del servidor...), para
         // que Stripe le devuelva al mismo sitio. No hace falta configurarla en ningun archivo
         String urlBase = ServletUriComponentsBuilder.fromCurrentContextPath().build().toUriString();                    //EL RETORNOOOO
@@ -156,7 +158,7 @@ public class PagoServiceImpl implements PagoService {
             throw new PagoNoCompletadoException("pago.error.yaNoPagable");
         }
 
-        asignarClaves(pedido);
+        venderClavesReservadas(pedido); //cambia la reservada anteriormente a Vendida 
         for (LineaPedido linea : pedido.getLineas()) {
             claveLicenciaService.avisarSiQuedaPocoStock(linea.getVideojuego()); // Ya vendidas las claves: si de algun juego quedan pocas, se avisa a inventario
         }
@@ -175,27 +177,59 @@ public class PagoServiceImpl implements PagoService {
         return new StripeClient(claveSecreta);
     }
 
-    // Avisa antes de cobrar: pagar y descubrir despues que no hay clave seria peor
-    private void comprobarQueHayClaves(Pedido pedido) {
-        for (LineaPedido linea : pedido.getLineas()) {
-            Videojuego videojuego = linea.getVideojuego();
-            if (!claveLicenciaDao.existsByVideojuegoIdAndEstado(videojuego.getId(), EstadoClave.DISPONIBLE)) {
-                throw new SinClavesDisponiblesException(videojuego.getTitulo());
-            }
-        }
-    }
-
-    // Cada linea del pedido se lleva UNA clave: pasa de DISPONIBLE a VENDIDA y queda ligada
-    // al cliente y a esa linea
-    private void asignarClaves(Pedido pedido) {
+ // Aparta UNA clave por cada linea del pedido: DISPONIBLE -> RESERVADA. El @Lock del DAO
+    // bloquea la fila, asi que dos clientes a la vez no se llevan la misma. Se liga a la
+    // linea y al cliente: esa union es la que permite encontrarla luego para venderla o soltarla
+    private void reservarClaves(Pedido pedido) {
         for (LineaPedido linea : pedido.getLineas()) {
             Videojuego videojuego = linea.getVideojuego();
             ClaveLicencia clave = claveLicenciaDao
                     .findFirstByVideojuegoIdAndEstadoOrderByIdAsc(videojuego.getId(), EstadoClave.DISPONIBLE)
                     .orElseThrow(() -> new SinClavesDisponiblesException(videojuego.getTitulo()));
-            clave.setEstado(EstadoClave.VENDIDA);
+            clave.setEstado(EstadoClave.RESERVADA);
             clave.setCliente(pedido.getCliente());
             clave.setLineaPedido(linea);
+            clave.setFechaReserva(LocalDateTime.now());
+        }
+    }
+
+    //Cuando no llego a pagarse
+    // Suelta las claves RESERVADAS de un pedido: vuelven a DISPONIBLE, sin dueno
+    private void liberarClaves(Pedido pedido) {
+        for (ClaveLicencia clave : claveLicenciaDao
+                .findByLineaPedidoPedidoIdAndEstado(pedido.getId(), EstadoClave.RESERVADA)) {
+            clave.setEstado(EstadoClave.DISPONIBLE);
+            clave.setCliente(null);
+            clave.setLineaPedido(null);
+            clave.setFechaReserva(null);
+        }
+    }
+
+    //luego se le cancelan asociados a su email
+    // Los pedidos que este cliente dejo pendientes: se cancelan y sueltan sus claves
+    private void cancelarPendientesDe(String email) {
+        for (Pedido pendiente : pedidoDao.findByClienteEmailAndEstado(email, EstadoPedido.PENDIENTE_PAGO)) {
+            liberarClaves(pendiente);
+            pendiente.setEstado(EstadoPedido.CANCELADO);
+        }
+    }
+
+       // Ya pagado: las claves que se reservaron al tramitar pasan a VENDIDA. No se busca una
+    // clave nueva: se usan las MISMAS que se apartaron para este pedido, que son las que
+    // llevan su linea. El cliente y la linea ya estan puestos desde la reserva; solo cambia
+    // el estado y se anota la fecha de venta
+    private void venderClavesReservadas(Pedido pedido) {
+        List<ClaveLicencia> reservadas = claveLicenciaDao
+                .findByLineaPedidoPedidoIdAndEstado(pedido.getId(), EstadoClave.RESERVADA);
+
+        // Debe haber una por linea. Si faltan, la reserva se perdio (el pedido se cancelo
+        // por caducidad antes de que se pagara) y no se puede entregar el pedido
+        if (reservadas.size() != pedido.getLineas().size()) {
+            throw new PagoNoCompletadoException("pago.error.yaNoPagable");
+        }
+
+        for (ClaveLicencia clave : reservadas) {
+            clave.setEstado(EstadoClave.VENDIDA);
             clave.setFechaVenta(LocalDateTime.now());
         }
     }
@@ -223,6 +257,7 @@ public class PagoServiceImpl implements PagoService {
         List<Pedido> caducados = pedidoDao.buscarPendientesAnterioresA(EstadoPedido.PENDIENTE_PAGO, limite);
 
         for (Pedido pedido : caducados) {
+            liberarClaves(pedido); //para soltar las claves antes de marcar el pedido como CANCELADO
             pedido.setEstado(EstadoPedido.CANCELADO);
             pedidoDao.save(pedido);
         }
