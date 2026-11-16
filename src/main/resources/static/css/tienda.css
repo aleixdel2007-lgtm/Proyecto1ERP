@@ -193,6 +193,18 @@ h1,h2,h3{margin:0;font-weight:600;letter-spacing:-.01em}
     background:rgba(139,92,246,.22);color:#fff;font-weight:600;
     box-shadow:inset 0 0 0 1px rgba(139,92,246,.55);
 }
+/* La cesta: mismo lenguaje que .shop-nav a, pero cuadrada y sin texto */
+.cart-link{
+    display:inline-flex;align-items:center;justify-content:center;
+    width:34px;height:34px;flex:0 0 auto;
+    border-radius:var(--r-sm);color:var(--ink-2);text-decoration:none;
+}
+.cart-link:hover{background:var(--surface-2);color:var(--ink);text-decoration:none}
+.cart-link.on{
+    background:rgba(139,92,246,.22);color:#fff;
+    box-shadow:inset 0 0 0 1px rgba(139,92,246,.55);
+}
+
 /* Con Colaboraciones ya son tres apartados, y cuatro si quien mira es colaborador: en una
    pantalla estrecha no caben al lado del avatar. En vez de comprimirlos, el menu baja a su
    propia linea y la marca, el avatar y el boton de salir se quedan arriba */

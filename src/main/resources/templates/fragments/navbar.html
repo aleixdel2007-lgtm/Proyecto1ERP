@@ -63,8 +63,6 @@
             <th:block sec:authorize="hasRole('CLIENTE')">
                 <a th:href="@{/tienda/biblioteca}" href="#"
                    th:classappend="${activo == 'biblioteca'} ? 'on' : ''" th:text="#{navbar.biblioteca}">Mi biblioteca</a>
-                <a th:href="@{/tienda/cesta}" href="#"
-                    th:classappend="${activo == 'cesta'} ? 'on' : ''" th:text="#{navbar.cesta}">Cesta</a>
             </th:block>
             <th:block sec:authorize="hasRole('COLABORADOR')">
                 <a th:href="@{/colaborador/mis-juegos}" href="#"
@@ -78,6 +76,15 @@
             <option value="ca" th:selected="${#locale.language == 'ca'}">CA</option>
             <option value="en" th:selected="${#locale.language == 'en'}">EN</option>
         </select>
+
+        <!-- La cesta va aqui y no en el menu: es una accion del cliente, como el idioma o
+             su foto, y no un apartado mas de la tienda. Solo el icono, con el title y el
+             aria-label traducidos para que se sepa que es sin leer la palabra -->
+        <a class="cart-link" sec:authorize="hasRole('CLIENTE')" th:href="@{/tienda/cesta}"
+           th:classappend="${activo == 'cesta'} ? 'on' : ''"
+           title="Mi cesta" th:title="#{cesta.titulo}" th:aria-label="#{cesta.titulo}">
+            <svg th:replace="~{fragments/iconos :: cart}"></svg>
+        </a>
 
         <div class="who">
             <img class="avatar" style="object-fit:cover"
