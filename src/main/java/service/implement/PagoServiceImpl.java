@@ -117,7 +117,7 @@ public class PagoServiceImpl implements PagoService {
             Session sesion = stripe.v1().checkout().sessions().create(params.build());
             return sesion.getUrl();
         } catch (StripeException e) {
-            throw new PagoNoCompletadoException("pago.error.conexion");
+            throw new PagoNoCompletadoException("pago.error.conectar");
         }
     }
 
@@ -170,7 +170,7 @@ public class PagoServiceImpl implements PagoService {
 
     private StripeClient clienteStripe() {
         if (claveSecreta == null || claveSecreta.isBlank()) {
-            throw new PagoNoCompletadoException("pago.error.sinConfigurar");
+            throw new PagoNoCompletadoException("pago.error.sinClaveStripe");
         }
         return new StripeClient(claveSecreta);
     }

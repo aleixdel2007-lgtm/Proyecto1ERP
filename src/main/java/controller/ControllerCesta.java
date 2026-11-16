@@ -83,13 +83,18 @@ public class ControllerCesta {
             return "redirect:" + urlPago;
         } catch (CestaVaciaException | VideojuegoNoDisponibleException
                 | SinClavesDisponiblesException | PagoNoCompletadoException e) {
-            // Todas llevan clave de traduccion, tambien las de pago. La de "sin claves"
-            // ademas lleva el titulo del juego, que va como parametro {0} del texto.
-            Object[] args = e instanceof SinClavesDisponiblesException sinClaves
-                    ? new Object[]{sinClaves.getTitulo()} : new Object[0];
-            flash.addFlashAttribute("error", traducir(e.getMessage(), locale, args));
+            flash.addFlashAttribute("error", mensajeDeError(e, locale));
             return "redirect:/tienda/cesta";
         }
+    }
+
+    // Todas llevan una clave de traduccion como mensaje. Solo la de "sin claves" necesita
+    // ademas el titulo del juego, que es el {0} del texto.
+    private String mensajeDeError(RuntimeException e, Locale locale) {
+        if (e instanceof SinClavesDisponiblesException sinClaves) {
+            return traducir(sinClaves.getMessage(), locale, sinClaves.getTitulo());
+        }
+        return traducir(e.getMessage(), locale);
     }
 
     // Las excepciones y los avisos llevan una clave de traduccion, no el texto: aqui se

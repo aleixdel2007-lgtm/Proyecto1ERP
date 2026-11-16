@@ -4,6 +4,7 @@ import dao.UsuarioDao;
 import exception.email.CorreoYaRegistradoException;
 import lombok.RequiredArgsConstructor;
 import model.seguridad.Cliente;
+import model.seguridad.Paises;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
@@ -41,7 +42,9 @@ public class ControllerLogin {
     }
 
     @GetMapping("/registro")
-    public String registro() {
+    public String registro(Model model) {
+        Paises[] paises = Paises.values();
+        model.addAttribute("paises", paises);
         return "login/crearCuenta";
     }
 
@@ -66,6 +69,7 @@ public class ControllerLogin {
             model.addAttribute("apellidos", apellidos);
             model.addAttribute("email", email);
             model.addAttribute("pais", pais);
+            model.addAttribute("paises", Paises.values());
             model.addAttribute("fechaNacimiento", fechaNacimiento);
             return "login/crearCuenta";
         }

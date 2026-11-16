@@ -102,6 +102,12 @@ select.inp{
     padding:14px 16px;border-top:1px solid var(--line);background:rgba(0,0,0,.14);
 }
 .form-foot .note{margin-right:auto;font-size:12px;color:var(--muted)}
+/* La card se estira a la altura de la de perfil: el pie queda pegado abajo
+   y el cuerpo ocupa el espacio sobrante (si no hay campos de cliente). */
+.card:has(> form > .form-foot){display:flex;flex-direction:column}
+.card > form{flex:1;display:flex;flex-direction:column}
+.card > form > .card-body{flex:1}
+.card > form > .form-foot{margin-top:auto}
 
 /* --- botones -------------------------------------------------------------- */
 .btn{

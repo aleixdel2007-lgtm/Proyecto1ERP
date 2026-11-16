@@ -103,6 +103,7 @@ button,input,select,textarea{font-family:inherit;font-size:inherit}
     height:var(--topbar);border-bottom:1px solid var(--line);background:rgba(28,28,28,.86);
     backdrop-filter:blur(8px);display:flex;align-items:center;gap:12px;padding:0 20px;
     position:sticky;top:0;z-index:50;
+    cursor: pointer;
 }
 .crumb{font-size:12.5px;color:var(--muted);display:flex;align-items:center;gap:7px}
 .crumb b{color:var(--ink-2);font-weight:550}
@@ -342,6 +343,12 @@ textarea.inp{resize:vertical;min-height:84px;line-height:1.55}
     padding:14px 16px;border-top:1px solid var(--line);background:rgba(0,0,0,.14);
 }
 .form-foot .note{margin-right:auto;font-size:12px;color:var(--muted)}
+/* Si la card es mas alta que su contenido (p. ej. al estirarse en un grid),
+   el pie se queda pegado abajo y el cuerpo ocupa el espacio sobrante. */
+.card:has(> form > .form-foot){display:flex;flex-direction:column}
+.card > form:has(> .form-foot){flex:1;display:flex;flex-direction:column}
+.card > form > .card-body{flex:1}
+.card > form > .form-foot{margin-top:auto}
 
 /* --- avisos y estados vacíos ---------------------------------------------- */
 .alert{border-radius:var(--r-sm);padding:9px 12px;font-size:12.5px;border:1px solid;margin-bottom:16px}

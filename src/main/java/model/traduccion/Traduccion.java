@@ -10,11 +10,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * Un texto de la interfaz con todas sus traducciones. La clave es la misma que se usa en las
- * plantillas (#{navbar.catalogo}) y textos va de idioma (es, en, ca) a texto:
- * { clave: "navbar.cesta", textos: { es: "Cesta", en: "Basket", ca: "Cistella" } }
- */
+
 @Document("traducciones")
 @Getter
 @Setter

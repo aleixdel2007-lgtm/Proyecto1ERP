@@ -52,7 +52,6 @@ public class ControllerHome {
         model.addAttribute("usuario", usuario);
         model.addAttribute("cliente", usuario instanceof Cliente c ? c : null);
         model.addAttribute("imagen", usuarioService.buscarImagenPerfil(usuario.getId()));
-
         return "clients/configuracionUsuario";
     }
 
@@ -94,7 +93,6 @@ public class ControllerHome {
 
         try {
             usuarioService.guardarImagenPerfil(usuario.getId(), archivo, textoAlternativo);
-
         } catch (ImagenInvalidaException e) {
             flash.addFlashAttribute("errorImagen", traducir(e.getMessage(), locale));
             return "redirect:/user/profile";

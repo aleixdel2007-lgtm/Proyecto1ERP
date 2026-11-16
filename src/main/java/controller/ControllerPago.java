@@ -39,10 +39,10 @@ public class ControllerPago {
         try {
             Pedido pedido = pagoService.confirmarPago(authentication.getName(), sessionId);
             flash.addFlashAttribute("mensaje", messageSource.getMessage("pago.ok.realizado",
-                    new Object[]{pedido.getNumero()}, locale));
+                    new Object[]{String.valueOf(pedido.getNumero())}, locale));
             return "redirect:/tienda/biblioteca";
         } catch (PagoNoCompletadoException | PedidoNoEncontradoException | SinClavesDisponiblesException e) {
-            flash.addFlashAttribute("error", traducir(e, locale));
+            flash.addFlashAttribute("error", mensajeDeError(e, locale));
             return "redirect:/tienda/cesta";
         }
     }
@@ -50,16 +50,21 @@ public class ControllerPago {
     // Y aqui si ha pulsado "volver" en la pagina de Stripe
     @GetMapping("/tienda/pago/cancelado")
     public String pagoCancelado(RedirectAttributes flash, Locale locale) {
-        flash.addFlashAttribute("error",
-                messageSource.getMessage("pago.error.cancelado", null, locale));
+        flash.addFlashAttribute("error", messageSource.getMessage("pago.error.cancelado", null, locale));
         return "redirect:/tienda/cesta";
     }
 
-    // El mensaje de la excepcion es la clave de traduccion. La de "sin claves" ademas
-    // lleva el titulo del juego, que va como parametro {0} del texto.
-    private String traducir(RuntimeException e, Locale locale) {
-        Object[] args = e instanceof SinClavesDisponiblesException sinClaves
-                ? new Object[]{sinClaves.getTitulo()} : null;
-        return messageSource.getMessage(e.getMessage(), args, e.getMessage(), locale);
+    // Las excepciones llevan una clave de traduccion como mensaje. Dos necesitan ademas un
+    // dato para el {0} del texto: el titulo del juego y el id del pedido.
+    private String mensajeDeError(RuntimeException e, Locale locale) {
+        if (e instanceof SinClavesDisponiblesException sinClaves) {
+            return messageSource.getMessage(sinClaves.getMessage(),
+                    new Object[]{sinClaves.getTitulo()}, locale);
+        }
+        if (e instanceof PedidoNoEncontradoException noEncontrado) {
+            return messageSource.getMessage("pago.error.pedidoNoExiste",
+                    new Object[]{String.valueOf(noEncontrado.getId())}, locale);
+        }
+        return messageSource.getMessage(e.getMessage(), null, e.getMessage(), locale);
     }
 }

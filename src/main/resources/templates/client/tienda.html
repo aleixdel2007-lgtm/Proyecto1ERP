@@ -50,7 +50,8 @@
                 <label th:text="#{tienda.filtro.buscar}">Buscar</label>
                 <div class="search-inp">
                     <svg th:replace="~{fragments/iconos :: search}"></svg>
-                    <input name="texto" th:value="${texto}" placeholder="Título..." th:placeholder="#{tienda.filtro.titulo}">
+                    <input id="buscador" name="texto" th:value="${texto}" autocomplete="off"
+                           placeholder="Título..." th:placeholder="#{tienda.filtro.titulo}">
                 </div>
             </div>
             <div class="fld">
@@ -112,6 +113,12 @@
                 <p class="hint" th:if="${esOfertas}" th:text="#{tienda.vacio.ofertas.hint}">Cuando un juego se rebaje, aparecerá aquí.</p>
                 <p class="hint" th:if="${esColaboraciones}" th:text="#{tienda.vacio.colaboraciones.hint}">Aparecerán aquí en cuanto el primero
                     suba el suyo.</p>
+            </div>
+
+            <!-- Lo muestra el buscador cuando ninguna tarjeta de esta pagina encaja con el texto -->
+            <div class="empty" id="sinResultados" hidden>
+                <h4 th:text="#{tienda.vacio.catalogo}">No hay ningún juego que encaje</h4>
+                <p class="hint" th:text="#{tienda.vacio.catalogo.hint}">Prueba a quitar algún filtro.</p>
             </div>
 
             <div class="cat-grid" th:unless="${#lists.isEmpty(videojuegos)}">
@@ -191,6 +198,8 @@
 </main>
 
 <footer class="shop-foot" th:text="#{shop.footer}">LudusERP · Catálogo privado: sin sesión no se ve nada</footer>
+
+<script th:src="@{/js/tienda.js}" src="../../static/js/tienda.js"></script>
 
 </body>
 </html>
