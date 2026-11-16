@@ -52,4 +52,8 @@ public interface PedidoDao extends JpaRepository<Pedido, Long> {
             + "and p.fecha < :limite")
     List<Pedido> buscarPendientesAnterioresA(@Param("estado") EstadoPedido estado,
             @Param("limite") LocalDateTime limite);
+
+    // Los pedidos de un cliente (por su email) que estan en un estado. 
+    //Lo usa el pago para cancelar los PENDIENTE_PAGO anteriores de ese cliente antes de crear uno nuevo
+    List<Pedido> findByClienteEmailAndEstado(String email, EstadoPedido estado);
 }

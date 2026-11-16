@@ -37,16 +37,17 @@ public interface ClaveLicenciaDao extends JpaRepository<ClaveLicencia, Long> {
     boolean estaEnBiblioteca(@Param("email") String email,
             @Param("videojuegoId") Long videojuegoId);
 
-    // Hay alguna clave disponible de ese juego? Sirve para avisar ANTES de mandar
-    // al cliente a pagar
-    boolean existsByVideojuegoIdAndEstado(Long videojuegoId, EstadoClave estado);
-
     // La primera clave por id disponible de un juego. El bloqueo hace que, si dos clientes pagan
     // a la vez, el segundo espere y no se le entregue la misma clave
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     Optional<ClaveLicencia> findFirstByVideojuegoIdAndEstadoOrderByIdAsc(
             Long videojuegoId, EstadoClave estado);
 
+    // Las claves de un pedido que estan en un estado. Sirve para encontrar "las claves
+    // RESERVADAS de este pedido": al pagar pasan a VENDIDA y al caducar vuelven a DISPONIBLE
+    List<ClaveLicencia> findByLineaPedidoPedidoIdAndEstado(Long pedidoId, EstadoClave estado);
+    
+    
     // El listado del panel. Los tres filtros son opcionales y se saltan solos cuando llegan
     // a null, igual que en los demas listarFiltrado del proyecto. Trae con fetch el juego,
     // el cliente y la orden de compra porque la tabla pinta los tres y open-in-view esta
