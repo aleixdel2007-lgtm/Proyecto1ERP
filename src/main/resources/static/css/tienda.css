@@ -247,6 +247,8 @@ select.inp{
 .search-inp svg{color:var(--muted);flex:0 0 auto}
 
 .empty{padding:38px 20px;text-align:center;color:var(--muted)}
+/* El buscador en vivo de tienda.html oculta tarjetas con [hidden]; .game define su display */
+.game[hidden],.empty[hidden]{display:none}
 .empty h4{font-size:14px;color:var(--ink-2);margin:0 0 5px}
 
 .pager{
