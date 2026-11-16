@@ -1,0 +1,346 @@
+<!doctype html>
+<html th:lang="${#locale.language}" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="${compra.id} == null ? 'Nueva orden · LudusERP' : ${compra.numero} + ' · LudusERP'">Orden de compra · LudusERP</title>
+    <link rel="stylesheet" th:href="@{/css/panel.css}">
+    <link rel="stylesheet" th:href="@{/css/compras.css}">
+</head>
+<body>
+
+<div class="app">
+
+    <aside th:replace="~{fragments/panel :: menu('ordenes')}"></aside>
+
+    <div class="main">
+
+        <header th:replace="~{fragments/panel :: barra(#{panel.seccion.aprovisionamiento}, #{panel.menu.ordenes})}"></header>
+
+        <!-- Una sola pantalla para el alta y para la ficha, como en videojuegos: lo que manda es
+             si la orden tiene id. Y dos permisos, que es lo que de verdad cambia aqui:
+
+             editable        la cabecera (proveedor, fecha y observaciones) solo se toca mientras
+                             la orden es un BORRADOR. Confirmada ya se la ha mandado al proveedor.
+             lineasEditables se anaden y se quitan lineas en BORRADOR y en CONFIRMADA, porque hasta
+                             que llega la mercancia el proveedor todavia puede cambiar el pedido.
+                             Una RECIBIDA o una CANCELADA son de solo lectura: de la recibida han
+                             salido claves, y alguna puede estar ya vendida. -->
+        <main class="canvas"
+              th:with="editable=${compra.id == null or compra.estado.name() == 'BORRADOR'},
+                       lineasEditables=${compra.id != null and (compra.estado.name() == 'BORRADOR'
+                                        or compra.estado.name() == 'CONFIRMADA')}">
+
+            <a class="btn btn-ghost btn-sm" style="margin-bottom:12px" th:href="@{/compras/ordenes}">
+                <svg th:replace="~{fragments/iconos :: back}"></svg> Volver a las órdenes</a>
+
+            <div class="page-head">
+                <div>
+                    <h1 th:text="${compra.id} == null ? #{compras.nuevaOrden} : ${compra.numero}">Nueva orden de compra</h1>
+                    <p th:if="${compra.id} == null" th:text="#{compras.nuevaOrden.intro}">Se crea como BORRADOR.</p>
+                    <p th:if="${compra.id != null}"
+                       th:text="${compra.proveedor.nombreComercial} + ' · ' + #{compras.creadaEl} + ' '
+                              + ${#temporals.format(compra.fecha, 'dd/MM/yyyy')}
+                              + (${compra.empleado != null} ? ' por ' + ${compra.empleado.email} : '')">
+                        Iberia Digital Supply · creada el 15/10/2026</p>
+                </div>
+            </div>
+
+            <div class="alert alert-ok" th:if="${mensaje}" th:text="${mensaje}"></div>
+            <div class="alert alert-err" th:if="${error}" th:text="${error}"></div>
+
+            <div class="grid g-2-1">
+
+                <div class="stack">
+
+                    <!-- LA CABECERA. En un alta es lo unico que hay: una orden sin id no puede
+                         tener lineas todavia, igual que un videojuego sin id no puede tener
+                         imagenes (decision 12.6). -->
+                    <form th:action="@{/compras/ordenes/guardar}" method="post" th:object="${compra}">
+                        <input type="hidden" th:field="*{id}">
+
+                        <div class="card">
+                            <div class="card-head"><h3 th:text="#{compras.datosOrden}">Datos de la orden</h3></div>
+                            <div class="card-body">
+                                <div class="form-grid">
+
+                                    <div class="frow" th:if="${editable}">
+                                        <label for="proveedorId"><span th:text="#{proveedores.col.proveedor}">Proveedor</span> <span class="req">*</span></label>
+                                        <select class="inp" id="proveedorId" name="proveedorId" required>
+                                            <option value="" th:if="${compra.id} == null" th:text="#{videojuegos.eligeProveedor}">Elige un proveedor</option>
+                                            <option th:each="p : ${proveedores}"
+                                                    th:value="${p.id}"
+                                                    th:text="${p.nombreComercial}"
+                                                    th:selected="${compra.proveedor != null and compra.proveedor.id == p.id}">Iberia Digital Supply</option>
+                                        </select>
+                                        <span class="hint" th:text="#{compras.hint.proveedor}">Solo aparecen los proveedores activos.</span>
+                                    </div>
+
+                                    <div class="frow" th:unless="${editable}">
+                                        <label th:text="#{proveedores.col.proveedor}">Proveedor</label>
+                                        <span class="t-main" th:text="${compra.proveedor.nombreComercial}">Iberia Digital Supply</span>
+                                        <span class="hint" th:text="#{compras.hint.cabeceraFija}">La cabecera de una orden ya confirmada no se cambia.</span>
+                                    </div>
+
+                                    <div class="frow">
+                                        <label for="fecha"><span th:text="#{comun.fecha}">Fecha</span> <span class="req">*</span></label>
+                                        <input class="inp" type="date" id="fecha" th:field="*{fecha}"
+                                               required th:disabled="${!editable}">
+                                    </div>
+
+                                    <div class="frow wide">
+                                        <label for="observaciones" th:text="#{compras.observaciones}">Observaciones</label>
+                                        <textarea class="inp" id="observaciones" th:field="*{observaciones}"
+                                                  rows="2" th:disabled="${!editable}"
+                                                  th:placeholder="#{compras.observacionesPh}"
+                                                  placeholder="20 unidades menos en Ashen Crown"></textarea>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-foot" th:if="${editable}">
+                                <span class="note" th:if="${compra.id} == null" th:text="#{compras.nota.firma}">La firma el empleado que está dentro de la aplicación.</span>
+                                <a class="btn" th:href="@{/compras/ordenes}" th:text="#{comun.cancelar}">Cancelar</a>
+                                <button type="submit" class="btn btn-primary">
+                                    <svg th:replace="~{fragments/iconos :: check}"></svg>
+                                    <span th:text="${compra.id} == null ? #{compras.crearBorrador} : #{comun.guardarCambios}">Crear borrador</span></button>
+                            </div>
+                        </div>
+                    </form>
+
+                    <!-- LAS LINEAS. Solo existen cuando la orden ya esta guardada. -->
+                    <div class="card" th:if="${compra.id != null}">
+                        <div class="card-head">
+                            <h3 th:text="#{compras.lineasOrden}">Líneas de la orden</h3>
+                            <span class="right" th:text="${#lists.size(compra.lineas)} + ' líneas'">4 líneas</span>
+                        </div>
+
+                        <div class="card-body tight">
+
+                            <div class="empty" th:if="${#lists.isEmpty(compra.lineas)}">
+                                <h4 th:text="#{compras.sinLineas}">Esta orden no tiene ninguna línea</h4>
+                                <p class="hint" th:text="#{compras.sinLineas.hint}">Añade la primera abajo.</p>
+                            </div>
+
+                            <div class="tbl-wrap" th:unless="${#lists.isEmpty(compra.lineas)}">
+                                <table class="tbl">
+                                    <thead>
+                                    <tr>
+                                        <th th:text="#{panel.menu.videojuegos}">Videojuego</th>
+                                        <th class="num" th:text="#{comun.cantidad}">Cantidad</th>
+                                        <th class="num" th:text="#{compras.col.costeUnitario}">Coste unitario</th>
+                                        <th class="num" th:text="#{pedidos.col.subtotal}">Subtotal</th>
+                                        <th class="num" th:text="#{compras.col.recibidas}">Recibidas</th>
+                                        <th class="acts"></th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    <tr th:each="l : ${compra.lineas}">
+
+                                        <td>
+                                            <span class="t-main" th:text="${l.videojuego.titulo}">Eclipse Protocol</span>
+                                            <div class="t-sub" th:text="'#' + ${l.videojuego.id}">#318</div>
+                                        </td>
+
+                                        <!-- Cantidad nula es ILIMITADA (decision 4.9): no es un cero,
+                                             es que no se pacto un tope de unidades. -->
+                                        <td class="num">
+                                            <b th:if="${l.cantidad != null}" th:text="${l.cantidad}">200</b>
+                                            <span class="badge b-info" th:if="${l.cantidad == null}"
+                                                  th:title="#{compras.hint.ilimitada}" th:text="#{compras.ilimitada}">ILIMITADA</span>
+                                        </td>
+
+                                        <td class="num"
+                                            th:text="${#numbers.formatDecimal(l.costeUnitario, 1, 'POINT', 2, 'COMMA')} + ' €'">28,40 €</td>
+
+                                        <td class="num">
+                                            <b th:if="${l.cantidad != null}"
+                                               th:text="${#numbers.formatDecimal(l.costeUnitario * l.cantidad, 1, 'POINT', 2, 'COMMA')} + ' €'">5.680,00 €</b>
+                                            <span class="muted" th:if="${l.cantidad == null}">—</span>
+                                        </td>
+
+                                        <td class="num">
+                                            <span th:if="${l.cantidadRecibida != null}"
+                                                  th:text="${l.cantidadRecibida}">200</span>
+                                            <span class="muted" th:if="${l.cantidadRecibida == null}"
+                                                  th:title="#{compras.hint.sinRecibir}">—</span>
+                                        </td>
+
+                                        <!-- Una linea no se edita: se quita y se vuelve a anadir. Dos
+                                             campos y un boton es menos de lo que cuesta un formulario
+                                             por fila dentro de una tabla. -->
+                                        <td class="acts" th:if="${lineasEditables}">
+                                            <form method="post"
+                                                  th:action="@{/compras/ordenes/{id}/lineas/{lineaId}/eliminar(id=${compra.id}, lineaId=${l.id})}"
+                                                  th:data-confirmar="#{compras.confirmarQuitarLinea}"
+                                                  onsubmit="return confirm(this.dataset.confirmar);">
+                                                <button type="submit" class="btn btn-sm btn-danger" title="Quitar línea"
+                                                        th:title="#{compras.quitarLinea}">
+                                                    <svg th:replace="~{fragments/iconos :: trash}"></svg>
+                                                </button>
+                                            </form>
+                                        </td>
+                                        <td class="acts" th:unless="${lineasEditables}"></td>
+                                    </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div class="form-foot">
+                            <span class="note" th:text="#{compras.nota.lineas}">Las líneas se tocan en BORRADOR y en CONFIRMADA.</span>
+                            <div class="totals" style="min-width:230px"
+                                 th:with="ilimitadas=${compra.lineas.?[cantidad == null]}">
+                                <div class="r">
+                                    <span th:text="#{compras.col.unidades}">Unidades</span>
+                                    <span th:text="${#lists.isEmpty(compra.lineas)} ? '0'
+                                                 : ${#aggregates.sum(compra.lineas.![cantidad == null ? 0 : cantidad])}">500</span>
+                                </div>
+                                <div class="r" th:unless="${#lists.isEmpty(ilimitadas)}">
+                                    <span th:text="#{compras.lineasIlimitadas}">Líneas ilimitadas</span>
+                                    <span th:text="${#lists.size(ilimitadas)}">1</span>
+                                </div>
+                                <div class="r big">
+                                    <span th:text="#{compras.col.coste}">Coste total</span>
+                                    <span th:text="${#numbers.formatDecimal(compra.totalCoste, 1, 'POINT', 2, 'COMMA')} + ' €'">15.300,00 €</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ANADIR LINEA -->
+                    <div class="card" th:if="${lineasEditables}">
+                        <div class="card-head"><h3 th:text="#{compras.anadirLinea}">Añadir una línea</h3></div>
+                        <form method="post" th:action="@{/compras/ordenes/{id}/lineas(id=${compra.id})}">
+                            <div class="card-body">
+                                <div class="form-grid">
+
+                                    <div class="frow">
+                                        <label for="videojuegoId"><span th:text="#{panel.menu.videojuegos}">Videojuego</span> <span class="req">*</span></label>
+                                        <select class="inp" id="videojuegoId" name="videojuegoId" required>
+                                            <option value="" th:text="#{compras.eligeJuego}">Elige un juego</option>
+                                            <option th:each="v : ${videojuegos}"
+                                                    th:value="${v.id}"
+                                                    th:text="${v.titulo}">Eclipse Protocol</option>
+                                        </select>
+                                        <span class="hint" th:text="#{compras.hint.soloNuestros}">Solo los juegos nuestros.</span>
+                                    </div>
+
+                                    <div class="frow">
+                                        <label for="cantidad" th:text="#{comun.cantidad}">Cantidad</label>
+                                        <input class="inp qty" type="number" id="cantidad" name="cantidad"
+                                               min="1" step="1" th:placeholder="#{compras.cantidadPh}" placeholder="200">
+                                        <span class="hint" th:text="#{compras.hint.cantidad}">Vacío significa ilimitada.</span>
+                                    </div>
+
+                                    <div class="frow">
+                                        <label for="costeUnitario"><span th:text="#{compras.col.costeUnitario}">Coste unitario</span> <span class="req">*</span></label>
+                                        <input class="inp coste" type="number" id="costeUnitario"
+                                               name="costeUnitario" min="0" step="0.01" required
+                                               th:placeholder="#{compras.costePh}" placeholder="28.40">
+                                        <span class="hint" th:text="#{compras.hint.coste}">Lo que nos cuesta cada clave, sin IVA.</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-foot">
+                                <button type="submit" class="btn btn-primary">
+                                    <svg th:replace="~{fragments/iconos :: plus}"></svg> Añadir línea</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- LA COLUMNA DE LA DERECHA: en que estado esta y que se puede hacer con ella -->
+                <div class="stack" th:if="${compra.id != null}">
+
+                    <div class="card">
+                        <div class="card-head"><h3 th:text="#{comun.estado}">Estado</h3></div>
+                        <div class="card-body stack">
+
+                            <div class="row">
+                                <span class="badge"
+                                      th:classappend="${compra.estado.name() == 'BORRADOR'} ? 'b-mute'
+                                                    : (${compra.estado.name() == 'CONFIRMADA'} ? 'b-warn'
+                                                    : (${compra.estado.name() == 'RECIBIDA'} ? 'b-good' : 'b-crit'))"
+                                      th:text="#{'estadoCompra.' + ${compra.estado}}">BORRADOR</span>
+                                <span class="hint" th:switch="${compra.estado.name()}">
+                                    <span th:case="'BORRADOR'" th:text="#{compras.estado.borrador}">todavía no se ha mandado</span>
+                                    <span th:case="'CONFIRMADA'" th:text="#{compras.estado.confirmada}">a la espera del proveedor</span>
+                                    <span th:case="'RECIBIDA'" th:text="#{compras.estado.recibida}">las claves ya están en el stock</span>
+                                    <span th:case="'CANCELADA'" th:text="#{compras.estado.cancelada}">no llegó a servirse</span>
+                                </span>
+                            </div>
+
+                            <div class="sep"></div>
+
+                            <dl class="kv">
+                                <dt th:text="#{pedidos.col.numero}">Número</dt>
+                                <dd class="mono" th:text="${compra.numero}">OC-2026-0001</dd>
+
+                                <dt th:text="#{proveedores.col.proveedor}">Proveedor</dt>
+                                <dd th:text="${compra.proveedor.nombreComercial}">Iberia Digital Supply</dd>
+
+                                <dt th:text="#{proveedores.col.contacto}">Contacto</dt>
+                                <dd th:text="${compra.proveedor.email}">pedidos@iberiadig.es</dd>
+
+                                <dt th:text="#{comun.fecha}">Fecha</dt>
+                                <dd th:text="${#temporals.format(compra.fecha, 'dd/MM/yyyy')}">15/10/2026</dd>
+
+                                <dt th:text="#{compras.col.recepcion}">Recepción</dt>
+                                <dd th:if="${compra.fechaRecepcion != null}"
+                                    th:text="${#temporals.format(compra.fechaRecepcion, 'dd/MM/yyyy')}">23/10/2026</dd>
+                                <dd class="muted" th:if="${compra.fechaRecepcion == null}" th:text="#{compras.pendiente}">pendiente</dd>
+
+                                <dt th:text="#{compras.albaranCorto}">Albarán</dt>
+                                <dd class="mono" th:if="${compra.numeroAlbaran != null}"
+                                    th:text="${compra.numeroAlbaran}">ALB-IDS-77213</dd>
+                                <dd class="muted" th:if="${compra.numeroAlbaran == null}">—</dd>
+
+                                <dt th:text="#{compras.creadaPor}">Creada por</dt>
+                                <dd th:if="${compra.empleado != null}"
+                                    th:text="${compra.empleado.apellidos != null
+                                            ? compra.empleado.nombre + ' ' + compra.empleado.apellidos
+                                            : compra.empleado.nombre}">Irene Vidal</dd>
+                                <dd class="muted" th:if="${compra.empleado == null}">—</dd>
+                            </dl>
+                        </div>
+
+                        <!-- Cada paso del ciclo es un POST con su propia direccion, no un
+                             desplegable de estados: desde fuera solo se puede pedir el paso que
+                             toca, y el servicio vuelve a comprobarlo de todas formas. -->
+                        <div class="form-foot" th:if="${compra.estado.name() == 'BORRADOR'
+                                                    or compra.estado.name() == 'CONFIRMADA'}">
+
+                            <form method="post" th:if="${compra.estado.name() == 'BORRADOR'}"
+                                  th:action="@{/compras/ordenes/{id}/confirmar(id=${compra.id})}">
+                                <button type="submit" class="btn btn-primary">
+                                    <svg th:replace="~{fragments/iconos :: check}"></svg> <span th:text="#{compras.confirmar}">Confirmar</span></button>
+                            </form>
+
+                            <a class="btn btn-primary" th:if="${compra.estado.name() == 'CONFIRMADA'}"
+                               th:href="@{/compras/ordenes/{id}/recepcion(id=${compra.id})}">
+                                <svg th:replace="~{fragments/iconos :: truck}"></svg> <span th:text="#{compras.recibir}">Recibir mercancía</span></a>
+
+                            <form method="post"
+                                  th:action="@{/compras/ordenes/{id}/cancelar(id=${compra.id})}"
+                                  th:data-confirmar="#{compras.confirmarCancelar}"
+                                  onsubmit="return confirm(this.dataset.confirmar);">
+                                <button type="submit" class="btn btn-danger">
+                                    <svg th:replace="~{fragments/iconos :: ban}"></svg> <span th:text="#{compras.cancelarOrden}">Cancelar orden</span></button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <div class="note-box">
+                        <svg th:replace="~{fragments/iconos :: key}"></svg>
+                        <div th:text="#{compras.aviso.unaClavePorUnidad}">Al recibir la orden se crea una clave de licencia por cada unidad.</div>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+</div>
+
+</body>
+</html>

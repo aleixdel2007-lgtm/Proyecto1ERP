@@ -4,7 +4,14 @@ import model.inventario.EstadoClave;
 
 public class ClaveNoAnulableException extends RuntimeException {
 
+    private final EstadoClave estado;
+
     public ClaveNoAnulableException(EstadoClave estado) {
-        super("Solo se puede anular una clave DISPONIBLE, y esta esta " + estado);
+        super("claves.error.noAnulable");
+        this.estado = estado;
+    }
+
+    public EstadoClave getEstado() {
+        return estado;
     }
 }

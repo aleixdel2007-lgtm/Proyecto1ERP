@@ -54,11 +54,11 @@ public class PlataformaServiceImpl implements PlataformaService {
     private void validarObligatorios(Plataforma plataforma) {
 
         if (plataforma.getCodigo() == null || plataforma.getCodigo().isBlank()) {
-            throw new IllegalArgumentException("El codigo es obligatorio");
+            throw new IllegalArgumentException("plataformas.error.codigoObligatorio");
         }
 
         if (plataforma.getNombre() == null || plataforma.getNombre().isBlank()) {
-            throw new IllegalArgumentException("El nombre es obligatorio");
+            throw new IllegalArgumentException("plataformas.error.nombreObligatorio");
         }
     }
 

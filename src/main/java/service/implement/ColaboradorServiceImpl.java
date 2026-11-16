@@ -71,7 +71,7 @@ public class ColaboradorServiceImpl implements ColaboradorService {
     private Colaborador crearColaborador(Colaborador colaborador, String password) {
 
         if (password == null || password.isBlank()) {
-            throw new IllegalArgumentException("La contrasena inicial es obligatoria");
+            throw new IllegalArgumentException("colaboradores.error.passwordObligatoria");
         }
 
         colaborador.setPasswordHash(codificador.encode(password));

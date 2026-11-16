@@ -9,6 +9,7 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 import model.catalogo.Categoria;
 import model.catalogo.ImagenVideojuego;
@@ -16,6 +17,7 @@ import model.catalogo.Plataforma;
 import model.catalogo.TipoImagen;
 import model.catalogo.Videojuego;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -32,6 +34,9 @@ public class ControllerVideojuego {
 
     @Autowired
     private VideojuegoService videojuegoService;
+
+    @Autowired
+    private MessageSource messageSource;
 
     @GetMapping("/catalogo/videojuegos")
     public String listarVideojuegos(
@@ -99,7 +104,8 @@ public class ControllerVideojuego {
             @RequestParam(required = false) List<Long> categoriaIds,
             @RequestParam(required = false) List<Long> plataformaIds,
             Model model,
-            RedirectAttributes flash) {
+            RedirectAttributes flash,
+            Locale locale) {
 
         try {
             videojuegoService.guardarVideojuego(videojuego, proveedorId, categoriaIds, plataformaIds);
@@ -107,29 +113,30 @@ public class ControllerVideojuego {
         } catch (ProveedorObligatorioException | PrecioInvalidoException
                 | PrecioDescuentoInvalidoException | IllegalArgumentException e) {
 
-            model.addAttribute("error", e.getMessage());
+            model.addAttribute("error", traducir(e, locale));
             cargarCatalogos(model, proveedorId, conjuntoDe(categoriaIds), conjuntoDe(plataformaIds));
 
             return "catalogo/videojuego";
         }
 
-        flash.addFlashAttribute("mensaje", "Videojuego guardado correctamente");
+        flash.addFlashAttribute("mensaje", messageSource.getMessage("videojuegos.ok.guardado", null, locale));
 
         return "redirect:/catalogo/videojuegos";
     }
 
     @PostMapping("/catalogo/videojuegos/eliminar/{id}")
-    public String eliminarVideojuego(@PathVariable Long id, RedirectAttributes flash) {
+    public String eliminarVideojuego(@PathVariable Long id, RedirectAttributes flash,
+            Locale locale) {
 
         try {
             videojuegoService.eliminarVideojuego(id);
 
         } catch (VideojuegoConReferenciasException e) {
-            flash.addFlashAttribute("error", e.getMessage());
+            flash.addFlashAttribute("error", traducir(e, locale));
             return "redirect:/catalogo/videojuegos";
         }
 
-        flash.addFlashAttribute("mensaje", "Videojuego eliminado correctamente");
+        flash.addFlashAttribute("mensaje", messageSource.getMessage("videojuegos.ok.eliminado", null, locale));
 
         return "redirect:/catalogo/videojuegos";
     }
@@ -149,14 +156,14 @@ public class ControllerVideojuego {
                                 @RequestParam("archivo") MultipartFile archivo,
                                 @RequestParam("tipo") TipoImagen tipo,
                                 @RequestParam(value = "textoAlternativo", required = false) String textoAlternativo,
-                                RedirectAttributes flash) {
+                                RedirectAttributes flash, Locale locale) {
 
         try {
             videojuegoService.guardarImagen(id, archivo, tipo, textoAlternativo);
-            flash.addFlashAttribute("mensaje", "Imagen anadida correctamente");
+            flash.addFlashAttribute("mensaje", messageSource.getMessage("videojuegos.ok.imagenAnadida", null, locale));
 
         } catch (ImagenInvalidaException | IllegalArgumentException e) {
-            flash.addFlashAttribute("error", e.getMessage());
+            flash.addFlashAttribute("error", traducir(e, locale));
         }
 
         return "redirect:/catalogo/videojuegos/editar/" + id;
@@ -164,12 +171,16 @@ public class ControllerVideojuego {
 
     @PostMapping("/catalogo/videojuegos/{id}/imagenes/{imagenId}/eliminar")
     public String eliminarImagen(@PathVariable Long id, @PathVariable Long imagenId,
-                                 RedirectAttributes flash) {
+                                 RedirectAttributes flash, Locale locale) {
 
         videojuegoService.eliminarImagen(id, imagenId);
-        flash.addFlashAttribute("mensaje", "Imagen eliminada correctamente");
+        flash.addFlashAttribute("mensaje", messageSource.getMessage("videojuegos.ok.imagenEliminada", null, locale));
 
         return "redirect:/catalogo/videojuegos/editar/" + id;
+    }
+
+    private String traducir(RuntimeException e, Locale locale) {
+        return messageSource.getMessage(e.getMessage(), null, e.getMessage(), locale);
     }
 
     private void cargarImagenes(Model model, Long id) {

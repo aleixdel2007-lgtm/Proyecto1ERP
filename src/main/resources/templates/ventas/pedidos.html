@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<html th:lang="${#locale.language}" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Pedidos · LudusERP</title>
+    <title th:text="#{panel.menu.pedidos} + ' · LudusERP'">Pedidos · LudusERP</title>
     <link rel="stylesheet" th:href="@{/css/panel.css}">
 </head>
 <body>
@@ -14,7 +14,7 @@
 
     <div class="main">
 
-        <header th:replace="~{fragments/panel :: barra('Ventas', 'Pedidos')}"></header>
+        <header th:replace="~{fragments/panel :: barra(#{panel.seccion.ventas}, #{panel.menu.pedidos})}"></header>
 
         <main class="canvas">
 
@@ -23,25 +23,24 @@
 
             <div class="page-head">
                 <div>
-                    <h1>Pedidos</h1>
-                    <p>Cabecera, líneas, claves entregadas y factura. El cliente solo ve los suyos;
-                        aquí se ven todos.</p>
+                    <h1 th:text="#{panel.menu.pedidos}">Pedidos</h1>
+                    <p th:text="#{pedidos.intro}">Cabecera, líneas, claves entregadas y factura.</p>
                 </div>
             </div>
 
             <div class="grid g3" style="margin-bottom:16px">
                 <div class="kpi accent">
-                    <span class="k-label">Pagados</span>
+                    <span class="k-label" th:text="#{estadoPedido.PAGADO}">Pagados</span>
                     <span class="k-val" th:text="${pagados}">0</span>
                     <span class="k-foot"></span>
                 </div>
                 <div class="kpi">
-                    <span class="k-label">Pendientes</span>
+                    <span class="k-label" th:text="#{pedidos.kpi.pendientes}">Pendientes</span>
                     <span class="k-val" th:text="${pendientes}">0</span>
-                    <span class="k-foot">pago sin confirmar</span>
+                    <span class="k-foot" th:text="#{pedidos.kpi.pendientesPie}">pago sin confirmar</span>
                 </div>
                 <div class="kpi">
-                    <span class="k-label">Reembolsados</span>
+                    <span class="k-label" th:text="#{estadoPedido.REEMBOLSADO}">Reembolsados</span>
                     <span class="k-val" th:text="${reembolsados}">0</span>
                     <span class="k-foot"></span>
                 </div>
@@ -51,16 +50,16 @@
 
                 <form class="filters" method="get" th:action="@{/ventas/pedidos}">
                     <div class="fld">
-                        <label>Buscar</label>
+                        <label th:text="#{comun.buscar}">Buscar</label>
                         <div class="search-inp">
                             <svg th:replace="~{fragments/iconos :: search}"></svg>
-                            <input name="texto" th:value="${texto}" placeholder="Número o cliente">
+                            <input name="texto" th:value="${texto}" th:placeholder="#{pedidos.buscarPh}" placeholder="Número o cliente">
                         </div>
                     </div>
                     <div class="fld">
-                        <label>Estado</label>
+                        <label th:text="#{comun.estado}">Estado</label>
                         <select class="inp" name="estado">
-                            <option value="">Todos</option>
+                            <option value="" th:text="#{comun.todos}">Todos</option>
                             <option th:each="e : ${estados}"
                                     th:value="${e}"
                                     th:text="${e}"
@@ -68,43 +67,43 @@
                         </select>
                     </div>
                     <div class="fld">
-                        <label>Desde</label>
+                        <label th:text="#{pedidos.desde}">Desde</label>
                         <input class="inp" type="date" name="desde" th:value="${desde}">
                     </div>
                     <div class="fld">
-                        <label>Hasta</label>
+                        <label th:text="#{pedidos.hasta}">Hasta</label>
                         <input class="inp" type="date" name="hasta" th:value="${hasta}">
                     </div>
                     <div class="fld">
                         <label>&nbsp;</label>
-                        <button type="submit" class="btn btn-primary">Filtrar</button>
+                        <button type="submit" class="btn btn-primary" th:text="#{comun.filtrar}">Filtrar</button>
                     </div>
                     <div class="fld">
                         <label>&nbsp;</label>
-                        <a class="btn" th:href="@{/ventas/pedidos}">Limpiar</a>
+                        <a class="btn" th:href="@{/ventas/pedidos}" th:text="#{comun.limpiar}">Limpiar</a>
                     </div>
                 </form>
 
                 <div class="card-body tight">
 
                     <div class="empty" th:if="${#lists.isEmpty(pedidos)}">
-                        <h4>No hay pedidos</h4>
-                        <p class="hint">Ningún pedido coincide con los filtros.</p>
+                        <h4 th:text="#{pedidos.vacio}">No hay pedidos</h4>
+                        <p class="hint" th:text="#{pedidos.vacio.hint}">Ningún pedido coincide con los filtros.</p>
                     </div>
 
                     <div class="tbl-wrap" th:if="${!#lists.isEmpty(pedidos)}">
                         <table class="tbl">
                             <thead>
                             <tr>
-                                <th>Número</th>
-                                <th>Cliente</th>
-                                <th>Fecha</th>
-                                <th class="num">Art.</th>
-                                <th>Pago</th>
-                                <th class="num">Base</th>
-                                <th class="num">IVA</th>
-                                <th class="num">Total</th>
-                                <th>Estado</th>
+                                <th th:text="#{pedidos.col.numero}">Número</th>
+                                <th th:text="#{clientes.col.cliente}">Cliente</th>
+                                <th th:text="#{comun.fecha}">Fecha</th>
+                                <th class="num" th:text="#{pedidos.col.articulos}">Art.</th>
+                                <th th:text="#{pedidos.col.pago}">Pago</th>
+                                <th class="num" th:text="#{pedidos.col.base}">Base</th>
+                                <th class="num" th:text="#{pedidos.col.iva}">IVA</th>
+                                <th class="num" th:text="#{comun.total}">Total</th>
+                                <th th:text="#{comun.estado}">Estado</th>
                                 <th class="acts"></th>
                             </tr>
                             </thead>
@@ -127,10 +126,10 @@
                                 <td>
                                     <span class="badge"
                                           th:classappend="${p.estado.name() == 'PAGADO'} ? 'b-good' : (${p.estado.name() == 'PENDIENTE_PAGO'} ? 'b-warn' : (${p.estado.name() == 'CANCELADO'} ? 'b-crit' : 'b-serious'))"
-                                          th:text="${#strings.replace(p.estado.name(), '_', ' ')}">PAGADO</span>
+                                          th:text="#{'estadoPedido.' + ${p.estado.name()}}">PAGADO</span>
                                 </td>
                                 <td class="acts">
-                                    <a class="btn btn-sm btn-ghost" title="Ver pedido"
+                                    <a class="btn btn-sm btn-ghost" title="Ver pedido" th:title="#{pedidos.verPedido}"
                                        th:href="@{/ventas/pedido/{id}(id=${p.id})}">
                                         <svg th:replace="~{fragments/iconos :: eye}"></svg>
                                     </a>
@@ -142,8 +141,8 @@
                 </div>
 
                 <div class="pager" th:if="${!#lists.isEmpty(pedidos)}">
-                    <span>Mostrando <b th:text="${#lists.size(pedidos)}">0</b>
-                        de <b th:text="${#lists.size(pedidos)}">0</b> registros</span>
+                    <span><span th:text="#{comun.mostrando}">Mostrando</span> <b th:text="${#lists.size(pedidos)}">0</b>
+                        <span th:text="#{comun.de}">de</span> <b th:text="${#lists.size(pedidos)}">0</b> <span th:text="#{comun.registros}">registros</span></span>
                     <div class="pages">
                         <button class="pg" disabled>&lsaquo;</button>
                         <button class="pg on" disabled>1</button>

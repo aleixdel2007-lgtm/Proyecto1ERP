@@ -54,11 +54,11 @@ public class CategoriaServiceImpl implements CategoriaService {
     private void validarObligatorios(Categoria categoria) {
 
         if (categoria.getCodigo() == null || categoria.getCodigo().isBlank()) {
-            throw new IllegalArgumentException("El codigo es obligatorio");
+            throw new IllegalArgumentException("categorias.error.codigoObligatorio");
         }
 
         if (categoria.getNombre() == null || categoria.getNombre().isBlank()) {
-            throw new IllegalArgumentException("El nombre es obligatorio");
+            throw new IllegalArgumentException("categorias.error.nombreObligatorio");
         }
     }
 

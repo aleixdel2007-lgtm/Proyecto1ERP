@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<html th:lang="${#locale.language}" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -93,6 +93,14 @@
             <div class="card">
                 <div class="card-body stack">
                     <h2 style="font-size:19px" th:text="#{ficha.val.titulo}">Valoraciones</h2>
+
+                    <!-- AVISOS: los manda ControllerValoracion.guardar con
+                         flash.addFlashAttribute("error", ...). Van FUERA del formulario a
+                         proposito: el form se esconde con th:unless="${yaValorado}", y el aviso
+                         de valoracion duplicada llega justo cuando yaValorado es true -->
+                    <p th:if="${mensaje}" th:text="${mensaje}" style="color:var(--good)">Valoración publicada</p>
+                    <p th:if="${error}" th:text="${error}" style="color:#ff7b72">Error</p>
+
                     <th:block sec:authorize="hasRole('CLIENTE')">
                     <p class="sinopsis muted" th:unless="${yaValorado}" th:text="#{ficha.val.escribe}">Escribe alguna reseña de este juego.</p>
                     <p class="sinopsis muted" th:if="${yaValorado}" th:text="#{ficha.val.yaValorado}">Ya has valorado este juego. Solo se puede dejar una reseña por juego.</p>

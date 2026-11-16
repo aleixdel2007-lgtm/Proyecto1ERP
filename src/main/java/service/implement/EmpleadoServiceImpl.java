@@ -83,7 +83,7 @@ public class EmpleadoServiceImpl implements EmpleadoService {
     private Empleado crearEmpleado(Empleado empleado, Long departamentoId, String password) {
 
         if (password == null || password.isBlank()) {
-            throw new IllegalArgumentException("La contrasena inicial es obligatoria");
+            throw new IllegalArgumentException("empleados.error.passwordObligatoria");
         }
 
         empleado.setPasswordHash(codificador.encode(password));
@@ -123,7 +123,7 @@ public class EmpleadoServiceImpl implements EmpleadoService {
         Rol rol = empleado.getRol();
 
         if (rol == null || rol == Rol.CLIENTE || rol == Rol.PROVEEDOR || rol == Rol.COLABORADOR) {
-            throw new IllegalArgumentException("Ese rol no es de empleado");
+            throw new IllegalArgumentException("empleados.error.rolInvalido");
         }
     }
 
@@ -182,13 +182,13 @@ public class EmpleadoServiceImpl implements EmpleadoService {
     private Departamento buscarDepartamento(Long departamentoId) {
 
         if (departamentoId == null) {
-            throw new IllegalArgumentException("El departamento es obligatorio");
+            throw new IllegalArgumentException("empleados.error.departamentoObligatorio");
         }
 
         Departamento departamento = departamentoDao.findById(departamentoId).orElse(null);
 
         if (departamento == null) {
-            throw new IllegalArgumentException("El departamento no existe");
+            throw new IllegalArgumentException("empleados.error.departamentoNoExiste");
         }
         return departamento;
     }

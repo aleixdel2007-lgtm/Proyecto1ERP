@@ -1,0 +1,221 @@
+<!doctype html>
+<html th:lang="${#locale.language}" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="'Recibir ' + ${compra.numero} + ' · LudusERP'">Recepción · LudusERP</title>
+    <link rel="stylesheet" th:href="@{/css/panel.css}">
+    <link rel="stylesheet" th:href="@{/css/compras.css}">
+</head>
+<body>
+
+<div class="app">
+
+    <aside th:replace="~{fragments/panel :: menu('ordenes')}"></aside>
+
+    <div class="main">
+
+        <header th:replace="~{fragments/panel :: barra(#{panel.seccion.aprovisionamiento}, #{compras.recepcionMercancia})}"></header>
+
+        <main class="canvas">
+
+            <a class="btn btn-ghost btn-sm" style="margin-bottom:12px"
+               th:href="@{/compras/ordenes/{id}(id=${compra.id})}">
+                <svg th:replace="~{fragments/iconos :: back}"></svg> Volver a la orden</a>
+
+            <div class="page-head">
+                <div>
+                    <h1 th:text="#{compras.recibirOrden} + ' ' + ${compra.numero}">Recibir la orden OC-2026-0001</h1>
+                    <p th:text="#{compras.recepcion.intro}">Confirma qué ha llegado de verdad.</p>
+                </div>
+            </div>
+
+            <div class="alert alert-err" th:if="${error}" th:text="${error}"></div>
+
+            <!-- Las cantidades viajan en dos listas paralelas, lineaId y recibida, una pareja por
+                 fila: es lo que un formulario sabe mandar sin inventarse nombres con indices, y el
+                 servicio las recorre a la par. El id va escondido porque el orden de las filas no
+                 es garantia de nada. -->
+            <form method="post" th:action="@{/compras/ordenes/{id}/recepcion(id=${compra.id})}">
+
+                <div class="grid g-2-1">
+
+                    <div class="card">
+                        <div class="card-head">
+                            <h3 th:text="#{compras.queHaLlegado}">Qué ha llegado</h3>
+                            <span class="right" th:text="${compra.proveedor.nombreComercial}">Iberia Digital Supply</span>
+                        </div>
+
+                        <div class="card-body tight">
+                            <div class="tbl-wrap">
+                                <table class="tbl">
+                                    <thead>
+                                    <tr>
+                                        <th th:text="#{panel.menu.videojuegos}">Videojuego</th>
+                                        <th class="num" th:text="#{compras.col.pedido}">Pedido</th>
+                                        <th class="num" th:text="#{compras.col.recibido}">Recibido</th>
+                                        <th class="num" th:text="#{compras.col.diferencia}">Diferencia</th>
+                                        <th class="num" th:text="#{compras.col.clavesGenerar}">Claves a generar</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    <tr th:each="l : ${compra.lineas}" data-linea>
+
+                                        <td>
+                                            <span class="t-main" th:text="${l.videojuego.titulo}">Eclipse Protocol</span>
+                                            <div class="t-sub" th:text="'#' + ${l.videojuego.id}">#318</div>
+                                        </td>
+
+                                        <td class="num">
+                                            <b th:if="${l.cantidad != null}" th:text="${l.cantidad}">200</b>
+                                            <span class="badge b-info" th:if="${l.cantidad == null}"
+                                                  th:title="#{compras.hint.ilimitada}" th:text="#{compras.ilimitada}">ILIMITADA</span>
+                                        </td>
+
+                                        <!-- Una linea ilimitada no trae numero de unidades que
+                                             comparar, asi que empieza a cero y lo teclea quien
+                                             recibe: las claves que hayan llegado de verdad. -->
+                                        <td class="num">
+                                            <input type="hidden" name="lineaId" th:value="${l.id}">
+                                            <input class="inp qty" type="number" name="recibida" min="0" step="1"
+                                                   required data-recibida
+                                                   th:attr="data-pedido=${l.cantidad}"
+                                                   th:value="${l.cantidadRecibida != null ? l.cantidadRecibida
+                                                            : (l.cantidad != null ? l.cantidad : 0)}">
+                                        </td>
+
+                                        <td class="num" data-diferencia>
+                                            <span class="muted" th:if="${l.cantidad == null}">—</span>
+                                            <span class="muted" th:if="${l.cantidad != null}">0</span>
+                                        </td>
+
+                                        <td class="num" data-claves>
+                                            <b th:text="${l.cantidadRecibida != null ? l.cantidadRecibida
+                                                       : (l.cantidad != null ? l.cantidad : 0)}">200</b>
+                                        </td>
+                                    </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div class="form-foot">
+                            <span class="note"><span th:text="#{compras.seGeneraran}">Se generarán</span>
+                                <b class="claves-total" data-total
+                                   th:text="${#lists.isEmpty(compra.lineas)} ? '0'
+                                          : ${#aggregates.sum(compra.lineas.![cantidadRecibida != null ? cantidadRecibida
+                                                            : (cantidad == null ? 0 : cantidad)])}">480</b>
+                                <span th:text="#{compras.clavesDisponibles}">claves en estado DISPONIBLE.</span></span>
+                            <a class="btn" th:href="@{/compras/ordenes/{id}(id=${compra.id})}" th:text="#{comun.cancelar}">Cancelar</a>
+                            <button type="submit" class="btn btn-primary">
+                                <svg th:replace="~{fragments/iconos :: check}"></svg> <span th:text="#{compras.confirmarRecepcion}">Confirmar recepción</span></button>
+                        </div>
+                    </div>
+
+                    <div class="stack">
+
+                        <div class="card">
+                            <div class="card-head"><h3 th:text="#{compras.quePasara}">Qué pasará al confirmar</h3></div>
+                            <div class="feed">
+                                <div class="feed-row">
+                                    <div class="ic p"><svg th:replace="~{fragments/iconos :: key}"></svg></div>
+                                    <div class="feed-txt"><b th:text="#{compras.pasara.claves}">Se crean las claves de licencia</b>
+                                        <div class="when" th:text="#{compras.pasara.claves.sub}">una por unidad recibida</div></div>
+                                </div>
+                                <div class="feed-row">
+                                    <div class="ic p"><svg th:replace="~{fragments/iconos :: check}"></svg></div>
+                                    <div class="feed-txt"><b th:text="#{compras.pasara.estado}">La orden pasa a RECIBIDA</b>
+                                        <div class="when" th:text="#{compras.pasara.estado.sub}">con la fecha de recepción de hoy</div></div>
+                                </div>
+                                <div class="feed-row">
+                                    <div class="ic w"><svg th:replace="~{fragments/iconos :: warn}"></svg></div>
+                                    <div class="feed-txt"><b th:text="#{compras.pasara.irreversible}">Y no se deshace</b>
+                                        <div class="when" th:text="#{compras.pasara.irreversible.sub}">las claves pasan a ser stock</div></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-head"><h3 th:text="#{compras.papelProveedor}">El papel del proveedor</h3></div>
+                            <div class="card-body">
+                                <div class="form-grid">
+                                    <div class="frow wide">
+                                        <label for="numeroAlbaran" th:text="#{compras.albaran}">Número de albarán</label>
+                                        <input class="inp" type="text" id="numeroAlbaran" name="numeroAlbaran"
+                                               maxlength="40" th:placeholder="#{compras.albaranPh}" placeholder="ALB-IDS-77213">
+                                        <span class="hint" th:text="#{compras.hint.albaran}">El que viene en su papel.</span>
+                                    </div>
+                                    <div class="frow wide">
+                                        <label for="observaciones" th:text="#{compras.observaciones}">Observaciones</label>
+                                        <textarea class="inp" id="observaciones" name="observaciones" rows="3"
+                                                  th:text="${compra.observaciones}"
+                                                  th:placeholder="#{compras.observacionesPh}"
+                                                  placeholder="20 unidades menos en Ashen Crown"></textarea>
+                                        <span class="hint" th:text="#{compras.hint.observaciones}">Si lo recibido no cuadra con lo pedido, aquí es donde se explica.</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+
+            <!-- Las tres columnas de la derecha son cuentas sobre lo que se esta teclando, asi que
+                 se rehacen en el navegador: la diferencia contra lo pedido, las claves de cada linea
+                 y el total del pie. Sin JS la pantalla sigue siendo correcta, solo que esas celdas se
+                 quedan con los numeros con los que se pinto y el que recibe suma de cabeza. -->
+            <script>
+                (function () {
+                    var filas = document.querySelectorAll('tr[data-linea]');
+                    var total = document.querySelector('[data-total]');
+
+                    function recalcular() {
+                        var suma = 0;
+
+                        filas.forEach(function (fila) {
+                            var campo = fila.querySelector('[data-recibida]');
+                            var recibido = parseInt(campo.value, 10);
+
+                            if (isNaN(recibido) || recibido < 0) {
+                                recibido = 0;
+                            }
+                            suma += recibido;
+
+                            var pedido = campo.dataset.pedido;
+                            var celdaDif = fila.querySelector('[data-diferencia]');
+                            var celdaClaves = fila.querySelector('[data-claves]');
+
+                            if (pedido === undefined || pedido === '') {
+                                celdaDif.innerHTML = '<span class="muted">—</span>';
+                            } else {
+                                var diferencia = recibido - parseInt(pedido, 10);
+
+                                if (diferencia === 0) {
+                                    celdaDif.innerHTML = '<span class="muted">0</span>';
+                                } else {
+                                    celdaDif.innerHTML = '<span class="badge b-warn">'
+                                            + (diferencia > 0 ? '+' : '') + diferencia + '</span>';
+                                }
+                            }
+                            celdaClaves.innerHTML = '<b>' + recibido + '</b>';
+                        });
+
+                        if (total !== null) {
+                            total.textContent = suma;
+                        }
+                    }
+
+                    filas.forEach(function (fila) {
+                        fila.querySelector('[data-recibida]').addEventListener('input', recalcular);
+                    });
+
+                    recalcular();
+                })();
+            </script>
+
+        </main>
+    </div>
+</div>
+
+</body>
+</html>

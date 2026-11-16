@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<html th:lang="${#locale.language}" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Facturas · LudusERP</title>
+    <title th:text="#{panel.menu.facturas} + ' · LudusERP'">Facturas · LudusERP</title>
     <link rel="stylesheet" th:href="@{/css/panel.css}">
 </head>
 <body>
@@ -14,7 +14,7 @@
 
     <div class="main">
 
-        <header th:replace="~{fragments/panel :: barra('Ventas', 'Facturas')}"></header>
+        <header th:replace="~{fragments/panel :: barra(#{panel.seccion.ventas}, #{panel.menu.facturas})}"></header>
 
         <main class="canvas">
 
@@ -23,18 +23,18 @@
 
             <div class="page-head">
                 <div>
-                    <h1>Facturas</h1>
-                    <p>La factura se emite al pasar un pedido a PAGADO: una plantilla Thymeleaf de HTML y CSS que se renderiza con OpenHTMLtoPDF.</p>
+                    <h1 th:text="#{panel.menu.facturas}">Facturas</h1>
+                    <p th:text="#{facturas.intro}">La factura se emite al pasar un pedido a PAGADO.</p>
                 </div>
             </div>
             <div class="card">
 
                 <form class="filters" method="get" th:action="@{/ventas/facturas}">
                     <div class="fld">
-                        <label>Buscar</label>
+                        <label th:text="#{comun.buscar}">Buscar</label>
                         <div class="search-inp">
                             <svg th:replace="~{fragments/iconos :: search}"></svg>
-                            <input name="texto" th:value="${texto}" placeholder="Número">
+                            <input name="texto" th:value="${texto}" th:placeholder="#{facturas.buscarPh}" placeholder="Número">
                         </div>
                     </div>
                 </form>
@@ -42,18 +42,18 @@
                 <div class="card-body tight">
 
                     <div class="empty" th:if="${#lists.isEmpty(facturas)}">
-                        <h4>No hay facturas</h4>
-                        <p class="hint">Ninguna factura coincide con la búsqueda.</p>
+                        <h4 th:text="#{facturas.vacio}">No hay facturas</h4>
+                        <p class="hint" th:text="#{facturas.vacio.hint}">Ninguna factura coincide con la búsqueda.</p>
                     </div>
 
                     <div class="tbl-wrap" th:if="${!#lists.isEmpty(facturas)}">
                         <table class="tbl">
                             <thead>
                             <tr>
-                                <th>Factura</th>
-                                <th>Pedido</th>
-                                <th>Fecha</th>
-                                <th class="num" style="width:140px">Importe</th>
+                                <th th:text="#{facturas.col.factura}">Factura</th>
+                                <th th:text="#{pedidos.uno}">Pedido</th>
+                                <th th:text="#{comun.fecha}">Fecha</th>
+                                <th class="num" style="width:140px" th:text="#{facturas.col.importe}">Importe</th>
                                 <th class="acts"></th>
                             </tr>
                             </thead>
@@ -64,11 +64,11 @@
                                 <td th:text="${#temporals.format(f.fechaEmision, 'dd/MM/yyyy')}">22/10/2026</td>
                                 <td class="num"><b th:text="${#numbers.formatDecimal(f.pedido.total, 1, 'POINT', 2, 'COMMA')} + ' €'">0,00 €</b></td>
                                 <td class="acts">
-                                    <a class="btn btn-sm btn-ghost" title="Ver pedido"
+                                    <a class="btn btn-sm btn-ghost" title="Ver pedido" th:title="#{pedidos.verPedido}"
                                        th:href="@{/ventas/pedido/{id}(id=${f.pedido.id})}">
                                         <svg th:replace="~{fragments/iconos :: eye}"></svg>
                                     </a>
-                                    <a class="btn btn-sm btn-ghost" title="Descargar PDF" target="_blank"
+                                    <a class="btn btn-sm btn-ghost" title="Descargar PDF" th:title="#{facturas.descargarPdf}" target="_blank"
                                        th:href="@{/ventas/facturas/{id}/pdf(id=${f.id})}">
                                         <svg th:replace="~{fragments/iconos :: pdf}"></svg>
                                     </a>

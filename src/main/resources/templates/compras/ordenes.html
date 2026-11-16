@@ -1,0 +1,238 @@
+<!doctype html>
+<html th:lang="${#locale.language}" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="#{panel.menu.ordenes} + ' · LudusERP'">Órdenes de compra · LudusERP</title>
+    <link rel="stylesheet" th:href="@{/css/panel.css}">
+    <link rel="stylesheet" th:href="@{/css/compras.css}">
+</head>
+<body>
+
+<div class="app">
+
+    <aside th:replace="~{fragments/panel :: menu('ordenes')}"></aside>
+
+    <div class="main">
+
+        <header th:replace="~{fragments/panel :: barra(#{panel.seccion.aprovisionamiento}, #{panel.menu.ordenes})}"></header>
+
+        <main class="canvas">
+
+            <div class="alert alert-ok" th:if="${mensaje}" th:text="${mensaje}"></div>
+            <div class="alert alert-err" th:if="${error}" th:text="${error}"></div>
+
+            <div class="page-head">
+                <div>
+                    <h1 th:text="#{panel.menu.ordenes}">Órdenes de compra</h1>
+                    <p th:text="#{compras.intro}">El ciclo es BORRADOR → CONFIRMADA → RECIBIDA.</p>
+                </div>
+                <div class="page-actions">
+                    <a class="btn btn-primary" th:href="@{/compras/ordenes/nueva}">
+                        <svg th:replace="~{fragments/iconos :: plus}"></svg> <span th:text="#{compras.nueva}">Nueva orden</span></a>
+                </div>
+            </div>
+
+            <!-- Los cuatro estados, igual que en claves: es lo primero que se mira al entrar.
+                 No hay .g4 en panel.css y no merece una regla nueva para una sola pantalla -->
+            <div class="grid" style="grid-template-columns:repeat(4,1fr);margin-bottom:16px">
+                <div class="kpi">
+                    <span class="k-label" th:text="#{compras.kpi.borradores}">Borradores</span>
+                    <span class="k-val" th:text="${borradores}">0</span>
+                    <span class="k-foot" th:text="#{compras.kpi.borradoresPie}">sin confirmar al proveedor</span>
+                </div>
+                <div class="kpi accent">
+                    <span class="k-label" th:text="#{estadoCompra.CONFIRMADA}">Confirmadas</span>
+                    <span class="k-val" th:text="${confirmadas}">0</span>
+                    <span class="k-foot" th:text="#{compras.kpi.confirmadasPie}">a la espera de recibirlas</span>
+                </div>
+                <div class="kpi">
+                    <span class="k-label" th:text="#{estadoCompra.RECIBIDA}">Recibidas</span>
+                    <span class="k-val" th:text="${recibidas}">0</span>
+                    <span class="k-foot" th:text="#{compras.kpi.recibidasPie}">ya dieron claves</span>
+                </div>
+                <div class="kpi">
+                    <span class="k-label" th:text="#{estadoCompra.CANCELADA}">Canceladas</span>
+                    <span class="k-val" th:text="${canceladas}">0</span>
+                    <span class="k-foot"></span>
+                </div>
+            </div>
+
+            <div class="card"
+                 th:with="tam=${10},
+                          total=${#lists.size(ordenes)},
+                          paginas=${(total + tam - 1) / tam},
+                          actual=${paginas == 0 ? 0 : (pagina > paginas - 1 ? paginas - 1 : pagina)},
+                          inicio=${actual * tam},
+                          fin=${actual * tam + tam > total ? total : actual * tam + tam}">
+
+                <form class="filters" method="get" th:action="@{/compras/ordenes}">
+                    <div class="fld">
+                        <label th:text="#{proveedores.col.proveedor}">Proveedor</label>
+                        <select class="inp" name="proveedorId">
+                            <option value="" th:text="#{comun.todos}">Todos</option>
+                            <option th:each="p : ${proveedores}"
+                                    th:value="${p.id}"
+                                    th:text="${p.nombreComercial}"
+                                    th:selected="${proveedorId != null and proveedorId == p.id}">Iberia Digital Supply</option>
+                        </select>
+                    </div>
+                    <div class="fld">
+                        <label th:text="#{comun.estado}">Estado</label>
+                        <select class="inp" name="estado">
+                            <option value="" th:text="#{comun.todos}">Todos</option>
+                            <option th:each="e : ${estados}"
+                                    th:value="${e}"
+                                    th:text="#{'estadoCompra.' + ${e}}"
+                                    th:selected="${estado != null and estado == e}">BORRADOR</option>
+                        </select>
+                    </div>
+                    <div class="fld">
+                        <label th:text="#{pedidos.desde}">Desde</label>
+                        <input class="inp" type="date" name="desde" th:value="${desde}">
+                    </div>
+                    <div class="fld">
+                        <label th:text="#{pedidos.hasta}">Hasta</label>
+                        <input class="inp" type="date" name="hasta" th:value="${hasta}">
+                    </div>
+                    <div class="fld">
+                        <label>&nbsp;</label>
+                        <button type="submit" class="btn btn-primary" th:text="#{comun.filtrar}">Filtrar</button>
+                    </div>
+                    <div class="fld">
+                        <label>&nbsp;</label>
+                        <a class="btn" th:href="@{/compras/ordenes}" th:text="#{comun.limpiar}">Limpiar</a>
+                    </div>
+                </form>
+
+                <div class="card-body tight">
+
+                    <div class="empty" th:if="${#lists.isEmpty(ordenes)}">
+                        <h4 th:text="#{compras.vacio}">No hay ninguna orden que encaje</h4>
+                        <p class="hint" th:text="#{compras.vacio.hint}">Crea una o quita algún filtro.</p>
+                    </div>
+
+                    <div class="tbl-wrap" th:unless="${#lists.isEmpty(ordenes)}">
+                        <table class="tbl">
+                            <thead>
+                            <tr>
+                                <th th:text="#{pedidos.col.numero}">Número</th>
+                                <th th:text="#{proveedores.col.proveedor}">Proveedor</th>
+                                <th th:text="#{comun.fecha}">Fecha</th>
+                                <th th:text="#{compras.col.recepcion}">Recepción</th>
+                                <th class="num" th:text="#{compras.col.lineas}">Líneas</th>
+                                <th class="num" th:text="#{compras.col.unidades}">Unidades</th>
+                                <th class="num" th:text="#{compras.col.coste}">Coste total</th>
+                                <th th:text="#{comun.estado}">Estado</th>
+                                <th class="acts"></th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="c : ${ordenes.subList(inicio, fin)}">
+
+                                <td>
+                                    <a class="mono" th:href="@{/compras/ordenes/{id}(id=${c.id})}"
+                                       th:text="${c.numero}">OC-2026-0001</a>
+                                </td>
+
+                                <td>
+                                    <span class="t-main" th:text="${c.proveedor.nombreComercial}">Iberia Digital Supply</span>
+                                    <div class="t-sub" th:text="${c.proveedor.pais}">España</div>
+                                </td>
+
+                                <td th:text="${#temporals.format(c.fecha, 'dd/MM/yyyy')}">15/10/2026</td>
+
+                                <td>
+                                    <span th:if="${c.fechaRecepcion != null}"
+                                          th:text="${#temporals.format(c.fechaRecepcion, 'dd/MM/yyyy')}">23/10/2026</span>
+                                    <span class="muted" th:if="${c.fechaRecepcion == null}">—</span>
+                                </td>
+
+                                <td class="num" th:text="${#lists.size(c.lineas)}">4</td>
+
+                                <!-- Las unidades se suman aqui y no en el servicio: son las cantidades
+                                     de las lineas, que ya vienen cargadas con la orden. Una linea con
+                                     cantidad nula es ILIMITADA (decision 4.9), asi que no suma nada y
+                                     se avisa aparte: un numero solo, ahi, mentiria. -->
+                                <td class="num" th:with="ilimitadas=${c.lineas.?[cantidad == null]}">
+                                    <span class="muted" th:if="${#lists.isEmpty(c.lineas)}">—</span>
+                                    <th:block th:unless="${#lists.isEmpty(c.lineas)}">
+                                        <b th:text="${#aggregates.sum(c.lineas.![cantidad == null ? 0 : cantidad])}">500</b>
+                                        <div class="t-sub" th:unless="${#lists.isEmpty(ilimitadas)}"
+                                             th:text="'y ' + ${#lists.size(ilimitadas)} + ' ilimitada(s)'">y 1 ilimitada(s)</div>
+                                    </th:block>
+                                </td>
+
+                                <td class="num">
+                                    <b th:text="${#numbers.formatDecimal(c.totalCoste, 1, 'POINT', 2, 'COMMA')} + ' €'">15.300,00 €</b>
+                                </td>
+
+                                <td>
+                                    <span class="badge"
+                                          th:classappend="${c.estado.name() == 'BORRADOR'} ? 'b-mute'
+                                                        : (${c.estado.name() == 'CONFIRMADA'} ? 'b-warn'
+                                                        : (${c.estado.name() == 'RECIBIDA'} ? 'b-good' : 'b-crit'))"
+                                          th:text="#{'estadoCompra.' + ${c.estado}}">BORRADOR</span>
+                                </td>
+
+                                <!-- Abrir vale para las cuatro: la ficha es la misma pantalla que edita
+                                     un borrador y la que ensena una recibida de solo lectura. Recibir
+                                     solo sale sobre una CONFIRMADA, que es el unico estado desde el
+                                     que se puede acunar algo. -->
+                                <td class="acts">
+                                    <a class="btn btn-sm btn-ghost" title="Abrir la orden" th:title="#{compras.abrir}"
+                                       th:href="@{/compras/ordenes/{id}(id=${c.id})}">
+                                        <svg th:replace="~{fragments/iconos :: eye}"></svg>
+                                    </a>
+                                    <a class="btn btn-sm btn-primary" title="Recibir mercancía" th:title="#{compras.recibir}"
+                                       th:if="${c.estado.name() == 'CONFIRMADA'}"
+                                       th:href="@{/compras/ordenes/{id}/recepcion(id=${c.id})}">
+                                        <svg th:replace="~{fragments/iconos :: truck}"></svg>
+                                    </a>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="pager" th:unless="${#lists.isEmpty(ordenes)}">
+                    <span><span th:text="#{comun.mostrando}">Mostrando</span> <b th:text="${fin - inicio}">10</b>
+                        <span th:text="#{comun.de}">de</span> <b th:text="${total}">10</b> <span th:text="#{compras.contador}">órdenes</span></span>
+                    <div class="pages">
+                        <a class="pg" th:classappend="${actual == 0} ? 'off' : ''"
+                           th:href="@{/compras/ordenes(proveedorId=${proveedorId}, estado=${estado},
+                                                       desde=${desde}, hasta=${hasta},
+                                                       pagina=${actual - 1})}">&lsaquo;</a>
+                        <a class="pg" th:each="i : ${#numbers.sequence(0, paginas - 1)}"
+                           th:classappend="${i == actual} ? 'on' : ''"
+                           th:text="${i + 1}"
+                           th:href="@{/compras/ordenes(proveedorId=${proveedorId}, estado=${estado},
+                                                       desde=${desde}, hasta=${hasta},
+                                                       pagina=${i})}">1</a>
+                        <a class="pg" th:classappend="${actual >= paginas - 1} ? 'off' : ''"
+                           th:href="@{/compras/ordenes(proveedorId=${proveedorId}, estado=${estado},
+                                                       desde=${desde}, hasta=${hasta},
+                                                       pagina=${actual + 1})}">&rsaquo;</a>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="grid g2" style="margin-top:16px">
+                <div class="note-box">
+                    <svg th:replace="~{fragments/iconos :: key}"></svg>
+                    <div th:text="#{compras.aviso.claves}">Las claves no se teclean a mano.</div>
+                </div>
+                <div class="note-box">
+                    <svg th:replace="~{fragments/iconos :: warn}"></svg>
+                    <div th:text="#{compras.aviso.irreversible}">Una orden recibida no se deshace desde la aplicación.</div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+</div>
+
+</body>
+</html>

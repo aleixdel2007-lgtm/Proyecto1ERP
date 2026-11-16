@@ -4,8 +4,10 @@ import exception.colaborador.ColaboradorConJuegosException;
 import exception.email.EmailDuplicadoException;
 import exception.imagen.ImagenInvalidaException;
 import java.util.List;
+import java.util.Locale;
 import model.seguridad.Colaborador;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -22,6 +24,9 @@ public class ControllerColaborador {
 
     @Autowired
     private ColaboradorService colaboradorService;
+
+    @Autowired
+    private MessageSource messageSource;
 
     @GetMapping("/admin/colaboradores")
     public String listarColaboradores(
@@ -67,7 +72,8 @@ public class ControllerColaborador {
             @RequestParam(required = false) String password,
             @RequestParam(value = "foto", required = false) MultipartFile foto,
             Model model,
-            RedirectAttributes flash) {
+            RedirectAttributes flash,
+            Locale locale) {
 
         Colaborador guardado;
 
@@ -76,7 +82,7 @@ public class ControllerColaborador {
 
         } catch (EmailDuplicadoException | IllegalArgumentException e) {
 
-            model.addAttribute("error", e.getMessage());
+            model.addAttribute("error", traducir(e, locale));
 
             if (colaborador.getId() == null) {
                 return "admin/formularioNuevoCol";
@@ -102,24 +108,29 @@ public class ControllerColaborador {
             }
         }
 
-        flash.addFlashAttribute("mensaje", "Colaborador guardado correctamente");
+        flash.addFlashAttribute("mensaje", messageSource.getMessage("colaboradores.ok.guardado", null, locale));
 
         return "redirect:/admin/colaboradores";
     }
 
     @PostMapping("/admin/colaboradores/eliminar/{id}")
-    public String eliminarColaborador(@PathVariable Long id, RedirectAttributes flash) {
+    public String eliminarColaborador(@PathVariable Long id, RedirectAttributes flash,
+            Locale locale) {
 
         try {
             colaboradorService.eliminarColaborador(id);
 
         } catch (ColaboradorConJuegosException e) {
-            flash.addFlashAttribute("error", e.getMessage());
+            flash.addFlashAttribute("error", traducir(e, locale));
             return "redirect:/admin/colaboradores";
         }
 
-        flash.addFlashAttribute("mensaje", "Colaborador eliminado correctamente");
+        flash.addFlashAttribute("mensaje", messageSource.getMessage("colaboradores.ok.eliminado", null, locale));
 
         return "redirect:/admin/colaboradores";
+    }
+
+    private String traducir(RuntimeException e, Locale locale) {
+        return messageSource.getMessage(e.getMessage(), null, e.getMessage(), locale);
     }
 }

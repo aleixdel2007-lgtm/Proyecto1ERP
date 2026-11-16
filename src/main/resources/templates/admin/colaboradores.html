@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<html th:lang="${#locale.language}" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Colaboradores · LudusERP</title>
+    <title th:text="#{panel.menu.colaboradores} + ' · LudusERP'">Colaboradores · LudusERP</title>
     <link rel="stylesheet" th:href="@{/css/panel.css}">
     <link rel="stylesheet" th:href="@{/css/colaboradores.css}">
 </head>
@@ -15,7 +15,7 @@
 
     <div class="main">
 
-        <header th:replace="~{fragments/panel :: barra('Administración', 'Colaboradores')}"></header>
+        <header th:replace="~{fragments/panel :: barra(#{panel.seccion.admin}, #{panel.menu.colaboradores})}"></header>
 
         <main class="canvas">
 
@@ -24,13 +24,12 @@
 
             <div class="page-head">
                 <div>
-                    <h1>Colaboradores</h1>
-                    <p>Nadie se registra como colaborador: la cuenta se crea aquí con una contraseña
-                        inicial. Con ella entra y sube sus propios juegos a la tienda.</p>
+                    <h1 th:text="#{panel.menu.colaboradores}">Colaboradores</h1>
+                    <p th:text="#{colaboradores.intro}">Nadie se registra como colaborador: la cuenta se crea aquí.</p>
                 </div>
                 <div class="page-actions">
                     <a class="btn btn-primary" th:href="@{/admin/colaboradores/nuevo}">
-                        <svg th:replace="~{fragments/iconos :: plus}"></svg> Nuevo colaborador</a>
+                        <svg th:replace="~{fragments/iconos :: plus}"></svg> <span th:text="#{colaboradores.nuevo}">Nuevo colaborador</span></a>
                 </div>
             </div>
 
@@ -47,47 +46,47 @@
 
                 <form class="filters" method="get" th:action="@{/admin/colaboradores}">
                     <div class="fld">
-                        <label>Buscar</label>
+                        <label th:text="#{comun.buscar}">Buscar</label>
                         <div class="search-inp">
                             <svg th:replace="~{fragments/iconos :: search}"></svg>
-                            <input name="texto" th:value="${texto}" placeholder="Nombre o correo">
+                            <input name="texto" th:value="${texto}" th:placeholder="#{colaboradores.buscarPh}" placeholder="Nombre o correo">
                         </div>
                     </div>
                     <div class="fld">
-                        <label>Estado</label>
+                        <label th:text="#{comun.estado}">Estado</label>
                         <select class="inp" name="activo">
-                            <option value="">Todos</option>
-                            <option value="true" th:selected="${activo != null and activo}">Activos</option>
-                            <option value="false" th:selected="${activo != null and !activo}">Inactivos</option>
+                            <option value="" th:text="#{comun.todos}">Todos</option>
+                            <option value="true" th:selected="${activo != null and activo}" th:text="#{colaboradores.activos}">Activos</option>
+                            <option value="false" th:selected="${activo != null and !activo}" th:text="#{colaboradores.inactivos}">Inactivos</option>
                         </select>
                     </div>
                     <div class="fld">
                         <label>&nbsp;</label>
-                        <button type="submit" class="btn btn-primary">Filtrar</button>
+                        <button type="submit" class="btn btn-primary" th:text="#{comun.filtrar}">Filtrar</button>
                     </div>
                     <div class="fld">
                         <label>&nbsp;</label>
-                        <a class="btn" th:href="@{/admin/colaboradores}">Limpiar</a>
+                        <a class="btn" th:href="@{/admin/colaboradores}" th:text="#{comun.limpiar}">Limpiar</a>
                     </div>
                 </form>
 
                 <div class="card-body tight">
 
                     <div class="empty" th:if="${#lists.isEmpty(colaboradores)}">
-                        <h4>Todavía no hay colaboradores</h4>
-                        <p class="hint">Crea el primero con el botón «Nuevo colaborador».</p>
+                        <h4 th:text="#{colaboradores.vacio}">Todavía no hay colaboradores</h4>
+                        <p class="hint" th:text="#{colaboradores.vacio.hint}">Crea el primero.</p>
                     </div>
 
                     <div class="tbl-wrap" th:unless="${#lists.isEmpty(colaboradores)}">
                         <table class="tbl">
                             <thead>
                             <tr>
-                                <th>Nombre</th>
-                                <th>Correo</th>
-                                <th class="num">Juegos publicados</th>
-                                <th>Fecha de alta</th>
-                                <th>Contraseña</th>
-                                <th>Estado</th>
+                                <th th:text="#{comun.nombre}">Nombre</th>
+                                <th th:text="#{comun.correo}">Correo</th>
+                                <th class="num" th:text="#{colaboradores.col.juegos}">Juegos publicados</th>
+                                <th th:text="#{colaboradores.col.alta}">Fecha de alta</th>
+                                <th th:text="#{colaboradores.col.password}">Contraseña</th>
+                                <th th:text="#{comun.estado}">Estado</th>
                                 <th class="acts"></th>
                             </tr>
                             </thead>
@@ -103,8 +102,8 @@
                                                      ? @{${fotos[c.id]}}
                                                      : @{/img/placeholder.webp}"
                                              th:alt="${fotos[c.id] != null}
-                                                     ? 'Foto de perfil de ' + ${c.nombre}
-                                                     : 'Sin foto de perfil'">
+                                                     ? #{clientes.fotoDe(${c.nombre})}
+                                                     : #{navbar.sinFoto}">
                                         <div>
                                             <div class="t-main"
                                                  th:text="${c.apellidos != null ? c.nombre + ' ' + c.apellidos : c.nombre}">Jordi Bastida</div>
@@ -118,20 +117,22 @@
                                 <td>
                                     <span class="badge"
                                           th:classappend="${c.debeCambiarPassword} ? 'b-warn' : 'b-good'"
-                                          th:text="${c.debeCambiarPassword} ? 'PENDIENTE DE CAMBIAR' : 'ACTIVA'">ACTIVA</span>
+                                          th:text="${c.debeCambiarPassword} ? #{colaboradores.passPendiente} : #{colaboradores.passActiva}">ACTIVA</span>
                                 </td>
                                 <td>
                                     <span class="badge" th:classappend="${c.activo} ? 'b-good' : 'b-mute'"
-                                          th:text="${c.activo} ? 'ACTIVO' : 'INACTIVO'">ACTIVO</span>
+                                          th:text="${c.activo} ? #{comun.activo} : #{comun.inactivo}">ACTIVO</span>
                                 </td>
                                 <td class="acts">
-                                    <a class="btn btn-sm btn-ghost" title="Editar"
+                                    <a class="btn btn-sm btn-ghost" title="Editar" th:title="#{comun.editar}"
                                        th:href="@{/admin/colaboradores/editar/{id}(id=${c.id})}">
                                         <svg th:replace="~{fragments/iconos :: edit}"></svg>
                                     </a>
                                     <form th:action="@{/admin/colaboradores/eliminar/{id}(id=${c.id})}" method="post"
-                                          onsubmit="return confirm(&quot;¿Seguro que quieres eliminar este colaborador? No se puede deshacer.&quot;);">
-                                        <button type="submit" class="btn btn-sm btn-danger" title="Eliminar">
+                                          th:data-confirmar="#{colaboradores.confirmarEliminar}"
+                                          onsubmit="return confirm(this.dataset.confirmar);">
+                                        <button type="submit" class="btn btn-sm btn-danger" title="Eliminar"
+                                                th:title="#{comun.eliminar}">
                                             <svg th:replace="~{fragments/iconos :: trash}"></svg>
                                         </button>
                                     </form>
@@ -145,8 +146,8 @@
                 <!-- Flechas y numeros de pagina. Cada enlace repite los dos filtros para no
                      perderlos al cambiar de pagina, y .off apaga la flecha del extremo. -->
                 <div class="pager" th:unless="${#lists.isEmpty(colaboradores)}">
-                    <span>Mostrando <b th:text="${fin - inicio}">6</b>
-                        de <b th:text="${total}">6</b> registros</span>
+                    <span><span th:text="#{comun.mostrando}">Mostrando</span> <b th:text="${fin - inicio}">6</b>
+                        <span th:text="#{comun.de}">de</span> <b th:text="${total}">6</b> <span th:text="#{comun.registros}">registros</span></span>
                     <div class="pages">
                         <a class="pg" th:classappend="${actual == 0} ? 'off' : ''"
                            th:href="@{/admin/colaboradores(texto=${texto}, activo=${activo},
@@ -167,15 +168,11 @@
             <div class="grid g2 col-avisos">
                 <div class="note-box">
                     <svg th:replace="~{fragments/iconos :: warn}"></svg>
-                    <div>Un colaborador con juegos publicados no se puede eliminar: esos juegos cuelgan
-                        de él y las claves que se hayan vendido también. Para quitarle el acceso, edítalo
-                        y desmárcalo como activo.</div>
+                    <div th:text="#{colaboradores.aviso.borrar}">Un colaborador con juegos publicados no se puede eliminar.</div>
                 </div>
                 <div class="note-box">
                     <svg th:replace="~{fragments/iconos :: check}"></svg>
-                    <div>Un colaborador es una fila de <code>usuario</code>, igual que un cliente o un
-                        empleado: lo que cambia es el rol y la tabla hija que le cuelga. No se le compra
-                        nada, así que no tiene CIF, ni IBAN, ni ficha de proveedor.</div>
+                    <div th:text="#{colaboradores.aviso.tabla}">Un colaborador es una fila de usuario, igual que un cliente o un empleado.</div>
                 </div>
             </div>
 

@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<html th:lang="${#locale.language}" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Categorías · LudusERP</title>
+    <title th:text="#{panel.menu.categorias} + ' · LudusERP'">Categorías · LudusERP</title>
     <link rel="stylesheet" th:href="@{/css/panel.css}">
     <link rel="stylesheet" th:href="@{/css/catalogo.css}">
 </head>
@@ -15,7 +15,7 @@
 
     <div class="main">
 
-        <header th:replace="~{fragments/panel :: barra('Catálogo', 'Categorías')}"></header>
+        <header th:replace="~{fragments/panel :: barra(#{panel.seccion.catalogo}, #{panel.menu.categorias})}"></header>
 
         <main class="canvas">
 
@@ -24,13 +24,12 @@
 
             <div class="page-head">
                 <div>
-                    <h1>Categorías</h1>
-                    <p>Los géneros con los que se clasifica el catálogo. Un videojuego puede tener
-                        varias, y una categoría la pueden usar muchos juegos.</p>
+                    <h1 th:text="#{panel.menu.categorias}">Categorías</h1>
+                    <p th:text="#{categorias.intro}">Los géneros con los que se clasifica el catálogo.</p>
                 </div>
                 <div class="page-actions">
                     <a class="btn btn-primary" th:href="@{/catalogo/categorias/nuevo}">
-                        <svg th:replace="~{fragments/iconos :: plus}"></svg> Nueva categoría</a>
+                        <svg th:replace="~{fragments/iconos :: plus}"></svg> <span th:text="#{categorias.nueva}">Nueva categoría</span></a>
                 </div>
             </div>
 
@@ -47,36 +46,36 @@
 
                 <form class="filters" method="get" th:action="@{/catalogo/categorias}">
                     <div class="fld">
-                        <label>Buscar</label>
+                        <label th:text="#{comun.buscar}">Buscar</label>
                         <div class="search-inp">
                             <svg th:replace="~{fragments/iconos :: search}"></svg>
-                            <input name="texto" th:value="${texto}" placeholder="Nombre o código">
+                            <input name="texto" th:value="${texto}" th:placeholder="#{categorias.buscarPh}" placeholder="Nombre o código">
                         </div>
                     </div>
                     <div class="fld">
                         <label>&nbsp;</label>
-                        <button type="submit" class="btn btn-primary">Filtrar</button>
+                        <button type="submit" class="btn btn-primary" th:text="#{comun.filtrar}">Filtrar</button>
                     </div>
                     <div class="fld">
                         <label>&nbsp;</label>
-                        <a class="btn" th:href="@{/catalogo/categorias}">Limpiar</a>
+                        <a class="btn" th:href="@{/catalogo/categorias}" th:text="#{comun.limpiar}">Limpiar</a>
                     </div>
                 </form>
 
                 <div class="card-body tight">
 
                     <div class="empty" th:if="${#lists.isEmpty(categorias)}">
-                        <h4>Todavía no hay categorías</h4>
-                        <p class="hint">Crea la primera con el botón «Nueva categoría».</p>
+                        <h4 th:text="#{categorias.vacio}">Todavía no hay categorías</h4>
+                        <p class="hint" th:text="#{categorias.vacio.hint}">Crea la primera con el botón «Nueva categoría».</p>
                     </div>
 
                     <div class="tbl-wrap" th:unless="${#lists.isEmpty(categorias)}">
                         <table class="tbl">
                             <thead>
                             <tr>
-                                <th>Nombre</th>
-                                <th>Código</th>
-                                <th class="num">Juegos</th>
+                                <th th:text="#{comun.nombre}">Nombre</th>
+                                <th th:text="#{comun.codigo}">Código</th>
+                                <th class="num" th:text="#{categorias.col.juegos}">Juegos</th>
                                 <th class="acts"></th>
                             </tr>
                             </thead>
@@ -86,13 +85,15 @@
                                 <td><span class="mono" th:text="${c.codigo}">ACCION</span></td>
                                 <td class="num" th:text="${juegos[c.id] != null ? juegos[c.id] : 0}">0</td>
                                 <td class="acts">
-                                    <a class="btn btn-sm btn-ghost" title="Editar"
+                                    <a class="btn btn-sm btn-ghost" title="Editar" th:title="#{comun.editar}"
                                        th:href="@{/catalogo/categorias/editar/{id}(id=${c.id})}">
                                         <svg th:replace="~{fragments/iconos :: edit}"></svg>
                                     </a>
                                     <form th:action="@{/catalogo/categorias/eliminar/{id}(id=${c.id})}" method="post"
-                                          onsubmit="return confirm(&quot;¿Seguro que quieres eliminar esta categoría? No se puede deshacer.&quot;);">
-                                        <button type="submit" class="btn btn-sm btn-danger" title="Eliminar">
+                                          th:data-confirmar="#{categorias.confirmarEliminar}"
+                                          onsubmit="return confirm(this.dataset.confirmar);">
+                                        <button type="submit" class="btn btn-sm btn-danger" title="Eliminar"
+                                                th:title="#{comun.eliminar}">
                                             <svg th:replace="~{fragments/iconos :: trash}"></svg>
                                         </button>
                                     </form>

@@ -4,8 +4,10 @@ import exception.imagen.ImagenInvalidaException;
 import exception.usuario.UsuarioNoEncontradoException;
 import lombok.RequiredArgsConstructor;
 import java.time.LocalDate;
+import java.util.Locale;
 import model.seguridad.Cliente;
 import model.seguridad.Usuario;
+import org.springframework.context.MessageSource;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
@@ -22,6 +24,7 @@ import service.interfaces.UsuarioService;
 public class ControllerHome {
 
     private final UsuarioService usuarioService;
+    private final MessageSource messageSource;
 
     @GetMapping("/home")
     public String home(Authentication authentication, Model model) {
@@ -62,7 +65,7 @@ public class ControllerHome {
             @RequestParam(required = false) String pais,
             @RequestParam(required = false)
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaNacimiento,
-            RedirectAttributes flash) {
+            RedirectAttributes flash, Locale locale) {
 
         Usuario usuario = usuarioService.buscarUsuarioXEmail(authentication.getName());
 
@@ -71,11 +74,11 @@ public class ControllerHome {
                     telefono, direccion, ciudad, pais, fechaNacimiento);
 
         } catch (IllegalArgumentException e) {
-            flash.addFlashAttribute("errorDatos", e.getMessage());
+            flash.addFlashAttribute("errorDatos", traducir(e.getMessage(), locale));
             return "redirect:/user/profile";
         }
 
-        flash.addFlashAttribute("okDatos", "Datos guardados.");
+        flash.addFlashAttribute("okDatos", traducir("perfil.ok.datos", locale));
 
         return "redirect:/user/profile";
     }
@@ -84,19 +87,25 @@ public class ControllerHome {
     public String cambiarImagen(Authentication authentication,
             @RequestParam("imagen") MultipartFile archivo,
             @RequestParam(value = "textoAlternativo", required = false) String textoAlternativo,
-            RedirectAttributes flash) {
+            RedirectAttributes flash, Locale locale) {
 
         Usuario usuario = usuarioService.buscarUsuarioXEmail(authentication.getName());
 
         try {
             usuarioService.guardarImagenPerfil(usuario.getId(), archivo, textoAlternativo);
         } catch (ImagenInvalidaException e) {
-            flash.addFlashAttribute("errorImagen", e.getMessage());
+            flash.addFlashAttribute("errorImagen", traducir(e.getMessage(), locale));
             return "redirect:/user/profile";
         }
 
-        flash.addFlashAttribute("okImagen", "Foto actualizada.");
+        flash.addFlashAttribute("okImagen", traducir("perfil.ok.imagen", locale));
 
         return "redirect:/user/profile";
+    }
+
+    // Las validaciones y los avisos llevan la clave de traduccion, no el texto: aqui se
+    // pasa al idioma del usuario. Si la clave no existiera se ensena la propia clave.
+    private String traducir(String clave, Locale locale) {
+        return messageSource.getMessage(clave, null, clave, locale);
     }
 }

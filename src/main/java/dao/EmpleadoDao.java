@@ -1,6 +1,7 @@
 package dao;
 
 import java.util.List;
+import java.util.Optional;
 import model.seguridad.Empleado;
 import model.seguridad.Rol;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -25,4 +26,8 @@ public interface EmpleadoDao extends JpaRepository<Empleado, Long> {
     boolean existsByNifHash(String nifHash);
 
     boolean existsByNifHashAndIdNot(String nifHash, Long id);
+
+    // El empleado que esta dentro de la aplicacion, por el correo con el que entro.
+    // Igual que en ClienteDao y ColaboradorDao
+    Optional<Empleado> findByEmail(String email);
 }

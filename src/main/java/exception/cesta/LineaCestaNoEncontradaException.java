@@ -1,16 +1,15 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package exception.cesta;
 
-/**
- *
- * @author Sandy
- */
 public class LineaCestaNoEncontradaException extends RuntimeException {
 
+    private final Long id;
+
     public LineaCestaNoEncontradaException(Long id) {
-        super("No existe la linea de cesta " + id);
+        super("cesta.error.lineaNoExiste");
+        this.id = id;
+    }
+
+    public Long getId() {
+        return id;
     }
 }

@@ -4,9 +4,11 @@ import exception.departamento.DepartamentoConTrabajadoresException;
 import exception.departamento.NombreDepartamentoDuplicadoException;
 import exception.departamento.ResponsableOcupadoException;
 import java.util.List;
+import java.util.Locale;
 import model.seguridad.Departamento;
 import model.seguridad.Empleado;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -22,6 +24,9 @@ public class ControllerDepartamento {
 
     @Autowired
     private DepartamentoService departamentoService;
+
+    @Autowired
+    private MessageSource messageSource;
 
     @GetMapping("/departamentos")
     public String listarDepartamentos(
@@ -51,14 +56,15 @@ public class ControllerDepartamento {
     public String guardarDepartamento(
             @ModelAttribute("departamento") Departamento departamento,
             @RequestParam(required = false) Long responsableId,
-            Model model) {
+            Model model,
+            Locale locale) {
 
         try {
             departamentoService.guardarDepartamento(departamento, responsableId);
 
         } catch (NombreDepartamentoDuplicadoException | ResponsableOcupadoException e) {
 
-            model.addAttribute("error", e.getMessage());
+            model.addAttribute("error", traducir(e, locale));
             model.addAttribute("trabajadores", departamentoService.listarTrabajadores());
 
             if (departamento.getId() == null) {
@@ -83,15 +89,20 @@ public class ControllerDepartamento {
     }
 
     @PostMapping("/departamentos/eliminar/{id}")
-    public String eliminarDepartamento(@PathVariable Long id, RedirectAttributes flash) {
+    public String eliminarDepartamento(@PathVariable Long id, RedirectAttributes flash,
+            Locale locale) {
 
         try {
             departamentoService.eliminarDepartamento(id);
 
         } catch (DepartamentoConTrabajadoresException e) {
-            flash.addFlashAttribute("error", e.getMessage());
+            flash.addFlashAttribute("error", traducir(e, locale));
         }
 
         return "redirect:/departamentos";
+    }
+
+    private String traducir(RuntimeException e, Locale locale) {
+        return messageSource.getMessage(e.getMessage(), null, e.getMessage(), locale);
     }
 }

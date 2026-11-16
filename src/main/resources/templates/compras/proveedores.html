@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<html th:lang="${#locale.language}" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Proveedores · LudusERP</title>
+    <title th:text="#{panel.menu.proveedores} + ' · LudusERP'">Proveedores · LudusERP</title>
     <link rel="stylesheet" th:href="@{/css/panel.css}">
 </head>
 <body>
@@ -14,7 +14,7 @@
 
     <div class="main">
 
-        <header th:replace="~{fragments/panel :: barra('Aprovisionamiento', 'Proveedores')}"></header>
+        <header th:replace="~{fragments/panel :: barra(#{panel.seccion.aprovisionamiento}, #{panel.menu.proveedores})}"></header>
 
         <main class="canvas">
 
@@ -23,13 +23,12 @@
 
             <div class="page-head">
                 <div>
-                    <h1>Proveedores</h1>
-                    <p>CRUD de proveedores. El CIF y el IBAN se guardan cifrados con AES-256-GCM
-                        mediante un <code>AttributeConverter</code> de JPA.</p>
+                    <h1 th:text="#{panel.menu.proveedores}">Proveedores</h1>
+                    <p th:text="#{proveedores.intro}">CRUD de proveedores. El CIF y el IBAN se guardan cifrados.</p>
                 </div>
                 <div class="page-actions">
                     <a class="btn btn-primary" th:href="@{/compras/proveedores/nuevo}">
-                        <svg th:replace="~{fragments/iconos :: plus}"></svg> Nuevo proveedor</a>
+                        <svg th:replace="~{fragments/iconos :: plus}"></svg> <span th:text="#{proveedores.nuevo}">Nuevo proveedor</span></a>
                 </div>
             </div>
 
@@ -46,16 +45,16 @@
 
                 <form class="filters" method="get" th:action="@{/compras/proveedores}">
                     <div class="fld">
-                        <label>Buscar</label>
+                        <label th:text="#{comun.buscar}">Buscar</label>
                         <div class="search-inp">
                             <svg th:replace="~{fragments/iconos :: search}"></svg>
-                            <input name="texto" th:value="${texto}" placeholder="Nombre comercial o razón social">
+                            <input name="texto" th:value="${texto}" th:placeholder="#{proveedores.buscarPh}" placeholder="Nombre comercial o razón social">
                         </div>
                     </div>
                     <div class="fld">
-                        <label>País</label>
+                        <label th:text="#{comun.pais}">País</label>
                         <select class="inp" name="pais">
-                            <option value="">Todos</option>
+                            <option value="" th:text="#{comun.todos}">Todos</option>
                             <option th:each="p : ${paises}"
                                     th:value="${p}"
                                     th:text="${p}"
@@ -63,40 +62,40 @@
                         </select>
                     </div>
                     <div class="fld">
-                        <label>Estado</label>
+                        <label th:text="#{comun.estado}">Estado</label>
                         <select class="inp" name="activo">
-                            <option value="">Todos</option>
-                            <option value="true" th:selected="${activo != null and activo}">Activo</option>
-                            <option value="false" th:selected="${activo != null and !activo}">Inactivo</option>
+                            <option value="" th:text="#{comun.todos}">Todos</option>
+                            <option value="true" th:selected="${activo != null and activo}" th:text="#{comun.activo}">Activo</option>
+                            <option value="false" th:selected="${activo != null and !activo}" th:text="#{comun.inactivo}">Inactivo</option>
                         </select>
                     </div>
                     <div class="fld">
                         <label>&nbsp;</label>
-                        <button type="submit" class="btn btn-primary">Filtrar</button>
+                        <button type="submit" class="btn btn-primary" th:text="#{comun.filtrar}">Filtrar</button>
                     </div>
                     <div class="fld">
                         <label>&nbsp;</label>
-                        <a class="btn" th:href="@{/compras/proveedores}">Limpiar</a>
+                        <a class="btn" th:href="@{/compras/proveedores}" th:text="#{comun.limpiar}">Limpiar</a>
                     </div>
                 </form>
 
                 <div class="card-body tight">
 
                     <div class="empty" th:if="${#lists.isEmpty(proveedores)}">
-                        <h4>Todavía no hay proveedores</h4>
-                        <p class="hint">Crea el primero con el botón «Nuevo proveedor».</p>
+                        <h4 th:text="#{proveedores.vacio}">Todavía no hay proveedores</h4>
+                        <p class="hint" th:text="#{proveedores.vacio.hint}">Crea el primero.</p>
                     </div>
 
                     <div class="tbl-wrap" th:unless="${#lists.isEmpty(proveedores)}">
                         <table class="tbl">
                             <thead>
                             <tr>
-                                <th>Proveedor</th>
-                                <th>CIF</th>
-                                <th>País</th>
-                                <th>Contacto</th>
-                                <th class="num">Total comprado</th>
-                                <th>Estado</th>
+                                <th th:text="#{proveedores.col.proveedor}">Proveedor</th>
+                                <th th:text="#{proveedores.cif}">CIF</th>
+                                <th th:text="#{comun.pais}">País</th>
+                                <th th:text="#{proveedores.col.contacto}">Contacto</th>
+                                <th class="num" th:text="#{proveedores.col.totalComprado}">Total comprado</th>
+                                <th th:text="#{comun.estado}">Estado</th>
                                 <th class="acts"></th>
                             </tr>
                             </thead>
@@ -116,22 +115,24 @@
                                 <td>
                                     <a th:href="'mailto:' + ${p.email}" th:text="${p.email}">correo@ejemplo.com</a>
                                 </td>
-                                <td class="num"><span class="muted" title="Pendiente del SUM sobre compra">—</span></td>
+                                <td class="num"><span class="muted" th:title="#{proveedores.pendienteSuma}">—</span></td>
                                 <td>
                                     <span class="badge" th:classappend="${p.activo} ? 'b-good' : 'b-mute'"
-                                          th:text="${p.activo} ? 'ACTIVO' : 'INACTIVO'">ACTIVO</span>
+                                          th:text="${p.activo} ? #{comun.activo} : #{comun.inactivo}">ACTIVO</span>
                                 </td>
                                 <td class="acts">
-                                    <button type="button" class="btn btn-sm btn-ghost" title="Ver" disabled>
+                                    <button type="button" class="btn btn-sm btn-ghost" title="Ver" th:title="#{comun.ver}" disabled>
                                         <svg th:replace="~{fragments/iconos :: eye}"></svg>
                                     </button>
-                                    <a class="btn btn-sm btn-ghost" title="Editar"
+                                    <a class="btn btn-sm btn-ghost" title="Editar" th:title="#{comun.editar}"
                                        th:href="@{/compras/proveedores/{id}/editar(id=${p.id})}">
                                         <svg th:replace="~{fragments/iconos :: edit}"></svg>
                                     </a>
                                     <form th:action="@{/compras/proveedores/{id}/eliminar(id=${p.id})}" method="post"
-                                          onsubmit="return confirm('¿Seguro que quieres eliminar este proveedor? No se puede deshacer.');">
-                                        <button type="submit" class="btn btn-sm btn-danger" title="Eliminar">
+                                          th:data-confirmar="#{proveedores.confirmarEliminar}"
+                                          onsubmit="return confirm(this.dataset.confirmar);">
+                                        <button type="submit" class="btn btn-sm btn-danger" title="Eliminar"
+                                                th:title="#{comun.eliminar}">
                                             <svg th:replace="~{fragments/iconos :: trash}"></svg>
                                         </button>
                                     </form>
@@ -145,8 +146,8 @@
                 <!-- Flechas y numeros de pagina. Cada enlace repite los tres filtros para no
                      perderlos al cambiar de pagina, y .off apaga la flecha del extremo. -->
                 <div class="pager" th:unless="${#lists.isEmpty(proveedores)}">
-                    <span>Mostrando <b th:text="${fin - inicio}">4</b>
-                        de <b th:text="${total}">4</b> registros</span>
+                    <span><span th:text="#{comun.mostrando}">Mostrando</span> <b th:text="${fin - inicio}">4</b>
+                        <span th:text="#{comun.de}">de</span> <b th:text="${total}">4</b> <span th:text="#{comun.registros}">registros</span></span>
                     <div class="pages">
                         <a class="pg" th:classappend="${actual == 0} ? 'off' : ''"
                            th:href="@{/compras/proveedores(texto=${texto}, pais=${pais},

@@ -1,10 +1,10 @@
 <!doctype html>
-<html lang="es" xmlns:th="http://www.thymeleaf.org"
+<html th:lang="${#locale.language}" xmlns:th="http://www.thymeleaf.org"
       xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Error del servidor · LudusERP</title>
+    <title th:text="#{error.500.pagina} + ' · LudusERP'">Error del servidor · LudusERP</title>
     <link rel="stylesheet" th:href="@{/css/login.css}" href="../../static/css/login.css">
     <link rel="stylesheet" th:href="@{/css/error.css}" href="../../static/css/error.css">
 </head>
@@ -22,17 +22,20 @@
             <div class="card-body stack error-card">
                 <div class="error-code">500</div>
                 <div>
-                    <h2 class="error-title">Algo ha fallado</h2>
-                    <p class="hint auth-sub error-text">El servidor no ha podido completar la
+                    <h2 class="error-title" th:text="#{error.500.titulo}">Algo ha fallado</h2>
+                    <p class="hint auth-sub error-text" th:text="#{error.500.texto}">El servidor no ha podido completar la
                         operación. No es cosa tuya: el fallo queda registrado en el log de la
                         aplicación.</p>
                 </div>
 
                 <div class="error-actions">
-                    <a class="btn btn-primary" sec:authorize="hasAnyRole('CLIENTE','COLABORADOR')" th:href="@{/tienda}" href="#">Volver al inicio</a>
-                    <a class="btn btn-primary" sec:authorize="!hasAnyRole('CLIENTE','COLABORADOR')" th:href="@{/home}" href="#">Volver al inicio</a>
+                    <a class="btn btn-primary" sec:authorize="hasAnyRole('CLIENTE','COLABORADOR')"
+                       th:href="@{/tienda}" href="#" th:text="#{error.volver}">Volver al inicio</a>
+                    <a class="btn btn-primary" sec:authorize="!hasAnyRole('CLIENTE','COLABORADOR')"
+                       th:href="@{/home}" href="#" th:text="#{error.volver}">Volver al inicio</a>
                     <form th:action="@{/logout}" method="post">
-                        <button type="submit" class="btn">Cerrar sesión</button>
+                        <button type="submit" class="btn"
+                                th:text="#{navbar.cerrarSesion}">Cerrar sesión</button>
                     </form>
                 </div>
             </div>

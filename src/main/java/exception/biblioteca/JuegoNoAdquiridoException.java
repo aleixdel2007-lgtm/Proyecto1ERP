@@ -6,7 +6,14 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @ResponseStatus(HttpStatus.FORBIDDEN)
 public class JuegoNoAdquiridoException extends RuntimeException {
 
+    private final Long videojuegoId;
+
     public JuegoNoAdquiridoException(Long videojuegoId) {
-        super("El videojuego " + videojuegoId + " no esta en tu biblioteca");
+        super("biblioteca.error.noAdquirido");
+        this.videojuegoId = videojuegoId;
+    }
+
+    public Long getVideojuegoId() {
+        return videojuegoId;
     }
 }

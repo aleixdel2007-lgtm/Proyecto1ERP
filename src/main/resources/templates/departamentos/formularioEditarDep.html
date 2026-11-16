@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<html th:lang="${#locale.language}" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Editar departamento · LudusERP</title>
+    <title th:text="#{departamentos.editar} + ' · LudusERP'">Editar departamento · LudusERP</title>
     <link rel="stylesheet" th:href="@{/css/panel.css}">
     <link rel="stylesheet" th:href="@{/css/departamentos.css}">
 </head>
@@ -15,7 +15,7 @@
 
     <div class="main">
 
-        <header th:replace="~{fragments/panel :: barra('Administración', 'Departamentos')}"></header>
+        <header th:replace="~{fragments/panel :: barra(#{panel.seccion.admin}, #{panel.menu.departamentos})}"></header>
 
         <main class="canvas">
 
@@ -24,7 +24,7 @@
 
             <div class="page-head">
                 <div>
-                    <h1>Editar departamento</h1>
+                    <h1 th:text="#{departamentos.editar}">Editar departamento</h1>
                 </div>
             </div>
 
@@ -41,38 +41,38 @@
                             <div class="form-grid">
 
                                 <div class="frow">
-                                    <label for="nombre">Nombre <span class="req">*</span></label>
+                                    <label for="nombre"><span th:text="#{comun.nombre}">Nombre</span> <span class="req">*</span></label>
                                     <input class="inp" type="text" th:field="*{nombre}" maxlength="80"
-                                           placeholder="Marketing" required>
-                                    <span class="hint">Único en la tabla.</span>
+                                           th:placeholder="#{departamentos.nombrePh}" placeholder="Marketing" required>
+                                    <span class="hint" th:text="#{departamentos.hint.nombre}">Único en la tabla.</span>
                                 </div>
 
                                 <div class="frow">
-                                    <label for="responsableId">Responsable</label>
+                                    <label for="responsableId" th:text="#{departamentos.col.responsable}">Responsable</label>
                                     <select class="inp" name="responsableId">
-                                        <option value="">Sin asignar</option>
+                                        <option value="" th:text="#{comun.sinAsignar}">Sin asignar</option>
                                         <option th:each="trabajador : ${trabajadores}"
                                                 th:value="${trabajador.id}"
                                                 th:text="${trabajador.nombre} + ' ' + ${trabajador.apellidos}"
                                                 th:selected="${departamento.responsable != null and departamento.responsable.id == trabajador.id}">
                                             Aleix Delgado</option>
                                     </select>
-                                    <span class="hint">Se puede dejar sin asignar y decidirlo más tarde.</span>
+                                    <span class="hint" th:text="#{departamentos.hint.responsable}">Se puede dejar sin asignar.</span>
                                 </div>
 
                                 <div class="frow wide">
-                                    <label for="descripcion">Descripción</label>
+                                    <label for="descripcion" th:text="#{comun.descripcion}">Descripción</label>
                                     <input class="inp" type="text" th:field="*{descripcion}" maxlength="255"
-                                           placeholder="Qué se hace en este departamento">
+                                           th:placeholder="#{departamentos.descripcionPh}" placeholder="Qué se hace en este departamento">
                                 </div>
 
                             </div>
                         </div>
 
                         <div class="form-foot">
-                            <span class="note">Un departamento con trabajadores dentro ya no se podrá borrar.</span>
-                            <a class="btn" th:href="@{/departamentos}">Cancelar</a>
-                            <button type="submit" class="btn btn-primary">Guardar cambios</button>
+                            <span class="note" th:text="#{departamentos.nota.borrar}">Un departamento con trabajadores dentro ya no se podrá borrar.</span>
+                            <a class="btn" th:href="@{/departamentos}" th:text="#{comun.cancelar}">Cancelar</a>
+                            <button type="submit" class="btn btn-primary" th:text="#{comun.guardarCambios}">Guardar cambios</button>
                         </div>
 
                     </form>
@@ -81,9 +81,7 @@
                 <div class="stack">
                     <div class="note-box">
                         <svg th:replace="~{fragments/iconos :: warn}"></svg>
-                        <div>El responsable es un trabajador ya dado de alta, y solo puede dirigir un
-                            departamento: la tabla lo garantiza con un <code>UNIQUE</code> sobre
-                            <code>responsable_id</code>.</div>
+                        <div th:text="#{departamentos.aviso.responsable}">El responsable solo puede dirigir un departamento.</div>
                     </div>
                 </div>
 

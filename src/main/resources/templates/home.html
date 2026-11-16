@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<html th:lang="${#locale.language}" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Panel de control · LudusERP</title>
+    <title th:text="#{panel.menu.inicio} + ' · LudusERP'">Panel de control · LudusERP</title>
     <link rel="stylesheet" th:href="@{/css/panel.css}">
     <link rel="stylesheet" th:href="@{/css/home.css}">
 </head>
@@ -15,14 +15,14 @@
 
     <div class="main">
 
-        <header th:replace="~{fragments/panel :: barra('General', 'Panel de control')}"></header>
+        <header th:replace="~{fragments/panel :: barra(#{panel.seccion.general}, #{panel.menu.inicio})}"></header>
 
         <main class="canvas">
 
             <div class="page-head">
                 <div>
-                    <h1>Panel de control</h1>
-                    <p>Bienvenido, <span th:text="${usuario.nombre}">usuario</span>.
+                    <h1 th:text="#{panel.menu.inicio}">Panel de control</h1>
+                    <p><span th:text="#{panel.inicio.bienvenida}">Bienvenido</span>, <span th:text="${usuario.nombre}">usuario</span>.
                 </div>
             </div>
         </main>

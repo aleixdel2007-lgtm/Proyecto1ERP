@@ -3,6 +3,6 @@ package exception.cif;
 public class CifDuplicadoException extends RuntimeException {
 
     public CifDuplicadoException() {
-        super("Ya existe un proveedor con ese CIF");
+        super("proveedores.error.cifDuplicado");
     }
 }
