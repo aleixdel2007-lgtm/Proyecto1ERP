@@ -42,13 +42,13 @@ public class ValoracionServiceImpl implements ValoracionService {
     @Transactional
     public Valoracion crear(String emailCliente, Long videojuegoId, String titulo, String descripcion, int puntuacion) {
         if (titulo == null || titulo.isBlank()) {
-            throw new ValoracionInvalidaException("El título es obligatorio");
+            throw new ValoracionInvalidaException("valoraciones.error.tituloObligatorio");
         }
         if (titulo.trim().length() > 150) {
-            throw new ValoracionInvalidaException("El título no puede pasar de 150 caracteres");
+            throw new ValoracionInvalidaException("valoraciones.error.tituloLargo");
         }
         if (puntuacion < 1 || puntuacion > 5) {
-            throw new ValoracionInvalidaException("La valoración debe estar entre 1 y 5");
+            throw new ValoracionInvalidaException("valoraciones.error.puntuacionInvalida");
         }
 
         if (valoracionDao.existsByClienteEmailAndVideojuegoId(emailCliente, videojuegoId)) {

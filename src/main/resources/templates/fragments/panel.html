@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="es" xmlns:th="http://www.thymeleaf.org"
+<html th:lang="${#locale.language}" xmlns:th="http://www.thymeleaf.org"
       xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <body>
 
@@ -9,67 +9,71 @@
         <div class="brand-name">Ludus<span>ERP</span></div>
     </div>
     <div class="side-scroll">
-        <div class="nav-group">Panel</div>
+        <div class="nav-group" th:text="#{panel.menu.grupo.panel}">Panel</div>
         <a class="nav-item" th:classappend="${activo == 'inicio'} ? 'on' : ''"
            th:href="@{/home}">
-            <span class="ic"><svg th:replace="~{fragments/iconos :: panel}"></svg></span>Panel de control</a>
+            <span class="ic"><svg th:replace="~{fragments/iconos :: panel}"></svg></span><span th:text="#{panel.menu.inicio}">Panel de control</span></a>
 
         <th:block sec:authorize="hasAnyRole('GESTOR_PRODUCTOS', 'ADMIN')">
-            <div class="nav-group">Catálogo</div>
+            <div class="nav-group" th:text="#{panel.seccion.catalogo}">Catálogo</div>
             <a class="nav-item" th:classappend="${activo == 'videojuegos'} ? 'on' : ''"
                th:href="@{/catalogo/videojuegos}">
-                <span class="ic"><svg th:replace="~{fragments/iconos :: game}"></svg></span>Videojuegos</a>
+                <span class="ic"><svg th:replace="~{fragments/iconos :: game}"></svg></span><span th:text="#{panel.menu.videojuegos}">Videojuegos</span></a>
             <a class="nav-item" th:classappend="${activo == 'categorias'} ? 'on' : ''"
                th:href="@{/catalogo/categorias}">
-                <span class="ic"><svg th:replace="~{fragments/iconos :: tag}"></svg></span>Categorías</a>
+                <span class="ic"><svg th:replace="~{fragments/iconos :: tag}"></svg></span><span th:text="#{panel.menu.categorias}">Categorías</span></a>
             <a class="nav-item" th:classappend="${activo == 'plataformas'} ? 'on' : ''"
                th:href="@{/catalogo/plataformas}">
-                <span class="ic"><svg th:replace="~{fragments/iconos :: monitor}"></svg></span>Plataformas</a>
+                <span class="ic"><svg th:replace="~{fragments/iconos :: monitor}"></svg></span><span th:text="#{panel.menu.plataformas}">Plataformas</span></a>
         </th:block>
 
         <th:block sec:authorize="hasAnyRole('ADMIN', 'GESTOR_INVENTARIO')">
-        <div class="nav-group">Aprovisionamiento</div>
+        <div class="nav-group" th:text="#{panel.seccion.aprovisionamiento}">Aprovisionamiento</div>
         <a class="nav-item" th:classappend="${activo == 'proveedores'} ? 'on' : ''"
            th:href="@{/compras/proveedores}">
             
-            <span class="ic"><svg th:replace="~{fragments/iconos :: truck}"></svg></span>Proveedores</a>
+            <span class="ic"><svg th:replace="~{fragments/iconos :: truck}"></svg></span><span th:text="#{panel.menu.proveedores}">Proveedores</span></a>
+        <a class="nav-item" th:classappend="${activo == 'ordenes'} ? 'on' : ''"
+           th:href="@{/compras/ordenes}">
+            <span class="ic"><svg th:replace="~{fragments/iconos :: box}"></svg></span><span th:text="#{panel.menu.ordenes}">Órdenes de compra</span></a>
         <a class="nav-item" th:classappend="${activo == 'claves'} ? 'on' : ''"
            th:href="@{/inventario/claves}">
-            <span class="ic"><svg th:replace="~{fragments/iconos :: key}"></svg></span>Claves de licencia</a>
+            <span class="ic"><svg th:replace="~{fragments/iconos :: key}"></svg></span><span th:text="#{panel.menu.claves}">Claves de licencia</span></a>
         </th:block>
         <th:block sec:authorize="hasAnyRole('ADMIN', 'GESTOR_INVENTARIO')">
-            <div class="nav-group">Ventas</div>
+            <div class="nav-group" th:text="#{panel.seccion.ventas}">Ventas</div>
             <a class="nav-item" th:classappend="${activo == 'pedidos'} ? 'on' : ''"
                th:href="@{/ventas/pedidos}">
-                <span class="ic"><svg th:replace="~{fragments/iconos :: cart}"></svg></span>Pedidos</a>
+                <span class="ic"><svg th:replace="~{fragments/iconos :: cart}"></svg></span><span th:text="#{panel.menu.pedidos}">Pedidos</span></a>
             <a class="nav-item" th:classappend="${activo == 'facturas'} ? 'on' : ''"
                th:href="@{/ventas/facturas}">
-                <span class="ic"><svg th:replace="~{fragments/iconos :: receipt}"></svg></span>Facturas</a>
+                <span class="ic"><svg th:replace="~{fragments/iconos :: receipt}"></svg></span><span th:text="#{panel.menu.facturas}">Facturas</span></a>
         </th:block>
         <th:block sec:authorize="hasAnyRole('GESTOR_CLIENTES', 'ADMIN')">
-            <div class="nav-group">Clientes</div>
+            <div class="nav-group" th:text="#{panel.seccion.clientes}">Clientes</div>
             <a class="nav-item" th:classappend="${activo == 'clientes'} ? 'on' : ''"
                th:href="@{/clientes}">
-                <span class="ic"><svg th:replace="~{fragments/iconos :: users}"></svg></span>Clientes</a>
+                <span class="ic"><svg th:replace="~{fragments/iconos :: users}"></svg></span><span th:text="#{panel.menu.clientes}">Clientes</span></a>
         </th:block>
         
         <th:block sec:authorize="hasRole('ADMIN')">
-            <div class="nav-group">Administración</div>
+            <div class="nav-group" th:text="#{panel.seccion.admin}">Administración</div>
             <a class="nav-item" th:classappend="${activo == 'empleados'} ? 'on' : ''"
                th:href="@{/empleados}">
-                <span class="ic"><svg th:replace="~{fragments/iconos :: badge2}"></svg></span>Empleados</a>
+                <span class="ic"><svg th:replace="~{fragments/iconos :: badge2}"></svg></span><span th:text="#{panel.menu.empleados}">Empleados</span></a>
             <a class="nav-item" th:classappend="${activo == 'departamentos'} ? 'on' : ''"
                th:href="@{/departamentos}">
-                <span class="ic"><svg th:replace="~{fragments/iconos :: dept}"></svg></span>Departamentos</a>
+                <span class="ic"><svg th:replace="~{fragments/iconos :: dept}"></svg></span><span th:text="#{panel.menu.departamentos}">Departamentos</span></a>
             <a class="nav-item" th:classappend="${activo == 'colaboradores'} ? 'on' : ''"
                th:href="@{/admin/colaboradores}">
-                <span class="ic"><svg th:replace="~{fragments/iconos :: users}"></svg></span>Colaboradores</a>
+                <span class="ic"><svg th:replace="~{fragments/iconos :: users}"></svg></span><span th:text="#{panel.menu.colaboradores}">Colaboradores</span></a>
         </th:block>
     </div>
 
     <div class="side-foot">
         <form th:action="@{/logout}" method="post">
-            <button type="submit" class="btn btn-ghost btn-block">Cerrar sesión</button>
+            <button type="submit" class="btn btn-ghost btn-block"
+                    th:text="#{navbar.cerrarSesion}">Cerrar sesión</button>
         </form>
     </div>
 </aside>
@@ -89,12 +93,12 @@
     <div class="who">
         <img class="avatar" style="object-fit:cover"
              th:src="${imagenPerfil != null} ? @{${imagenPerfil.rutaImagen}} : @{/img/placeholder.webp}"
-             th:alt="${imagenPerfil != null} ? ${imagenPerfil.textoAlternativo} : 'Sin foto de perfil'">
+             th:alt="${imagenPerfil != null} ? ${imagenPerfil.textoAlternativo} : #{navbar.sinFoto}">
         <div class="who-txt"
              th:with="rol=${#strings.replace(#authentication.authorities[0].authority, 'ROLE_', '')}">
             <b sec:authentication="name">usuario@luduserp.cat</b>
             <span class="badge" th:classappend="${'b-rol-' + #strings.toLowerCase(rol)}"
-                  th:text="${rol}">ADMIN</span>
+                  th:text="#{'rol.' + ${rol}}">ADMIN</span>
         </div>
     </div>
 <script th:src="@{/js/client-profile.js}" src="../static/js/client-profile.js"></script>

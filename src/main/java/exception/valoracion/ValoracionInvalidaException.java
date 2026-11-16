@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @ResponseStatus(HttpStatus.BAD_REQUEST)
 public class ValoracionInvalidaException extends RuntimeException {
 
-    public ValoracionInvalidaException(String mensaje) {
-        super(mensaje);
+    public ValoracionInvalidaException(String clave) {
+        super(clave);
     }
 }

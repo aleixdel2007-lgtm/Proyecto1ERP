@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<html th:lang="${#locale.language}" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Plataformas · LudusERP</title>
+    <title th:text="#{panel.menu.plataformas} + ' · LudusERP'">Plataformas · LudusERP</title>
     <link rel="stylesheet" th:href="@{/css/panel.css}">
     <link rel="stylesheet" th:href="@{/css/catalogo.css}">
 </head>
@@ -15,7 +15,7 @@
 
     <div class="main">
 
-        <header th:replace="~{fragments/panel :: barra('Catálogo', 'Plataformas')}"></header>
+        <header th:replace="~{fragments/panel :: barra(#{panel.seccion.catalogo}, #{panel.menu.plataformas})}"></header>
 
         <main class="canvas">
 
@@ -24,13 +24,12 @@
 
             <div class="page-head">
                 <div>
-                    <h1>Plataformas</h1>
-                    <p>Los sistemas en los que se puede jugar. Un videojuego puede estar disponible en
-                        varias, y una plataforma la pueden usar muchos juegos.</p>
+                    <h1 th:text="#{panel.menu.plataformas}">Plataformas</h1>
+                    <p th:text="#{plataformas.intro}">Los sistemas en los que se puede jugar.</p>
                 </div>
                 <div class="page-actions">
                     <a class="btn btn-primary" th:href="@{/catalogo/plataformas/nuevo}">
-                        <svg th:replace="~{fragments/iconos :: plus}"></svg> Nueva plataforma</a>
+                        <svg th:replace="~{fragments/iconos :: plus}"></svg> <span th:text="#{plataformas.nueva}">Nueva plataforma</span></a>
                 </div>
             </div>
 
@@ -47,36 +46,36 @@
 
                 <form class="filters" method="get" th:action="@{/catalogo/plataformas}">
                     <div class="fld">
-                        <label>Buscar</label>
+                        <label th:text="#{comun.buscar}">Buscar</label>
                         <div class="search-inp">
                             <svg th:replace="~{fragments/iconos :: search}"></svg>
-                            <input name="texto" th:value="${texto}" placeholder="Nombre o código">
+                            <input name="texto" th:value="${texto}" th:placeholder="#{plataformas.buscarPh}" placeholder="Nombre o código">
                         </div>
                     </div>
                     <div class="fld">
                         <label>&nbsp;</label>
-                        <button type="submit" class="btn btn-primary">Filtrar</button>
+                        <button type="submit" class="btn btn-primary" th:text="#{comun.filtrar}">Filtrar</button>
                     </div>
                     <div class="fld">
                         <label>&nbsp;</label>
-                        <a class="btn" th:href="@{/catalogo/plataformas}">Limpiar</a>
+                        <a class="btn" th:href="@{/catalogo/plataformas}" th:text="#{comun.limpiar}">Limpiar</a>
                     </div>
                 </form>
 
                 <div class="card-body tight">
 
                     <div class="empty" th:if="${#lists.isEmpty(plataformas)}">
-                        <h4>Todavía no hay plataformas</h4>
-                        <p class="hint">Crea la primera con el botón «Nueva plataforma».</p>
+                        <h4 th:text="#{plataformas.vacio}">Todavía no hay plataformas</h4>
+                        <p class="hint" th:text="#{plataformas.vacio.hint}">Crea la primera con el botón «Nueva plataforma».</p>
                     </div>
 
                     <div class="tbl-wrap" th:unless="${#lists.isEmpty(plataformas)}">
                         <table class="tbl">
                             <thead>
                             <tr>
-                                <th>Nombre</th>
-                                <th>Código</th>
-                                <th class="num">Juegos</th>
+                                <th th:text="#{comun.nombre}">Nombre</th>
+                                <th th:text="#{comun.codigo}">Código</th>
+                                <th class="num" th:text="#{plataformas.col.juegos}">Juegos</th>
                                 <th class="acts"></th>
                             </tr>
                             </thead>
@@ -86,13 +85,15 @@
                                 <td><span class="mono" th:text="${p.codigo}">PS5</span></td>
                                 <td class="num" th:text="${juegos[p.id] != null ? juegos[p.id] : 0}">0</td>
                                 <td class="acts">
-                                    <a class="btn btn-sm btn-ghost" title="Editar"
+                                    <a class="btn btn-sm btn-ghost" title="Editar" th:title="#{comun.editar}"
                                        th:href="@{/catalogo/plataformas/editar/{id}(id=${p.id})}">
                                         <svg th:replace="~{fragments/iconos :: edit}"></svg>
                                     </a>
                                     <form th:action="@{/catalogo/plataformas/eliminar/{id}(id=${p.id})}" method="post"
-                                          onsubmit="return confirm(&quot;¿Seguro que quieres eliminar esta plataforma? No se puede deshacer.&quot;);">
-                                        <button type="submit" class="btn btn-sm btn-danger" title="Eliminar">
+                                          th:data-confirmar="#{plataformas.confirmarEliminar}"
+                                          onsubmit="return confirm(this.dataset.confirmar);">
+                                        <button type="submit" class="btn btn-sm btn-danger" title="Eliminar"
+                                                th:title="#{comun.eliminar}">
                                             <svg th:replace="~{fragments/iconos :: trash}"></svg>
                                         </button>
                                     </form>
