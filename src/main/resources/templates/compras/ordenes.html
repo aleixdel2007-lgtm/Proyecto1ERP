@@ -25,7 +25,6 @@
             <div class="page-head">
                 <div>
                     <h1 th:text="#{panel.menu.ordenes}">Órdenes de compra</h1>
-                    <p th:text="#{compras.intro}">El ciclo es BORRADOR → CONFIRMADA → RECIBIDA.</p>
                 </div>
                 <div class="page-actions">
                     <a class="btn btn-primary" th:href="@{/compras/ordenes/nueva}">
@@ -217,17 +216,6 @@
                     </div>
                 </div>
 
-            </div>
-
-            <div class="grid g2" style="margin-top:16px">
-                <div class="note-box">
-                    <svg th:replace="~{fragments/iconos :: key}"></svg>
-                    <div th:text="#{compras.aviso.claves}">Las claves no se teclean a mano.</div>
-                </div>
-                <div class="note-box">
-                    <svg th:replace="~{fragments/iconos :: warn}"></svg>
-                    <div th:text="#{compras.aviso.irreversible}">Una orden recibida no se deshace desde la aplicación.</div>
-                </div>
             </div>
 
         </main>
