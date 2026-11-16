@@ -21,11 +21,6 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
-/**
- * Carga en Mongo los textos de src/main/resources/i18n/textos_es|en|ca.properties. Esos
- * ficheros van en git, asi todo el equipo parte de las mismas traducciones. Solo se insertan
- * las que faltan: lo que alguien haya editado en Mongo no se pisa.
- */
 @Component
 @RequiredArgsConstructor
 public class TraduccionesIniciales implements CommandLineRunner {
