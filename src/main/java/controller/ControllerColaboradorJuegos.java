@@ -4,8 +4,14 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.MessageSource;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.servlet.FlashMap;
+import org.springframework.web.servlet.support.RequestContextUtils;
 import exception.imagen.ImagenInvalidaException;
 import model.catalogo.Categoria;
 import model.catalogo.ImagenVideojuego;
@@ -54,8 +60,10 @@ public class ControllerColaboradorJuegos {
         return "colaboradores/nuevo-juego";
     }
 
+    // Devuelve Object porque tiene dos salidas: el nombre de una vista (el envio normal del
+    // formulario) o un ResponseEntity con JSON (el envio por XHR con barra de progreso)
     @PostMapping("/colaborador/mis-juegos/guardar")
-    public String guardarJuego(@RequestParam(required = false) String titulo,
+    public Object guardarJuego(@RequestParam(required = false) String titulo,
                                @RequestParam(required = false) String sinopsis,
                                @RequestParam(required = false) String pegi,
                                @RequestParam(required = false) String version,
@@ -68,13 +76,21 @@ public class ControllerColaboradorJuegos {
                                Authentication authentication,
                                Model model,
                                RedirectAttributes flash,
-                               Locale locale) {
+                               Locale locale,
+                               HttpServletRequest request,
+                               HttpServletResponse response) {
 
         try {
             videojuegoService.publicarJuegoColaborador(authentication.getName(), titulo, sinopsis,
                     pegi, version, categoriaIds, plataformaIds, zip, portada, banner, capturas);
 
         } catch (IllegalArgumentException | ImagenInvalidaException e) {
+
+            // Por XHR el formulario sigue en pantalla con todo lo rellenado, archivos
+            // incluidos: solo hace falta decirle que fallo y por que
+            if (esXhr(request)) {
+                return errorJson(traducir(e, locale));
+            }
 
             // Se devuelve el formulario con lo que habia escrito y marcado: solo los
             // archivos hay que volver a elegirlos, el navegador no deja rellenarlos
@@ -88,9 +104,7 @@ public class ControllerColaboradorJuegos {
             return "colaboradores/nuevo-juego";
         }
 
-        flash.addFlashAttribute("mensaje", messageSource.getMessage("colab.ok.subido", null, locale));
-
-        return "redirect:/colaborador/mis-juegos";
+        return exito(request, response, flash, messageSource.getMessage("colab.ok.subido", null, locale));
     }
 
     @GetMapping("/colaborador/mis-juegos/{id}/editar")
@@ -104,7 +118,7 @@ public class ControllerColaboradorJuegos {
     }
 
     @PostMapping("/colaborador/mis-juegos/{id}/actualizar")
-    public String actualizarJuego(@PathVariable Long id,
+    public Object actualizarJuego(@PathVariable Long id,
                                   @RequestParam(required = false) String titulo,
                                   @RequestParam(required = false) String sinopsis,
                                   @RequestParam(required = false) String pegi,
@@ -118,13 +132,19 @@ public class ControllerColaboradorJuegos {
                                   Authentication authentication,
                                   Model model,
                                   RedirectAttributes flash,
-                                  Locale locale) {
+                                  Locale locale,
+                                  HttpServletRequest request,
+                                  HttpServletResponse response) {
 
         try {
             videojuegoService.actualizarJuegoColaborador(authentication.getName(), id, titulo,
                     sinopsis, pegi, version, categoriaIds, plataformaIds, zip, portada, banner, capturas);
 
         } catch (IllegalArgumentException | ImagenInvalidaException e) {
+
+            if (esXhr(request)) {
+                return errorJson(traducir(e, locale));
+            }
 
             Videojuego juego = videojuegoService.buscarJuegoDeColaborador(authentication.getName(), id);
 
@@ -138,9 +158,7 @@ public class ControllerColaboradorJuegos {
             return "colaboradores/editar-juego";
         }
 
-        flash.addFlashAttribute("mensaje", messageSource.getMessage("colab.ok.actualizado", null, locale));
-
-        return "redirect:/colaborador/mis-juegos";
+        return exito(request, response, flash, messageSource.getMessage("colab.ok.actualizado", null, locale));
     }
 
     @PostMapping("/colaborador/mis-juegos/{id}/imagen/{imagenId}/quitar")
@@ -159,6 +177,37 @@ public class ControllerColaboradorJuegos {
         }
 
         return "redirect:/colaborador/mis-juegos/" + id + "/editar";
+    }
+
+    // El JS de la subida manda esta cabecera. Sin ella (JS desactivado, otro cliente) todo
+    // funciona como un formulario de toda la vida: redirect o vista con el error
+    private boolean esXhr(HttpServletRequest request) {
+        return "XMLHttpRequest".equals(request.getHeader("X-Requested-With"));
+    }
+
+    // Fin feliz. En el envio normal el mensaje va como flash y se redirige. Por XHR no hay
+    // redirect que guarde el flash (RedirectView es quien lo hace), asi que se guarda a
+    // mano para que lo recoja la siguiente peticion, que es la que hace el JS al navegar
+    // a la lista, y se le dice a donde ir
+    private Object exito(HttpServletRequest request, HttpServletResponse response,
+                         RedirectAttributes flash, String mensaje) {
+
+        if (esXhr(request)) {
+            FlashMap salida = RequestContextUtils.getOutputFlashMap(request);
+            salida.put("mensaje", mensaje);
+            RequestContextUtils.getFlashMapManager(request).saveOutputFlashMap(salida, request, response);
+
+            return ResponseEntity.ok(Map.of("ok", true,
+                    "redirect", request.getContextPath() + "/colaborador/mis-juegos"));
+        }
+
+        flash.addFlashAttribute("mensaje", mensaje);
+
+        return "redirect:/colaborador/mis-juegos";
+    }
+
+    private ResponseEntity<Map<String, Object>> errorJson(String mensaje) {
+        return ResponseEntity.badRequest().body(Map.of("ok", false, "error", mensaje));
     }
 
     // El mensaje de la excepcion es la clave de traduccion: aqui se pasa al idioma del
