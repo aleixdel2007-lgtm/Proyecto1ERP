@@ -11,12 +11,11 @@ import java.security.SecureRandom;
 import java.util.Arrays;
 import java.util.Base64;
 
-// Traductor que JPA llama solo: los campos marcados con @Convert se cifran al entrar en
-// la base de datos y se descifran al salir, asi que el codigo de negocio siempre trabaja
-// con el NIF o el IBAN en claro y no sabe que esto existe.
+// Convertidor de JPA: cifra los campos marcados con @Convert al guardar y los descifra al leer
 @Converter
 public class CifradoAesConverter implements AttributeConverter<String, String> {
 
+    // Variable de entorno con la clave maestra
     private static final String VARIABLE_CLAVE = "LUDUSERP_AES_KEY";
     private static final String ALGORITMO = "AES/GCM/NoPadding";
     private static final int BYTES_IV = 12;
@@ -25,10 +24,8 @@ public class CifradoAesConverter implements AttributeConverter<String, String> {
 
     private static final SecureRandom ALEATORIO = new SecureRandom();
 
-    // Cifra al guardar. Genera un IV aleatorio nuevo en cada llamada y lo deja delante del
-    // texto cifrado, porque hace falta para descifrar y no es ningun secreto. Al cambiar el
-    // IV cada vez, el mismo NIF se guarda distinto, y por eso sobre esta columna no sirven
-    // ni UNIQUE ni las busquedas: de ahi que exista IndiceCiego con las columnas *_hash.
+    // Cifra al guardar con un IV aleatorio nuevo, por eso el mismo valor se guarda distinto cada vez
+    // (de ahi que existan las columnas *_hash de IndiceCiego para buscar y para UNIQUE)
     @Override
     public String convertToDatabaseColumn(String enClaro) {
         if (enClaro == null) {
@@ -42,18 +39,18 @@ public class CifradoAesConverter implements AttributeConverter<String, String> {
             cifrador.init(Cipher.ENCRYPT_MODE, clave(), new GCMParameterSpec(BITS_TAG, iv));
             byte[] cifrado = cifrador.doFinal(enClaro.getBytes(StandardCharsets.UTF_8));
 
+            // El IV va delante del cifrado: hace falta para descifrar y no es secreto
             byte[] salida = new byte[iv.length + cifrado.length];
             System.arraycopy(iv, 0, salida, 0, iv.length);
             System.arraycopy(cifrado, 0, salida, iv.length, cifrado.length);
             return Base64.getEncoder().encodeToString(salida);
         } catch (Exception e) {
-            // Se corta la operacion: nunca se guarda el valor sin cifrar
+            // Nunca se guarda el valor sin cifrar
             throw new IllegalStateException("No se ha podido cifrar el valor", e);
         }
     }
 
-    // Descifra al leer. Separa los 12 primeros bytes, que son el IV con el que se cifro este
-    // valor, y descifra el resto con la misma clave.
+    // Descifra al leer: los 12 primeros bytes son el IV y el resto el dato cifrado
     @Override
     public String convertToEntityAttribute(String cifrado) {
         if (cifrado == null) {
@@ -68,15 +65,12 @@ public class CifradoAesConverter implements AttributeConverter<String, String> {
             descifrador.init(Cipher.DECRYPT_MODE, clave(), new GCMParameterSpec(BITS_TAG, iv));
             return new String(descifrador.doFinal(datos), StandardCharsets.UTF_8);
         } catch (Exception e) {
-            // Falla si la clave no es la misma con la que se cifro, o si el dato se ha
-            // manipulado: GCM firma el cifrado y comprueba esa firma al descifrar
+            // Falla si la clave es otra o si el dato fue manipulado (GCM comprueba su firma)
             throw new IllegalStateException("No se ha podido descifrar el valor", e);
         }
     }
 
-    // Lee la clave maestra de la variable de entorno y comprueba que mida los 32 bytes de
-    // AES-256. Es la misma clave que usa IndiceCiego, y no esta en application.properties a
-    // proposito: no debe viajar en el repositorio.
+    // Lee la clave de la variable de entorno (no va en el repositorio) y comprueba que mida 32 bytes
     private static SecretKeySpec clave() {
         String valor = System.getenv(VARIABLE_CLAVE);
         if (valor == null || valor.isBlank()) {
