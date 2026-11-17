@@ -22,6 +22,7 @@ import service.interfaces.ClienteService;
 import service.interfaces.EmailService;
 import java.util.Map;
 import java.util.HashMap;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 
 /**
  *
@@ -39,6 +40,10 @@ public class ClienteServiceImpl implements ClienteService {
 
     @Autowired
     private dao.ImagenUsuarioDao imagenUsuarioDao;
+
+    // El cartero del lado del servidor: sirve para publicar mensajes en los canales /topic/...
+    @Autowired
+    private SimpMessagingTemplate mensajeria;
 
     @Override
     public Map<Long, String> listarImagenesPerfil(List<Cliente> clientes) {
@@ -125,6 +130,10 @@ public class ClienteServiceImpl implements ClienteService {
         }
         cliente.setFechaSolicitud(LocalDateTime.now());
         clienteDao.save(cliente);
+        
+        // Avisa en vivo a los gestores de clientes que tengan el panel abierto. Solo lleva un
+        // texto fijo: ningun dato del cliente viaja por el canal
+        mensajeria.convertAndSend("/topic/clientes", "solicitud-activacion");
     }
 
     @Override
