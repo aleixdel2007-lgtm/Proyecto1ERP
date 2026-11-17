@@ -368,3 +368,21 @@ textarea.inp{resize:vertical;min-height:84px;line-height:1.55}
 }
 .search-inp input{background:none;border:none;outline:none;color:var(--ink);width:190px}
 .search-inp svg{color:var(--muted);flex:0 0 auto}
+
+/* Campanita de avisos del panel */
+.campana{
+    position:relative;display:inline-flex;align-items:center;justify-content:center;
+    width:34px;height:34px;margin:0 10px 0 8px;border-radius:var(--r-sm);
+    color:var(--ink-2);
+}
+.campana:hover{background:var(--surface-2);color:var(--ink);text-decoration:none}
+.campana-num{
+    position:absolute;top:2px;right:0;min-width:16px;height:16px;padding:0 4px;
+    border-radius:8px;background:var(--crit);color:#fff;
+    font-size:10px;font-weight:600;line-height:16px;text-align:center;
+}
+.campana-num.vacio{display:none}
+
+/* La campana va entre el select y el bloque del usuario: el .who pegado a ella
+   no debe llevar margen automatico (lo lleva el select, que empuja todo a la derecha) */
+.campana + .who{margin-left:0}

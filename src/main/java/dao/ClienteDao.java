@@ -33,6 +33,11 @@ public interface ClienteDao extends JpaRepository<Cliente, Long> {
 
     @Query("select distinct c.pais from Cliente c where c.pais is not null order by c.pais")
     List<String> listarPaises();
-    
+
     Optional<Cliente> findByEmail(String email);
+
+    // Cuenta los clientes que han pedido activar su cuenta y siguen pendientes
+    // (fechaSolicitud rellena = hay una solicitud sin atender)
+    @Query("select count(c) from Cliente c where c.fechaSolicitud is not null")
+    long contarSolicitudesPendientes();
 }

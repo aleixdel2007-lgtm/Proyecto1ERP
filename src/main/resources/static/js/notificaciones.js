@@ -1,23 +1,35 @@
-// Avisos en tiempo real del panel (requisito 3.5). Abre el WebSocket contra /ws y se
-// suscribe a los canales para saber cuando pasa algo, sin recargar la pagina
+// Avisos en tiempo real del panel.
+// 1) Se conecta al servidor por WebSocket (puerta /ws)
+// 2) Se suscribe al canal que le toca segun la campanita que haya en la pagina
+// 3) Cuando llega un mensaje, suma 1 al numero de la campanita
 (function () {
+    const campana = document.getElementById('campana');
+    const numero = document.getElementById('campana-num');
 
-    // StompJs viene de stomp.umd.min.js, que se carga justo antes que este archivo
-    var cliente = new StompJs.Client({
-        // ws:// en http y wss:// en https; la misma direccion desde la que se ha cargado la pagina
-        brokerURL: (location.protocol === 'https:' ? 'wss://' : 'ws://') + location.host + '/ws',
-        // si se corta la conexion, lo vuelve a intentar cada 5 segundos
+    // Si esta pagina no tiene campanita (otro rol), no hacemos nada
+    if (!campana || !numero) {
+        return;
+    }
+
+    function sumarUno() {
+        const actual = parseInt(numero.textContent, 10) || 0;
+        numero.textContent = actual + 1;
+        numero.classList.remove('vacio');
+    }
+
+    const protocolo = location.protocol === 'https:' ? 'wss://' : 'ws://';
+
+    // "cliente" aqui es la conexion del navegador, no un Cliente de la tienda
+    const cliente = new StompJs.Client({
+        brokerURL: protocolo + location.host + '/ws',
         reconnectDelay: 5000
     });
 
-    // Se ejecuta cuando la conexion con el servidor ya esta abierta
     cliente.onConnect = function () {
         console.log('[avisos] conectado');
-
-        // Me apunto al canal /topic/clientes. Cada mensaje que el servidor publique ahi
-        // llega a esta funcion
         cliente.subscribe('/topic/clientes', function (mensaje) {
             console.log('[avisos] clientes:', mensaje.body);
+            sumarUno();
         });
     };
 
