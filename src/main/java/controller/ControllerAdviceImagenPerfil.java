@@ -10,7 +10,6 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 
 import java.security.Principal;
 
-// La navbar sale en casi todas las paginas, asi que la foto del usuario se pone en el modelo aqui
 @ControllerAdvice
 @RequiredArgsConstructor
 public class ControllerAdviceImagenPerfil {
@@ -19,13 +18,17 @@ public class ControllerAdviceImagenPerfil {
     private final ImagenUsuarioDao imagenUsuarioDao;
 
 
+    // Pone la foto del usuario en el modelo de todas las vistas, para la navbar
     @ModelAttribute("imagenPerfil")
     public ImagenUsuario imagenPerfil(Authentication authentication) {
 
+        // Sin sesion no hay foto
+        // Paginas publicas (login, registro): no hay usuario, luego no hay foto
         if (authentication == null || !authentication.isAuthenticated()) {
             return null;
         }
 
+        // Busca al usuario por email y luego su imagen por el mismo id
         return usuarioDao.findByEmail(authentication.getName())
                 .flatMap(u -> imagenUsuarioDao.findById(u.getId()))
                 .orElse(null);

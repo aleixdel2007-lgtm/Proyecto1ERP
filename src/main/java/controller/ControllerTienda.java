@@ -28,6 +28,7 @@ public class ControllerTienda {
     private final ValoracionService valoracionService;
     private final ClienteService clienteService;
 
+    // Las tres vistas del listado (catalogo, ofertas, colaboraciones) comparten filtros y plantilla
     @GetMapping
     public String listarCatalogo(
             @RequestParam(required = false) String texto,
@@ -76,6 +77,7 @@ public class ControllerTienda {
                 texto, categoriaId, plataformaId, precioMin, precioMax, orden, pagina);
     }
 
+    // Rellena el modelo del listado; "vista" y "ruta" dicen a la plantilla en cual de las tres esta
     private String cargarListado(Model model, String vista, String ruta, List<Videojuego> videojuegos,
                                  String texto, Long categoriaId, Long plataformaId,
                                  BigDecimal precioMin, BigDecimal precioMax, String orden, int pagina) {
@@ -88,6 +90,7 @@ public class ControllerTienda {
         model.addAttribute("categorias", tiendaService.listarCategorias());
         model.addAttribute("plataformas", tiendaService.listarPlataformas());
 
+        // Filtros y pagina de vuelta, para que sigan marcados
         model.addAttribute("texto", texto);
         model.addAttribute("categoriaId", categoriaId);
         model.addAttribute("plataformaId", plataformaId);
@@ -99,20 +102,25 @@ public class ControllerTienda {
         return "client/tienda";
     }
 
+    // Ficha de un juego publicado, con sus resenas e imagenes
     @GetMapping("/juego/{id}")
     public String verFicha(@PathVariable Long id, Model model, Authentication authentication) {
 
+        // Solo juegos publicados: uno inactivo da error como si no existiera
         Videojuego videojuego = tiendaService.buscarVideojuegoActivoXId(id);
 
         model.addAttribute("videojuego", videojuego);
         model.addAttribute("vistaPrevia", false);
+        // Decide la pestana activa del menu: un juego de colaborador cuenta como colaboracion
         model.addAttribute("vista", videojuego.getColaborador() != null ? "colaboraciones" : "catalogo");
         List<Valoracion> valoraciones = valoracionService.listarVisiblesPorVideojuego(id);
         model.addAttribute("valoraciones", valoraciones);
-        // id de cliente -> ruta de su foto; quien no tiene foto no sale y la vista pinta la inicial
+        // Id de cliente -> foto; quien no tiene foto no sale y la vista pinta la inicial
         model.addAttribute("fotosResenas", clienteService.listarImagenesPerfil(
                 valoraciones.stream().map(Valoracion::getCliente).distinct().toList()));
+        // Si hay ZIP subido se muestra el boton de descarga
         model.addAttribute("tieneDescarga", tiendaService.tieneDescarga(id));
+        // Si ya valoro, se oculta el formulario de resena
         model.addAttribute("yaValorado", valoracionService.haValorado(authentication.getName(), id));
 
         cargarImagenes(model, id);
@@ -120,6 +128,7 @@ public class ControllerTienda {
         return "client/ficha";
     }
 
+    // Reparte las imagenes del juego por tipo: una portada, un banner y varias capturas
     private void cargarImagenes(Model model, Long id) {
 
         ImagenVideojuego portada = null;

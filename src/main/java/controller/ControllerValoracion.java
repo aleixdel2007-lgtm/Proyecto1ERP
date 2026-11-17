@@ -23,10 +23,7 @@ public class ControllerValoracion {
     @Autowired
     private MessageSource messageSource;
 
-    // Las dos excepciones que puede soltar el servicio llevan @ResponseStatus (400 y 409), asi
-    // que sin capturarlas el cliente acaba en la Whitelabel Error Page y se sale de la tienda:
-    // solo hay plantilla para 403, 404 y 500. Se atrapan aqui y se vuelve a la ficha con el
-    // aviso traducido, igual que hace ControllerCesta al anadir un juego
+    // Las excepciones se capturan para no acabar en la pagina de error y volver a la ficha con el aviso
     @PostMapping("/guardar")
     public String guardar(@RequestParam Long videojuegoId,
                           @RequestParam String titulo,
@@ -37,18 +34,18 @@ public class ControllerValoracion {
                           Locale locale) {
 
         try {
+            // El cliente sale de la sesion; el servicio comprueba que no haya valorado ya este juego
             valoracionService.crear(authentication.getName(), videojuegoId, titulo, descripcion, puntuacion);
 
         } catch (ValoracionInvalidaException | ValoracionDuplicadaException e) {
-            // El mensaje de la excepcion ES la clave de traduccion, no el texto
+            // El mensaje de la excepcion es la clave de traduccion, no el texto
             flash.addFlashAttribute("error", traducir(e.getMessage(), locale));
         }
 
         return "redirect:/tienda/juego/" + videojuegoId;
     }
 
-    // Las excepciones y los avisos llevan una clave de traduccion, no el texto: aqui se
-    // convierte al idioma del usuario. Si la clave no existe se ensena la propia clave.
+    // Convierte una clave i18n al idioma del usuario; si no existe devuelve la propia clave
     private String traducir(String clave, Locale locale, Object... args) {
         return messageSource.getMessage(clave, args, clave, locale);
     }

@@ -28,6 +28,7 @@ public class ControllerColaborador {
     @Autowired
     private MessageSource messageSource;
 
+    // Listado de colaboradores para el admin, filtrable por texto y estado
     @GetMapping("/admin/colaboradores")
     public String listarColaboradores(
             @RequestParam(required = false) String texto,
@@ -35,12 +36,14 @@ public class ControllerColaborador {
             @RequestParam(defaultValue = "0") int pagina,
             Model model) {
 
+        // Cada filtro vacio (null) se ignora en el servicio
         List<Colaborador> lista = colaboradorService.listarColaboradores(texto, activo);
 
         model.addAttribute("colaboradores", lista);
         model.addAttribute("fotos", colaboradorService.listarImagenesPerfil(lista));
         model.addAttribute("juegos", colaboradorService.contarJuegos());
 
+        // Filtros y pagina de vuelta, para que sigan marcados
         model.addAttribute("texto", texto);
         model.addAttribute("activo", activo);
         model.addAttribute("pagina", Math.max(0, pagina));
@@ -66,6 +69,7 @@ public class ControllerColaborador {
         return "admin/formularioEditarCol";
     }
 
+    // Sirve para crear y para editar: sin id es un colaborador nuevo
     @PostMapping("/admin/colaboradores/guardar")
     public String guardarColaborador(
             @ModelAttribute("colaborador") Colaborador colaborador,
@@ -78,10 +82,12 @@ public class ControllerColaborador {
         Colaborador guardado;
 
         try {
+            // Se guarda primero la ficha: la foto necesita el id del colaborador
             guardado = colaboradorService.guardarColaborador(colaborador, password);
 
         } catch (EmailDuplicadoException | IllegalArgumentException e) {
 
+            // Se vuelve al formulario con el error, el que corresponda segun sea alta o edicion
             model.addAttribute("error", traducir(e, locale));
 
             if (colaborador.getId() == null) {
@@ -96,6 +102,7 @@ public class ControllerColaborador {
             return "admin/formularioEditarCol";
         }
 
+        // La foto es opcional y se guarda aparte: si falla, el colaborador ya esta guardado
         if (foto != null && !foto.isEmpty()) {
 
             try {
@@ -121,6 +128,7 @@ public class ControllerColaborador {
             colaboradorService.eliminarColaborador(id);
 
         } catch (ColaboradorConJuegosException e) {
+            // No se borra un colaborador que tiene juegos publicados
             flash.addFlashAttribute("error", traducir(e, locale));
             return "redirect:/admin/colaboradores";
         }
@@ -130,6 +138,7 @@ public class ControllerColaborador {
         return "redirect:/admin/colaboradores";
     }
 
+    // El mensaje de la excepcion es una clave i18n: se traduce al idioma del usuario
     private String traducir(RuntimeException e, Locale locale) {
         return messageSource.getMessage(e.getMessage(), null, e.getMessage(), locale);
     }

@@ -25,7 +25,7 @@ public class ControllerClaveLicencia {
     private final ClaveLicenciaService claveLicenciaService;
     private final MessageSource messageSource;
 
-    // El listado del panel, con los tres filtros y los cuatro contadores de la cabecera
+    // Listado con tres filtros y un contador por estado
     @GetMapping("/claves")
     public String listarClaves(
             @RequestParam(required = false) String codigo,
@@ -40,11 +40,13 @@ public class ControllerClaveLicencia {
         model.addAttribute("videojuegos", claveLicenciaService.listarVideojuegos());
         model.addAttribute("estados", EstadoClave.values());
 
+        // Contadores de la cabecera
         model.addAttribute("disponibles", claveLicenciaService.contarPorEstado(EstadoClave.DISPONIBLE));
         model.addAttribute("reservadas", claveLicenciaService.contarPorEstado(EstadoClave.RESERVADA));
         model.addAttribute("vendidas", claveLicenciaService.contarPorEstado(EstadoClave.VENDIDA));
         model.addAttribute("anuladas", claveLicenciaService.contarPorEstado(EstadoClave.ANULADA));
 
+        // Filtros y pagina de vuelta, para que sigan marcados
         model.addAttribute("codigo", codigo);
         model.addAttribute("videojuegoId", videojuegoId);
         model.addAttribute("estado", estado);
@@ -53,7 +55,7 @@ public class ControllerClaveLicencia {
         return "inventario/claves";
     }
 
-    // La pantalla que pide el motivo antes de anular
+    // Pantalla que pide el motivo antes de anular
     @GetMapping("/claves/{id}/anular")
     public String formularioAnular(@PathVariable Long id, Model model) {
 
@@ -62,7 +64,6 @@ public class ControllerClaveLicencia {
         return "inventario/anularClave";
     }
 
-    // Anula de verdad. Quien decide si se puede es el servicio, no este metodo
     @PostMapping("/claves/{id}/anular")
     public String anularClave(@PathVariable Long id,
                               @RequestParam(required = false) String motivo,
@@ -70,16 +71,17 @@ public class ControllerClaveLicencia {
                               Locale locale) {
 
         try {
+            // El servicio solo deja anular claves DISPONIBLES y exige un motivo
             claveLicenciaService.anularClave(id, motivo);
 
         } catch (ClaveNoAnulableException e) {
-            // La clave ya no esta DISPONIBLE: volver al formulario no arregla nada
+            // La clave ya no esta disponible: volver al formulario no lo arregla, se va al listado
             flash.addFlashAttribute("error", messageSource.getMessage(e.getMessage(),
                     new Object[]{e.getEstado()}, e.getMessage(), locale));
             return "redirect:/inventario/claves";
 
         } catch (IllegalArgumentException e) {
-            // Esto si lo puede arreglar quien lo escribio, asi que se le devuelve la pantalla
+            // Dato mal escrito (motivo): se vuelve al formulario para corregirlo
             flash.addFlashAttribute("error", traducir(e, locale));
             return "redirect:/inventario/claves/{id}/anular";
         }
@@ -89,6 +91,7 @@ public class ControllerClaveLicencia {
         return "redirect:/inventario/claves";
     }
 
+    // El mensaje de la excepcion es una clave i18n: se traduce al idioma del usuario
     private String traducir(RuntimeException e, Locale locale) {
         return messageSource.getMessage(e.getMessage(), null, e.getMessage(), locale);
     }

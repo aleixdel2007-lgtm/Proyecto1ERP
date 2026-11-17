@@ -32,6 +32,7 @@ public class ControllerLogin {
     private final ClienteService clienteService;
     private final MessageSource messageSource;
 
+    // Con sesion va al home; sin ella, al login
     @GetMapping("/")
     public String index() {
         if (SecurityContextHolder.getContext().getAuthentication() != null) {
@@ -58,12 +59,14 @@ public class ControllerLogin {
             @RequestParam(required = false) LocalDate fechaNacimiento,
             @RequestParam(required = false) String aceptaCondiciones,
             Model model, Locale locale) {
+        // El correo se guarda siempre en minusculas y sin espacios
         String correo = email.trim().toLowerCase();
 
         try {
+            // Primera comprobacion: que el correo no este ya registrado
             clienteService.comprobarCorreoLibre(correo);
         } catch (CorreoYaRegistradoException e) {
-            // devolvemos el formulario sin redirect para no perder lo que escribio (las contraseñas no se devuelven)
+            // Se devuelve el formulario sin redirect para conservar lo escrito (menos las contrasenas)
             model.addAttribute("errorEmail", messageSource.getMessage(e.getMessage(), null, e.getMessage(), locale));
             model.addAttribute("nombre", nombre);
             model.addAttribute("apellidos", apellidos);
@@ -73,6 +76,7 @@ public class ControllerLogin {
             model.addAttribute("fechaNacimiento", fechaNacimiento);
             return "login/crearCuenta";
         }
+        // Validacion del servidor: no se fia de lo que haya comprobado el navegador
         boolean valido = aceptaCondiciones != null
                 && !nombre.isBlank() && !apellidos.isBlank()
                 && password.equals(repetirPassword)
@@ -82,10 +86,12 @@ public class ControllerLogin {
             return "redirect:/registro?error";
         }
 
+        // Todo correcto: se crea el cliente con los datos ya limpios
         Cliente cliente = new Cliente();
         cliente.setNombre(nombre.trim());
         cliente.setApellidos(apellidos.trim());
         cliente.setEmail(correo);
+        // La contrasena se guarda cifrada, nunca en claro
         cliente.setPasswordHash(codificador.encode(password));
         cliente.setPais(pais == null || pais.isBlank() ? null : pais);
         cliente.setFechaNacimiento(fechaNacimiento);

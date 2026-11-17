@@ -45,16 +45,18 @@ public class ControllerHome {
             usuario = usuarioService.buscarUsuarioXEmail(authentication.getName());
 
         } catch (UsuarioNoEncontradoException e) {
-            // Sesion de un usuario que ya no existe en la base de datos: a iniciar sesion de nuevo
+            // La sesion es de un usuario que ya no existe: a iniciar sesion de nuevo
             return "redirect:/login";
         }
 
         model.addAttribute("usuario", usuario);
+        // Solo los clientes tienen los datos extra del perfil
         model.addAttribute("cliente", usuario instanceof Cliente c ? c : null);
         model.addAttribute("imagen", usuarioService.buscarImagenPerfil(usuario.getId()));
         return "clients/configuracionUsuario";
     }
 
+    // Guarda los datos personales; cada bloque del perfil tiene su propio aviso
     @PostMapping("/user/profile")
     public String guardarPerfil(Authentication authentication,
             @RequestParam String nombre,
@@ -67,6 +69,7 @@ public class ControllerHome {
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaNacimiento,
             RedirectAttributes flash, Locale locale) {
 
+        // El usuario sale de la sesion: nadie puede editar el perfil de otro cambiando un id
         Usuario usuario = usuarioService.buscarUsuarioXEmail(authentication.getName());
 
         try {
@@ -89,9 +92,11 @@ public class ControllerHome {
             @RequestParam(value = "textoAlternativo", required = false) String textoAlternativo,
             RedirectAttributes flash, Locale locale) {
 
+        // El usuario sale de la sesion, igual que al guardar los datos
         Usuario usuario = usuarioService.buscarUsuarioXEmail(authentication.getName());
 
         try {
+            // El servicio lanza ImagenInvalidaException si la imagen no es valida
             usuarioService.guardarImagenPerfil(usuario.getId(), archivo, textoAlternativo);
         } catch (ImagenInvalidaException e) {
             flash.addFlashAttribute("errorImagen", traducir(e.getMessage(), locale));
@@ -103,8 +108,7 @@ public class ControllerHome {
         return "redirect:/user/profile";
     }
 
-    // Las validaciones y los avisos llevan la clave de traduccion, no el texto: aqui se
-    // pasa al idioma del usuario. Si la clave no existiera se ensena la propia clave.
+    // Convierte una clave i18n al idioma del usuario; si no existe devuelve la propia clave
     private String traducir(String clave, Locale locale) {
         return messageSource.getMessage(clave, null, clave, locale);
     }
