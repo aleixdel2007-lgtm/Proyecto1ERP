@@ -31,11 +31,13 @@ public class ControllerEmpleado {
     @Autowired
     private MessageSource messageSource;
 
+    // Roles asignables a un empleado, disponibles en todas las vistas de este controlador
     @ModelAttribute("rolesDisponibles")
     public Rol[] rolesDisponibles() {
         return new Rol[]{Rol.GESTOR_PRODUCTOS, Rol.GESTOR_CLIENTES, Rol.GESTOR_INVENTARIO, Rol.ADMIN};
     }
 
+    // Listado filtrable por texto, departamento y rol
     @GetMapping("/empleados")
     public String listarEmpleados(
             @RequestParam(required = false) String texto,
@@ -44,11 +46,13 @@ public class ControllerEmpleado {
             @RequestParam(defaultValue = "0") int pagina,
             Model model) {
 
+        // Cada filtro vacio (null) se ignora en el servicio
         List<Empleado> lista = empleadoService.listarEmpleados(texto, departamentoId, rol);
         model.addAttribute("empleados", lista);
         model.addAttribute("fotos", empleadoService.listarImagenesPerfil(lista));
         model.addAttribute("departamentos", empleadoService.listarDepartamentos());
 
+        // Filtros y pagina de vuelta, para que sigan marcados
         model.addAttribute("texto", texto);
         model.addAttribute("departamentoId", departamentoId);
         model.addAttribute("rol", rol);
@@ -82,6 +86,7 @@ public class ControllerEmpleado {
         return "empleados/formularioEditarEmp";
     }
 
+    // Sirve para crear y para editar: sin id es un empleado nuevo
     @PostMapping("/empleados/guardar")
     public String guardarEmpleado(
             @ModelAttribute("empleado") Empleado empleado,
@@ -95,10 +100,12 @@ public class ControllerEmpleado {
         Empleado guardado;
 
         try {
+            // Se guarda primero la ficha: la foto necesita el id del empleado
             guardado = empleadoService.guardarEmpleado(empleado, departamentoId, password);
 
         } catch (EmailDuplicadoException | NifDuplicadoException | IllegalArgumentException e) {
 
+            // Se vuelve al formulario con el error, el que corresponda segun sea alta o edicion
             model.addAttribute("error", traducir(e, locale));
             model.addAttribute("departamentos", empleadoService.listarDepartamentos());
 
@@ -111,6 +118,7 @@ public class ControllerEmpleado {
             return "empleados/formularioEditarEmp";
         }
 
+        // La foto es opcional y se guarda aparte: si falla, el empleado ya esta guardado
         if (foto != null && !foto.isEmpty()) {
 
             try {
@@ -136,6 +144,7 @@ public class ControllerEmpleado {
             empleadoService.eliminarEmpleado(id);
 
         } catch (EmpleadoConReferenciasException e) {
+            // No se borra un empleado que aparece en otros registros
             flash.addFlashAttribute("error", traducir(e, locale));
             return "redirect:/empleados";
         }
@@ -145,6 +154,7 @@ public class ControllerEmpleado {
         return "redirect:/empleados";
     }
 
+    // El mensaje de la excepcion es una clave i18n: se traduce al idioma del usuario
     private String traducir(RuntimeException e, Locale locale) {
         return messageSource.getMessage(e.getMessage(), null, e.getMessage(), locale);
     }

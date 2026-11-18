@@ -27,6 +27,7 @@ public class ControllerProveedor {
     private final ProveedorService proveedorService;
     private final MessageSource messageSource;
 
+    // Listado filtrable por texto, pais y estado
     @GetMapping
     public String listarProveedores(
             @RequestParam(required = false) String texto,
@@ -38,6 +39,7 @@ public class ControllerProveedor {
         model.addAttribute("proveedores", proveedorService.listarProveedores(texto, pais, activo));
         model.addAttribute("paises", proveedorService.listarPaises());
 
+        // Filtros y pagina de vuelta, para que sigan marcados
         model.addAttribute("texto", texto);
         model.addAttribute("pais", pais);
         model.addAttribute("activo", activo);
@@ -46,6 +48,7 @@ public class ControllerProveedor {
         return "compras/proveedores";
     }
 
+    // Alta y edicion comparten la misma vista
     @GetMapping("/nuevo")
     public String nuevoProveedor(Model model) {
         model.addAttribute("proveedor", new Proveedor());
@@ -58,14 +61,17 @@ public class ControllerProveedor {
         return "compras/proveedor";
     }
 
+    // Sirve para crear y para editar: sin id es un proveedor nuevo
     @PostMapping
     public String guardarProveedor(@ModelAttribute("proveedor") Proveedor proveedor,
                                    Model model, RedirectAttributes flash, Locale locale) {
 
         try {
+            // El servicio valida el formato del CIF y que no este repetido
             proveedorService.guardarProveedor(proveedor);
 
         } catch (CifInvalidoException | CifDuplicadoException e) {
+            // Se vuelve al formulario con el error
             model.addAttribute("error", traducir(e, locale));
             return "compras/proveedor";
         }
@@ -82,6 +88,7 @@ public class ControllerProveedor {
             proveedorService.eliminarProveedor(id);
 
         } catch (ProveedorConReferenciasException e) {
+            // No se borra un proveedor que tiene ordenes de compra
             flash.addFlashAttribute("error", traducir(e, locale));
             return "redirect:/compras/proveedores";
         }
@@ -91,6 +98,7 @@ public class ControllerProveedor {
         return "redirect:/compras/proveedores";
     }
 
+    // El mensaje de la excepcion es una clave i18n: se traduce al idioma del usuario
     private String traducir(RuntimeException e, Locale locale) {
         return messageSource.getMessage(e.getMessage(), null, e.getMessage(), locale);
     }

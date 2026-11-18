@@ -18,14 +18,16 @@ public class ControllerAdviceNotificaciones {
     private final ClienteService clienteService;
     private final VideojuegoService videojuegoService;
 
-    // Solicitudes de activacion de cuenta pendientes (campana del gestor de clientes)
+    // Numero de la campanita al cargar la pagina, leido de la BD
+    // (solicitudes de activacion de cuenta pendientes)
     @ModelAttribute("pendientesClientes")
     public long pendientesClientes(Authentication authentication) {
         return tieneRol(authentication, "GESTOR_CLIENTES")
                 ? clienteService.contarSolicitudesPendientes() : 0;
     }
 
-    // Juegos de colaboradores pendientes de revision (campana del gestor de productos)
+    // Numero de la campanita al cargar la pagina, leido de la BD
+    // (juegos de colaboradores pendientes de revision)
     @ModelAttribute("pendientesJuegos")
     public long pendientesJuegos(Authentication authentication) {
         return tieneRol(authentication, "GESTOR_PRODUCTOS")
@@ -39,6 +41,7 @@ public class ControllerAdviceNotificaciones {
             return false;
         }
 
+        // Solo el gestor de ese aviso y el admin pueden verlo
         return authentication.getAuthorities().stream()
                 .anyMatch(a -> a.getAuthority().equals("ROLE_" + rol)
                             || a.getAuthority().equals("ROLE_ADMIN"));

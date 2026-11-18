@@ -23,32 +23,30 @@ public class ControllerBiblioteca {
 
     private final BibliotecaService bibliotecaService;
 
+    // Juegos que ha comprado el usuario, con su portada y su version descargable
     @GetMapping("/biblioteca")
     public String verBiblioteca(Authentication authentication, Model model) {
 
+        // Solo las claves vendidas al usuario de la sesion
         List<ClaveLicencia> claves = bibliotecaService.listarBiblioteca(authentication.getName());
 
         model.addAttribute("claves", claves);
+        // Portada y version descargable de cada juego, para pintar su tarjeta
         model.addAttribute("portadas", bibliotecaService.listarPortadas(claves));
         model.addAttribute("versiones", bibliotecaService.listarVersionesActivas(claves));
 
         return "client/biblioteca";
     }
 
+    // Sirve el ZIP del juego
     @GetMapping("/descargar/{id}")
     public ResponseEntity<Resource> descargarJuego(@PathVariable Long id,
                                                    Authentication authentication) {
 
-        // Quien puede bajarse esto lo decide el servicio, no este metodo: si el juego no es
-        // gratis y no tienes una clave VENDIDA suya, prepararDescarga lanza y aqui no se
-        // llega. El email sale de la sesion y nunca de la URL, asi que nadie se baja lo de otro
+        // El servicio decide si puede bajarlo (gratis o clave vendida); el email sale de la sesion
         ArchivoDescarga archivo = bibliotecaService.prepararDescarga(authentication.getName(), id);
 
-        // Esta respuesta no es una pagina: es el archivo. attachment hace que el navegador lo
-        // guarde en vez de intentar abrirlo, y el filename es el nombre con el que lo subio el
-        // estudio, no el UUID con el que vive en el disco. El octet-stream evita que nada
-        // intente interpretar el contenido, el contentLength es lo que pinta la barra de
-        // progreso, y el cuerpo es el archivo leido del disco a trozos: nunca entero en memoria
+        // attachment fuerza guardar; contentLength pinta la barra de progreso del navegador
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION,
                         "attachment; filename=\"" + archivo.nombreArchivo() + "\"")

@@ -27,15 +27,19 @@ public class ControllerCategoria {
     @Autowired
     private MessageSource messageSource;
 
+    // Listado con buscador y paginacion
     @GetMapping("/catalogo/categorias")
     public String listarCategorias(
             @RequestParam(required = false) String texto,
             @RequestParam(defaultValue = "0") int pagina,
             Model model) {
 
+        // El filtro por texto lo aplica el servicio; la paginacion la hace la plantilla
         model.addAttribute("categorias", categoriaService.listarCategorias(texto));
+        // Total de juegos por categoria, para la columna del listado
         model.addAttribute("juegos", categoriaService.contarJuegos());
 
+        // Se devuelven para que el filtro y la pagina sigan marcados
         model.addAttribute("texto", texto);
         model.addAttribute("pagina", Math.max(0, pagina));
 
@@ -54,11 +58,13 @@ public class ControllerCategoria {
     public String editarCategoria(@PathVariable Long id, Model model) {
 
         model.addAttribute("categoria", categoriaService.buscarCategoriaXId(id));
+        // Para avisar en el formulario de cuantos juegos usan esta categoria
         model.addAttribute("juegosAsignados", categoriaService.contarJuegosXCategoria(id));
 
         return "catalogo/formularioEditarCat";
     }
 
+    // Sirve para crear y para editar: sin id es una categoria nueva
     @PostMapping("/catalogo/categorias/guardar")
     public String guardarCategoria(
             @ModelAttribute("categoria") Categoria categoria,
@@ -67,11 +73,13 @@ public class ControllerCategoria {
             Locale locale) {
 
         try {
+            // El servicio valida que el codigo y el nombre no esten repetidos
             categoriaService.guardarCategoria(categoria);
 
         } catch (CodigoCategoriaDuplicadoException | NombreCategoriaDuplicadoException
                 | IllegalArgumentException e) {
 
+            // Se vuelve al formulario con el error, el que corresponda segun sea alta o edicion
             model.addAttribute("error", traducir(e, locale));
 
             if (categoria.getId() == null) {
@@ -84,6 +92,7 @@ public class ControllerCategoria {
             return "catalogo/formularioEditarCat";
         }
 
+        // El flash sobrevive al redirect, el Model no
         flash.addFlashAttribute("mensaje", messageSource.getMessage("categorias.ok.guardada", null, locale));
 
         return "redirect:/catalogo/categorias";
@@ -97,6 +106,7 @@ public class ControllerCategoria {
             categoriaService.eliminarCategoria(id);
 
         } catch (CategoriaConJuegosException e) {
+            // No se borra una categoria que aun tiene juegos
             flash.addFlashAttribute("error", traducir(e, locale));
             return "redirect:/catalogo/categorias";
         }
@@ -106,6 +116,7 @@ public class ControllerCategoria {
         return "redirect:/catalogo/categorias";
     }
 
+    // El mensaje de la excepcion es una clave i18n: se traduce al idioma del usuario
     private String traducir(RuntimeException e, Locale locale) {
         return messageSource.getMessage(e.getMessage(), null, e.getMessage(), locale);
     }

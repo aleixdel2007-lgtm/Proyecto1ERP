@@ -26,39 +26,30 @@ import org.springframework.web.multipart.MultipartFile;
 @Component
 public class AlmacenArchivos {
 
-    // Prefijo con el que WebConfig sirve lo que hay en disco, y con el que empieza
-    // todo lo que se guarda en imagen_videojuego.ruta
+    // Prefijo web con el que WebConfig sirve lo que hay en disco
     private static final String RAIZ_WEB = "/uploads/";
-    // Carpeta que agrupa las de cada juego, dentro de app.uploads.dir
     private static final String CARPETA_VIDEOJUEGOS = "videojuegos";
-    // Carpeta de las fotos de perfil, la misma que ya usaba ControllerHome
     private static final String CARPETA_PERFILES = "perfiles";
-    // Lo unico que se admite subir. El tipo lo declara el navegador, asi que esto es un
-    // filtro de cortesia, no una garantia: lo que de verdad protege es que el nombre del
-    // archivo lo pone un UUID y nunca el que venga de fuera
+    // Tipos de imagen admitidos; el tipo lo declara el navegador, el nombre en disco siempre es un UUID
     private static final Map<String, String> EXTENSIONES = Map.of(
             "image/png", "png", "image/jpeg", "jpg", "image/webp", "webp");
-    // Corte del slug. Windows no admite rutas de mas de 260 caracteres y el titulo
-    // puede medir 150, asi que sin el corte una ruta larga no se podria crear
+    // Corte del slug para no pasar el limite de 260 caracteres de ruta de Windows
     private static final int LARGO_SLUG = 40;
-    // Para los titulos de los que no sale ni una letra ni un numero utilizables
     private static final String SLUG_POR_DEFECTO = "juego";
 
-    // Carpeta raiz de las subidas, de application.properties. Es relativa al proyecto
+    // Carpeta de imagenes, relativa al proyecto (application.properties)
     @Value("${app.uploads.dir}")
     private String uploadsDir;
 
-    // Lo que queda apuntado de un ZIP guardado: lo que hay que meter en version_juego
+    // Datos de un ZIP guardado, para la fila de version_juego
     public record ZipGuardado(String nombreArchivo, String ruta, long tamanoBytes, String sha256) {
     }
 
-    // Carpeta de los ZIP, FUERA de app.uploads.dir: WebConfig sirve todo lo que cuelga de
-    // /uploads/, asi que un ZIP ahi lo podria bajar cualquiera sin haber comprado el juego
+    // Carpeta de los ZIP, fuera de uploads para que no se sirvan como recurso publico
     @Value("${app.juegos.dir}")
     private String juegosDir;
 
-    // Comprueba que lo subido parece un ZIP de verdad. La extension y el tipo los declara el
-    // navegador, asi que lo que cuenta es la firma: todo ZIP con contenido empieza por PK\3\4
+    // Comprueba que es un ZIP de verdad mirando su firma, no la extension ni el tipo
     public void validarZip(MultipartFile zip) {
 
         if (zip == null || zip.isEmpty()) {
@@ -75,6 +66,7 @@ public class AlmacenArchivos {
 
         try (InputStream in = zip.getInputStream()) {
 
+            // Todo ZIP con contenido empieza por PK\3\4
             if (in.readNBytes(firma, 0, 4) < 4
                     || firma[0] != 'P' || firma[1] != 'K' || firma[2] != 3 || firma[3] != 4) {
                 throw new IllegalArgumentException("juegos.error.zipInvalido");
@@ -85,18 +77,18 @@ public class AlmacenArchivos {
         }
     }
 
-    // Guarda el ZIP en juegos-privados/<id del juego>/ y calcula el tamano y el SHA-256 al
-    // mismo tiempo que lo copia, sin leer el archivo dos veces. El nombre en disco lo pone
-    // un UUID; el que traia el cliente solo se guarda para mostrarlo
+    // Guarda el ZIP en <juegos>/<id del juego>/<uuid>.zip y calcula el SHA-256 mientras lo copia
     public ZipGuardado guardarZip(Long videojuegoId, MultipartFile zip) {
 
         Path carpeta = raizJuegos().resolve(String.valueOf(videojuegoId));
+        // El nombre en disco es un UUID; el original solo se guarda para mostrarlo
         String nombreDisco = UUID.randomUUID() + ".zip";
 
         try {
             Files.createDirectories(carpeta);
             MessageDigest sha = MessageDigest.getInstance("SHA-256");
 
+            // El DigestInputStream va calculando el hash segun se lee, sin segunda pasada
             try (InputStream in = new DigestInputStream(zip.getInputStream(), sha)) {
                 Files.copy(in, carpeta.resolve(nombreDisco));
             }
@@ -109,26 +101,20 @@ public class AlmacenArchivos {
         }
     }
 
-    // Abre para lectura el ZIP que tiene apuntado una version del juego, a partir de la
-    // ruta relativa que se guardo en version_juego.ruta_archivo. Devuelve un Resource y no
-    // los bytes: un ZIP puede pesar un giga y no tiene por que cabe en memoria para servirlo.
-    // Quien puede bajarselo NO se decide aqui, eso es cosa del servicio: aqui solo se
-    // comprueba que la ruta es de fiar y que el archivo sigue estando
+    // Abre el ZIP de una version para servirlo; quien puede bajarlo lo decide el servicio
     public Resource leerZip(String rutaArchivo) {
 
         Path archivo = rutaDeZip(rutaArchivo);
 
-        // Ruta que no pasa la comprobacion o archivo que ya no esta en el disco: para el
-        // cliente es lo mismo, no hay nada que descargar
+        // Ruta no valida o archivo borrado: para el cliente es lo mismo
         if (archivo == null || !Files.isRegularFile(archivo)) {
             throw new DescargaNoDisponibleException();
         }
+        // Resource en vez de bytes: un ZIP puede pesar un giga y no debe cargarse en memoria
         return new FileSystemResource(archivo);
     }
 
-    // El gemelo de rutaDeDisco para los ZIP. La ruta guardada es relativa a juegos-privados
-    // ("<id del juego>/<uuid>.zip"), no una ruta web, porque estos archivos no se sirven
-    // como recurso: los sirve un controlador
+    // Convierte la ruta guardada en la BD en ruta de disco, o null si no es de fiar
     private Path rutaDeZip(String rutaArchivo) {
 
         if (rutaArchivo == null || rutaArchivo.isBlank()) {
@@ -136,20 +122,17 @@ public class AlmacenArchivos {
         }
 
         Path base = raizJuegos();
-        // normalize resuelve los .. que pudiera traer la ruta, y resolve se traga una ruta
-        // absoluta entera si se la dan: las dos cosas las caza el startsWith de abajo
+        // normalize resuelve los ".." de la ruta
         Path archivo = base.resolve(rutaArchivo).normalize();
 
-        // La comprobacion que cuenta: despues de normalizar, el archivo tiene que seguir
-        // dentro de juegos-privados. Sin ella, una ruta con .. en la base de datos serviria
-        // cualquier archivo del disco a quien pidiera la descarga
+        // Tras normalizar debe seguir dentro de la carpeta de juegos; si no, se podria servir cualquier archivo
         if (!archivo.startsWith(base)) {
             return null;
         }
         return archivo;
     }
 
-    // Borra todos los ZIP de un juego. Se usa si falla el guardado a medias
+    // Borra todos los ZIP de un juego; se usa si el guardado falla a medias
     public void borrarZips(Long videojuegoId) {
 
         Path carpeta = raizJuegos().resolve(String.valueOf(videojuegoId));
@@ -160,6 +143,7 @@ public class AlmacenArchivos {
 
         try (Stream<Path> contenido = Files.walk(carpeta)) {
 
+            // Orden inverso: los archivos antes que la carpeta que los contiene
             for (Path ruta : contenido.sorted(Comparator.reverseOrder()).toList()) {
                 Files.deleteIfExists(ruta);
             }
@@ -169,6 +153,7 @@ public class AlmacenArchivos {
         }
     }
 
+    // Borra un solo ZIP a partir de su ruta relativa
     public void borrarZip(String rutaArchivo) {
 
         if (rutaArchivo == null || rutaArchivo.isBlank()) {
@@ -177,6 +162,7 @@ public class AlmacenArchivos {
 
         Path archivo = raizJuegos().resolve(rutaArchivo).normalize();
 
+        // Nunca se borra nada fuera de la carpeta de juegos
         if (!archivo.startsWith(raizJuegos())) {
             throw new IllegalArgumentException("Ruta de ZIP fuera de la carpeta de juegos");
         }
@@ -189,23 +175,21 @@ public class AlmacenArchivos {
         }
     }
 
-    // Solo el nombre, sin carpetas (Internet Explorer manda la ruta entera), y cortado a la
-    // longitud de la columna
+    // Deja solo el nombre del archivo, sin carpetas y sin caracteres peligrosos
     private String nombreVisible(String original) {
 
         String nombre = original == null ? "juego.zip" : original;
+        // Algunos navegadores mandan la ruta entera: se queda lo que hay tras la ultima barra
         nombre = nombre.substring(Math.max(nombre.lastIndexOf('/'), nombre.lastIndexOf('\\')) + 1);
 
-        // Fuera las comillas y los caracteres de control. Este nombre acaba dentro de la
-        // cabecera Content-Disposition cuando alguien descarga el juego, y una comilla ahi
-        // la partiria en dos. Se limpia al entrar, una vez, en vez de escaparlo en cada sitio
-        // por el que salga
+        // Este nombre acaba en la cabecera Content-Disposition: una comilla la partiria
         nombre = nombre.replaceAll("[\\p{Cntrl}\"]", "").trim();
 
         if (nombre.isBlank()) {
             nombre = "juego.zip";
         }
 
+        // 255 es el largo de la columna
         return nombre.length() > 255 ? nombre.substring(nombre.length() - 255) : nombre;
     }
 
@@ -213,30 +197,25 @@ public class AlmacenArchivos {
         return Path.of(juegosDir).toAbsolutePath().normalize();
     }
 
-    // Escribe la imagen en la carpeta del juego y devuelve la ruta web que se guarda
-    // en la base de datos. El titulo solo se usa si la carpeta todavia no existe
+    // Escribe la imagen en la carpeta del juego y devuelve la ruta web que se guarda en la BD
     public String guardarImagen(Long videojuegoId, String titulo, MultipartFile archivo, String extension) {
 
-        // Carpeta del juego, creandola si es la primera imagen
+        // Carpeta del juego, creada si es la primera imagen
         Path carpeta = carpetaDeVideojuego(videojuegoId, titulo);
-        // El nombre lo pone un UUID y nunca el nombre que traiga el cliente: ese nombre
-        // es texto de fuera y no debe acabar formando parte de una ruta
+        // El nombre lo pone un UUID: el del cliente nunca debe formar parte de una ruta
         String nombre = UUID.randomUUID() + "." + extension;
 
         escribir(carpeta, archivo, nombre);
 
-        // La ruta web se monta con el nombre real de la carpeta, que puede llevar un slug
-        // viejo si el juego se ha renombrado: manda lo que hay en disco
+        // Se usa el nombre real de la carpeta, que puede llevar un slug antiguo si el juego se renombro
         return RAIZ_WEB + CARPETA_VIDEOJUEGOS + "/" + carpeta.getFileName() + "/" + nombre;
     }
 
-    // Guarda la foto de perfil de un usuario y devuelve su ruta web. Todas viven juntas
-    // en la misma carpeta: a diferencia de los juegos, un usuario tiene una sola foto y
-    // no hay nada que agrupar
+    // Guarda la foto de perfil y devuelve su ruta web; todas viven en la misma carpeta
     public String guardarImagenPerfil(Long usuarioId, MultipartFile archivo) {
 
         String extension = extensionDe(archivo);
-        // El id delante para poder reconocer de quien es mirando la carpeta
+        // El id delante permite saber de quien es mirando la carpeta
         String nombre = usuarioId + "-" + UUID.randomUUID() + "." + extension;
 
         escribir(raiz().resolve(CARPETA_PERFILES), archivo, nombre);
@@ -244,9 +223,7 @@ public class AlmacenArchivos {
         return RAIZ_WEB + CARPETA_PERFILES + "/" + nombre;
     }
 
-    // Comprueba que hay archivo y que es de un tipo admitido, y devuelve su extension.
-    // Vive aqui y no en cada servicio para que no haya dos listas de tipos que se puedan
-    // desincronizar
+    // Valida que hay archivo, que su tipo es admitido y que no pesa mas de 2 MB; devuelve la extension
     public String extensionDe(MultipartFile archivo) {
 
         if (archivo == null || archivo.isEmpty()) {
@@ -260,35 +237,30 @@ public class AlmacenArchivos {
             throw new ImagenInvalidaException("imagenes.error.formato");
         }
 
-        // El tope de multipart ya no es de 2 MB (lo subio el ZIP del juego), asi que el
-        // limite de las imagenes se comprueba aqui
+        // El limite de multipart es mayor (por el ZIP), asi que el de las imagenes se comprueba aqui
         if (archivo.getSize() > 2L * 1024 * 1024) {
             throw new ImagenInvalidaException("imagenes.error.tamano");
         }
         return extension;
     }
 
-    // El volcado al disco, comun a las dos. La carpeta es absoluta, asi que transferTo no
-    // tiene que resolver nada contra el directorio de trabajo ni contra el temporal
+    // Volcado al disco comun a imagenes y fotos de perfil
     private void escribir(Path carpeta, MultipartFile archivo, String nombre) {
 
         try {
-            // createDirectories tambien crea uploads si falta, que es lo que hace que esto
-            // funcione en un clon recien bajado: uploads esta en el .gitignore
+            // Crea tambien uploads si falta: no viene en el repositorio (esta en .gitignore)
             Files.createDirectories(carpeta);
             archivo.transferTo(carpeta.resolve(nombre));
 
         } catch (IOException e) {
-            // El IOException se envuelve aqui para que el service no arrastre checked
-            // exceptions, igual que hace FacturaServiceImpl al generar el PDF
+            // Se envuelve para que los servicios no arrastren excepciones checked
             throw new IllegalStateException("No se pudo guardar el archivo " + nombre, e);
         }
     }
 
-    // Borra un archivo suelto a partir de la ruta web que tiene guardada su fila
+    // Borra un archivo suelto a partir de la ruta web guardada en su fila
     public void borrar(String rutaWeb) {
 
-        // Traduce la ruta web a ruta de disco, o null si no es de fiar
         Path archivo = rutaDeDisco(rutaWeb);
 
         // Una ruta que no pasa la comprobacion no se toca
@@ -297,7 +269,7 @@ public class AlmacenArchivos {
         }
 
         try {
-            // deleteIfExists y no delete: si el archivo ya no esta, no es un error
+            // Si el archivo ya no esta, no es un error
             Files.deleteIfExists(archivo);
 
         } catch (IOException e) {
@@ -305,23 +277,19 @@ public class AlmacenArchivos {
         }
     }
 
-    // Borra la carpeta entera de un juego con todo lo que tenga dentro. Se llama al
-    // eliminar el videojuego, porque las filas se van con el orphanRemoval pero los
-    // archivos no se irian solos
+    // Borra la carpeta entera de un juego; las filas se borran solas, los archivos no
     public void borrarCarpeta(Long videojuegoId) {
 
-        // Busca la carpeta por el id, no por el slug
         Path carpeta = buscarCarpeta(videojuegoId);
 
-        // Un juego sin ninguna imagen no tiene carpeta, y no pasa nada
+        // Un juego sin imagenes no tiene carpeta
         if (carpeta == null) {
             return;
         }
 
         try (Stream<Path> contenido = Files.walk(carpeta)) {
 
-            // El orden inverso pone los archivos antes que la carpeta que los contiene:
-            // un directorio no se puede borrar mientras tenga algo dentro
+            // Orden inverso: no se puede borrar un directorio con contenido
             for (Path ruta : contenido.sorted(Comparator.reverseOrder()).toList()) {
                 Files.deleteIfExists(ruta);
             }
@@ -332,60 +300,49 @@ public class AlmacenArchivos {
         }
     }
 
-    // Convierte el titulo en algo que pueda ser un nombre de carpeta en cualquier
-    // sistema. Es decoracion para poder leer la carpeta: la identidad es el id
+    // Convierte un titulo en un nombre de carpeta valido en cualquier sistema (solo decoracion, la identidad es el id)
     public String slug(String titulo) {
 
-        // Sin titulo no hay nada que convertir
         if (titulo == null || titulo.isBlank()) {
             return SLUG_POR_DEFECTO;
         }
 
         String limpio = Normalizer.normalize(titulo, Normalizer.Form.NFD)
-                // NFD separa la letra de su acento y aqui se tira el acento: la n con
-                // virgulilla se queda en n, y la a con tilde en a
+                // Separa la letra de su acento y quita el acento
                 .replaceAll("\\p{M}", "")
-                // Locale.ROOT a proposito: con el idioma del sistema en turco, la I
-                // mayuscula se convierte en una i sin punto y el nombre deja de ser ascii
+                // Locale.ROOT: con el idioma turco la I mayuscula no daria ascii
                 .toLowerCase(Locale.ROOT)
-                // Todo lo que no sea letra o numero pasa a guion, seguidos incluidos.
-                // Aqui mueren los dos puntos, las barras y los puntos, que son los que
-                // romperian la ruta o permitirian salirse de la carpeta
+                // Todo lo que no sea letra o numero pasa a guion: aqui mueren barras y puntos
                 .replaceAll("[^a-z0-9]+", "-")
-                // Guiones de los extremos fuera
+                // Sin guiones en los extremos
                 .replaceAll("^-+|-+$", "");
 
-        // Corte por el limite de ruta de Windows
         if (limpio.length() > LARGO_SLUG) {
-            // Y otro recorte de guiones, por si el corte ha caido justo en uno
+            // Se recorta y se vuelven a quitar guiones por si el corte cayo en uno
             limpio = limpio.substring(0, LARGO_SLUG).replaceAll("-+$", "");
         }
 
-        // Un titulo escrito solo con kanji o con emojis se queda sin nada utilizable
+        // Un titulo solo de kanji o emojis se queda vacio
         if (limpio.isEmpty()) {
             return SLUG_POR_DEFECTO;
         }
         return limpio;
     }
 
-    // Devuelve la carpeta del juego, creandola la primera vez. Aqui se cumple la regla
-    // de que el slug se calcula UNA sola vez: si la carpeta ya existe se devuelve tal
-    // como esta, con el slug que tuviera, aunque el juego se haya renombrado despues
+    // Devuelve la carpeta del juego, creandola la primera vez; el slug se calcula una sola vez
     private Path carpetaDeVideojuego(Long videojuegoId, String titulo) {
 
         Path existente = buscarCarpeta(videojuegoId);
 
+        // Si ya existe se devuelve tal cual, aunque el juego se haya renombrado
         if (existente != null) {
             return existente;
         }
 
-        // Primera imagen del juego: se estrena la carpeta con el slug de ahora
+        // Primera imagen: carpeta "<id>-<slug>"
         Path nueva = raizVideojuegos().resolve(videojuegoId + "-" + slug(titulo));
 
         try {
-            // createDirectories crea tambien uploads y uploads/videojuegos si faltan,
-            // que es lo que hace que esto funcione en un clon recien bajado: uploads
-            // esta en el .gitignore y no viene en el repositorio
             Files.createDirectories(nueva);
 
         } catch (IOException e) {
@@ -395,19 +352,17 @@ public class AlmacenArchivos {
         return nueva;
     }
 
-    // Localiza la carpeta de un juego por su id y nunca por el slug, que es la regla
-    // que permite renombrar el juego sin tocar el disco ni las filas
+    // Localiza la carpeta de un juego por su id, nunca por el slug, para poder renombrarlo sin tocar el disco
     private Path buscarCarpeta(Long videojuegoId) {
 
         Path raiz = raizVideojuegos();
 
-        // Si nadie ha subido todavia ninguna imagen, la raiz no existe
+        // Si nadie ha subido imagenes todavia, la raiz no existe
         if (!Files.isDirectory(raiz)) {
             return null;
         }
 
-        // El patron exige el id y el guion, asi que 318-* no se traga 3180-loquesea:
-        // en esa el cuarto caracter es un 0 y no el guion
+        // El patron "<id>-*" exige el guion, asi 318 no coincide con 3180-loquesea
         try (DirectoryStream<Path> carpetas = Files.newDirectoryStream(raiz, videojuegoId + "-*")) {
 
             for (Path carpeta : carpetas) {
@@ -420,24 +375,19 @@ public class AlmacenArchivos {
         } catch (IOException e) {
             throw new IllegalStateException("No se pudo leer la carpeta de videojuegos", e);
         }
-        // No hay carpeta para ese id
         return null;
     }
 
-    // La carpeta de subidas. Solo calcula la ruta, no toca el disco. Se hace absoluta
-    // porque app.uploads.dir es relativa, y una ruta relativa la resuelve cada API contra
-    // un sitio distinto
+    // Carpeta de subidas en absoluto, porque la ruta relativa se resolveria distinto segun la API
     private Path raiz() {
         return Path.of(uploadsDir).toAbsolutePath().normalize();
     }
 
-    // Carpeta que agrupa las de todos los juegos
     private Path raizVideojuegos() {
         return raiz().resolve(CARPETA_VIDEOJUEGOS);
     }
 
-    // Traduce una ruta web a la ruta real en disco, o devuelve null si no se puede
-    // confiar en ella. Es la unica puerta por la que se borra algo
+    // Traduce una ruta web a ruta de disco, o null si no es de fiar; es la unica puerta para borrar
     private Path rutaDeDisco(String rutaWeb) {
 
         // Lo que no cuelgue de /uploads/ no es nuestro
@@ -446,12 +396,9 @@ public class AlmacenArchivos {
         }
 
         Path base = raiz();
-        // normalize resuelve los .. que pudiera traer la ruta
         Path archivo = base.resolve(rutaWeb.substring(RAIZ_WEB.length())).normalize();
 
-        // Y esta es la comprobacion que cuenta: despues de normalizar, el archivo tiene
-        // que seguir estando dentro de uploads. Sin ella, una ruta con .. en la base de
-        // datos podria borrar cualquier cosa del disco
+        // Tras normalizar debe seguir dentro de uploads; si no, una ruta con ".." borraria cualquier cosa
         if (!archivo.startsWith(base)) {
             return null;
         }

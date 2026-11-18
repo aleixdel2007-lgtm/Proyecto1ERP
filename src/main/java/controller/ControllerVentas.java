@@ -24,6 +24,7 @@ public class ControllerVentas {
     private final PedidoService pedidoService;
     private final FacturasService facturasService;
 
+    // Listado de pedidos con filtros y un contador por estado
     @GetMapping("/pedidos")
     public String listarPedidos(
             @RequestParam(required = false) String texto,
@@ -35,10 +36,12 @@ public class ControllerVentas {
         model.addAttribute("pedidos", pedidoService.listarPedidos(texto, estado, desde, hasta));
         model.addAttribute("estados", EstadoPedido.values());
 
+        // Contadores de la cabecera
         model.addAttribute("pagados", pedidoService.contarPorEstado(EstadoPedido.PAGADO));
         model.addAttribute("pendientes", pedidoService.contarPorEstado(EstadoPedido.PENDIENTE_PAGO));
         model.addAttribute("reembolsados", pedidoService.contarPorEstado(EstadoPedido.REEMBOLSADO));
 
+        // Filtros de vuelta, para que sigan marcados
         model.addAttribute("texto", texto);
         model.addAttribute("estado", estado);
         model.addAttribute("desde", desde);
@@ -61,9 +64,11 @@ public class ControllerVentas {
         return "ventas/facturas";
     }
 
+    // Genera el PDF de la factura; inline lo abre en el navegador en vez de descargarlo
     @GetMapping("/facturas/{id}/pdf")
     public ResponseEntity<byte[]> descargarFacturaPdf(@PathVariable Long id) {
 
+        // El servicio devuelve el PDF como bytes y se envia tal cual en la respuesta
         byte[] pdf = facturasService.generarPdf(id);
 
         return ResponseEntity.ok()

@@ -24,11 +24,13 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
+// Datos de demo para desarrollo: solo se cargan con el perfil "dev" y si la BD esta vacia
 @Component
 @Profile("dev")
 @RequiredArgsConstructor
 public class DatosIniciales implements CommandLineRunner {
 
+    // Contrasena de todos los usuarios de demo
     private static final String PASSWORD_INICIAL = "luduserp";
 
     private final EntityManager em;
@@ -37,11 +39,13 @@ public class DatosIniciales implements CommandLineRunner {
     @Override
     @Transactional
     public void run(String... args) {
+        // Si ya hay usuarios no se vuelve a cargar nada
         Long cuantos = em.createQuery("select count(u) from Usuario u", Long.class).getSingleResult();
         if (cuantos > 0) {
             return;
         }
 
+        // Departamentos
         Departamento direccion = departamento("Direccion", "Gerencia y administracion del sistema");
         Departamento producto = departamento("Producto", "Catalogo, fichas, precios y publicaciones");
         Departamento atencion = departamento("Atencion al cliente", "Soporte, pedidos y reembolsos");
@@ -53,6 +57,7 @@ public class DatosIniciales implements CommandLineRunner {
         departamento("Sistemas", "Infraestructura, copias y seguridad");
         departamento("Legal", "Contratos, licencias y proteccion de datos");
 
+        // Un empleado por rol
         empleado("admin@luduserp.cat", "Aleix", "Delgado", Rol.ADMIN,
                 direccion, "Administrador del sistema", "12345678Z",
                 "ES9121000418450200051332", LocalDate.of(2024, 9, 2));
@@ -69,6 +74,7 @@ public class DatosIniciales implements CommandLineRunner {
                 almacen, "Gestor de inventario", "37037018A",
                 "ES6000491500051234567892", LocalDate.of(2025, 6, 16));
 
+        // Clientes
         Cliente ana = cliente("ana.torres@example.com", "Ana", "Torres", "600111222",
                 "Carrer de Mallorca 134", "Barcelona", LocalDate.of(1996, 4, 11));
         Cliente bruno = cliente("bruno.gil@example.com", "Bruno", "Gil", "600333444",
@@ -78,6 +84,7 @@ public class DatosIniciales implements CommandLineRunner {
         cliente("diego.mas@example.com", "Diego", "Mas", "600777888",
                 "Carrer de Colom 9", "Valencia", LocalDate.of(1993, 8, 22));
 
+        // Proveedores (el CIF y el IBAN se guardan cifrados)
         Proveedor rheinspiel = proveedor("Rheinspiel", "Rheinspiel GmbH", "A36666642",
                 "ES1000492352082414205402", "vertrieb@rheinspiel.de", "Alemania");
         Proveedor albion = proveedor("Albion Games", "Albion Games Ltd", "F45555521",
@@ -87,6 +94,7 @@ public class DatosIniciales implements CommandLineRunner {
         Proveedor kanal = proveedor("Kanal Publishing", "Kanal Publishing BV", "P8999992D",
                 "ES1000492352082414205408", "info@kanalpublishing.nl", "Países Bajos");
 
+        // Colaboradores
         Colaborador jordi = colaborador("jordi.bastida@example.com", "Jordi", "Bastida", "España");
         Colaborador aina = colaborador("aina.querol@example.com", "Aina", "Querol", "España");
         Colaborador victor = colaborador("victor.salas@example.com", "Victor", "Salas", "España");
@@ -94,6 +102,7 @@ public class DatosIniciales implements CommandLineRunner {
         colaborador("marc.ibanez@example.com", "Marc", "Ibanez", "España");
         colaborador("elsa.riquelme@example.com", "Elsa", "Riquelme", "España");
 
+        // Juegos del distribuidor (con proveedor y sin colaborador)
         Videojuego eclipse = videojuego("Eclipse Protocol",
                 "RPG tactico por turnos en una estacion orbital a la deriva: cada decision gasta oxigeno.",
                 iberia, null, "59.99", "44.99", 16, LocalDate.of(2026, 3, 14),
@@ -123,6 +132,7 @@ public class DatosIniciales implements CommandLineRunner {
                 albion, null, "39.99", null, 12, LocalDate.of(2026, 2, 18),
                 List.of("ESTRATEGIA"), List.of("PC"));
 
+        // Juegos de colaboradores (sin proveedor)
         videojuego("Dust Harbour",
                 "Un puerto abandonado, una linterna y catorce minutos de bateria.",
                 null, jordi, "0.00", null, 12, LocalDate.of(2026, 10, 15),
@@ -136,6 +146,7 @@ public class DatosIniciales implements CommandLineRunner {
                 null, victor, "2.99", "1.99", 3, LocalDate.of(2026, 9, 30),
                 List.of("PUZZLE"), List.of("PC"));
 
+        // Claves ya vendidas: forman la biblioteca de cada cliente
         clave(eclipse, ana, "ECLP-7H2M-44QX-ZB18", LocalDateTime.of(2026, 10, 22, 19, 12));
         clave(mycelium, ana, "MYCL-3T9K-21RF-WD07", LocalDateTime.of(2026, 10, 22, 19, 12));
         clave(nightjar, ana, "NGTJ-6B4V-90LM-QA55", LocalDateTime.of(2026, 10, 28, 9, 41));
@@ -143,33 +154,34 @@ public class DatosIniciales implements CommandLineRunner {
         clave(orbital, bruno, "ORBF-9W5S-12NJ-TG40", LocalDateTime.of(2026, 10, 19, 17, 3));
         clave(lastSignal, carla, "LSTS-5M7Q-38YH-RP61", LocalDateTime.of(2026, 11, 2, 12, 27));
 
+        // Claves disponibles: el stock de demo, pensado para probar el aviso de poco stock (3 o menos)
         claveLibre(eclipse, "ECLP-1A1A-2B2B-3C3C");
         claveLibre(eclipse, "ECLP-4D4D-5E5E-6F6F");
         claveLibre(lastSignal, "LSTS-7G7G-8H8H-9I9I");
-        
-                // Orbital: 4 libres. Comprar una deja 3 y SI avisa (umbral: 3 o menos)
+
+        // Orbital: 4 libres, comprar una deja 3 y avisa
         claveLibre(orbital, "ORBF-1A1A-2B2B-3C3C");
         claveLibre(orbital, "ORBF-4D4D-5E5E-6F6F");
         claveLibre(orbital, "ORBF-7G7G-8H8H-9I9I");
         claveLibre(orbital, "ORBF-0J0J-1K1K-2L2L");
-        
-                // Stock de demo. Cada juego se va a comprar con un cliente que aun no lo tiene
-        // Ashen: 6 libres -> comprar una deja 5, NO avisa (para enseñar que no salta siempre)
+
+        // Ashen: 6 libres, comprar una deja 5 y no avisa
         claveLibre(ashen, "ASHN-1A1A-2B2B-3C3C");
         claveLibre(ashen, "ASHN-4D4D-5E5E-6F6F");
         claveLibre(ashen, "ASHN-7G7G-8H8H-9I9I");
         claveLibre(ashen, "ASHN-0J0J-1K1K-2L2L");
         claveLibre(ashen, "ASHN-3M3M-4N4N-5O5O");
         claveLibre(ashen, "ASHN-6P6P-7Q7Q-8R8R");
-        // Nightjar: 4 libres -> comprar una deja 3, SI avisa
+        // Nightjar: 4 libres, comprar una deja 3 y avisa
         claveLibre(nightjar, "NGTJ-1A1A-2B2B-3C3C");
         claveLibre(nightjar, "NGTJ-4D4D-5E5E-6F6F");
         claveLibre(nightjar, "NGTJ-7G7G-8H8H-9I9I");
         claveLibre(nightjar, "NGTJ-0J0J-1K1K-2L2L");
-        // Mycelium: 2 libres -> comprar una deja 1, SI avisa
+        // Mycelium: 2 libres, comprar una deja 1 y avisa
         claveLibre(mycelium, "MYCL-5M5M-6N6N-7O7O");
         claveLibre(mycelium, "MYCL-8P8P-9Q9Q-0R0R");
-        
+
+        // Una clave anulada, para ver ese estado
         claveAnulada(mycelium, "MYCL-0J0J-1K1K-2L2L");
     }
 
@@ -186,12 +198,14 @@ public class DatosIniciales implements CommandLineRunner {
                               String iban, LocalDate fechaContratacion) {
         Empleado t = new Empleado();
         t.setEmail(email);
+        // La contrasena se guarda cifrada con BCrypt
         t.setPasswordHash(codificador.encode(PASSWORD_INICIAL));
         t.setRol(rol);
         t.setNombre(nombre);
         t.setApellidos(apellidos);
         t.setDepartamento(departamento);
         t.setCargo(cargo);
+        // NIF e IBAN se cifran al guardar; el hash permite buscar por NIF
         t.setNif(nif);
         t.setNifHash(IndiceCiego.hash(nif));
         t.setIban(iban);
@@ -223,6 +237,7 @@ public class DatosIniciales implements CommandLineRunner {
         c.setNombre(nombre);
         c.setApellidos(apellidos);
         c.setPais(pais);
+        // Los colaboradores deben cambiar la contrasena en su primer acceso
         c.setDebeCambiarPassword(true);
         em.persist(c);
         return c;
@@ -233,6 +248,7 @@ public class DatosIniciales implements CommandLineRunner {
         Proveedor p = new Proveedor();
         p.setNombreComercial(nombreComercial);
         p.setRazonSocial(razonSocial);
+        // CIF e IBAN se cifran al guardar; el hash permite buscar y evitar duplicados por CIF
         p.setCif(cif);
         p.setCifHash(IndiceCiego.hash(cif));
         p.setIban(iban);
@@ -242,6 +258,7 @@ public class DatosIniciales implements CommandLineRunner {
         return p;
     }
 
+    // Un juego tiene proveedor (distribuidor) o colaborador, nunca los dos
     private Videojuego videojuego(String titulo, String sinopsis, Proveedor proveedor,
                                   Colaborador colaborador, String precio, String precioDescuento,
                                   int pegi, LocalDate fechaLanzamiento,
@@ -256,8 +273,10 @@ public class DatosIniciales implements CommandLineRunner {
         v.setPegi(pegi);
         v.setFechaLanzamiento(fechaLanzamiento);
         v.setFechaPublicacion(LocalDateTime.now());
+        // Los juegos de colaborador son descargas: no se agotan
         v.setStockIlimitado(colaborador != null);
 
+        // Categorias y plataformas se buscan por su codigo
         for (String codigo : categorias) {
             v.getCategorias().add(categoria(codigo));
         }
@@ -269,6 +288,7 @@ public class DatosIniciales implements CommandLineRunner {
         return v;
     }
 
+    // Clave vendida a un cliente
     private ClaveLicencia clave(Videojuego videojuego, Cliente cliente,
                                 String codigo, LocalDateTime fechaVenta) {
         ClaveLicencia c = claveLicencia(videojuego, codigo);
@@ -279,6 +299,7 @@ public class DatosIniciales implements CommandLineRunner {
         return c;
     }
 
+    // Clave en stock, sin cliente
     private ClaveLicencia claveLibre(Videojuego videojuego, String codigo) {
         ClaveLicencia c = claveLicencia(videojuego, codigo);
         c.setEstado(EstadoClave.DISPONIBLE);
@@ -295,6 +316,7 @@ public class DatosIniciales implements CommandLineRunner {
         return c;
     }
 
+    // Parte comun de las claves: el codigo se cifra y su hash sirve para buscarlo
     private ClaveLicencia claveLicencia(Videojuego videojuego, String codigo) {
         ClaveLicencia c = new ClaveLicencia();
         c.setVideojuego(videojuego);

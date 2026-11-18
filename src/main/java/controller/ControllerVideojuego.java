@@ -38,6 +38,7 @@ public class ControllerVideojuego {
     @Autowired
     private MessageSource messageSource;
 
+    // Dos tablas: juegos propios y juegos de colaboradores, cada una con su paginacion
     @GetMapping("/catalogo/videojuegos")
     public String listarVideojuegos(
             @RequestParam(required = false) String texto,
@@ -50,6 +51,7 @@ public class ControllerVideojuego {
             @RequestParam(defaultValue = "0") int paginaColaborador,
             Model model) {
 
+        // Propios: los del distribuidor. Colaboradores: los que suben los estudios
         List<Videojuego> propios = videojuegoService.listarVideojuegosPropios(
                 texto, categoriaId, plataformaId, precioMin, precioMax, activo);
 
@@ -63,6 +65,7 @@ public class ControllerVideojuego {
         model.addAttribute("categorias", videojuegoService.listarCategorias());
         model.addAttribute("plataformas", videojuegoService.listarPlataformas());
 
+        // Filtros y paginas de vuelta, para que sigan marcados
         model.addAttribute("texto", texto);
         model.addAttribute("categoriaId", categoriaId);
         model.addAttribute("plataformaId", plataformaId);
@@ -79,6 +82,7 @@ public class ControllerVideojuego {
     public String nuevoVideojuego(Model model) {
 
         model.addAttribute("videojuego", new Videojuego());
+        // Formulario en blanco: sin proveedor, categorias ni plataformas marcadas
         cargarCatalogos(model, null, new HashSet<>(), new HashSet<>());
 
         return "catalogo/videojuego";
@@ -90,6 +94,7 @@ public class ControllerVideojuego {
         Videojuego videojuego = videojuegoService.buscarVideojuegoXId(id);
         model.addAttribute("videojuego", videojuego);
 
+        // Lo marcado es lo que tiene guardado el juego
         cargarCatalogos(model, idDelProveedor(videojuego),
                 idsDeCategorias(videojuego), idsDePlataformas(videojuego));
         cargarImagenes(model, id);
@@ -97,6 +102,7 @@ public class ControllerVideojuego {
         return "catalogo/videojuego";
     }
 
+    // Sirve para crear y para editar: sin id es un juego nuevo
     @PostMapping("/catalogo/videojuegos/guardar")
     public String guardarVideojuego(
             @ModelAttribute("videojuego") Videojuego videojuego,
@@ -108,11 +114,13 @@ public class ControllerVideojuego {
             Locale locale) {
 
         try {
+            // El servicio valida proveedor y precios, y relaciona las categorias y plataformas por id
             videojuegoService.guardarVideojuego(videojuego, proveedorId, categoriaIds, plataformaIds);
 
         } catch (ProveedorObligatorioException | PrecioInvalidoException
                 | PrecioDescuentoInvalidoException | IllegalArgumentException e) {
 
+            // Se vuelve al formulario con el error y con lo que el usuario acababa de marcar
             model.addAttribute("error", traducir(e, locale));
             cargarCatalogos(model, proveedorId, conjuntoDe(categoriaIds), conjuntoDe(plataformaIds));
 
@@ -132,6 +140,7 @@ public class ControllerVideojuego {
             videojuegoService.eliminarVideojuego(id);
 
         } catch (VideojuegoConReferenciasException e) {
+            // No se borra un juego que ya aparece en pedidos u otros registros
             flash.addFlashAttribute("error", traducir(e, locale));
             return "redirect:/catalogo/videojuegos";
         }
@@ -141,6 +150,7 @@ public class ControllerVideojuego {
         return "redirect:/catalogo/videojuegos";
     }
 
+    // Reutiliza la ficha de la tienda para ver el juego antes de publicarlo
     @GetMapping("/catalogo/videojuegos/{id}/vista-previa")
     public String vistaPreviaVideojuego(@PathVariable Long id, Model model) {
 
@@ -179,10 +189,12 @@ public class ControllerVideojuego {
         return "redirect:/catalogo/videojuegos/editar/" + id;
     }
 
+    // El mensaje de la excepcion es una clave i18n: se traduce al idioma del usuario
     private String traducir(RuntimeException e, Locale locale) {
         return messageSource.getMessage(e.getMessage(), null, e.getMessage(), locale);
     }
 
+    // Reparte las imagenes del juego por tipo: una portada, un banner y varias capturas
     private void cargarImagenes(Model model, Long id) {
 
         ImagenVideojuego portada = null;
@@ -207,6 +219,7 @@ public class ControllerVideojuego {
         model.addAttribute("capturas", capturas);
     }
 
+    // Lo que necesita el formulario: las listas a elegir y los ids ya marcados
     private void cargarCatalogos(Model model, Long proveedorId,
                                  Set<Long> categoriasMarcadas, Set<Long> plataformasMarcadas) {
 

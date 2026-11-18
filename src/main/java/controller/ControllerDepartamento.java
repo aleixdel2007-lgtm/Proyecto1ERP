@@ -46,12 +46,14 @@ public class ControllerDepartamento {
         Departamento departamento = new Departamento();
         model.addAttribute("departamento", departamento);
 
+        // Candidatos a responsable del departamento
         List<Empleado> trabajadores = departamentoService.listarTrabajadores();
         model.addAttribute("trabajadores", trabajadores);
 
         return "departamentos/formularioNuevoDep";
     }
 
+    // Sirve para crear y para editar: sin id es un departamento nuevo
     @PostMapping("/departamentos/guardar")
     public String guardarDepartamento(
             @ModelAttribute("departamento") Departamento departamento,
@@ -60,10 +62,12 @@ public class ControllerDepartamento {
             Locale locale) {
 
         try {
+            // El servicio comprueba que el nombre no se repita y que el responsable no lo sea de otro
             departamentoService.guardarDepartamento(departamento, responsableId);
 
         } catch (NombreDepartamentoDuplicadoException | ResponsableOcupadoException e) {
 
+            // Se vuelve al formulario con el error, el que corresponda segun sea alta o edicion
             model.addAttribute("error", traducir(e, locale));
             model.addAttribute("trabajadores", departamentoService.listarTrabajadores());
 
@@ -96,12 +100,14 @@ public class ControllerDepartamento {
             departamentoService.eliminarDepartamento(id);
 
         } catch (DepartamentoConTrabajadoresException e) {
+            // No se borra un departamento que aun tiene trabajadores
             flash.addFlashAttribute("error", traducir(e, locale));
         }
 
         return "redirect:/departamentos";
     }
 
+    // El mensaje de la excepcion es una clave i18n: se traduce al idioma del usuario
     private String traducir(RuntimeException e, Locale locale) {
         return messageSource.getMessage(e.getMessage(), null, e.getMessage(), locale);
     }

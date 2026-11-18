@@ -27,7 +27,9 @@
 
     <div class="alert alert-err" th:if="${error}" th:text="${error}"></div>
 
-    <form method="post" enctype="multipart/form-data" th:action="@{/colaborador/mis-juegos/guardar}">
+    <form method="post" enctype="multipart/form-data" th:action="@{/colaborador/mis-juegos/guardar}"
+          data-subida
+          th:attr="data-txt-subiendo=#{colab.subida.subiendo},data-txt-procesando=#{colab.subida.procesando},data-txt-cancelar=#{colab.subida.cancelar},data-txt-cancelada=#{colab.subida.cancelada},data-txt-error=#{colab.subida.error},data-txt-salir=#{colab.subida.salir}">
 
         <div class="stack">
 
@@ -174,5 +176,6 @@
 </main>
 
 <script th:src="@{/js/videojuego.js}" src="../../static/js/videojuego.js"></script>
+<script th:src="@{/js/subida-juego.js}" src="../../static/js/subida-juego.js"></script>
 </body>
 </html>
