@@ -2,23 +2,33 @@ package controller;
 
 import dao.UsuarioDao;
 import exception.email.CorreoYaRegistradoException;
+import exception.usuario.UsuarioNoEncontradoException;
 import lombok.RequiredArgsConstructor;
 import model.seguridad.Cliente;
 import model.seguridad.Paises;
+import model.seguridad.Usuario;
+
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.context.MessageSource;
 
+import java.beans.Encoder;
+import java.net.Authenticator;
 import java.time.LocalDate;
 import java.util.Locale;
 import java.util.regex.Pattern;
 import org.springframework.ui.Model;
 import service.interfaces.ClienteService;
+import service.interfaces.UsuarioService;
+
+import org.springframework.web.bind.annotation.RequestBody;
+
 
 @Controller
 @RequiredArgsConstructor
@@ -31,6 +41,7 @@ public class ControllerLogin {
     private final PasswordEncoder codificador;
     private final ClienteService clienteService;
     private final MessageSource messageSource;
+    private final UsuarioService usuarioService;
 
     // Con sesion va al home; sin ella, al login
     @GetMapping("/")
@@ -98,6 +109,53 @@ public class ControllerLogin {
         usuarioDao.save(cliente);
         return "redirect:/login?registrado";
     }
+
+    @PostMapping("/user/changePassword")
+    public String cambiarPassword(@RequestParam String passwordActual,
+                                @RequestParam String nuevaPassword,
+                                @RequestParam String repetirPassword,
+                                Authentication authentication,
+                                RedirectAttributes flash, Locale locale) {
+
+        Usuario usuario;
+        try {
+            usuario = usuarioService.buscarUsuarioXEmail(authentication.getName());
+        } catch (UsuarioNoEncontradoException e) {
+            return "redirect:/login";
+        }
+
+        // 1. La contraseña actual: matches(claro, hash), nunca encode + equals
+        if (!codificador.matches(passwordActual, usuario.getPasswordHash())) {
+            flash.addFlashAttribute("error", messageSource.getMessage("password.error.actual", null, locale));
+            return "redirect:/user/changePassword";
+        }
+
+        // 2. La nueva y su repetición deben coincidir
+        if (!nuevaPassword.equals(repetirPassword)) {
+            flash.addFlashAttribute("error", messageSource.getMessage("password.error.noCoincide", null, locale));
+            return "redirect:/user/changePassword";
+        }
+
+        // 3. Longitud mínima
+        if (nuevaPassword.length() < 8) {
+            flash.addFlashAttribute("error", messageSource.getMessage("password.error.corta", null, locale));
+            return "redirect:/user/changePassword";
+        }
+
+        // 4. Distinta de la actual
+        if (codificador.matches(nuevaPassword, usuario.getPasswordHash())) {
+            flash.addFlashAttribute("error", messageSource.getMessage("password.error.igual", null, locale));
+            return "redirect:/user/changePassword";
+        }
+
+        // 5. Todo bien: codificar, guardar y volver al perfil
+        usuario.setPasswordHash(codificador.encode(nuevaPassword));
+        usuarioDao.save(usuario);
+
+        flash.addFlashAttribute("okPassword", messageSource.getMessage("password.ok", null, locale));
+        return "redirect:/user/profile";
+    }
+    
 
     @GetMapping("/login")
     public String login() {

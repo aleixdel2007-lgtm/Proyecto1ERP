@@ -18,6 +18,8 @@ button,input,select{font-family:inherit;font-size:inherit}
 
 /* --- lienzo --------------------------------------------------------------- */
 .canvas{padding:22px 24px 60px;max-width:1500px;width:100%;margin:0 auto}
+.alert{border-radius:var(--r-sm);padding:10px 14px;font-size:13px;border:1px solid;width:fit-content;max-width:100%;margin:0 auto 16px;text-align:center}
+.alert-ok{color:var(--good);background:rgba(86,211,100,.1);border-color:rgba(86,211,100,.28)}
 .page-head{display:flex;align-items:flex-start;gap:16px;margin-bottom:18px;flex-wrap:wrap}
 .page-head h1{font-size:21px}
 .page-head p{margin:5px 0 0;color:var(--muted);font-size:13px;max-width:70ch}
@@ -28,7 +30,7 @@ button,input,select{font-family:inherit;font-size:inherit}
 
 /* --- tarjeta -------------------------------------------------------------- */
 .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
-.card-head{padding:13px 16px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:12px}
+.card-head{padding:13px 16px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:12px; justify-content: space-between;}
 .card-head h3{font-size:14px}
 .card-body{padding:16px}
 .stack{display:flex;flex-direction:column;gap:16px}

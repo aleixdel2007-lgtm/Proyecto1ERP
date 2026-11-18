@@ -14,6 +14,8 @@
 
 <main class="canvas">
 
+    <div class="alert alert-ok" th:if="${okPassword}" th:text="${okPassword}"></div>
+
     <div class="page-head">
         <div>
             <h1 th:text="#{perfil.titulo}">Mi perfil</h1>
@@ -87,7 +89,10 @@
         <!-- Datos del usuario -->
         <div class="card">
             <form th:action="@{/user/profile}" method="post">
-                <div class="card-head"><h3 th:text="#{perfil.datos}">Mis datos</h3></div>
+                <div class="card-head">
+                    <h3 th:text="#{perfil.datos}">Mis datos</h3>
+                    <a class="btn" th:href="@{/user/changePassword}">Cambiar password</a>
+                </div>
                 <div class="card-body">
                     <div class="form-grid">
 
