@@ -8,6 +8,7 @@ import dao.ClienteDao;
 import dao.UsuarioDao;
 import exception.cliente.ClienteConDatosAsociadosException;
 import exception.cliente.ClienteNoEncontradoException;
+import exception.cliente.MotivoInactivacionObligatorioException;
 import exception.email.CorreoYaRegistradoException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -86,11 +87,24 @@ public class ClienteServiceImpl implements ClienteService {
         return cliente;
     }
 
+    // Al inactivar el motivo es obligatorio; al activar se limpia y los intentos vuelven a cero
     @Override
     @Transactional
-    public void cambiarEstado(Long id, boolean activo) {
+    public void cambiarEstado(Long id, boolean activo, String motivo) {
         Cliente cliente = buscarClienteXId(id);
         boolean estabaInactivo = !cliente.isActivo();
+
+        if (activo) {
+            cliente.setMotivoInactivacion(null);
+            cliente.setIntentosFallidos(0);
+        } else {
+            String motivoLimpio = (motivo == null) ? null : motivo.trim();
+
+            if (motivoLimpio == null || motivoLimpio.isBlank()) {
+                throw new MotivoInactivacionObligatorioException();
+            }
+            cliente.setMotivoInactivacion(motivoLimpio);
+        }
 
         cliente.setActivo(activo);
         cliente.setFechaSolicitud(null);

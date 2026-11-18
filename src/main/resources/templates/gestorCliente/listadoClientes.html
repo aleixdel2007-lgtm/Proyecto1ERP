@@ -110,17 +110,35 @@
                                             <td class="num"><span class="muted" th:title="#{clientes.pendientePedidos}">—</span></td>
                                             <td class="num"><span class="muted" th:title="#{clientes.pendientePedidos}">—</span></td>
                                             <td>
+                                                <!-- El motivo se lee pasando el raton por encima del INACTIVO.
+                                                     Los que se inactivaron antes de que existiera la columna no
+                                                     tienen ninguno, y entonces el title ni se escribe. -->
                                                 <span class="badge" th:classappend="${c.activo} ? 'b-good' : 'b-mute'"
+                                                      th:title="${!c.activo and c.motivoInactivacion != null}
+                                                                ? #{clientes.motivo.tooltip(${c.motivoInactivacion})} : null"
                                                       th:text="${c.activo} ? #{comun.activo} : #{comun.inactivo}">ACTIVO</span>
                                                 <span class="badge b-warn" th:if="${c.fechaSolicitud != null}"
                                                       th:title="#{clientes.solicitadaEl(${#temporals.format(c.fechaSolicitud, 'dd/MM/yyyy HH:mm')})}"
                                                       th:text="#{clientes.pideActivacion}">Pide activación</span>
                                             </td>
                                             <td class="acts"> <!-- Acciones al final de cada fila,eliminar/desactivar -->
-                                                <form th:action="@{/clientes/{id}/estado(id=${c.id})}" method="post">
-                                                    <input type="hidden" name="activo" th:value="${!c.activo}">
+                                                <!-- Inactivar pide motivo, asi que el boton solo abre el dialogo y el
+                                                     POST sale de dentro. Activar no pregunta nada y conserva su
+                                                     formulario de siempre.
+                                                     El th:if va en un bloque de fuera porque th:replace se resuelve
+                                                     antes que th:if: en el mismo elemento, la condicion no se mira. -->
+                                                <th:block th:if="${c.activo}">
+                                                    <button type="button" class="btn btn-sm btn-ghost"
+                                                            onclick="this.nextElementSibling.showModal()"
+                                                            th:text="#{clientes.inactivar}">Inactivar</button>
+                                                    <th:block th:replace="~{fragments/dialogos :: motivoInactivacion(${c})}"></th:block>
+                                                </th:block>
+
+                                                <form th:unless="${c.activo}"
+                                                      th:action="@{/clientes/{id}/estado(id=${c.id})}" method="post">
+                                                    <input type="hidden" name="activo" value="true">
                                                     <button type="submit" class="btn btn-sm btn-ghost"
-                                                            th:text="${c.activo} ? #{clientes.inactivar} : #{clientes.activar}">Inactivar</button>
+                                                            th:text="#{clientes.activar}">Activar</button>
                                                 </form>
                                                 <form th:action="@{/clientes/{id}/eliminar(id=${c.id})}" method="post"
                                                       th:data-confirmar="#{clientes.confirmarEliminar}"

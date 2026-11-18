@@ -16,4 +16,8 @@ public interface UsuarioService {
     ImagenUsuario buscarImagenPerfil(Long usuarioId);
 
     void guardarImagenPerfil(Long usuarioId, MultipartFile archivo, String textoAlternativo);
+
+    boolean registrarFalloLogin(String email);
+
+    void registrarAccesoCorrecto(String email);
 }

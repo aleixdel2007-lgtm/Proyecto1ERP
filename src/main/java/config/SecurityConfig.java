@@ -18,6 +18,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.web.SecurityFilterChain;
+import service.interfaces.UsuarioService;
 
 @Configuration
 public class SecurityConfig {
@@ -44,7 +45,7 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, UsuarioService usuarioService) throws Exception {
         http
                 .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/css/**", "/js/**", "/img/**", "/images/**", "/webjars/**").permitAll()
@@ -79,14 +80,18 @@ public class SecurityConfig {
                 .loginPage("/login")
                 // Los clientes y los colaboradores van a la tienda, el resto de roles, a "/home"
                 .successHandler((request, response, authentication) -> {
+                    usuarioService.registrarAccesoCorrecto(authentication.getName());
                     boolean vaATienda = authentication.getAuthorities().stream()
                             .anyMatch(a -> a.getAuthority().equals("ROLE_" + Rol.CLIENTE.name())
                             || a.getAuthority().equals("ROLE_" + Rol.COLABORADOR.name()));
                     response.sendRedirect(request.getContextPath() + (vaATienda ? "/tienda" : "/home"));
                 })
-                // si el login falla, miramos por que: si es porque la cuenta esta inactiva, avisamos aparte
+                // si el login falla, miramos por que: si es porque la cuenta esta inactiva, avisamos aparte.
+                // Si no lo estaba, el fallo cuenta, y registrarFalloLogin dice si ha sido el que la ha
+                // bloqueado: en ese caso se avisa ya, sin esperar al siguiente intento
                 .failureHandler((request, response, exception) -> {
-                    if (exception instanceof DisabledException) {
+                    if (exception instanceof DisabledException
+                            || usuarioService.registrarFalloLogin(request.getParameter("username"))) {
                         // guardamos el email que escribio para poder usarlo luego en la solicitud
                         String email = URLEncoder.encode(request.getParameter("username"), StandardCharsets.UTF_8);
                         response.sendRedirect(request.getContextPath() + "/login?inactivo&email=" + email);

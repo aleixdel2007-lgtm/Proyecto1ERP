@@ -15,11 +15,29 @@
     border-radius:var(--r);padding:24px;
     width:calc(100% - 40px);max-width:380px;
     box-shadow:0 20px 60px rgba(0,0,0,.6);
+    white-space:normal;text-align:left;
 }
 
 .dlg-confirm h3{margin:0 0 8px;font-size:17px;color:var(--ink)}
 .dlg-confirm p{margin:0;color:var(--ink-2);font-size:13.5px;line-height:1.5}
 .dlg-confirm .dlg-acts{display:flex;gap:8px;margin-top:18px}
+
+/* Dialogos que ademas piden algo, como el motivo al inactivar un cliente.
+
+   El campo reutiliza la clase .inp del panel en vez de inventarse una propia: estos
+   dialogos solo salen en pantallas del panel, asi que panel.css siempre esta cargado,
+   y de paso el foco morado y el placeholder salen iguales que en el resto de formularios.
+   Lo unico que se pone aqui es como se coloca dentro del dialogo. */
+
+.dlg-confirm .dlg-lbl{
+    display:block;margin:16px 0 6px;
+    font-size:12px;font-weight:600;letter-spacing:.03em;
+    text-transform:uppercase;color:var(--muted);
+}
+
+.dlg-confirm form{display:block;margin:0}
+.dlg-confirm textarea.inp{width:100%;box-sizing:border-box;min-height:76px;resize:vertical}
+.dlg-confirm .dlg-acts .btn{flex:0 0 auto}
 
 /* El fondo que queda detras: oscuro, con el morado de la casa y desenfocado */
 .dlg-confirm::backdrop{

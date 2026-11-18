@@ -5,6 +5,12 @@
 -- clave primaria. Por eso sus id no son AUTO_INCREMENT: son la id del usuario y
 -- a la vez la clave ajena que apunta a el, y esa doble condicion es la que hace
 -- que la relacion 1:1 no pueda romperse.
+--
+-- motivo_inactivacion guarda por que se desactivo la cuenta: lo escribe el gestor en el
+-- pop-up del listado de clientes, o lo pone la aplicacion sola al llegar al limite de
+-- intentos de acceso fallidos que cuenta intentos_fallidos. Las dos columnas van en
+-- usuario y no en cliente porque entrar a la aplicacion lo hace cualquier usuario, no
+-- solo los clientes.
 
 CREATE TABLE usuario (
     id                    BIGINT       NOT NULL AUTO_INCREMENT,
@@ -15,6 +21,8 @@ CREATE TABLE usuario (
     apellidos             VARCHAR(120) NULL,
     activo                BOOLEAN      NOT NULL DEFAULT TRUE,
     debe_cambiar_password BOOLEAN      NOT NULL DEFAULT FALSE,
+    motivo_inactivacion   VARCHAR(255) NULL,
+    intentos_fallidos     INT          NOT NULL DEFAULT 0,
     fecha_alta            DATETIME     NOT NULL,
     PRIMARY KEY (id),
     CONSTRAINT uk_usuario_email UNIQUE (email)

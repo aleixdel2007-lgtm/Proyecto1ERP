@@ -25,7 +25,7 @@ public interface ClienteService {
 
     Cliente buscarClienteXId(Long id);
 
-    void cambiarEstado(Long id, boolean activo);
+    void cambiarEstado(Long id, boolean activo, String motivo);
 
     void eliminarCliente(Long id);
 

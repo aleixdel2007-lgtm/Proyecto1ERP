@@ -27,5 +27,37 @@
 
 </th:block>
 
+<!-- Pop-up del motivo al inactivar un cliente.
+
+     Mismo patron que el de arriba, pero aqui hay una fila por cliente, asi que el dialogo
+     recibe el cliente y viaja dentro de su celda de acciones. No lleva id: el boton lo abre
+     por posicion (es su hermano inmediato), y asi no hay forma de que dos filas choquen.
+
+     Tampoco carga dialogos.css: esto solo se usa en pantallas del panel, y el menu lateral
+     ya trae el fragmento confirmarSalida, que es quien pone el <link>. -->
+<th:block th:fragment="motivoInactivacion(cliente)">
+
+    <dialog class="dlg-confirm">
+        <h3 th:text="#{clientes.motivo.titulo}">Inactivar cliente</h3>
+        <p th:text="#{clientes.motivo.texto(${cliente.nombre})}">La cuenta dejará de tener acceso a la tienda.</p>
+
+        <form th:action="@{/clientes/{id}/estado(id=${cliente.id})}" method="post">
+            <input type="hidden" name="activo" value="false">
+
+            <label class="dlg-lbl" th:text="#{clientes.motivo.etiqueta}">Motivo</label>
+            <textarea class="inp" name="motivo" rows="3" maxlength="255" required
+                      th:placeholder="#{clientes.motivo.placeholder}"></textarea>
+
+            <div class="dlg-acts">
+                <button type="submit" class="btn btn-danger"
+                        th:text="#{clientes.motivo.confirmar}">Inactivar</button>
+                <button type="button" class="btn btn-ghost" onclick="this.closest('dialog').close()"
+                        th:text="#{comun.cancelar}">Cancelar</button>
+            </div>
+        </form>
+    </dialog>
+
+</th:block>
+
 </body>
 </html>

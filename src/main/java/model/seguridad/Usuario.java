@@ -39,6 +39,12 @@ public abstract class Usuario {
     @Column(name = "debe_cambiar_password", nullable = false)
     private boolean debeCambiarPassword = false;
 
+    @Column(name = "motivo_inactivacion", length = 255)
+    private String motivoInactivacion;
+
+    @Column(name = "intentos_fallidos", nullable = false)
+    private int intentosFallidos = 0;
+
     @Column(name = "fecha_alta", nullable = false)
     private LocalDateTime fechaAlta;
 

@@ -5,6 +5,7 @@
 package controller;
 
 import exception.cliente.ClienteConDatosAsociadosException;
+import exception.cliente.MotivoInactivacionObligatorioException;
 import java.time.LocalDate;
 import java.util.Locale;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,10 +51,19 @@ public class ControllerCliente {
         return "gestorCliente/listadoClientes";
     }
 
+    // Activa o inactiva un cliente, segun el valor de activo. El motivo solo viaja al
+    // inactivar, porque lo escribe el gestor en el pop-up; al activar no se pide nada y
+    // llega nulo. Quien decide si es obligatorio es el servicio.
     @PostMapping("/clientes/{id}/estado")
     public String cambiarEstado(@PathVariable Long id, @RequestParam boolean activo,
+            @RequestParam(required = false) String motivo,
             RedirectAttributes flash, Locale locale) {
-        clienteService.cambiarEstado(id, activo);
+        try {
+            clienteService.cambiarEstado(id, activo, motivo);
+        } catch (MotivoInactivacionObligatorioException e) {
+            flash.addFlashAttribute("error", traducir(e, locale));
+            return "redirect:/clientes";
+        }
         flash.addFlashAttribute("mensaje", messageSource.getMessage("clientes.ok.estadoActualizado", null, locale));
         return "redirect:/clientes";
     }
