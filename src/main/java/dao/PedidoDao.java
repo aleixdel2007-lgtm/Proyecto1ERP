@@ -59,8 +59,8 @@ public interface PedidoDao extends JpaRepository<Pedido, Long> {
     //Lo usa el pago para cancelar los PENDIENTE_PAGO anteriores de ese cliente antes de crear uno nuevo
     List<Pedido> findByClienteEmailAndEstado(String email, EstadoPedido estado);
 
-    @Query("select sum(p.total) from Pedido p where p.estado = :estado")
-    BigDecimal sumarTotalPorEstado(@Param("estado") EstadoPedido estado);
+    @Query("select sum(p.baseImponible) from Pedido p where p.estado = :estado")
+    BigDecimal sumarBaseImponiblePorEstado(@Param("estado") EstadoPedido estado);
 
     @Query("select count(p) from Pedido p where p.estado = :estado and p.fecha >= :desde")
     long contarPorEstadoDesde(@Param("estado") EstadoPedido estado,

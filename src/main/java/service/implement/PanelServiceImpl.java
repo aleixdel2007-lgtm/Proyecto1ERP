@@ -28,8 +28,8 @@ public class PanelServiceImpl implements PanelService {
     @Transactional(readOnly = true)
     public Map<String, Object> resumen() {
 
-        // Lo que han pagado los clientes: la suma del total de todos los pedidos PAGADOS
-        BigDecimal ingresos = ceroSiNulo(pedidoDao.sumarTotalPorEstado(EstadoPedido.PAGADO));
+        // La venta sin IVA de los pedidos PAGADOS: el IVA no es ingreso, se le debe a Hacienda
+        BigDecimal ingresos = ceroSiNulo(pedidoDao.sumarBaseImponiblePorEstado(EstadoPedido.PAGADO));
         // Lo que costaron esas claves al comprarlas: el coste unitario de su linea de compra
         BigDecimal coste = ceroSiNulo(claveLicenciaDao.sumarCostePorEstado(EstadoClave.VENDIDA));
 
