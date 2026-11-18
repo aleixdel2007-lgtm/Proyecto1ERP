@@ -30,6 +30,9 @@ public interface ClienteService {
     void eliminarCliente(Long id);
 
     void solicitarActivacion(String email);
-    
+
     void comprobarCorreoLibre(String email);
+
+    // Cuantos clientes han pedido activar su cuenta y aun no se ha atendido
+    long contarSolicitudesPendientes();
 }

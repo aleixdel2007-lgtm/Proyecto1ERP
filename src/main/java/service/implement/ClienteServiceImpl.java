@@ -130,7 +130,7 @@ public class ClienteServiceImpl implements ClienteService {
         }
         cliente.setFechaSolicitud(LocalDateTime.now());
         clienteDao.save(cliente);
-        
+
         // Avisa en vivo a los gestores de clientes que tengan el panel abierto. Solo lleva un
         // texto fijo: ningun dato del cliente viaja por el canal
         mensajeria.convertAndSend("/topic/clientes", "solicitud-activacion");
@@ -142,5 +142,10 @@ public class ClienteServiceImpl implements ClienteService {
         if (usuarioDao.findByEmail(email).isPresent()) {
             throw new CorreoYaRegistradoException();
         }
+    }
+
+    @Override
+    public long contarSolicitudesPendientes() {
+        return clienteDao.contarSolicitudesPendientes();
     }
 }

@@ -39,12 +39,12 @@ public interface VideojuegoDao extends JpaRepository<Videojuego, Long> {
             + "     or (:soloColaborador = false and v.colaborador is null)) "
             + "order by v.titulo")
     List<Videojuego> listarFiltrado(@Param("texto") String texto,
-                                    @Param("categoriaId") Long categoriaId,
-                                    @Param("plataformaId") Long plataformaId,
-                                    @Param("precioMin") BigDecimal precioMin,
-                                    @Param("precioMax") BigDecimal precioMax,
-                                    @Param("activo") Boolean activo,
-                                    @Param("soloColaborador") Boolean soloColaborador);
+            @Param("categoriaId") Long categoriaId,
+            @Param("plataformaId") Long plataformaId,
+            @Param("precioMin") BigDecimal precioMin,
+            @Param("precioMax") BigDecimal precioMax,
+            @Param("activo") Boolean activo,
+            @Param("soloColaborador") Boolean soloColaborador);
 
     @Query("select distinct v from Videojuego v "
             + "left join fetch v.proveedor "
@@ -62,7 +62,6 @@ public interface VideojuegoDao extends JpaRepository<Videojuego, Long> {
             + "left join fetch v.plataformas "
             + "where v.id = :id")
     Optional<Videojuego> buscarConDetalle(@Param("id") Long id);
-
 
     @Query("select distinct v from Videojuego v "
             + "left join fetch v.categorias "
@@ -121,12 +120,12 @@ public interface VideojuegoDao extends JpaRepository<Videojuego, Long> {
             + "     or v.precioDescuento is not null) "
             + "order by v.titulo")
     List<Videojuego> listarCatalogo(@Param("texto") String texto,
-                                    @Param("categoriaId") Long categoriaId,
-                                    @Param("plataformaId") Long plataformaId,
-                                    @Param("precioMin") BigDecimal precioMin,
-                                    @Param("precioMax") BigDecimal precioMax,
-                                    @Param("soloColaborador") Boolean soloColaborador,
-                                    @Param("soloOfertas") Boolean soloOfertas);
+            @Param("categoriaId") Long categoriaId,
+            @Param("plataformaId") Long plataformaId,
+            @Param("precioMin") BigDecimal precioMin,
+            @Param("precioMax") BigDecimal precioMax,
+            @Param("soloColaborador") Boolean soloColaborador,
+            @Param("soloOfertas") Boolean soloOfertas);
 
     /*
      * La ficha que abre un cliente, con el proveedor, el colaborador y las dos N:M cargados.
@@ -141,4 +140,9 @@ public interface VideojuegoDao extends JpaRepository<Videojuego, Long> {
             + "left join fetch v.plataformas "
             + "where v.id = :id and v.activo = true")
     Optional<Videojuego> buscarActivoConDetalle(@Param("id") Long id);
+
+    // Cuenta los juegos de colaboradores que esperan a que el gestor de productos los revise
+    @Query("select count(v) from Videojuego v where v.pendienteRevision = true")
+    long contarPendientesRevision();
+    
 }
