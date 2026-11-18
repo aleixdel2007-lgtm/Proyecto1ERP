@@ -75,4 +75,7 @@ public interface VideojuegoService {
                                           MultipartFile banner, List<MultipartFile> capturas);
 
     void eliminarImagenDeColaborador(String emailColaborador, Long videojuegoId, Long imagenId);
+
+    // Cuantos juegos de colaboradores esperan a que el gestor de productos los revise
+    long contarPendientesRevision();
 }

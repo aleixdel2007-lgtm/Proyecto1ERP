@@ -34,6 +34,7 @@ import model.catalogo.TipoImagen;
 import model.catalogo.Videojuego;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import service.interfaces.VideojuegoService;
@@ -69,16 +70,20 @@ public class VideojuegoServiceImpl implements VideojuegoService {
     @Autowired
     private PlataformaDao plataformaDao;
 
+    // Manda mensajes a los canales del WebSocket (el que reparte es el broker)
+    @Autowired
+    private SimpMessagingTemplate mensajeria;
+
     @Override
     public List<Videojuego> listarVideojuegosPropios(String texto, Long categoriaId, Long plataformaId,
-                                                     BigDecimal precioMin, BigDecimal precioMax, Boolean activo) {
+            BigDecimal precioMin, BigDecimal precioMax, Boolean activo) {
 
         return buscar(texto, categoriaId, plataformaId, precioMin, precioMax, activo, false);
     }
 
     @Override
     public List<Videojuego> listarVideojuegosDeColaboradores(String texto, Long categoriaId, Long plataformaId,
-                                                             BigDecimal precioMin, BigDecimal precioMax, Boolean activo) {
+            BigDecimal precioMin, BigDecimal precioMax, Boolean activo) {
 
         return buscar(texto, categoriaId, plataformaId, precioMin, precioMax, activo, true);
     }
@@ -86,8 +91,8 @@ public class VideojuegoServiceImpl implements VideojuegoService {
     // Lo que comparten los dos apartados: filtrar y, si hay resultados, volver a por sus
     // categorias y plataformas en una segunda consulta
     private List<Videojuego> buscar(String texto, Long categoriaId, Long plataformaId,
-                                    BigDecimal precioMin, BigDecimal precioMax, Boolean activo,
-                                    Boolean soloColaborador) {
+            BigDecimal precioMin, BigDecimal precioMax, Boolean activo,
+            Boolean soloColaborador) {
 
         List<Videojuego> filtrados = videojuegoDao.listarFiltrado(
                 normalizarTexto(texto), categoriaId, plataformaId, precioMin, precioMax,
@@ -144,7 +149,7 @@ public class VideojuegoServiceImpl implements VideojuegoService {
 
     @Override
     public Videojuego guardarVideojuego(Videojuego videojuego, Long proveedorId,
-                                        List<Long> categoriaIds, List<Long> plataformaIds) {
+            List<Long> categoriaIds, List<Long> plataformaIds) {
 
         normalizarCampos(videojuego);
         validarObligatorios(videojuego);
@@ -157,7 +162,7 @@ public class VideojuegoServiceImpl implements VideojuegoService {
     }
 
     private Videojuego crearVideojuego(Videojuego videojuego, Long proveedorId,
-                                       List<Long> categoriaIds, List<Long> plataformaIds) {
+            List<Long> categoriaIds, List<Long> plataformaIds) {
 
         videojuego.setProveedor(buscarProveedor(proveedorId));
         videojuego.setCategorias(buscarCategorias(categoriaIds));
@@ -167,7 +172,7 @@ public class VideojuegoServiceImpl implements VideojuegoService {
     }
 
     private Videojuego actualizarVideojuego(Videojuego videojuego, Long proveedorId,
-                                            List<Long> categoriaIds, List<Long> plataformaIds) {
+            List<Long> categoriaIds, List<Long> plataformaIds) {
 
         Videojuego existente = buscarVideojuegoXId(videojuego.getId());
 
@@ -339,7 +344,7 @@ public class VideojuegoServiceImpl implements VideojuegoService {
 
     @Override
     public ImagenVideojuego guardarImagen(Long videojuegoId, MultipartFile archivo,
-                                          TipoImagen tipo, String textoAlternativo) {
+            TipoImagen tipo, String textoAlternativo) {
 
         Videojuego videojuego = buscarVideojuegoXId(videojuegoId);
 
@@ -427,14 +432,14 @@ public class VideojuegoServiceImpl implements VideojuegoService {
 
     @Override
     public void validarFichaColaborador(String titulo, String sinopsis, String pegi, String version,
-                                        List<Long> categoriaIds, List<Long> plataformaIds) {
+            List<Long> categoriaIds, List<Long> plataformaIds) {
 
         validarFicha(titulo, sinopsis, pegi, categoriaIds, plataformaIds);
         validarVersion(version);
     }
 
     private void validarFicha(String titulo, String sinopsis, String pegi,
-                              List<Long> categoriaIds, List<Long> plataformaIds) {
+            List<Long> categoriaIds, List<Long> plataformaIds) {
 
         if (titulo == null || titulo.isBlank()) {
             throw new IllegalArgumentException("colab.error.tituloObligatorio");
@@ -477,10 +482,10 @@ public class VideojuegoServiceImpl implements VideojuegoService {
     @Override
     @Transactional
     public Videojuego publicarJuegoColaborador(String emailColaborador, String titulo, String sinopsis,
-                                               String pegi, String version,
-                                               List<Long> categoriaIds, List<Long> plataformaIds,
-                                               MultipartFile zip, MultipartFile portada,
-                                               MultipartFile banner, List<MultipartFile> capturas) {
+            String pegi, String version,
+            List<Long> categoriaIds, List<Long> plataformaIds,
+            MultipartFile zip, MultipartFile portada,
+            MultipartFile banner, List<MultipartFile> capturas) {
 
         // Todo lo que puede fallar por culpa del usuario, antes de escribir nada
         validarFichaColaborador(titulo, sinopsis, pegi, version, categoriaIds, plataformaIds);
@@ -535,6 +540,9 @@ public class VideojuegoServiceImpl implements VideojuegoService {
             almacenArchivos.borrarZips(guardado.getId());
             throw e;
         }
+        // Aviso en vivo al gestor de productos: hay un juego nuevo que revisar.
+        // Va al final, cuando ya no puede fallar nada, para no avisar de un juego que luego se deshace
+        mensajeria.convertAndSend("/topic/productos", "juego-pendiente");
         return guardado;
     }
 
@@ -570,10 +578,10 @@ public class VideojuegoServiceImpl implements VideojuegoService {
     @Override
     @Transactional
     public Videojuego actualizarJuegoColaborador(String emailColaborador, Long videojuegoId, String titulo,
-                                                 String sinopsis, String pegi, String version,
-                                                 List<Long> categoriaIds, List<Long> plataformaIds,
-                                                 MultipartFile zip, MultipartFile portada,
-                                                 MultipartFile banner, List<MultipartFile> capturas) {
+            String sinopsis, String pegi, String version,
+            List<Long> categoriaIds, List<Long> plataformaIds,
+            MultipartFile zip, MultipartFile portada,
+            MultipartFile banner, List<MultipartFile> capturas) {
 
         Videojuego videojuego = buscarJuegoDeColaborador(emailColaborador, videojuegoId);
 
@@ -594,6 +602,9 @@ public class VideojuegoServiceImpl implements VideojuegoService {
         List<MultipartFile> nuevasCapturas = limpiarCapturas(capturas);
 
         validarImagenesDeColaborador(videojuegoId, portada, banner, nuevasCapturas);
+
+        // Si ya estaba pendiente, el numero de la campana no cambia, asi que no hay que avisar de nuevo
+        boolean yaEstabaPendiente = videojuego.isPendienteRevision();
 
         videojuego.setTitulo(titulo.trim());
         videojuego.setSinopsis(sinopsis.trim());
@@ -633,6 +644,10 @@ public class VideojuegoServiceImpl implements VideojuegoService {
                 nueva.setActiva(true);
                 versionJuegoDao.save(nueva);
             }
+            if (!yaEstabaPendiente) {
+                mensajeria.convertAndSend("/topic/productos", "juego-pendiente");
+            }
+            
             return guardado;
 
         } catch (RuntimeException e) {
@@ -678,7 +693,7 @@ public class VideojuegoServiceImpl implements VideojuegoService {
     }
 
     private void validarImagenesDeColaborador(Long videojuegoId, MultipartFile portada,
-                                              MultipartFile banner, List<MultipartFile> capturas) {
+            MultipartFile banner, List<MultipartFile> capturas) {
 
         if (!vacio(portada)) {
             almacenArchivos.extensionDe(portada);
@@ -712,7 +727,7 @@ public class VideojuegoServiceImpl implements VideojuegoService {
     }
 
     private List<String> guardarImagenesDeColaborador(Long videojuegoId, MultipartFile portada,
-                                                      MultipartFile banner, List<MultipartFile> capturas) {
+            MultipartFile banner, List<MultipartFile> capturas) {
 
         List<String> rutas = new ArrayList<>();
 
@@ -728,5 +743,10 @@ public class VideojuegoServiceImpl implements VideojuegoService {
             rutas.add(guardarImagen(videojuegoId, captura, TipoImagen.CAPTURA, null).getRuta());
         }
         return rutas;
+    }
+    
+    @Override
+    public long contarPendientesRevision() {
+        return videojuegoDao.contarPendientesRevision();
     }
 }

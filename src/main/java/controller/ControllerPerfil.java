@@ -46,6 +46,12 @@ public class ControllerPerfil {
         return "clients/configuracionUsuario";
     }
 
+    @GetMapping("/user/changePassword")
+    public String changePasswordForm() {
+        return "clients/cambiarPassword";
+    }
+
+
     // Guarda los datos personales; cada bloque del perfil tiene su propio aviso
     @PostMapping("/user/profile")
     public String guardarPerfil(Authentication authentication,
