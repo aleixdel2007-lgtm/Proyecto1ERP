@@ -2,13 +2,13 @@ package config;
 
 public final class ValidadorCif {
 
-    // Las letras con las que puede empezar un CIF segun el tipo de organizacion
+    // Letras con las que puede empezar un CIF segun el tipo de organizacion
     private static final String LETRAS_INICIALES = "ABCDEFGHJNPQRSUVW";
-    // Tabla que convierte el digito calculado en su letra de control
+    // Digito de control (0-9) -> su letra
     private static final String LETRAS_CONTROL = "JABCDEFGHI";
-    // Organizaciones cuyo control es obligatoriamente una letra
+    // Organizaciones cuyo control es siempre una letra
     private static final String SOLO_LETRA = "PQRSNW";
-    // Organizaciones cuyo control es obligatoriamente un digito
+    // Organizaciones cuyo control es siempre un digito
     private static final String SOLO_DIGITO = "ABEH";
 
     private ValidadorCif() {
@@ -28,6 +28,7 @@ public final class ValidadorCif {
 
         String limpio = normalizar(cif);
 
+        // Debe medir 9 caracteres
         if (limpio == null || limpio.length() != 9) {
             return false;
         }
@@ -38,6 +39,7 @@ public final class ValidadorCif {
             return false;
         }
 
+        // Los 7 caracteres centrales deben ser digitos
         String digitos = limpio.substring(1, 8);
 
         if (!digitos.matches("\\d{7}")) {
@@ -45,6 +47,7 @@ public final class ValidadorCif {
         }
 
         char control = limpio.charAt(8);
+        // El control esperado, en sus dos formas posibles: letra y digito
         int calculado = digitoDeControl(digitos);
         char letra = LETRAS_CONTROL.charAt(calculado);
         char digito = Character.forDigit(calculado, 10);
@@ -57,10 +60,11 @@ public final class ValidadorCif {
             return control == digito;
         }
 
+        // El resto de organizaciones admite cualquiera de los dos
         return control == letra || control == digito;
     }
 
-    // Suma los digitos de posicion par tal cual y los de posicion impar duplicados,
+    // Suma los digitos de posicion par duplicados (restando 9 si pasan de 9) y los impares tal cual,
     // y devuelve lo que falta para cerrar la decena
     private static int digitoDeControl(String digitos) {
 
@@ -70,6 +74,7 @@ public final class ValidadorCif {
 
             int d = Character.getNumericValue(digitos.charAt(i));
 
+            // Posiciones 1, 3, 5 y 7 contando desde 1 (indices pares)
             if (i % 2 == 0) {
                 d = d * 2;
 
@@ -79,6 +84,7 @@ public final class ValidadorCif {
             }
             suma = suma + d;
         }
+        // El segundo % 10 hace que una suma terminada en 0 de control 0 y no 10
         return (10 - (suma % 10)) % 10;
     }
 }

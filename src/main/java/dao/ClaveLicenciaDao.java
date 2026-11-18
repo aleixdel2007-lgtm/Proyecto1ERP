@@ -37,10 +37,6 @@ public interface ClaveLicenciaDao extends JpaRepository<ClaveLicencia, Long> {
     boolean estaEnBiblioteca(@Param("email") String email,
             @Param("videojuegoId") Long videojuegoId);
 
-    // Hay alguna clave disponible de ese juego? Sirve para avisar ANTES de mandar
-    // al cliente a pagar
-    boolean existsByVideojuegoIdAndEstado(Long videojuegoId, EstadoClave estado);
-
     // Hay ya una clave con ese hash? Lo pregunta el acunado antes de dar un codigo por bueno,
     // que codigo_hash es UNIQUE y un choque reventaria el insert entero
     boolean existsByCodigoHash(String codigoHash);
@@ -51,6 +47,11 @@ public interface ClaveLicenciaDao extends JpaRepository<ClaveLicencia, Long> {
     Optional<ClaveLicencia> findFirstByVideojuegoIdAndEstadoOrderByIdAsc(
             Long videojuegoId, EstadoClave estado);
 
+    // Las claves de un pedido que estan en un estado. Sirve para encontrar "las claves
+    // RESERVADAS de este pedido": al pagar pasan a VENDIDA y al caducar vuelven a DISPONIBLE
+    List<ClaveLicencia> findByLineaPedidoPedidoIdAndEstado(Long pedidoId, EstadoClave estado);
+    
+    
     // El listado del panel. Los tres filtros son opcionales y se saltan solos cuando llegan
     // a null, igual que en los demas listarFiltrado del proyecto. Trae con fetch el juego,
     // el cliente y la orden de compra porque la tabla pinta los tres y open-in-view esta

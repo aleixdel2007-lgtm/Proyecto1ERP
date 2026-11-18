@@ -19,17 +19,16 @@ public class WebConfig implements WebMvcConfigurer {
     @Value("${app.uploads.dir}")
     private String uploadsDir;
 
-    // El idioma elegido en el select del navbar se guarda en una cookie, asi se mantiene
-    // al navegar y al volver otro dia. Si no hay cookie, castellano. El bean tiene que
-    // llamarse "localeResolver" para que Spring MVC lo use.
+    // El idioma se guarda en una cookie "idioma"; el bean debe llamarse "localeResolver" para que Spring MVC lo use
     @Bean
     public LocaleResolver localeResolver() {
         CookieLocaleResolver resolver = new CookieLocaleResolver("idioma");
+        // Sin cookie, castellano
         resolver.setDefaultLocale(Locale.forLanguageTag("es"));
         return resolver;
     }
 
-    // Detecta ?lang=es|en|ca en cualquier peticion y cambia el idioma de la cookie
+    // Cualquier peticion con ?lang=es|en|ca cambia el idioma guardado en la cookie
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         LocaleChangeInterceptor interceptor = new LocaleChangeInterceptor();
@@ -37,7 +36,7 @@ public class WebConfig implements WebMvcConfigurer {
         registry.addInterceptor(interceptor);
     }
 
-    // Las imagenes subidas viven en disco, fuera del jar, y se sirven en /uploads/**
+    // Las imagenes subidas viven en disco, fuera del jar, y se sirven bajo /uploads/**
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
         registry.addResourceHandler("/uploads/**")

@@ -27,15 +27,19 @@ public class ControllerPlataforma {
     @Autowired
     private MessageSource messageSource;
 
+    // Listado con buscador y paginacion
     @GetMapping("/catalogo/plataformas")
     public String listarPlataformas(
             @RequestParam(required = false) String texto,
             @RequestParam(defaultValue = "0") int pagina,
             Model model) {
 
+        // El filtro por texto lo aplica el servicio; la paginacion la hace la plantilla
         model.addAttribute("plataformas", plataformaService.listarPlataformas(texto));
+        // Total de juegos por plataforma, para la columna del listado
         model.addAttribute("juegos", plataformaService.contarJuegos());
 
+        // Se devuelven para que el filtro y la pagina sigan marcados
         model.addAttribute("texto", texto);
         model.addAttribute("pagina", Math.max(0, pagina));
 
@@ -59,6 +63,7 @@ public class ControllerPlataforma {
         return "catalogo/formularioEditarPlat";
     }
 
+    // Sirve para crear y para editar: sin id es una plataforma nueva
     @PostMapping("/catalogo/plataformas/guardar")
     public String guardarPlataforma(
             @ModelAttribute("plataforma") Plataforma plataforma,
@@ -67,11 +72,13 @@ public class ControllerPlataforma {
             Locale locale) {
 
         try {
+            // El servicio valida que el codigo y el nombre no esten repetidos
             plataformaService.guardarPlataforma(plataforma);
 
         } catch (CodigoPlataformaDuplicadoException | NombrePlataformaDuplicadoException
                 | IllegalArgumentException e) {
 
+            // Se vuelve al formulario con el error, el que corresponda segun sea alta o edicion
             model.addAttribute("error", traducir(e, locale));
 
             if (plataforma.getId() == null) {
@@ -84,6 +91,7 @@ public class ControllerPlataforma {
             return "catalogo/formularioEditarPlat";
         }
 
+        // El flash sobrevive al redirect, el Model no
         flash.addFlashAttribute("mensaje", messageSource.getMessage("plataformas.ok.guardada", null, locale));
 
         return "redirect:/catalogo/plataformas";
@@ -97,6 +105,7 @@ public class ControllerPlataforma {
             plataformaService.eliminarPlataforma(id);
 
         } catch (PlataformaConJuegosException e) {
+            // No se borra una plataforma que aun tiene juegos
             flash.addFlashAttribute("error", traducir(e, locale));
             return "redirect:/catalogo/plataformas";
         }
@@ -106,6 +115,7 @@ public class ControllerPlataforma {
         return "redirect:/catalogo/plataformas";
     }
 
+    // El mensaje de la excepcion es una clave i18n: se traduce al idioma del usuario
     private String traducir(RuntimeException e, Locale locale) {
         return messageSource.getMessage(e.getMessage(), null, e.getMessage(), locale);
     }

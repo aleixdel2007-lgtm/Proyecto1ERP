@@ -1,7 +1,3 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package controller;
 
 import exception.pago.PagoNoCompletadoException;
@@ -18,10 +14,6 @@ import service.interfaces.PagoService;
 
 import java.util.Locale;
 
-/**
- *
- * @author Sandy
- */
 @Controller
 public class ControllerPago {
 
@@ -36,6 +28,8 @@ public class ControllerPago {
     public String pagoRealizado(@RequestParam("session_id") String sessionId,
             Authentication authentication, RedirectAttributes flash, Locale locale) {
         try {
+            // Verifica el pago con Stripe y crea el pedido con sus claves
+            // El session_id lo pone Stripe en la URL de vuelta; el servicio lo verifica con Stripe
             // El numero del pedido no se le ensena al cliente: es un dato administrativo
             pagoService.confirmarPago(authentication.getName(), sessionId);
             flash.addFlashAttribute("mensaje", messageSource.getMessage("pago.ok.realizado",
@@ -47,15 +41,14 @@ public class ControllerPago {
         }
     }
 
-    // Y aqui si ha pulsado "volver" en la pagina de Stripe
+    // El cliente pulso "volver" en la pagina de Stripe
     @GetMapping("/tienda/pago/cancelado")
     public String pagoCancelado(RedirectAttributes flash, Locale locale) {
         flash.addFlashAttribute("error", messageSource.getMessage("pago.error.cancelado", null, locale));
         return "redirect:/tienda/cesta";
     }
 
-    // Las excepciones llevan una clave de traduccion como mensaje. Dos necesitan ademas un
-    // dato para el {0} del texto: el titulo del juego y el id del pedido.
+    // Dos excepciones necesitan un dato extra para el texto: el titulo del juego y el id del pedido
     private String mensajeDeError(RuntimeException e, Locale locale) {
         if (e instanceof SinClavesDisponiblesException sinClaves) {
             return messageSource.getMessage(sinClaves.getMessage(),

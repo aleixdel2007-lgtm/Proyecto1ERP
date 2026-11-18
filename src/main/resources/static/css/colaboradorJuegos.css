@@ -104,6 +104,22 @@ table.tbl td.num,table.tbl th.num{text-align:right;font-variant-numeric:tabular-
 }
 .note-box svg{flex:0 0 auto;margin-top:1px;color:var(--purple-light)}
 
+/* Progreso de la subida de un juego (js/subida-juego.js). El panel lo crea el script */
+.subida-panel{
+    display:flex;flex-direction:column;gap:8px;padding:12px 14px;border-radius:var(--r);
+    background:var(--surface);border:1px solid var(--line);font-size:12.5px;color:var(--ink-2);
+}
+.subida-panel[hidden]{display:none}
+.subida-linea{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.subida-pct{font-variant-numeric:tabular-nums;color:var(--muted)}
+.subida-barra{width:100%;height:8px;border-radius:99px;overflow:hidden;appearance:none;-webkit-appearance:none;border:0;background:var(--surface-3)}
+.subida-barra::-webkit-progress-bar{background:var(--surface-3)}
+.subida-barra::-webkit-progress-value{background:var(--purple-light);transition:width .15s linear}
+.subida-barra::-moz-progress-bar{background:var(--purple-light)}
+.subida-cancelar{align-self:flex-end}
+/* .btn pone su propio display y le gana al atributo hidden: sin esto el boton seguia visible */
+.subida-cancelar[hidden]{display:none}
+
 .form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:15px 18px}
 .form-grid .wide{grid-column:1/-1}
 @media(max-width:800px){.form-grid{grid-template-columns:1fr}}

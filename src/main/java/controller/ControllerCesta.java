@@ -1,7 +1,3 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package controller;
 
 import exception.cesta.CestaVaciaException;
@@ -25,10 +21,6 @@ import service.interfaces.PagoService;
 
 import java.util.Locale;
 
-/**
- *
- * @author Sandy
- */
 @Controller
 public class ControllerCesta {
 
@@ -43,8 +35,10 @@ public class ControllerCesta {
 
     @GetMapping("/tienda/cesta")
     public String verCesta(Authentication authentication, Model model) {
+        // Si el usuario aun no tiene cesta se le crea una vacia
         Cesta cesta = cestaService.buscarOCrearCesta(authentication.getName());
         model.addAttribute("cesta", cesta);
+        // El total lo calcula el servicio, la vista no suma
         model.addAttribute("total", cestaService.calcularTotal(cesta));
         return "client/cesta";
     }
@@ -53,12 +47,13 @@ public class ControllerCesta {
     public String anadirJuego(@RequestParam Long videojuegoId,
             Authentication authentication, RedirectAttributes flash, Locale locale) {
         try {
+            // La cesta es la del usuario de la sesion, nunca la de un id recibido
             cestaService.anadirVideojuego(authentication.getName(), videojuegoId);
         } catch (JuegoNoComprableException | VideojuegoNoDisponibleException e) {
             flash.addFlashAttribute("error", traducir(e.getMessage(), locale));
             return "redirect:/tienda/cesta";
         }
-        // flash: guarda el mensaje para la pagina siguiente, porque el redirect pierde el Model
+        // El flash sobrevive al redirect, el Model no
         flash.addFlashAttribute("mensaje", traducir("cesta.ok.anadido", locale));
         return "redirect:/tienda/cesta";
     }
@@ -75,11 +70,12 @@ public class ControllerCesta {
         return "redirect:/tienda/cesta";
     }
 
+    // Empieza el pago: crea la sesion de Stripe y manda al usuario alli
     @PostMapping("/tienda/cesta/tramitar")
     public String tramitarPedido(Authentication authentication, RedirectAttributes flash, Locale locale) {
         try {
             String urlPago = pagoService.iniciarPago(authentication.getName());
-            // "redirect:" con una direccion externa: el navegador se va a la pagina de Stripe
+            // Redirect a una URL externa (Stripe)
             return "redirect:" + urlPago;
         } catch (CestaVaciaException | VideojuegoNoDisponibleException
                 | SinClavesDisponiblesException | PagoNoCompletadoException e) {
@@ -88,8 +84,7 @@ public class ControllerCesta {
         }
     }
 
-    // Todas llevan una clave de traduccion como mensaje. Solo la de "sin claves" necesita
-    // ademas el titulo del juego, que es el {0} del texto.
+    // La excepcion de "sin claves" necesita ademas el titulo del juego como argumento
     private String mensajeDeError(RuntimeException e, Locale locale) {
         if (e instanceof SinClavesDisponiblesException sinClaves) {
             return traducir(sinClaves.getMessage(), locale, sinClaves.getTitulo());
@@ -97,8 +92,7 @@ public class ControllerCesta {
         return traducir(e.getMessage(), locale);
     }
 
-    // Las excepciones y los avisos llevan una clave de traduccion, no el texto: aqui se
-    // convierte al idioma del usuario. Si la clave no existe se enseña la propia clave.
+    // Convierte una clave i18n al idioma del usuario; si no existe devuelve la propia clave
     private String traducir(String clave, Locale locale, Object... args) {
         return messageSource.getMessage(clave, args, clave, locale);
     }

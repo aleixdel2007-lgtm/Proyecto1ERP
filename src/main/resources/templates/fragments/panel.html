@@ -90,6 +90,21 @@
         <option value="ca" th:selected="${#locale.language == 'ca'}">CA</option>
         <option value="en" th:selected="${#locale.language == 'en'}">EN</option>
     </select>
+    
+        <!-- Campanita de avisos: solo la ven el gestor de clientes y el admin.
+             El numero inicial viene de la BD (pendientesClientes) y el JS le suma 1
+             cuando llega un aviso por WebSocket -->
+        <a sec:authorize="hasAnyRole('GESTOR_CLIENTES','ADMIN')"
+           id="campana" class="campana" href="/clientes" title="Solicitudes de activacion pendientes">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor"
+                 stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/>
+                <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>
+            </svg>
+            <span id="campana-num" class="campana-num"
+                  th:classappend="${pendientesClientes == 0} ? 'vacio'"
+                  th:text="${pendientesClientes}">0</span>
+        </a>
     <div class="who">
         <img class="avatar" style="object-fit:cover"
              th:src="${imagenPerfil != null} ? @{${imagenPerfil.rutaImagen}} : @{/img/placeholder.webp}"
@@ -102,6 +117,10 @@
         </div>
     </div>
 <script th:src="@{/js/client-profile.js}" src="../static/js/client-profile.js"></script>
+    <th:block sec:authorize="hasAnyRole('GESTOR_CLIENTES', 'GESTOR_PRODUCTOS', 'ADMIN')">
+        <script th:src="@{/js/stomp.umd.min.js}"></script>
+        <script th:src="@{/js/notificaciones.js}"></script>
+    </th:block>
 </header>
 
 </body>

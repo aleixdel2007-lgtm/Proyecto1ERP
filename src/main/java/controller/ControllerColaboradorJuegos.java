@@ -4,8 +4,14 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.MessageSource;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.servlet.FlashMap;
+import org.springframework.web.servlet.support.RequestContextUtils;
 import exception.imagen.ImagenInvalidaException;
 import model.catalogo.Categoria;
 import model.catalogo.ImagenVideojuego;
@@ -33,6 +39,7 @@ public class ControllerColaboradorJuegos {
     @Autowired
     private MessageSource messageSource;
 
+    // Juegos del colaborador con su portada y su version activa
     @GetMapping("/colaborador/mis-juegos")
     public String misJuegos(Authentication authentication, Model model) {
 
@@ -48,14 +55,15 @@ public class ControllerColaboradorJuegos {
     @GetMapping("/colaborador/mis-juegos/nuevo")
     public String nuevoJuego(Model model) {
 
-        // Formulario en blanco: no hay nada marcado todavia
+        // Formulario en blanco: nada marcado
         cargarFormulario(model, new HashSet<>(), new HashSet<>());
 
         return "colaboradores/nuevo-juego";
     }
 
+    // Devuelve Object porque tiene dos salidas: una vista (envio normal) o un JSON (envio por XHR)
     @PostMapping("/colaborador/mis-juegos/guardar")
-    public String guardarJuego(@RequestParam(required = false) String titulo,
+    public Object guardarJuego(@RequestParam(required = false) String titulo,
                                @RequestParam(required = false) String sinopsis,
                                @RequestParam(required = false) String pegi,
                                @RequestParam(required = false) String version,
@@ -68,16 +76,23 @@ public class ControllerColaboradorJuegos {
                                Authentication authentication,
                                Model model,
                                RedirectAttributes flash,
-                               Locale locale) {
+                               Locale locale,
+                               HttpServletRequest request,
+                               HttpServletResponse response) {
 
         try {
+            // El colaborador sale de la sesion; el juego queda inactivo hasta que lo revise un gestor
             videojuegoService.publicarJuegoColaborador(authentication.getName(), titulo, sinopsis,
                     pegi, version, categoriaIds, plataformaIds, zip, portada, banner, capturas);
 
         } catch (IllegalArgumentException | ImagenInvalidaException e) {
 
-            // Se devuelve el formulario con lo que habia escrito y marcado: solo los
-            // archivos hay que volver a elegirlos, el navegador no deja rellenarlos
+            // Por XHR el formulario sigue en pantalla con los archivos: solo se avisa del error
+            if (esXhr(request)) {
+                return errorJson(traducir(e, locale));
+            }
+
+            // Envio normal: se devuelve el formulario con lo escrito; los archivos hay que volver a elegirlos
             model.addAttribute("error", traducir(e, locale));
             model.addAttribute("titulo", titulo);
             model.addAttribute("sinopsis", sinopsis);
@@ -88,14 +103,13 @@ public class ControllerColaboradorJuegos {
             return "colaboradores/nuevo-juego";
         }
 
-        flash.addFlashAttribute("mensaje", messageSource.getMessage("colab.ok.subido", null, locale));
-
-        return "redirect:/colaborador/mis-juegos";
+        return exito(request, response, flash, messageSource.getMessage("colab.ok.subido", null, locale));
     }
 
     @GetMapping("/colaborador/mis-juegos/{id}/editar")
     public String editarJuego(@PathVariable Long id, Authentication authentication, Model model) {
 
+        // Comprueba que el juego es de este colaborador
         Videojuego juego = videojuegoService.buscarJuegoDeColaborador(authentication.getName(), id);
 
         cargarEdicionInicial(model, juego);
@@ -103,8 +117,9 @@ public class ControllerColaboradorJuegos {
         return "colaboradores/editar-juego";
     }
 
+    // Igual que guardarJuego: devuelve vista o JSON segun sea envio normal o XHR
     @PostMapping("/colaborador/mis-juegos/{id}/actualizar")
-    public String actualizarJuego(@PathVariable Long id,
+    public Object actualizarJuego(@PathVariable Long id,
                                   @RequestParam(required = false) String titulo,
                                   @RequestParam(required = false) String sinopsis,
                                   @RequestParam(required = false) String pegi,
@@ -118,14 +133,22 @@ public class ControllerColaboradorJuegos {
                                   Authentication authentication,
                                   Model model,
                                   RedirectAttributes flash,
-                                  Locale locale) {
+                                  Locale locale,
+                                  HttpServletRequest request,
+                                  HttpServletResponse response) {
 
         try {
+            // El servicio comprueba que el juego es de este colaborador; al guardar vuelve a inactivo
             videojuegoService.actualizarJuegoColaborador(authentication.getName(), id, titulo,
                     sinopsis, pegi, version, categoriaIds, plataformaIds, zip, portada, banner, capturas);
 
         } catch (IllegalArgumentException | ImagenInvalidaException e) {
 
+            if (esXhr(request)) {
+                return errorJson(traducir(e, locale));
+            }
+
+            // Se recarga el juego guardado y se devuelve el formulario con lo que escribio el usuario
             Videojuego juego = videojuegoService.buscarJuegoDeColaborador(authentication.getName(), id);
 
             model.addAttribute("error", traducir(e, locale));
@@ -138,9 +161,7 @@ public class ControllerColaboradorJuegos {
             return "colaboradores/editar-juego";
         }
 
-        flash.addFlashAttribute("mensaje", messageSource.getMessage("colab.ok.actualizado", null, locale));
-
-        return "redirect:/colaborador/mis-juegos";
+        return exito(request, response, flash, messageSource.getMessage("colab.ok.actualizado", null, locale));
     }
 
     @PostMapping("/colaborador/mis-juegos/{id}/imagen/{imagenId}/quitar")
@@ -161,14 +182,40 @@ public class ControllerColaboradorJuegos {
         return "redirect:/colaborador/mis-juegos/" + id + "/editar";
     }
 
-    // El mensaje de la excepcion es la clave de traduccion: aqui se pasa al idioma del
-    // usuario. Si la clave no existiera se ensena la propia clave.
+    // El JS de la subida manda esta cabecera; sin ella todo funciona como un formulario normal
+    private boolean esXhr(HttpServletRequest request) {
+        return "XMLHttpRequest".equals(request.getHeader("X-Requested-With"));
+    }
+
+    // Fin feliz: por XHR guarda el flash a mano y devuelve JSON con la URL destino; si no, redirect
+    private Object exito(HttpServletRequest request, HttpServletResponse response,
+                         RedirectAttributes flash, String mensaje) {
+
+        if (esXhr(request)) {
+            // Sin redirect nadie guarda el flash, asi que se guarda aqui para la siguiente peticion
+            FlashMap salida = RequestContextUtils.getOutputFlashMap(request);
+            salida.put("mensaje", mensaje);
+            RequestContextUtils.getFlashMapManager(request).saveOutputFlashMap(salida, request, response);
+
+            return ResponseEntity.ok(Map.of("ok", true,
+                    "redirect", request.getContextPath() + "/colaborador/mis-juegos"));
+        }
+
+        flash.addFlashAttribute("mensaje", mensaje);
+
+        return "redirect:/colaborador/mis-juegos";
+    }
+
+    private ResponseEntity<Map<String, Object>> errorJson(String mensaje) {
+        return ResponseEntity.badRequest().body(Map.of("ok", false, "error", mensaje));
+    }
+
+    // El mensaje de la excepcion es una clave i18n: se traduce al idioma del usuario
     private String traducir(RuntimeException e, Locale locale) {
         return messageSource.getMessage(e.getMessage(), null, e.getMessage(), locale);
     }
 
-    // Lo que necesita el formulario tanto en blanco como al volver con un error. Los dos
-    // conjuntos son los ids marcados, para que los chips sigan seleccionados
+    // Listas a elegir del formulario y ids ya marcados
     private void cargarFormulario(Model model, Set<Long> categoriasMarcadas, Set<Long> plataformasMarcadas) {
 
         model.addAttribute("categorias", videojuegoService.listarCategorias());
@@ -178,8 +225,7 @@ public class ControllerColaboradorJuegos {
         model.addAttribute("plataformasMarcadas", plataformasMarcadas);
     }
 
-    // Primera vez que se abre la pantalla de editar: los chips marcados son los que tiene
-    // GUARDADOS el juego, asi que los dos conjuntos salen de la propia entidad
+    // Primera apertura de editar: lo marcado es lo que ya tiene guardado el juego
     private void cargarEdicionInicial(Model model, Videojuego juego) {
 
         Set<Long> categoriasMarcadas = new HashSet<>();
@@ -196,9 +242,7 @@ public class ControllerColaboradorJuegos {
         cargarEdicionConMarcadas(model, juego, categoriasMarcadas, plataformasMarcadas);
     }
 
-    // Vuelta a la pantalla de editar despues de un error: los chips marcados son los que
-    // ACABABA DE ELEGIR el usuario, que no son los guardados, y llegan ya hechos conjunto.
-    // Ademas pone en el modelo las imagenes repartidas por tipo y la version activa
+    // Editar tras un error: lo marcado es lo que acababa de elegir el usuario; tambien carga imagenes y version activa
     private void cargarEdicionConMarcadas(Model model, Videojuego juego,
                                           Set<Long> categoriasMarcadas, Set<Long> plataformasMarcadas) {
 
@@ -208,6 +252,7 @@ public class ControllerColaboradorJuegos {
         ImagenVideojuego banner = null;
         List<ImagenVideojuego> capturas = new ArrayList<>();
 
+        // Reparte las imagenes por tipo: una portada, un banner y varias capturas
         for (ImagenVideojuego imagen : videojuegoService.listarImagenes(juego.getId())) {
 
             if (imagen.getTipo() == TipoImagen.PORTADA && portada == null) {
