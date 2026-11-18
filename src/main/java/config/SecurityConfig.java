@@ -70,7 +70,7 @@ public class SecurityConfig {
                 .requestMatchers("/tienda/pago/**").hasRole("CLIENTE")
                 .requestMatchers("/tienda", "/tienda/**").hasAnyRole("CLIENTE", "COLABORADOR", "ADMIN")
                 .requestMatchers("/valoraciones/**").hasRole("CLIENTE")
-                .requestMatchers("/home").hasAnyRole("ADMIN", "GESTOR_CLIENTES", "GESTOR_PRODUCTOS", "GESTOR_INVENTARIO")
+                .requestMatchers("/panelControl").hasAnyRole("ADMIN", "GESTOR_CLIENTES", "GESTOR_PRODUCTOS", "GESTOR_INVENTARIO")
                 .requestMatchers("/admin/**").hasRole("ADMIN")
                 .requestMatchers("/colaborador/**").hasRole("COLABORADOR")
                 .requestMatchers("/user/**").authenticated()
@@ -80,13 +80,13 @@ public class SecurityConfig {
                 )
                 .formLogin(form -> form
                 .loginPage("/login")
-                // Clientes y colaboradores van a la tienda; el resto de roles, a /home
+                // Clientes y colaboradores van a la tienda; el resto de roles, a /panelControl
                 .successHandler((request, response, authentication) -> {
                     usuarioService.registrarAccesoCorrecto(authentication.getName());
                     boolean vaATienda = authentication.getAuthorities().stream()
                             .anyMatch(a -> a.getAuthority().equals("ROLE_" + Rol.CLIENTE.name())
                             || a.getAuthority().equals("ROLE_" + Rol.COLABORADOR.name()));
-                    response.sendRedirect(request.getContextPath() + (vaATienda ? "/tienda" : "/home"));
+                    response.sendRedirect(request.getContextPath() + (vaATienda ? "/tienda" : "/panelControl"));
                 })
                 // Si el login falla se distingue el motivo: cuenta inactiva u otra cosa. Si no lo
                 // estaba, el fallo cuenta, y registrarFalloLogin dice si ha sido el que la ha
@@ -104,7 +104,7 @@ public class SecurityConfig {
                 .permitAll()
                 )
                 .exceptionHandling(ex -> ex
-                // Acceso denegado: un cliente o colaborador que escribe /home a mano va a su tienda, no al 403
+                // Acceso denegado: un cliente o colaborador que escribe /panelControl a mano va a su tienda, no al 403
                 .accessDeniedHandler((request, response, denied) -> {
                     Authentication auth = SecurityContextHolder.getContext().getAuthentication();
                     boolean vaATienda = auth != null && auth.getAuthorities().stream()
@@ -112,7 +112,7 @@ public class SecurityConfig {
                             || a.getAuthority().equals("ROLE_" + Rol.COLABORADOR.name()));
                     // Ruta sin el contexto de la aplicacion, para compararla
                     String ruta = request.getRequestURI().substring(request.getContextPath().length());
-                    if (vaATienda && ruta.equals("/home")) {
+                    if (vaATienda && ruta.equals("/panelControl")) {
                         response.sendRedirect(request.getContextPath() + "/tienda");
                     } else {
                         response.sendError(HttpServletResponse.SC_FORBIDDEN);

@@ -1,6 +1,7 @@
 package dao;
 
 import jakarta.persistence.LockModeType;
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 import model.inventario.ClaveLicencia;
@@ -92,4 +93,12 @@ public interface ClaveLicenciaDao extends JpaRepository<ClaveLicencia, Long> {
             + "and c.estado = :estado")
     long contarPorVideojuegoYEstado(@Param("videojuegoId") Long videojuegoId,
             @Param("estado") EstadoClave estado);
+
+    @Query("select sum(lc.costeUnitario) from ClaveLicencia c "
+            + "join c.lineaCompra lc "
+            + "where c.estado = :estado")
+    BigDecimal sumarCostePorEstado(@Param("estado") EstadoClave estado);
+
+    @Query("select count(distinct c.videojuego.id) from ClaveLicencia c where c.estado = :estado")
+    long contarJuegosConClavesEn(@Param("estado") EstadoClave estado);
 }

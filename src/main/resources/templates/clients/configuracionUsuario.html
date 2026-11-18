@@ -164,11 +164,11 @@
                     <span class="note" th:if="${okDatos}" th:text="${okDatos}"></span>
                     <span class="note" th:if="${errorDatos}" th:text="${errorDatos}"></span>
                     <!-- A donde se vuelve depende del rol: un cliente o un colaborador no
-                         pueden entrar en /home, asi que ese boton les daba un 403. -->
+                         pueden entrar en /panelControl, asi que ese boton les daba un 403. -->
                     <a class="btn" sec:authorize="hasAnyRole('CLIENTE','COLABORADOR')"
                        th:href="@{/tienda}" href="#" th:text="#{perfil.cancelar}">Cancelar</a>
                     <a class="btn" sec:authorize="!hasAnyRole('CLIENTE','COLABORADOR')"
-                       th:href="@{/home}" href="#" th:text="#{perfil.cancelar}">Cancelar</a>
+                       th:href="@{/panelControl}" href="#" th:text="#{perfil.cancelar}">Cancelar</a>
                     <button type="submit" class="btn btn-primary"
                             th:text="#{perfil.guardar}">Guardar</button>
                 </div>

@@ -11,7 +11,7 @@
     <div class="side-scroll">
         <div class="nav-group" th:text="#{panel.menu.grupo.panel}">Panel</div>
         <a class="nav-item" th:classappend="${activo == 'inicio'} ? 'on' : ''"
-           th:href="@{/home}">
+           th:href="@{/panelControl}">
             <span class="ic"><svg th:replace="~{fragments/iconos :: panel}"></svg></span><span th:text="#{panel.menu.inicio}">Panel de control</span></a>
 
         <th:block sec:authorize="hasAnyRole('GESTOR_PRODUCTOS', 'ADMIN')">

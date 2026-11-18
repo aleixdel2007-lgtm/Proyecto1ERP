@@ -21,20 +21,10 @@ import service.interfaces.UsuarioService;
 
 @Controller
 @RequiredArgsConstructor
-public class ControllerHome {
+public class ControllerPerfil {
 
     private final UsuarioService usuarioService;
     private final MessageSource messageSource;
-
-    @GetMapping("/home")
-    public String home(Authentication authentication, Model model) {
-
-        Usuario usuario = usuarioService.buscarUsuarioXEmail(authentication.getName());
-
-        model.addAttribute("usuario", usuario);
-
-        return "home";
-    }
 
     @GetMapping("/user/profile")
     public String profile(Authentication authentication, Model model) {

@@ -2,10 +2,12 @@ package dao;
 
 import model.ventas.EstadoPedido;
 import model.ventas.Pedido;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -56,4 +58,21 @@ public interface PedidoDao extends JpaRepository<Pedido, Long> {
     // Los pedidos de un cliente (por su email) que estan en un estado. 
     //Lo usa el pago para cancelar los PENDIENTE_PAGO anteriores de ese cliente antes de crear uno nuevo
     List<Pedido> findByClienteEmailAndEstado(String email, EstadoPedido estado);
+
+    @Query("select sum(p.total) from Pedido p where p.estado = :estado")
+    BigDecimal sumarTotalPorEstado(@Param("estado") EstadoPedido estado);
+
+    @Query("select count(p) from Pedido p where p.estado = :estado and p.fecha >= :desde")
+    long contarPorEstadoDesde(@Param("estado") EstadoPedido estado,
+            @Param("desde") LocalDateTime desde);
+
+    @Query("select count(l) from LineaPedido l where l.pedido.estado = :estado")
+    long contarUnidadesVendidas(@Param("estado") EstadoPedido estado);
+
+    @Query("select l.videojuego.titulo, count(l), sum(l.precioUnitario - l.descuento) "
+            + "from LineaPedido l "
+            + "where l.pedido.estado = :estado "
+            + "group by l.videojuego.id, l.videojuego.titulo "
+            + "order by count(l) desc, sum(l.precioUnitario - l.descuento) desc")
+    List<Object[]> topVendidos(@Param("estado") EstadoPedido estado, Pageable pagina);
 }

@@ -36,7 +36,7 @@ public class ControllerLogin {
     @GetMapping("/")
     public String index() {
         if (SecurityContextHolder.getContext().getAuthentication() != null) {
-            return "redirect:/home";
+            return "redirect:/panelControl";
         } else {
             return "login/login";
         }

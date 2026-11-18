@@ -3,7 +3,7 @@
 <body>
 
 <header class="top" th:fragment="navbar">
-    <a class="top-brand" th:href="@{/home}" href="#">
+    <a class="top-brand" th:href="@{/panelControl}" href="#">
         <div class="brand-mark">L</div>
         <div class="brand-name">Ludus<span>ERP</span></div>
     </a>
@@ -101,7 +101,7 @@
 
         <!-- Al admin tambien lo manda aqui el successHandler, asi que necesita una puerta
              de vuelta al panel. El cliente y el colaborador no ven este boton. -->
-        <a class="btn" sec:authorize="hasRole('ADMIN')" th:href="@{/home}" href="#" th:text="#{navbar.panelErp}">Panel ERP</a>
+        <a class="btn" sec:authorize="hasRole('ADMIN')" th:href="@{/panelControl}" href="#" th:text="#{navbar.panelErp}">Panel ERP</a>
 
         <button type="button" class="top-logout" th:text="#{navbar.cerrarSesion}"
                 onclick="document.getElementById('dlg-salir').showModal()">Cerrar sesión</button>

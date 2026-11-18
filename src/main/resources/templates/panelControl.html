@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html th:lang="${#locale.language}" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="#{panel.menu.inicio} + ' · LudusERP'">Panel de control · LudusERP</title>
+    <link rel="stylesheet" th:href="@{/css/panel.css}">
+    <link rel="stylesheet" th:href="@{/css/panelControl.css}">
+</head>
+<body>
+
+<div class="app">
+
+    <aside th:replace="~{fragments/panel :: menu('inicio')}"></aside>
+
+    <div class="main">
+
+        <header th:replace="~{fragments/panel :: barra(#{panel.seccion.general}, #{panel.menu.inicio})}"></header>
+
+        <main class="canvas">
+
+            <div class="page-head">
+                <div>
+                    <h1 th:text="#{panel.menu.inicio}">Panel de control</h1>
+                    <p th:text="#{panel.inicio.subtitulo}">Todas las cifras del histórico, calculadas al abrir la pantalla</p>
+                </div>
+            </div>
+
+            <div class="grid g4">
+                <div class="kpi accent">
+                    <span class="k-label" th:text="#{panel.inicio.kpi.ingresos}">Ingresos</span>
+                    <span class="k-val" th:text="${#numbers.formatDecimal(ingresos, 1, 'POINT', 2, 'COMMA')} + ' €'">0,00 €</span>
+                </div>
+                <div class="kpi">
+                    <span class="k-label" th:text="#{panel.inicio.kpi.coste}">Coste</span>
+                    <span class="k-val" th:text="${#numbers.formatDecimal(coste, 1, 'POINT', 2, 'COMMA')} + ' €'">0,00 €</span>
+                </div>
+                <div class="kpi">
+                    <span class="k-label" th:text="#{panel.inicio.kpi.margen}">Margen</span>
+                    <span class="k-val" th:text="${#numbers.formatDecimal(margen, 1, 'POINT', 2, 'COMMA')} + ' €'">0,00 €</span>
+                </div>
+                <div class="kpi">
+                    <span class="k-label" th:text="#{panel.inicio.kpi.unidades}">Unidades vendidas</span>
+                    <span class="k-val" th:text="${#numbers.formatInteger(unidades, 1, 'POINT')}">0</span>
+                </div>
+            </div>
+
+            <div class="grid g2">
+                <div class="kpi">
+                    <span class="k-label" th:text="#{panel.inicio.kpi.pedidos}">Pedidos</span>
+                    <span class="k-val" th:text="${#numbers.formatInteger(pedidos, 1, 'POINT')}">0</span>
+                    <span class="k-foot" th:text="#{panel.inicio.kpi.pedidosHoy(${pedidosHoy})}">0 hoy</span>
+                </div>
+                <div class="kpi">
+                    <span class="k-label" th:text="#{panel.inicio.kpi.claves}">Claves disponibles</span>
+                    <span class="k-val" th:text="${#numbers.formatInteger(clavesDisponibles, 1, 'POINT')}">0</span>
+                    <span class="k-foot" th:text="#{panel.inicio.kpi.enJuegos(${juegosConStock})}">en 0 juegos</span>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-head">
+                    <h3 th:text="#{panel.inicio.top.titulo}">Los 10 más vendidos</h3>
+                    <span class="sub" th:text="#{panel.inicio.top.sub}">por unidades, desde el inicio</span>
+                </div>
+                <div class="card-body">
+
+                    <p class="hint" th:if="${#lists.isEmpty(top)}"
+                       th:text="#{panel.inicio.top.vacio}">Todavía no hay pedidos pagados</p>
+
+                    <div class="rank" th:unless="${#lists.isEmpty(top)}">
+                        <div class="rank-row" th:each="fila, iter : ${top}">
+                            <span class="n" th:text="${iter.count}">1</span>
+                            <div class="rank-bar" th:title="#{panel.inicio.top.tooltip(${fila[0]}, ${fila[1]})}">
+                                <i th:style="'width:' + ${fila[1] * 100 / top[0][1]} + '%'"></i>
+                                <span th:text="${fila[0]}">Eclipse Protocol</span>
+                            </div>
+                            <span class="v" th:text="#{panel.inicio.top.fila(${fila[1]},
+                                      ${#numbers.formatDecimal(fila[2], 1, 'POINT', 2, 'COMMA')} + ' €')}">96 ud · 4.319,04 €</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+    </div>
+</div>
+
+</body>
+</html>
