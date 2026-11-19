@@ -1,0 +1,329 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>LudusERP · El correo con Mailpit</title>
+<!-- El aspecto sale de estilo.css, compartida por todos los resumenes.
+     Para regenerar el PDF:
+       chrome --headless --disable-gpu --no-pdf-header-footer
+              --print-to-pdf=docs/resumenes/Correo.pdf docs/resumenes/html/Correo.html -->
+<link rel="stylesheet" href="estilo.css">
+</head>
+<body>
+
+<!-- =================== 1 · PORTADA =================== -->
+
+<div class="cubierta">
+  <div class="cub-top">
+    <div class="cub-marca">L</div>
+    <div class="cub-eyebrow">LudusERP · resumen técnico</div>
+    <h1>El correo<br>con Mailpit</h1>
+    <div class="cub-sub">Cómo se envía un aviso y dónde acaba<br>mientras estamos desarrollando.</div>
+    <div class="cub-regla"></div>
+    <div class="cub-idea">
+      <h3>La idea en una frase</h3>
+      <p>En desarrollo <b>no sale ni un correo de verdad</b>: Mailpit se hace pasar por un servidor
+      de correo, se queda todo lo que la aplicación envía y te lo enseña en una web. El código no
+      sabe que es de mentira, y cambiar a un servidor real son <b>dos líneas</b>.</p>
+    </div>
+  </div>
+  <div class="cub-pie">
+    <span><b>Clase central:</b> <code>EmailServiceImpl</code></span>
+    <span><b>Bandeja:</b> <code>localhost:8025</code></span>
+    <span><b>5 páginas</b></span>
+  </div>
+</div>
+
+<!-- =================== 2 · ÍNDICE =================== -->
+
+<div class="salto"></div>
+
+<div class="seccion">Índice</div>
+
+<div class="indice">
+  <div class="ix"><span class="ixn">1</span><span class="ixt">
+      <b>En 30 segundos</b><span>Lo esencial en seis frases, para repasar antes de un examen</span>
+      </span><span class="ixp">pág. 2</span></div>
+  <div class="ix"><span class="ixn">2</span><span class="ixt">
+      <b>Los correos que se envían</b><span>Cuáles son, cuándo salen, a quién y en qué idioma</span>
+      </span><span class="ixp">pág. 2</span></div>
+  <div class="ix"><span class="ixn">3</span><span class="ixt">
+      <b>El recorrido completo</b><span>Diagrama del viaje de un correo, con el archivo de cada paso</span>
+      </span><span class="ixp">pág. 3</span></div>
+  <div class="ix"><span class="ixn">4</span><span class="ixt">
+      <b>Los conceptos que toca</b><span>Las diez ideas que se aprenden aquí y para qué sirve cada una</span>
+      </span><span class="ixp">pág. 4</span></div>
+  <div class="ix"><span class="ixn">5</span><span class="ixt">
+      <b>Las dos preguntas de examen</b><span>Por qué está hecho así, respondido</span>
+      </span><span class="ixp">pág. 5</span></div>
+</div>
+
+<div class="seccion"><span class="n">1</span>En 30 segundos</div>
+
+<div class="rapido">
+  <ol>
+    <li><b>Mailpit</b> es un contenedor más del <code>compose.yaml</code>: se levanta solo al arrancar
+    la aplicación, igual que MySQL y MongoDB.</li>
+    <li>Escucha en el <b>puerto 1025</b> como si fuera un servidor de correo de verdad, y enseña lo
+    recibido en una web en el <b>8025</b>.</li>
+    <li>La aplicación solo sabe que tiene que enviar a <code>localhost:1025</code>: son las dos únicas
+    líneas de configuración que hay.</li>
+    <li>Spring ve esa configuración y construye solo un <code>JavaMailSender</code>, que
+    <code>EmailServiceImpl</code> recibe inyectado.</li>
+    <li>Mailpit acepta el correo y <b>no lo reenvía a nadie</b>: se lo queda. Abres el 8025 en el
+    navegador y lo lees.</li>
+    <li>Si el envío falla, se escribe un aviso en el registro y <b>la operación sigue adelante</b>:
+    un correo no debe tumbar una activación de cuenta.</li>
+  </ol>
+</div>
+
+<div class="seccion"><span class="n">2</span>Los correos que se envían</div>
+
+<table>
+  <thead>
+    <tr><th style="width:24%">Correo</th><th style="width:40%">Cuándo sale</th><th>A quién</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><b>Cuenta activada</b><br><code>enviarCuentaActivada</code></td>
+      <td>Un gestor reactiva una cuenta que estaba bloqueada, desde el listado de clientes</td>
+      <td>Al <b>cliente</b> afectado<br><span style="color:#6b6b75">texto traducido en los tres idiomas, pero se envía en castellano</span></td>
+    </tr>
+    <tr>
+      <td><b>Stock bajo</b><br><code>enviarAvisoStockBajo</code></td>
+      <td>Justo después de vender unas claves, si de ese juego quedan pocas disponibles</td>
+      <td>A <b>todos</b> los empleados con rol <code>GESTOR_INVENTARIO</code><br><span style="color:#6b6b75">texto escrito a pelo en castellano</span></td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="nota">
+  <b>¿Por qué los dos van en castellano?</b> El idioma que elige cada usuario vive en una
+  <b>cookie de su navegador</b>, no en la tabla <code>usuario</code>. Y un correo no se envía dentro
+  de la petición de quien lo recibe: el de «cuenta activada» lo dispara el <i>gestor</i>, así que el
+  idioma de esa petición es el del gestor, no el del cliente. Sin guardar el idioma en el usuario no
+  hay forma de saber en cuál quiere leerlo.
+</div>
+
+<!-- =================== 3 · DIAGRAMA =================== -->
+
+<div class="salto"></div>
+
+<div class="seccion"><span class="n">3</span>El recorrido completo</div>
+<p class="intro">El viaje del correo de «cuenta activada», desde que el gestor pulsa el botón hasta
+que lo ves en la bandeja. Cada caja lleva debajo su archivo.</p>
+
+<div class="diagrama">
+<svg viewBox="0 0 560 470" xmlns="http://www.w3.org/2000/svg" role="img"
+     aria-label="Diagrama de carriles: nuestro servidor, el contenedor de Mailpit y tú">
+  <defs>
+    <marker id="f" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
+      <path d="M0,0 L7,3.5 L0,7 z" fill="#45454e"/></marker>
+    <marker id="fm" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
+      <path d="M0,0 L7,3.5 L0,7 z" fill="#6d28d9"/></marker>
+    <marker id="fr" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
+      <path d="M0,0 L7,3.5 L0,7 z" fill="#b42318"/></marker>
+  </defs>
+
+  <rect x="2"   y="2" width="236" height="466" fill="#fff"    stroke="#d9d9e0"/>
+  <rect x="246" y="2" width="180" height="466" fill="#f5f5f8" stroke="#d9d9e0"/>
+  <rect x="434" y="2" width="124" height="466" fill="#f5f5f8" stroke="#d9d9e0"/>
+  <rect x="2"   y="2" width="236" height="24" fill="#6d28d9"/>
+  <rect x="246" y="2" width="180" height="24" fill="#1b1b1f"/>
+  <rect x="434" y="2" width="124" height="24" fill="#1b1b1f"/>
+  <text x="120" y="18" text-anchor="middle" font-size="9.6" font-weight="700" fill="#fff" font-family="Segoe UI,sans-serif">NUESTRO SERVIDOR</text>
+  <text x="336" y="18" text-anchor="middle" font-size="9.6" font-weight="700" fill="#fff" font-family="Segoe UI,sans-serif">MAILPIT (contenedor)</text>
+  <text x="496" y="18" text-anchor="middle" font-size="9.6" font-weight="700" fill="#fff" font-family="Segoe UI,sans-serif">TÚ</text>
+
+  <!-- 1 -->
+  <rect x="14" y="38" width="212" height="46" rx="4" fill="#f1ebfd" stroke="#6d28d9" stroke-width="1.2"/>
+  <text x="120" y="56" text-anchor="middle" font-size="10" font-weight="650" font-family="Segoe UI,sans-serif">Un gestor reactiva la cuenta</text>
+  <text x="120" y="68" text-anchor="middle" font-size="8.4" fill="#45454e" font-family="Segoe UI,sans-serif">solo si antes estaba bloqueada</text>
+  <text x="120" y="79" text-anchor="middle" font-size="7.4" fill="#6b6b75" font-family="Consolas,monospace">ClienteServiceImpl.cambiarEstado</text>
+  <circle cx="24" cy="46" r="8" fill="#6d28d9"/><text x="24" y="49.5" text-anchor="middle" font-size="9" font-weight="700" fill="#fff" font-family="Segoe UI,sans-serif">1</text>
+
+  <!-- 2 -->
+  <line x1="120" y1="84" x2="120" y2="96" stroke="#6d28d9" stroke-width="1.3" marker-end="url(#fm)"/>
+  <rect x="14" y="98" width="212" height="58" rx="4" fill="#f1ebfd" stroke="#6d28d9" stroke-width="1.2"/>
+  <text x="120" y="116" text-anchor="middle" font-size="10" font-weight="650" font-family="Segoe UI,sans-serif">Monta el mensaje</text>
+  <text x="120" y="129" text-anchor="middle" font-size="8.4" fill="#45454e" font-family="Segoe UI,sans-serif">de, para, asunto y cuerpo</text>
+  <text x="120" y="141" text-anchor="middle" font-size="7.8" fill="#6d28d9" font-family="Consolas,monospace">los textos salen del MessageSource</text>
+  <text x="120" y="151" text-anchor="middle" font-size="7.4" fill="#6b6b75" font-family="Consolas,monospace">EmailServiceImpl · SimpleMailMessage</text>
+  <circle cx="24" cy="106" r="8" fill="#6d28d9"/><text x="24" y="109.5" text-anchor="middle" font-size="9" font-weight="700" fill="#fff" font-family="Segoe UI,sans-serif">2</text>
+
+  <!-- 3 -->
+  <line x1="120" y1="156" x2="120" y2="168" stroke="#6d28d9" stroke-width="1.3" marker-end="url(#fm)"/>
+  <rect x="14" y="170" width="212" height="50" rx="4" fill="#f1ebfd" stroke="#6d28d9" stroke-width="1.2"/>
+  <text x="120" y="188" text-anchor="middle" font-size="10" font-weight="650" font-family="Segoe UI,sans-serif">Lo entrega por SMTP</text>
+  <text x="120" y="201" text-anchor="middle" font-size="8.6" fill="#45454e" font-family="Consolas,monospace">localhost:1025</text>
+  <text x="120" y="214" text-anchor="middle" font-size="7.4" fill="#6b6b75" font-family="Consolas,monospace">JavaMailSender · lo crea Spring solo</text>
+  <circle cx="24" cy="178" r="8" fill="#6d28d9"/><text x="24" y="181.5" text-anchor="middle" font-size="9" font-weight="700" fill="#fff" font-family="Segoe UI,sans-serif">3</text>
+
+  <line x1="226" y1="195" x2="256" y2="195" stroke="#45454e" stroke-width="1.3" marker-end="url(#f)"/>
+  <text x="241" y="189" text-anchor="middle" font-size="7" fill="#6b6b75" font-family="Consolas,monospace">SMTP</text>
+
+  <!-- 4 -->
+  <rect x="256" y="170" width="160" height="50" rx="4" fill="#fff" stroke="#1b1b1f" stroke-width="1.2"/>
+  <text x="336" y="188" text-anchor="middle" font-size="10" font-weight="650" font-family="Segoe UI,sans-serif">Lo acepta y se lo queda</text>
+  <text x="336" y="201" text-anchor="middle" font-size="8.4" fill="#b42318" font-family="Segoe UI,sans-serif">NO lo reenvía a nadie</text>
+  <text x="336" y="213" text-anchor="middle" font-size="7.4" fill="#6b6b75" font-family="Consolas,monospace">compose.yaml · axllent/mailpit</text>
+  <circle cx="266" cy="178" r="8" fill="#1b1b1f"/><text x="266" y="181.5" text-anchor="middle" font-size="9" font-weight="700" fill="#fff" font-family="Segoe UI,sans-serif">4</text>
+
+  <!-- 5 -->
+  <line x1="336" y1="220" x2="336" y2="236" stroke="#45454e" stroke-width="1.3" marker-end="url(#f)"/>
+  <rect x="256" y="238" width="160" height="42" rx="4" fill="#fff" stroke="#1b1b1f" stroke-width="1.2"/>
+  <text x="336" y="255" text-anchor="middle" font-size="10" font-weight="650" font-family="Segoe UI,sans-serif">Lo guarda y lo publica</text>
+  <text x="336" y="269" text-anchor="middle" font-size="8.6" fill="#45454e" font-family="Consolas,monospace">en el puerto 8025</text>
+  <circle cx="266" cy="246" r="8" fill="#1b1b1f"/><text x="266" y="249.5" text-anchor="middle" font-size="9" font-weight="700" fill="#fff" font-family="Segoe UI,sans-serif">5</text>
+
+  <!-- 6 -->
+  <path d="M416,259 L470,259 L470,290" fill="none" stroke="#45454e" stroke-width="1.3" marker-end="url(#f)"/>
+  <rect x="440" y="296" width="110" height="46" rx="4" fill="#e6f4ea" stroke="#137333" stroke-width="1.4"/>
+  <text x="495" y="313" text-anchor="middle" font-size="10" font-weight="700" font-family="Segoe UI,sans-serif">Abres el 8025</text>
+  <text x="495" y="326" text-anchor="middle" font-size="8.4" fill="#0b4f22" font-family="Segoe UI,sans-serif">y ahí está el correo</text>
+  <text x="495" y="337" text-anchor="middle" font-size="7.4" fill="#6b6b75" font-family="Segoe UI,sans-serif">en el navegador</text>
+  <circle cx="450" cy="304" r="8" fill="#137333"/><text x="450" y="307.5" text-anchor="middle" font-size="9" font-weight="700" fill="#fff" font-family="Segoe UI,sans-serif">6</text>
+
+  <!-- rama de error -->
+  <line x1="14" y1="360" x2="546" y2="360" stroke="#d9d9e0" stroke-width="1"/>
+  <text x="14" y="378" font-size="9" font-weight="700" fill="#b42318" font-family="Segoe UI,sans-serif">¿Y SI EL ENVÍO FALLA?</text>
+
+  <rect x="14" y="388" width="212" height="46" rx="4" fill="#fdecea" stroke="#b42318" stroke-width="1.3"/>
+  <text x="120" y="406" text-anchor="middle" font-size="9.6" font-weight="650" font-family="Segoe UI,sans-serif">Se atrapa la MailException</text>
+  <text x="120" y="419" text-anchor="middle" font-size="8.4" fill="#7a1c10" font-family="Segoe UI,sans-serif">y se escribe un aviso en el registro</text>
+  <text x="120" y="430" text-anchor="middle" font-size="7.4" fill="#6b6b75" font-family="Consolas,monospace">log.warn(...)</text>
+
+  <line x1="226" y1="411" x2="256" y2="411" stroke="#b42318" stroke-width="1.3" marker-end="url(#fr)"/>
+  <rect x="256" y="388" width="290" height="46" rx="4" fill="#e6f4ea" stroke="#137333" stroke-width="1.3"/>
+  <text x="401" y="406" text-anchor="middle" font-size="9.6" font-weight="700" font-family="Segoe UI,sans-serif">La cuenta se queda activada igual</text>
+  <text x="401" y="421" text-anchor="middle" font-size="8.4" fill="#0b4f22" font-family="Segoe UI,sans-serif">el correo es un extra, no la operación</text>
+</svg>
+<p class="pie-fig">Los pasos 1 a 3 son los únicos que están en nuestro código. Del 4 en adelante es Mailpit.</p>
+</div>
+
+<!-- =================== 4 · CONCEPTOS =================== -->
+
+<div class="salto"></div>
+
+<div class="seccion"><span class="n">4</span>Los conceptos que toca</div>
+<p class="intro">Diez ideas de las que se estudian en clase, con el sitio exacto del proyecto donde
+están aplicadas. El color del borde dice de qué familia es cada una:
+<b style="color:#1a56c4">infraestructura</b>,
+<b style="color:#6d28d9">diseño</b>,
+<b style="color:#8a5a00">robustez</b>,
+<b style="color:#b42318">seguridad</b>.</p>
+
+<div class="rejilla">
+
+  <div class="cpt pro">
+    <span class="cn">01 · Infraestructura</span>
+    <h4>Un servidor SMTP de mentira</h4>
+    <p>Mailpit habla <b>SMTP</b> igual que Gmail, pero en vez de entregar nada se queda los correos.
+    Así se prueba el envío sin molestar a nadie real, sin credenciales y sin internet.</p>
+    <span class="d">compose.yaml · axllent/mailpit</span>
+  </div>
+
+  <div class="cpt pro">
+    <span class="cn">02 · Infraestructura</span>
+    <h4>Dos puertos, dos oficios</h4>
+    <p>El <b>1025</b> es por donde entra el correo (SMTP) y el <b>8025</b> es la web donde lo lees. Son
+    la misma herramienta con dos caras: una para la máquina y otra para ti.</p>
+    <span class="d">ports: 8025 · 1025</span>
+  </div>
+
+  <div class="cpt pro">
+    <span class="cn">03 · Infraestructura</span>
+    <h4>Se levanta solo</h4>
+    <p>No hay que arrancarlo a mano: <code>spring-boot-docker-compose</code> lee el
+    <code>compose.yaml</code> al iniciar la aplicación y enciende Mailpit junto a MySQL y MongoDB.</p>
+    <span class="d">spring.docker.compose.enabled=true</span>
+  </div>
+
+  <div class="cpt">
+    <span class="cn">04 · Diseño</span>
+    <h4>Dos líneas de configuración</h4>
+    <p>Solo hay <code>spring.mail.host</code> y <code>spring.mail.port</code>. Spring ve que están y
+    <b>construye solo</b> el <code>JavaMailSender</code>; nadie lo crea con <code>new</code>.</p>
+    <span class="d">application.properties</span>
+  </div>
+
+  <div class="cpt">
+    <span class="cn">05 · Diseño</span>
+    <h4>Programar contra una interfaz</h4>
+    <p>El servicio depende de <code>JavaMailSender</code>, no de Mailpit. Pasar a un servidor real el
+    día de mañana es <b>cambiar las dos líneas</b> de arriba: ni una del código.</p>
+    <span class="d">@Autowired JavaMailSender</span>
+  </div>
+
+  <div class="cpt">
+    <span class="cn">06 · Diseño</span>
+    <h4>Los textos no van en el código</h4>
+    <p>El asunto y el cuerpo se piden al <code>MessageSource</code> con una clave, igual que las
+    pantallas. Cambiar la redacción es tocar un <code>.properties</code>, no recompilar.</p>
+    <span class="d">messageSource.getMessage("correo.activada...")</span>
+  </div>
+
+  <div class="cpt">
+    <span class="cn">07 · Diseño</span>
+    <h4>Texto plano, no HTML</h4>
+    <p><code>SimpleMailMessage</code> manda texto sin formato: suficiente para un aviso y sin riesgo
+    de inyectar nada. Un correo con diseño necesitaría un <code>MimeMessage</code>.</p>
+    <span class="d">EmailServiceImpl · SimpleMailMessage</span>
+  </div>
+
+  <div class="cpt rob">
+    <span class="cn">08 · Robustez</span>
+    <h4>Un fallo que no tumba nada</h4>
+    <p>Si el servidor de correo no responde, la <code>MailException</code> se atrapa y solo se anota
+    en el registro. <b>La cuenta ya está activada</b>, que es lo que de verdad importaba.</p>
+    <span class="d">try { send } catch (MailException) { log.warn }</span>
+  </div>
+
+  <div class="cpt rob">
+    <span class="cn">09 · Robustez</span>
+    <h4>…pero sale antes del commit</h4>
+    <p>El envío ocurre <b>dentro</b> de la transacción. Si el commit fallara después, el correo ya
+    habría salido anunciando algo que no llegó a guardarse. Lo correcto sería enviarlo al confirmarse.</p>
+    <span class="d">@Transactional cambiarEstado(...)</span>
+  </div>
+
+  <div class="cpt seg">
+    <span class="cn">10 · Seguridad</span>
+    <h4>Sin credenciales en el repositorio</h4>
+    <p>Como el destino es <code>localhost</code>, no hay usuario ni contraseña que guardar. Con un
+    servidor real irían en una <b>variable de entorno</b>, nunca en un archivo que se sube a Git.</p>
+    <span class="d">igual que STRIPE_SECRET_KEY y LUDUSERP_AES_KEY</span>
+  </div>
+
+</div>
+
+<!-- =================== 5 · PREGUNTAS =================== -->
+
+<div class="seccion"><span class="n">5</span>Las dos preguntas de examen</div>
+
+<div class="examen">
+  <p class="q">¿Por qué Mailpit y no enviar correos de verdad mientras desarrollas?</p>
+  <p class="a">Por cuatro razones muy prácticas. <b>No molestas a nadie</b>: los datos de prueba
+  llevan correos inventados, y uno real recibiría decenas de avisos durante una tarde de pruebas.
+  <b>No necesitas credenciales</b> de ningún proveedor, así que no hay secretos que repartir entre el
+  equipo ni que acabar subiendo a Git por descuido. <b>Lo ves al instante</b> y entero, incluidas las
+  cabeceras. Y <b>no dependes de internet</b> ni de que el proveedor te marque como spam. Además, el
+  código es exactamente el mismo que en producción: solo cambia a dónde apunta.</p>
+
+  <p class="q">¿Por qué un fallo al enviar el correo no cancela la activación de la cuenta?</p>
+  <p class="a">Porque son dos cosas de importancia muy distinta. Lo que el gestor ha pedido es
+  <b>activar la cuenta</b>, y eso ya está hecho y guardado; el correo es un aviso de cortesía. Si al
+  fallar el envío se deshiciera todo, un servidor de correo caído impediría trabajar, que es peor que
+  un cliente sin avisar —y además el cliente ya puede entrar. Por eso la excepción se atrapa y solo
+  se registra. <b>El matiz</b>: como el envío va dentro de la transacción, lo ideal sería lanzarlo
+  justo después del commit, para no anunciar algo que todavía podría deshacerse.</p>
+</div>
+
+<div class="pie">
+  Resumen escrito a partir del código en <code>master</code> (<code>abce22a</code>).
+  Fuente editable en <code>docs/resumenes/html/Correo.html</code> (usa <code>estilo.css</code>). Para regenerar el PDF:
+  <code>chrome --headless --no-pdf-header-footer --print-to-pdf=docs/resumenes/Correo.pdf docs/resumenes/html/Correo.html</code>
+</div>
+
+</body>
+</html>

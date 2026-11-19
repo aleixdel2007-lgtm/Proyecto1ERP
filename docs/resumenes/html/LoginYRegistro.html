@@ -1,0 +1,364 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>LudusERP · Entrar y registrarse</title>
+<!-- El aspecto sale de estilo.css, compartida por todos los resumenes.
+     Para regenerar el PDF:
+       chrome --headless --disable-gpu --no-pdf-header-footer
+              --print-to-pdf=docs/resumenes/LoginYRegistro.pdf docs/resumenes/html/LoginYRegistro.html -->
+<link rel="stylesheet" href="estilo.css">
+</head>
+<body>
+
+<!-- =================== 1 · PORTADA =================== -->
+
+<div class="cubierta">
+  <div class="cub-top">
+    <div class="cub-marca">L</div>
+    <div class="cub-eyebrow">LudusERP · resumen técnico</div>
+    <h1>Entrar y<br>registrarse</h1>
+    <div class="cub-sub">Cómo se guarda una contraseña, cómo se comprueba<br>y quién decide a dónde vas al entrar.</div>
+    <div class="cub-regla"></div>
+    <div class="cub-idea">
+      <h3>La idea en una frase</h3>
+      <p>La contraseña <b>no se guarda nunca</b>, ni cifrada: se guarda un <b>hash</b> de BCrypt, del
+      que no se puede volver atrás. Al entrar no se descifra nada, se vuelve a calcular y se compara.
+      Y lo que decide a qué puedes entrar es tu <b>rol</b>, que viaja en la sesión.</p>
+    </div>
+  </div>
+  <div class="cub-pie">
+    <span><b>Clases centrales:</b> <code>SecurityConfig</code> · <code>ControllerLogin</code></span>
+    <span><b>Código:</b> master en <code>abce22a</code></span>
+    <span><b>5 páginas</b></span>
+  </div>
+</div>
+
+<!-- =================== 2 · ÍNDICE =================== -->
+
+<div class="salto"></div>
+
+<div class="seccion">Índice</div>
+
+<div class="indice">
+  <div class="ix"><span class="ixn">1</span><span class="ixt">
+      <b>En 30 segundos</b><span>Lo esencial en seis frases, para repasar antes de un examen</span>
+      </span><span class="ixp">pág. 2</span></div>
+  <div class="ix"><span class="ixn">2</span><span class="ixt">
+      <b>Los siete roles</b><span>Qué puede hacer cada uno y a dónde va nada más entrar</span>
+      </span><span class="ixp">pág. 2</span></div>
+  <div class="ix"><span class="ixn">3</span><span class="ixt">
+      <b>El recorrido completo</b><span>Diagrama del registro y del login, con el archivo de cada paso</span>
+      </span><span class="ixp">pág. 3</span></div>
+  <div class="ix"><span class="ixn">4</span><span class="ixt">
+      <b>Los conceptos que toca</b><span>Las diez ideas que se aprenden aquí y para qué sirve cada una</span>
+      </span><span class="ixp">pág. 4</span></div>
+  <div class="ix"><span class="ixn">5</span><span class="ixt">
+      <b>Las dos preguntas de examen</b><span>Por qué está hecho así, respondido</span>
+      </span><span class="ixp">pág. 5</span></div>
+</div>
+
+<div class="seccion"><span class="n">1</span>En 30 segundos</div>
+
+<div class="rapido">
+  <ol>
+    <li>Al registrarte, la contraseña pasa por <b>BCrypt</b> y lo que se guarda en la tabla son 60
+    caracteres de los que <b>no se puede volver</b> al original.</li>
+    <li>Solo los <b>clientes</b> se registran solos. Empleados y colaboradores los da de alta un
+    administrador desde el panel.</li>
+    <li>Al entrar, Spring busca al usuario <b>por su correo</b> y le pide a BCrypt que compruebe si la
+    contraseña escrita encaja con el hash guardado.</li>
+    <li>Si encaja, el contador de fallos vuelve a cero y te manda a <b>la tienda o al panel</b> según
+    tu rol.</li>
+    <li>Si no, suma un fallo. <b>Al quinto</b> la cuenta se bloquea sola y hace falta un gestor para
+    reactivarla.</li>
+    <li>A partir de ahí, cada petición se compara con las reglas de <code>SecurityConfig</code>, que
+    se leen <b>en orden</b>: la primera que coincide manda.</li>
+  </ol>
+</div>
+
+<div class="seccion"><span class="n">2</span>Los siete roles</div>
+
+<table>
+  <thead>
+    <tr><th style="width:27%">Rol</th><th style="width:46%">Qué lleva</th><th>Al entrar va a</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><code>ADMIN</code></td><td>Todo: empleados, departamentos, catálogo, compras, ventas e inventario</td><td class="rol">/panelControl</td></tr>
+    <tr><td><code>GESTOR_PRODUCTOS</code></td><td>Catálogo: videojuegos, categorías, plataformas y revisión de lo que suben los colaboradores</td><td class="rol">/panelControl</td></tr>
+    <tr><td><code>GESTOR_CLIENTES</code></td><td>Listado de clientes, activaciones y bloqueos</td><td class="rol">/panelControl</td></tr>
+    <tr><td><code>GESTOR_INVENTARIO</code></td><td>Claves de licencia, órdenes de compra y recepciones</td><td class="rol">/panelControl</td></tr>
+    <tr><td><code>COLABORADOR</code></td><td>Sus propios juegos: subirlos, editarlos y subir nuevas versiones</td><td class="rol">/tienda</td></tr>
+    <tr><td><code>CLIENTE</code></td><td>Tienda, cesta, pago, biblioteca y valoraciones</td><td class="rol">/tienda</td></tr>
+    <tr class="nadie"><td><code>PROVEEDOR</code></td><td>Existe en el enum pero todavía no tiene pantallas propias</td><td class="rol">—</td></tr>
+  </tbody>
+</table>
+
+<!-- =================== 3 · DIAGRAMA =================== -->
+
+<div class="salto"></div>
+
+<div class="seccion"><span class="n">3</span>El recorrido completo</div>
+<p class="intro">Dos caminos distintos que acaban en lo mismo: un hash guardado y un hash comprobado.
+Arriba el registro, abajo el login. Cada caja lleva debajo su archivo.</p>
+
+<div class="diagrama">
+<svg viewBox="0 0 560 500" xmlns="http://www.w3.org/2000/svg" role="img"
+     aria-label="Diagrama del registro de un cliente y del inicio de sesión">
+  <defs>
+    <marker id="f" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
+      <path d="M0,0 L7,3.5 L0,7 z" fill="#45454e"/></marker>
+    <marker id="fm" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
+      <path d="M0,0 L7,3.5 L0,7 z" fill="#6d28d9"/></marker>
+    <marker id="fr" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
+      <path d="M0,0 L7,3.5 L0,7 z" fill="#b42318"/></marker>
+    <marker id="fv" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
+      <path d="M0,0 L7,3.5 L0,7 z" fill="#137333"/></marker>
+  </defs>
+
+  <!-- ============ REGISTRO ============ -->
+  <rect x="2" y="2" width="556" height="180" rx="5" fill="#fff" stroke="#d9d9e0" stroke-width="1.2"/>
+  <rect x="2" y="2" width="556" height="21" rx="5" fill="#6d28d9"/>
+  <rect x="2" y="16" width="556" height="7" fill="#6d28d9"/>
+  <text x="12" y="17" font-size="9.4" font-weight="700" fill="#fff" font-family="Segoe UI,sans-serif">REGISTRO · solo los clientes se dan de alta solos</text>
+
+  <rect x="14" y="34" width="124" height="44" rx="4" fill="#f5f5f8" stroke="#1b1b1f" stroke-width="1.2"/>
+  <text x="76" y="52" text-anchor="middle" font-size="9.6" font-weight="650" font-family="Segoe UI,sans-serif">Rellenas el</text>
+  <text x="76" y="64" text-anchor="middle" font-size="9.6" font-weight="650" font-family="Segoe UI,sans-serif">formulario</text>
+  <text x="76" y="74" text-anchor="middle" font-size="7.2" fill="#6b6b75" font-family="Consolas,monospace">login/crearCuenta.html</text>
+  <circle cx="24" cy="42" r="7.5" fill="#6d28d9"/><text x="24" y="45.2" text-anchor="middle" font-size="8.5" font-weight="700" fill="#fff" font-family="Segoe UI,sans-serif">1</text>
+  <line x1="138" y1="56" x2="158" y2="56" stroke="#45454e" stroke-width="1.3" marker-end="url(#f)"/>
+
+  <rect x="160" y="34" width="124" height="44" rx="4" fill="#fdf3e2" stroke="#8a5a00" stroke-width="1.3"/>
+  <text x="222" y="52" text-anchor="middle" font-size="9.6" font-weight="650" font-family="Segoe UI,sans-serif">¿El correo</text>
+  <text x="222" y="64" text-anchor="middle" font-size="9.6" font-weight="650" font-family="Segoe UI,sans-serif">está libre?</text>
+  <text x="222" y="74" text-anchor="middle" font-size="7.2" fill="#6b6b75" font-family="Consolas,monospace">comprobarCorreoLibre</text>
+  <circle cx="170" cy="42" r="7.5" fill="#8a5a00"/><text x="170" y="45.2" text-anchor="middle" font-size="8.5" font-weight="700" fill="#fff" font-family="Segoe UI,sans-serif">2</text>
+  <line x1="284" y1="56" x2="304" y2="56" stroke="#45454e" stroke-width="1.3" marker-end="url(#f)"/>
+
+  <rect x="306" y="34" width="124" height="44" rx="4" fill="#fdf3e2" stroke="#8a5a00" stroke-width="1.3"/>
+  <text x="368" y="52" text-anchor="middle" font-size="9.6" font-weight="650" font-family="Segoe UI,sans-serif">¿La contraseña</text>
+  <text x="368" y="64" text-anchor="middle" font-size="9.6" font-weight="650" font-family="Segoe UI,sans-serif">vale?</text>
+  <text x="368" y="74" text-anchor="middle" font-size="7.2" fill="#6b6b75" font-family="Segoe UI,sans-serif">8+, una mayúscula, un número</text>
+  <circle cx="316" cy="42" r="7.5" fill="#8a5a00"/><text x="316" y="45.2" text-anchor="middle" font-size="8.5" font-weight="700" fill="#fff" font-family="Segoe UI,sans-serif">3</text>
+  <line x1="430" y1="56" x2="450" y2="56" stroke="#45454e" stroke-width="1.3" marker-end="url(#f)"/>
+
+  <rect x="452" y="34" width="96" height="44" rx="4" fill="#f1ebfd" stroke="#6d28d9" stroke-width="1.2"/>
+  <text x="500" y="52" text-anchor="middle" font-size="9.6" font-weight="650" font-family="Segoe UI,sans-serif">BCrypt la</text>
+  <text x="500" y="64" text-anchor="middle" font-size="9.6" font-weight="650" font-family="Segoe UI,sans-serif">convierte</text>
+  <text x="500" y="74" text-anchor="middle" font-size="7.2" fill="#6b6b75" font-family="Consolas,monospace">encode()</text>
+  <circle cx="462" cy="42" r="7.5" fill="#6d28d9"/><text x="462" y="45.2" text-anchor="middle" font-size="8.5" font-weight="700" fill="#fff" font-family="Segoe UI,sans-serif">4</text>
+
+  <path d="M500,78 L500,92 L280,92 L280,100" fill="none" stroke="#6d28d9" stroke-width="1.3" marker-end="url(#fm)"/>
+  <rect x="130" y="104" width="300" height="42" rx="4" fill="#f1ebfd" stroke="#6d28d9" stroke-width="1.3"/>
+  <text x="280" y="121" text-anchor="middle" font-size="9.8" font-weight="700" font-family="Segoe UI,sans-serif">Se guarda el Cliente, con rol CLIENTE y activo</text>
+  <text x="280" y="134" text-anchor="middle" font-size="8.2" fill="#45454e" font-family="Segoe UI,sans-serif">en la columna va el hash, nunca la contraseña</text>
+  <text x="280" y="143" text-anchor="middle" font-size="7.2" fill="#6b6b75" font-family="Consolas,monospace">usuario.password_hash · VARCHAR(60)</text>
+  <circle cx="140" cy="112" r="7.5" fill="#6d28d9"/><text x="140" y="115.2" text-anchor="middle" font-size="8.5" font-weight="700" fill="#fff" font-family="Segoe UI,sans-serif">5</text>
+
+  <text x="280" y="166" text-anchor="middle" font-size="8.4" fill="#6b6b75" font-family="Segoe UI,sans-serif">Los empleados y colaboradores NO pasan por aquí: los crea un administrador desde el panel</text>
+
+  <!-- ============ LOGIN ============ -->
+  <rect x="2" y="196" width="556" height="298" rx="5" fill="#fff" stroke="#d9d9e0" stroke-width="1.2"/>
+  <rect x="2" y="196" width="556" height="21" rx="5" fill="#1b1b1f"/>
+  <rect x="2" y="210" width="556" height="7" fill="#1b1b1f"/>
+  <text x="12" y="211" font-size="9.4" font-weight="700" fill="#fff" font-family="Segoe UI,sans-serif">LOGIN · el mismo hash, al revés</text>
+
+  <rect x="14" y="228" width="140" height="44" rx="4" fill="#f5f5f8" stroke="#1b1b1f" stroke-width="1.2"/>
+  <text x="84" y="246" text-anchor="middle" font-size="9.6" font-weight="650" font-family="Segoe UI,sans-serif">Escribes correo</text>
+  <text x="84" y="258" text-anchor="middle" font-size="9.6" font-weight="650" font-family="Segoe UI,sans-serif">y contraseña</text>
+  <text x="84" y="268" text-anchor="middle" font-size="7.2" fill="#6b6b75" font-family="Consolas,monospace">login/login.html</text>
+  <circle cx="24" cy="236" r="7.5" fill="#6d28d9"/><text x="24" y="239.2" text-anchor="middle" font-size="8.5" font-weight="700" fill="#fff" font-family="Segoe UI,sans-serif">6</text>
+  <line x1="154" y1="250" x2="176" y2="250" stroke="#45454e" stroke-width="1.3" marker-end="url(#f)"/>
+
+  <rect x="178" y="228" width="164" height="44" rx="4" fill="#f1ebfd" stroke="#6d28d9" stroke-width="1.2"/>
+  <text x="260" y="246" text-anchor="middle" font-size="9.6" font-weight="650" font-family="Segoe UI,sans-serif">Busca el usuario</text>
+  <text x="260" y="258" text-anchor="middle" font-size="9.6" font-weight="650" font-family="Segoe UI,sans-serif">por su correo</text>
+  <text x="260" y="268" text-anchor="middle" font-size="7.2" fill="#6b6b75" font-family="Consolas,monospace">UserDetailsService · UsuarioDao</text>
+  <circle cx="188" cy="236" r="7.5" fill="#6d28d9"/><text x="188" y="239.2" text-anchor="middle" font-size="8.5" font-weight="700" fill="#fff" font-family="Segoe UI,sans-serif">7</text>
+  <line x1="342" y1="250" x2="364" y2="250" stroke="#45454e" stroke-width="1.3" marker-end="url(#f)"/>
+
+  <rect x="366" y="228" width="182" height="44" rx="4" fill="#fdf3e2" stroke="#8a5a00" stroke-width="1.4"/>
+  <text x="457" y="246" text-anchor="middle" font-size="9.8" font-weight="700" font-family="Segoe UI,sans-serif">¿Encaja con el hash?</text>
+  <text x="457" y="258" text-anchor="middle" font-size="8.2" fill="#5c3d00" font-family="Segoe UI,sans-serif">no se descifra: se recalcula</text>
+  <text x="457" y="268" text-anchor="middle" font-size="7.2" fill="#6b6b75" font-family="Consolas,monospace">passwordEncoder.matches(...)</text>
+  <circle cx="376" cy="236" r="7.5" fill="#8a5a00"/><text x="376" y="239.2" text-anchor="middle" font-size="8.5" font-weight="700" fill="#fff" font-family="Segoe UI,sans-serif">8</text>
+
+  <!-- rama SI -->
+  <path d="M420,272 L420,290 L200,290 L200,300" fill="none" stroke="#137333" stroke-width="1.4" marker-end="url(#fv)"/>
+  <text x="310" y="287" text-anchor="middle" font-size="8.4" font-weight="700" fill="#137333" font-family="Segoe UI,sans-serif">SÍ</text>
+  <rect x="80" y="304" width="240" height="48" rx="4" fill="#e6f4ea" stroke="#137333" stroke-width="1.3"/>
+  <text x="200" y="321" text-anchor="middle" font-size="9.6" font-weight="700" font-family="Segoe UI,sans-serif">Los fallos vuelven a cero</text>
+  <text x="200" y="334" text-anchor="middle" font-size="8.4" fill="#0b4f22" font-family="Segoe UI,sans-serif">y te manda a la tienda o al panel, según tu rol</text>
+  <text x="200" y="346" text-anchor="middle" font-size="7.2" fill="#6b6b75" font-family="Consolas,monospace">SecurityConfig · successHandler</text>
+  <circle cx="90" cy="312" r="7.5" fill="#137333"/><text x="90" y="315.2" text-anchor="middle" font-size="8.5" font-weight="700" fill="#fff" font-family="Segoe UI,sans-serif">9</text>
+
+  <!-- rama NO -->
+  <path d="M494,272 L494,290 L420,290 L420,300" fill="none" stroke="#b42318" stroke-width="1.4" marker-end="url(#fr)"/>
+  <text x="516" y="287" text-anchor="middle" font-size="8.4" font-weight="700" fill="#b42318" font-family="Segoe UI,sans-serif">NO</text>
+  <rect x="336" y="304" width="212" height="48" rx="4" fill="#fdecea" stroke="#b42318" stroke-width="1.3"/>
+  <text x="442" y="321" text-anchor="middle" font-size="9.6" font-weight="700" font-family="Segoe UI,sans-serif">Suma un fallo</text>
+  <text x="442" y="334" text-anchor="middle" font-size="8.4" fill="#7a1c10" font-family="Segoe UI,sans-serif">la suma la hace la base, no el código</text>
+  <text x="442" y="346" text-anchor="middle" font-size="7.2" fill="#6b6b75" font-family="Consolas,monospace">sumarIntentoFallido · failureHandler</text>
+  <circle cx="346" cy="312" r="7.5" fill="#b42318"/><text x="346" y="315.2" text-anchor="middle" font-size="8.5" font-weight="700" fill="#fff" font-family="Segoe UI,sans-serif">10</text>
+
+  <line x1="442" y1="352" x2="442" y2="366" stroke="#b42318" stroke-width="1.3" marker-end="url(#fr)"/>
+  <rect x="336" y="368" width="212" height="42" rx="4" fill="#fff" stroke="#b42318" stroke-width="1.3"/>
+  <text x="442" y="385" text-anchor="middle" font-size="9.6" font-weight="700" fill="#b42318" font-family="Segoe UI,sans-serif">¿Van ya cinco?</text>
+  <text x="442" y="398" text-anchor="middle" font-size="8.4" fill="#7a1c10" font-family="Segoe UI,sans-serif">la cuenta se bloquea sola, con su motivo</text>
+  <text x="442" y="407" text-anchor="middle" font-size="7.2" fill="#6b6b75" font-family="Consolas,monospace">UsuarioServiceImpl · MAX_INTENTOS</text>
+
+  <line x1="200" y1="352" x2="200" y2="368" stroke="#137333" stroke-width="1.3" marker-end="url(#fv)"/>
+  <rect x="80" y="370" width="240" height="44" rx="4" fill="#e6f4ea" stroke="#137333" stroke-width="1.4"/>
+  <text x="200" y="388" text-anchor="middle" font-size="10" font-weight="700" font-family="Segoe UI,sans-serif">Dentro</text>
+  <text x="200" y="402" text-anchor="middle" font-size="8.4" fill="#0b4f22" font-family="Segoe UI,sans-serif">tu rol viaja ya en la sesión</text>
+
+  <!-- despues -->
+  <line x1="14" y1="428" x2="546" y2="428" stroke="#d9d9e0" stroke-width="1"/>
+  <text x="280" y="448" text-anchor="middle" font-size="9.4" font-weight="700" font-family="Segoe UI,sans-serif">Y EN CADA PETICIÓN A PARTIR DE AHORA</text>
+  <rect x="100" y="456" width="360" height="30" rx="4" fill="#f1ebfd" stroke="#6d28d9" stroke-width="1.2"/>
+  <text x="280" y="469" text-anchor="middle" font-size="8.8" fill="#45454e" font-family="Segoe UI,sans-serif">Las reglas de SecurityConfig se leen EN ORDEN:</text>
+  <text x="280" y="480" text-anchor="middle" font-size="8.8" font-weight="650" font-family="Segoe UI,sans-serif">la primera que coincide con la URL es la que manda</text>
+</svg>
+</div>
+
+<!-- =================== 4 · CONCEPTOS =================== -->
+
+<div class="salto"></div>
+
+<div class="seccion"><span class="n">4</span>Los conceptos que toca</div>
+<p class="intro">Diez ideas de las que se estudian en clase, con el sitio exacto del proyecto donde
+están aplicadas. El color del borde dice de qué familia es cada una:
+<b style="color:#b42318">contraseñas</b>,
+<b style="color:#6d28d9">diseño</b>,
+<b style="color:#1a56c4">autorización</b>,
+<b style="color:#137333">base de datos</b>.</p>
+
+<div class="rejilla">
+
+  <div class="cpt seg">
+    <span class="cn">01 · Contraseñas</span>
+    <h4>Un hash no es un cifrado</h4>
+    <p>Cifrar se deshace con la clave; <b>un hash no se deshace nunca</b>. Si alguien roba la tabla no
+    obtiene las contraseñas, solo 60 caracteres sin vuelta atrás. Por eso «recuperar» una contraseña
+    es siempre crear otra.</p>
+    <span class="d">BCryptPasswordEncoder</span>
+  </div>
+
+  <div class="cpt seg">
+    <span class="cn">02 · Contraseñas</span>
+    <h4>La sal va dentro del hash</h4>
+    <p>BCrypt mete unos bytes aleatorios en cada hash, así que <b>la misma contraseña da resultados
+    distintos</b> cada vez. Eso impide que dos usuarios con la misma clave se delaten, y arruina las
+    tablas de hashes ya calculados.</p>
+    <span class="d">$2a$10$<i>sal</i><i>hash</i> · 60 caracteres</span>
+  </div>
+
+  <div class="cpt seg">
+    <span class="cn">03 · Contraseñas</span>
+    <h4><code>matches()</code>, nunca <code>encode()</code> + <code>equals</code></h4>
+    <p>Como la sal es distinta cada vez, volver a codificar daría otro texto y la comparación
+    fallaría siempre. <code>matches()</code> saca la sal del hash guardado, recalcula con ella y
+    entonces compara.</p>
+    <span class="d">ControllerLogin.cambiarPassword</span>
+  </div>
+
+  <div class="cpt seg">
+    <span class="cn">04 · Contraseñas</span>
+    <h4>Lento a propósito</h4>
+    <p>BCrypt está diseñado para tardar. A una persona le da igual esperar 100 ms al entrar, pero a
+    quien intenta probar millones de contraseñas le arruina el plan.</p>
+    <span class="d">factor de coste, 10 por defecto</span>
+  </div>
+
+  <div class="cpt">
+    <span class="cn">05 · Diseño</span>
+    <h4>El correo hace de usuario</h4>
+    <p>No hay columna «nombre de usuario»: el identificador es el correo, con <code>UNIQUE</code> en
+    la tabla. Spring llama a eso <i>username</i> y lo busca con un
+    <code>UserDetailsService</code> nuestro.</p>
+    <span class="d">SecurityConfig.userDetailsService</span>
+  </div>
+
+  <div class="cpt bd">
+    <span class="cn">06 · Base de datos</span>
+    <h4>Herencia con tablas unidas</h4>
+    <p>Lo común vive en <code>usuario</code> y lo propio de cada tipo en <code>cliente</code>,
+    <code>empleado</code> o <code>colaborador</code>, <b>compartiendo la misma clave primaria</b>. Esa
+    doble condición hace que la relación no se pueda romper.</p>
+    <span class="d">@Inheritance(strategy = JOINED)</span>
+  </div>
+
+  <div class="cpt bd">
+    <span class="cn">07 · Base de datos</span>
+    <h4>Bloqueo por intentos fallidos</h4>
+    <p>El contador no se lee y se vuelve a guardar: se manda <code>intentos = intentos + 1</code> en
+    una sola sentencia, para que dos intentos a la vez no se pisen. Al quinto, la cuenta se desactiva
+    con su motivo escrito.</p>
+    <span class="d">UsuarioDao.sumarIntentoFallido · @Modifying</span>
+  </div>
+
+  <div class="cpt pro">
+    <span class="cn">08 · Autorización</span>
+    <h4>Las reglas se leen en orden</h4>
+    <p>Gana <b>la primera</b> que coincide con la URL, no la más específica. Por eso
+    <code>/tienda/cesta/**</code> va escrita antes que <code>/tienda/**</code>: al revés, la general
+    se la comería.</p>
+    <span class="d">SecurityConfig.authorizeHttpRequests</span>
+  </div>
+
+  <div class="cpt pro">
+    <span class="cn">09 · Autorización</span>
+    <h4>Autenticar no es autorizar</h4>
+    <p><b>Autenticar</b> es demostrar quién eres —el login—. <b>Autorizar</b> es decidir qué puedes
+    hacer, y eso lo deciden tu rol y las reglas, en cada petición posterior.</p>
+    <span class="d">hasRole(...) · anyRequest().authenticated()</span>
+  </div>
+
+  <div class="cpt seg">
+    <span class="cn">10 · Contraseñas</span>
+    <h4>Validar siempre en el servidor</h4>
+    <p>El formulario valida en el navegador por comodidad, pero el controlador lo <b>vuelve a
+    comprobar todo</b>: cualquiera puede saltarse el HTML y enviar la petición a mano.</p>
+    <span class="d">PASSWORD_VALIDA · ControllerLogin</span>
+  </div>
+
+</div>
+
+<!-- =================== 5 · PREGUNTAS =================== -->
+
+<div class="seccion"><span class="n">5</span>Las dos preguntas de examen</div>
+
+<div class="examen">
+  <p class="q">¿Por qué se usa <code>matches()</code> y no se vuelve a cifrar para comparar?</p>
+  <p class="a">Porque BCrypt <b>no es determinista</b>: mete una sal aleatoria distinta en cada hash,
+  así que codificar «luduserp» dos veces da dos textos diferentes y un <code>equals</code> entre
+  ellos sería siempre falso. La sal no es un secreto y viaja <b>dentro</b> del propio hash guardado.
+  <code>matches()</code> hace lo correcto: la extrae de ahí, calcula el hash de lo que has escrito
+  <b>con esa misma sal</b> y compara los dos resultados.</p>
+
+  <p class="q">¿Por qué validar en el servidor si el formulario ya valida en el navegador?</p>
+  <p class="a">Porque la validación del navegador es <b>comodidad, no seguridad</b>. Avisa del error
+  sin esperar al servidor, pero cualquiera puede desactivar el JavaScript, editar el HTML o mandar la
+  petición directamente sin pasar por la página. Lo único que de verdad protege los datos es lo que
+  comprueba el servidor, porque es lo único que el usuario <b>no controla</b>. Por eso
+  <code>crearCuenta</code> vuelve a mirar el correo, la contraseña, que las dos coincidan y que se
+  acepten las condiciones, aunque el formulario ya lo hubiera mirado.</p>
+</div>
+
+<div class="ojo">
+  <b>Dos cosas que hoy están a medias.</b> La exigencia de la contraseña (ocho caracteres, una
+  mayúscula y un número) se aplica <b>al registrarse pero no al cambiarla</b>: ahí solo se mira la
+  longitud, así que se puede empezar fuerte y acabar con <code>aaaaaaaa</code>. Y
+  <code>debeCambiarPassword</code> se enseña como etiqueta en el listado de colaboradores, pero
+  <b>el login no la comprueba</b>: una contraseña temporal dura para siempre.
+</div>
+
+<div class="pie">
+  Resumen escrito a partir del código en <code>master</code> (<code>abce22a</code>).
+  Fuente editable en <code>docs/resumenes/html/LoginYRegistro.html</code> (usa <code>estilo.css</code>). Para regenerar el PDF:
+  <code>chrome --headless --no-pdf-header-footer --print-to-pdf=docs/resumenes/LoginYRegistro.pdf docs/resumenes/html/LoginYRegistro.html</code>
+</div>
+
+</body>
+</html>

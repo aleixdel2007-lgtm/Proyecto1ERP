@@ -1,0 +1,149 @@
+/* ===========================================================================
+   LudusERP — hoja de estilos compartida por los resumenes de docs/resumenes.
+   Cada resumen la enlaza con <link rel="stylesheet" href="estilo.css">, asi que
+   tocar aqui cambia el aspecto de todos. Si se mueve un .html hay que llevarse
+   este archivo al lado, o se vera sin formato.
+
+   Pensada para papel: fondo claro, tinta oscura y el morado de la marca como
+   acento y no como fondo, para que un PDF impreso no se coma el toner.
+
+   Estructura de cinco paginas que siguen todos los resumenes:
+     1. portada (.cubierta)          4. conceptos (.rejilla de .cpt)
+     2. indice (.indice) + contexto  5. preguntas (.examen)
+     3. diagrama (.diagrama)
+   =========================================================================== */
+@page { size: A4; margin: 15mm 15mm; }
+
+:root{
+  --tinta:#1b1b1f;
+  --tinta-2:#45454e;
+  --suave:#6b6b75;
+  --linea:#d9d9e0;
+  --fondo-2:#f5f5f8;
+  --morado:#6d28d9;
+  --morado-claro:#f1ebfd;
+  --rojo:#b42318;
+  --rojo-claro:#fdecea;
+  --ambar:#8a5a00;
+  --ambar-claro:#fdf3e2;
+  --verde:#137333;
+  --verde-claro:#e6f4ea;
+  --azul:#1a56c4;
+  --azul-claro:#e8f0fe;
+}
+
+/* Sin esto Chrome tira los fondos al imprimir y las cajas de color salen en blanco */
+html{ -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+
+*{box-sizing:border-box}
+body{
+  margin:0;color:var(--tinta);background:#fff;
+  font-family:"Segoe UI",Inter,system-ui,-apple-system,sans-serif;
+  font-size:10.5pt;line-height:1.5;
+}
+h1,h2,h3{margin:0;font-weight:650;letter-spacing:-.01em}
+p{margin:0 0 7pt}
+b{font-weight:650}
+code{font-family:Consolas,"Cascadia Mono",monospace;font-size:9pt;
+     background:var(--fondo-2);padding:1px 4px;border-radius:3px;color:var(--morado)}
+
+/* ---------- PORTADA (pagina 1) ---------------------------------------------- */
+.cubierta{height:255mm;display:flex;flex-direction:column}
+.cub-top{flex:1 1 auto;display:flex;flex-direction:column;justify-content:center}
+.cub-marca{
+  width:54pt;height:54pt;border-radius:12px;margin-bottom:20pt;
+  background:linear-gradient(145deg,#a78bfa,#8b5cf6 55%,#6d28d9);
+  display:grid;place-items:center;color:#fff;font-weight:700;font-size:26pt;
+}
+.cub-eyebrow{font-size:9.5pt;letter-spacing:.18em;text-transform:uppercase;
+             color:var(--morado);font-weight:700;margin-bottom:10pt}
+.cubierta h1{font-size:34pt;line-height:1.1;margin-bottom:12pt}
+.cub-sub{font-size:13pt;color:var(--tinta-2);line-height:1.45;max-width:135mm}
+.cub-regla{height:3px;background:var(--tinta);width:80pt;margin:22pt 0}
+.cub-idea{
+  background:var(--morado-claro);border-left:4px solid var(--morado);
+  padding:12pt 15pt;max-width:150mm;
+}
+.cub-idea h3{font-size:11pt;color:var(--morado);margin-bottom:4pt}
+.cub-idea p{margin:0;font-size:11pt;color:var(--tinta-2)}
+.cub-pie{border-top:1px solid var(--linea);padding-top:9pt;
+         display:flex;gap:26pt;flex-wrap:wrap;font-size:9.5pt;color:var(--suave)}
+.cub-pie b{color:var(--tinta)}
+
+/* ---------- franja de seccion ------------------------------------------------ */
+.seccion{
+  margin:0 0 8pt;padding:5.5pt 10pt;background:var(--tinta);color:#fff;
+  font-size:10.5pt;font-weight:650;letter-spacing:.04em;text-transform:uppercase;
+}
+.seccion .n{color:#c4a7fb;margin-right:7pt}
+.intro{font-size:10pt;color:var(--tinta-2);margin-bottom:10pt}
+
+/* ---------- INDICE ------------------------------------------------------------ */
+.indice{margin:0 0 13pt}
+.ix{display:flex;align-items:baseline;gap:8pt;padding:5pt 0;
+    border-bottom:1px solid var(--linea)}
+.ix .ixn{font-size:12pt;font-weight:700;color:var(--morado);min-width:20pt}
+.ix .ixt{flex:1 1 auto}
+.ix .ixt b{font-size:10.5pt;display:block;line-height:1.3}
+.ix .ixt span{font-size:8.8pt;color:var(--suave);line-height:1.3}
+.ix .ixp{font-size:9.2pt;color:var(--suave);white-space:nowrap}
+
+/* ---------- caja de resumen rapido --------------------------------------------- */
+.rapido{border:1.5px solid var(--morado);border-radius:5px;padding:10pt 13pt;margin-bottom:12pt}
+.rapido h3{font-size:10.5pt;color:var(--morado);margin-bottom:4pt}
+.rapido ol{margin:0;padding-left:15pt;font-size:9.4pt;color:var(--tinta-2);line-height:1.42}
+.rapido li{margin-bottom:2pt}
+
+/* ---------- diagramas ---------------------------------------------------------- */
+.diagrama{margin:0 0 6pt;break-inside:avoid}
+.diagrama svg{width:100%;height:auto;display:block}
+.pie-fig{font-size:8.4pt;color:var(--suave);margin:3pt 0 0;text-align:center}
+
+/* ---------- tablas ----------------------------------------------------------------- */
+table{width:100%;border-collapse:collapse;font-size:9pt;margin:0}
+th{text-align:left;background:var(--tinta);color:#fff;font-weight:650;
+   padding:5pt 7pt;font-size:8.2pt;letter-spacing:.04em;text-transform:uppercase}
+td{padding:5.5pt 7pt;border-bottom:1px solid var(--linea);vertical-align:top;line-height:1.38}
+td code{font-size:8.6pt}
+tbody tr:nth-child(even) td{background:var(--fondo-2)}
+td.rol{font-family:Consolas,monospace;font-size:8.4pt;color:var(--tinta-2);white-space:nowrap}
+tbody tr.nadie td{background:var(--rojo-claro);color:#7a1c10}
+tbody tr.nadie td code{background:#fff;color:var(--rojo)}
+tbody tr.bueno td{background:var(--verde-claro);color:#0b4f22}
+
+/* ---------- conceptos (rejilla de dos columnas) ------------------------------------- */
+.rejilla{display:grid;grid-template-columns:1fr 1fr;gap:7pt;margin-bottom:9pt}
+.cpt{
+  border:1px solid var(--linea);border-radius:5px;padding:7pt 9pt;break-inside:avoid;
+  border-top:3px solid var(--morado);
+}
+.cpt .cn{font-size:7.2pt;font-weight:700;letter-spacing:.08em;color:var(--morado);
+         text-transform:uppercase;display:block;margin-bottom:1pt}
+.cpt h4{margin:0 0 2pt;font-size:10pt;font-weight:650;line-height:1.2}
+.cpt p{margin:0 0 4pt;font-size:8.7pt;color:var(--tinta-2);line-height:1.34}
+.cpt .d{font-size:7.6pt;color:var(--suave);font-family:Consolas,monospace;
+        border-top:1px dotted var(--linea);padding-top:3pt;display:block;
+        overflow-wrap:anywhere}
+/* Familias de concepto: el color del borde superior las agrupa de un vistazo */
+.cpt.seg{border-top-color:var(--rojo)}      .cpt.seg .cn{color:var(--rojo)}
+.cpt.pro{border-top-color:var(--azul)}      .cpt.pro .cn{color:var(--azul)}
+.cpt.rob{border-top-color:var(--ambar)}     .cpt.rob .cn{color:var(--ambar)}
+.cpt.bd {border-top-color:var(--verde)}     .cpt.bd  .cn{color:var(--verde)}
+
+/* ---------- cajas de color -------------------------------------------------------- */
+.ojo{margin:9pt 0 0;padding:7pt 11pt;font-size:9.4pt;
+     background:var(--ambar-claro);border-left:3px solid var(--ambar);color:#5c3d00}
+.ojo b{color:#5c3d00}
+.nota{margin:9pt 0 0;padding:7pt 11pt;font-size:9.4pt;
+      background:var(--azul-claro);border-left:3px solid var(--azul);color:#123a85}
+.nota b{color:#123a85}
+
+/* ---------- preguntas de examen ------------------------------------------------------- */
+.examen{border:1.5px solid var(--morado);border-radius:5px;padding:11pt 14pt;break-inside:avoid}
+.examen .q{font-weight:650;margin:9pt 0 2pt;font-size:10pt}
+.examen .q:first-of-type{margin-top:0}
+.examen .a{margin:0;color:var(--tinta-2);font-size:9.6pt}
+
+.salto{break-before:page}
+.pie{margin-top:12pt;padding:8pt 11pt;background:var(--fondo-2);
+     border-left:3px solid var(--linea);font-size:8.8pt;color:var(--suave)}

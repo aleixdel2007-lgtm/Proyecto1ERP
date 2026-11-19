@@ -1,0 +1,365 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>LudusERP · Crear un videojuego y sus imágenes</title>
+<!-- El aspecto sale de estilo.css, compartida por todos los resumenes.
+     Para regenerar el PDF:
+       chrome --headless --disable-gpu --no-pdf-header-footer
+              --print-to-pdf=docs/resumenes/VideojuegoEImagenes.pdf docs/resumenes/html/VideojuegoEImagenes.html -->
+<link rel="stylesheet" href="estilo.css">
+</head>
+<body>
+
+<!-- =================== 1 · PORTADA =================== -->
+
+<div class="cubierta">
+  <div class="cub-top">
+    <div class="cub-marca">L</div>
+    <div class="cub-eyebrow">LudusERP · resumen técnico</div>
+    <h1>Un videojuego<br>y sus imágenes</h1>
+    <div class="cub-sub">Qué se guarda en la base de datos, qué acaba<br>en una carpeta del servidor, y por qué.</div>
+    <div class="cub-regla"></div>
+    <div class="cub-idea">
+      <h3>La idea en una frase</h3>
+      <p>En la base de datos <b>no hay ni un byte de imagen</b>. El archivo se escribe en una carpeta
+      del servidor con un nombre inventado, y en la tabla solo se guarda <b>la ruta</b> para poder
+      encontrarlo. La base lleva los datos; el disco, los archivos.</p>
+    </div>
+  </div>
+  <div class="cub-pie">
+    <span><b>Clases centrales:</b> <code>AlmacenArchivos</code> · <code>VideojuegoServiceImpl</code></span>
+    <span><b>Código:</b> master en <code>abce22a</code></span>
+    <span><b>5 páginas</b></span>
+  </div>
+</div>
+
+<!-- =================== 2 · ÍNDICE =================== -->
+
+<div class="salto"></div>
+
+<div class="seccion">Índice</div>
+
+<div class="indice">
+  <div class="ix"><span class="ixn">1</span><span class="ixt">
+      <b>En 30 segundos</b><span>Lo esencial en seis frases, para repasar antes de un examen</span>
+      </span><span class="ixp">pág. 2</span></div>
+  <div class="ix"><span class="ixn">2</span><span class="ixt">
+      <b>Dónde acaba cada cosa</b><span>Qué vive en una tabla, qué vive en el disco y con qué pinta</span>
+      </span><span class="ixp">pág. 2</span></div>
+  <div class="ix"><span class="ixn">3</span><span class="ixt">
+      <b>El recorrido completo</b><span>Diagrama de la subida de una imagen, con el archivo de cada paso</span>
+      </span><span class="ixp">pág. 3</span></div>
+  <div class="ix"><span class="ixn">4</span><span class="ixt">
+      <b>Los conceptos que toca</b><span>Las diez ideas que se aprenden aquí y para qué sirve cada una</span>
+      </span><span class="ixp">pág. 4</span></div>
+  <div class="ix"><span class="ixn">5</span><span class="ixt">
+      <b>Las dos preguntas de examen</b><span>Por qué está hecho así, respondido</span>
+      </span><span class="ixp">pág. 5</span></div>
+</div>
+
+<div class="seccion"><span class="n">1</span>En 30 segundos</div>
+
+<div class="rapido">
+  <ol>
+    <li>Primero se guarda <b>la ficha</b> del juego —título, precio, PEGI, categorías y plataformas—
+    y la fila recibe su <code>id</code>.</li>
+    <li>Las imágenes se suben <b>después</b>, una a una, eligiendo si es portada, banner o captura.</li>
+    <li>El servidor comprueba el <b>tipo</b> y el <b>tamaño</b>, y que no haya ya una portada o un
+    banner: de esos solo cabe uno.</li>
+    <li>El archivo se escribe en <code>uploads/videojuegos/&lt;id&gt;-&lt;slug&gt;/</code> con un
+    nombre <b>inventado</b> (un UUID), nunca con el nombre que traía.</li>
+    <li>En la tabla <code>imagen_videojuego</code> se guarda <b>la ruta</b>, no la imagen. Si la fila
+    falla, el archivo recién escrito se borra a mano.</li>
+    <li>Al pintar la ficha, el navegador pide esa ruta y <code>WebConfig</code> le sirve el archivo
+    desde la carpeta.</li>
+  </ol>
+</div>
+
+<div class="seccion"><span class="n">2</span>Dónde acaba cada cosa</div>
+
+<table>
+  <thead>
+    <tr><th style="width:24%">Qué</th><th style="width:32%">Dónde vive</th><th>Con qué pinta</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><b>La ficha del juego</b></td>
+      <td>Tabla <code>videojuego</code></td>
+      <td>título, sinopsis, precio, PEGI, activo, umbral de stock…</td>
+    </tr>
+    <tr>
+      <td><b>El archivo de imagen</b></td>
+      <td>Carpeta del servidor<br><code>uploads/videojuegos/</code></td>
+      <td><code>12-eclipse-protocol/3f9a7c…e1.webp</code></td>
+    </tr>
+    <tr class="bueno">
+      <td><b>La referencia</b></td>
+      <td>Tabla <code>imagen_videojuego</code></td>
+      <td><code>ruta = /uploads/videojuegos/12-eclipse-protocol/3f9a7c…e1.webp</code><br>más el tipo, el orden y el texto alternativo</td>
+    </tr>
+    <tr>
+      <td><b>El ZIP del juego</b></td>
+      <td>Carpeta <code>juegos-privados/&lt;id&gt;/</code><br><span style="color:#b42318">fuera de uploads a propósito</span></td>
+      <td><code>b81f…4c.zip</code>, con su SHA-256 guardado en <code>version_juego</code></td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="nota">
+  <b>Por qué el ZIP no está en <code>uploads</code>.</b> Todo lo que cuelga de esa carpeta lo sirve
+  <code>WebConfig</code> como recurso web: quien acierte la URL se lo descarga. Las portadas tienen
+  que verse; un juego de pago <b>no</b>. Por eso vive en otra carpeta que nadie sirve, y para bajarlo
+  hay que pasar por el controlador.
+</div>
+
+<!-- =================== 3 · DIAGRAMA =================== -->
+
+<div class="salto"></div>
+
+<div class="seccion"><span class="n">3</span>El recorrido completo</div>
+<p class="intro">La subida de una portada, desde que eliges el archivo hasta que se ve en la ficha.
+Fíjate en el paso 5, que es donde se separan el disco y la base. Cada caja lleva debajo su archivo.</p>
+
+<div class="diagrama">
+<svg viewBox="0 0 560 496" xmlns="http://www.w3.org/2000/svg" role="img"
+     aria-label="Diagrama de carriles: navegador, nuestro servidor, disco y base de datos">
+  <defs>
+    <marker id="f" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
+      <path d="M0,0 L7,3.5 L0,7 z" fill="#45454e"/></marker>
+    <marker id="fm" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
+      <path d="M0,0 L7,3.5 L0,7 z" fill="#6d28d9"/></marker>
+    <marker id="fr" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
+      <path d="M0,0 L7,3.5 L0,7 z" fill="#b42318"/></marker>
+  </defs>
+
+  <rect x="2"   y="2" width="150" height="492" fill="#f5f5f8" stroke="#d9d9e0"/>
+  <rect x="160" y="2" width="200" height="492" fill="#fff"    stroke="#d9d9e0"/>
+  <rect x="368" y="2" width="190" height="492" fill="#f5f5f8" stroke="#d9d9e0"/>
+  <rect x="2"   y="2" width="150" height="24" fill="#1b1b1f"/>
+  <rect x="160" y="2" width="200" height="24" fill="#6d28d9"/>
+  <rect x="368" y="2" width="190" height="24" fill="#137333"/>
+  <text x="77"  y="18" text-anchor="middle" font-size="9.6" font-weight="700" fill="#fff" font-family="Segoe UI,sans-serif">NAVEGADOR</text>
+  <text x="260" y="18" text-anchor="middle" font-size="9.6" font-weight="700" fill="#fff" font-family="Segoe UI,sans-serif">NUESTRO SERVIDOR</text>
+  <text x="463" y="18" text-anchor="middle" font-size="9.6" font-weight="700" fill="#fff" font-family="Segoe UI,sans-serif">DISCO Y BASE DE DATOS</text>
+
+  <!-- 0 -->
+  <rect x="10" y="36" width="134" height="44" rx="4" fill="#fff" stroke="#1b1b1f" stroke-width="1.2"/>
+  <text x="77" y="53" text-anchor="middle" font-size="9.6" font-weight="650" font-family="Segoe UI,sans-serif">Ya has guardado</text>
+  <text x="77" y="65" text-anchor="middle" font-size="9.6" font-weight="650" font-family="Segoe UI,sans-serif">la ficha del juego</text>
+  <text x="77" y="76" text-anchor="middle" font-size="7.2" fill="#6b6b75" font-family="Segoe UI,sans-serif">ya tiene id</text>
+  <circle cx="20" cy="44" r="7.5" fill="#6b6b75"/><text x="20" y="47.2" text-anchor="middle" font-size="8.5" font-weight="700" fill="#fff" font-family="Segoe UI,sans-serif">0</text>
+
+  <!-- 1 -->
+  <line x1="77" y1="80" x2="77" y2="90" stroke="#45454e" stroke-width="1.3" marker-end="url(#f)"/>
+  <rect x="10" y="92" width="134" height="48" rx="4" fill="#fff" stroke="#1b1b1f" stroke-width="1.2"/>
+  <text x="77" y="109" text-anchor="middle" font-size="9.6" font-weight="650" font-family="Segoe UI,sans-serif">Eliges archivo</text>
+  <text x="77" y="121" text-anchor="middle" font-size="9.6" font-weight="650" font-family="Segoe UI,sans-serif">y tipo</text>
+  <text x="77" y="133" text-anchor="middle" font-size="7.2" fill="#6b6b75" font-family="Consolas,monospace">PORTADA/BANNER/CAPTURA</text>
+  <circle cx="20" cy="100" r="7.5" fill="#6d28d9"/><text x="20" y="103.2" text-anchor="middle" font-size="8.5" font-weight="700" fill="#fff" font-family="Segoe UI,sans-serif">1</text>
+  <line x1="144" y1="116" x2="170" y2="116" stroke="#45454e" stroke-width="1.3" marker-end="url(#f)"/>
+
+  <!-- 2 -->
+  <rect x="170" y="92" width="180" height="48" rx="4" fill="#fdf3e2" stroke="#8a5a00" stroke-width="1.3"/>
+  <text x="260" y="109" text-anchor="middle" font-size="9.8" font-weight="700" font-family="Segoe UI,sans-serif">¿Formato y tamaño válidos?</text>
+  <text x="260" y="121" text-anchor="middle" font-size="8.2" fill="#5c3d00" font-family="Segoe UI,sans-serif">png, jpg o webp · máximo 2 MB</text>
+  <text x="260" y="133" text-anchor="middle" font-size="7.2" fill="#6b6b75" font-family="Consolas,monospace">AlmacenArchivos.extensionDe</text>
+  <circle cx="180" cy="100" r="7.5" fill="#8a5a00"/><text x="180" y="103.2" text-anchor="middle" font-size="8.5" font-weight="700" fill="#fff" font-family="Segoe UI,sans-serif">2</text>
+
+  <!-- 3 -->
+  <line x1="260" y1="140" x2="260" y2="150" stroke="#6d28d9" stroke-width="1.3" marker-end="url(#fm)"/>
+  <rect x="170" y="152" width="180" height="44" rx="4" fill="#fdf3e2" stroke="#8a5a00" stroke-width="1.3"/>
+  <text x="260" y="169" text-anchor="middle" font-size="9.8" font-weight="700" font-family="Segoe UI,sans-serif">¿Ya hay una portada?</text>
+  <text x="260" y="181" text-anchor="middle" font-size="8.2" fill="#5c3d00" font-family="Segoe UI,sans-serif">de capturas caben varias; de las otras, una</text>
+  <text x="260" y="191" text-anchor="middle" font-size="7.2" fill="#6b6b75" font-family="Consolas,monospace">validarQueNoExista</text>
+  <circle cx="180" cy="160" r="7.5" fill="#8a5a00"/><text x="180" y="163.2" text-anchor="middle" font-size="8.5" font-weight="700" fill="#fff" font-family="Segoe UI,sans-serif">3</text>
+
+  <!-- 4 -->
+  <line x1="260" y1="196" x2="260" y2="206" stroke="#6d28d9" stroke-width="1.3" marker-end="url(#fm)"/>
+  <rect x="170" y="208" width="180" height="52" rx="4" fill="#f1ebfd" stroke="#6d28d9" stroke-width="1.2"/>
+  <text x="260" y="225" text-anchor="middle" font-size="9.8" font-weight="650" font-family="Segoe UI,sans-serif">Escribe el archivo</text>
+  <text x="260" y="238" text-anchor="middle" font-size="8" fill="#6d28d9" font-family="Consolas,monospace">nombre = UUID + extensión</text>
+  <text x="260" y="254" text-anchor="middle" font-size="7.2" fill="#6b6b75" font-family="Consolas,monospace">AlmacenArchivos.guardarImagen</text>
+  <circle cx="180" cy="216" r="7.5" fill="#6d28d9"/><text x="180" y="219.2" text-anchor="middle" font-size="8.5" font-weight="700" fill="#fff" font-family="Segoe UI,sans-serif">4</text>
+
+  <line x1="350" y1="234" x2="378" y2="234" stroke="#45454e" stroke-width="1.3" marker-end="url(#f)"/>
+  <rect x="378" y="208" width="172" height="52" rx="4" fill="#e6f4ea" stroke="#137333" stroke-width="1.3"/>
+  <text x="464" y="224" text-anchor="middle" font-size="8.6" font-weight="700" fill="#137333" font-family="Segoe UI,sans-serif">EL DISCO</text>
+  <text x="464" y="238" text-anchor="middle" font-size="7.4" fill="#45454e" font-family="Consolas,monospace">uploads/videojuegos/</text>
+  <text x="464" y="250" text-anchor="middle" font-size="7.4" fill="#45454e" font-family="Consolas,monospace">12-eclipse-protocol/3f9a…webp</text>
+
+  <!-- 5 -->
+  <line x1="260" y1="260" x2="260" y2="272" stroke="#6d28d9" stroke-width="1.3" marker-end="url(#fm)"/>
+  <rect x="170" y="274" width="180" height="52" rx="4" fill="#f1ebfd" stroke="#6d28d9" stroke-width="1.4"/>
+  <text x="260" y="291" text-anchor="middle" font-size="9.8" font-weight="700" font-family="Segoe UI,sans-serif">Guarda la FILA</text>
+  <text x="260" y="304" text-anchor="middle" font-size="8.2" fill="#45454e" font-family="Segoe UI,sans-serif">con la ruta, el tipo y el orden</text>
+  <text x="260" y="319" text-anchor="middle" font-size="7.2" fill="#6b6b75" font-family="Consolas,monospace">ImagenVideojuego · no los bytes</text>
+  <circle cx="180" cy="282" r="7.5" fill="#6d28d9"/><text x="180" y="285.2" text-anchor="middle" font-size="8.5" font-weight="700" fill="#fff" font-family="Segoe UI,sans-serif">5</text>
+
+  <line x1="350" y1="300" x2="378" y2="300" stroke="#45454e" stroke-width="1.3" marker-end="url(#f)"/>
+  <rect x="378" y="274" width="172" height="52" rx="4" fill="#e6f4ea" stroke="#137333" stroke-width="1.3"/>
+  <text x="464" y="290" text-anchor="middle" font-size="8.6" font-weight="700" fill="#137333" font-family="Segoe UI,sans-serif">LA BASE DE DATOS</text>
+  <text x="464" y="304" text-anchor="middle" font-size="7.4" fill="#45454e" font-family="Consolas,monospace">imagen_videojuego</text>
+  <text x="464" y="316" text-anchor="middle" font-size="7.4" fill="#45454e" font-family="Consolas,monospace">ruta = /uploads/videojuegos/12-…</text>
+
+  <!-- rama de error -->
+  <path d="M170,300 L160,300 L160,344 L250,344" fill="none" stroke="#b42318" stroke-width="1.3" marker-end="url(#fr)"/>
+  <rect x="252" y="330" width="296" height="30" rx="4" fill="#fdecea" stroke="#b42318" stroke-width="1.3"/>
+  <text x="400" y="343" text-anchor="middle" font-size="8.6" font-weight="700" fill="#b42318" font-family="Segoe UI,sans-serif">¿Falla la fila? Se borra el archivo recién escrito</text>
+  <text x="400" y="354" text-anchor="middle" font-size="7.6" fill="#7a1c10" font-family="Segoe UI,sans-serif">el disco no se deshace solo: hay que limpiarlo a mano</text>
+
+  <!-- 6 -->
+  <line x1="14" y1="378" x2="546" y2="378" stroke="#d9d9e0" stroke-width="1"/>
+  <text x="14" y="396" font-size="9.2" font-weight="700" fill="#6d28d9" font-family="Segoe UI,sans-serif">Y CUANDO ALGUIEN MIRA LA FICHA…</text>
+
+  <rect x="10" y="406" width="134" height="44" rx="4" fill="#fff" stroke="#1b1b1f" stroke-width="1.2"/>
+  <text x="77" y="423" text-anchor="middle" font-size="9.4" font-weight="650" font-family="Segoe UI,sans-serif">Pide la ruta</text>
+  <text x="77" y="436" text-anchor="middle" font-size="7.4" fill="#6d28d9" font-family="Consolas,monospace">&lt;img src="/uploads/…"&gt;</text>
+  <circle cx="20" cy="414" r="7.5" fill="#6d28d9"/><text x="20" y="417.2" text-anchor="middle" font-size="8.5" font-weight="700" fill="#fff" font-family="Segoe UI,sans-serif">6</text>
+  <line x1="144" y1="428" x2="170" y2="428" stroke="#45454e" stroke-width="1.3" marker-end="url(#f)"/>
+
+  <rect x="170" y="406" width="180" height="44" rx="4" fill="#f1ebfd" stroke="#6d28d9" stroke-width="1.2"/>
+  <text x="260" y="423" text-anchor="middle" font-size="9.4" font-weight="650" font-family="Segoe UI,sans-serif">Sirve la carpeta como web</text>
+  <text x="260" y="436" text-anchor="middle" font-size="7.4" fill="#6b6b75" font-family="Consolas,monospace">WebConfig.addResourceHandlers</text>
+
+  <line x1="350" y1="428" x2="378" y2="428" stroke="#45454e" stroke-width="1.3" marker-end="url(#f)"/>
+  <rect x="378" y="406" width="172" height="44" rx="4" fill="#e6f4ea" stroke="#137333" stroke-width="1.3"/>
+  <text x="464" y="423" text-anchor="middle" font-size="9.4" font-weight="700" font-family="Segoe UI,sans-serif">El archivo del disco</text>
+  <text x="464" y="436" text-anchor="middle" font-size="8" fill="#0b4f22" font-family="Segoe UI,sans-serif">sale tal cual, sin pasar por la base</text>
+
+  <text x="280" y="474" text-anchor="middle" font-size="8.4" fill="#6b6b75" font-family="Segoe UI,sans-serif">La base de datos no interviene en el paso 6: solo dijo dónde estaba el archivo.</text>
+</svg>
+</div>
+
+<!-- =================== 4 · CONCEPTOS =================== -->
+
+<div class="salto"></div>
+
+<div class="seccion"><span class="n">4</span>Los conceptos que toca</div>
+<p class="intro">Diez ideas de las que se estudian en clase, con el sitio exacto del proyecto donde
+están aplicadas. El color del borde dice de qué familia es cada una:
+<b style="color:#6d28d9">diseño</b>,
+<b style="color:#b42318">seguridad</b>,
+<b style="color:#137333">base de datos</b>,
+<b style="color:#8a5a00">robustez</b>.</p>
+
+<div class="rejilla">
+
+  <div class="cpt">
+    <span class="cn">01 · Diseño</span>
+    <h4>La ruta en la base, el archivo en el disco</h4>
+    <p>Guardar imágenes como <code>BLOB</code> engorda la base, hace lentas las copias de seguridad y
+    obliga a que cada imagen pase por la aplicación. Con una ruta, el servidor web la sirve directa y
+    el navegador la guarda en caché.</p>
+    <span class="d">imagen_videojuego.ruta · VARCHAR(255)</span>
+  </div>
+
+  <div class="cpt seg">
+    <span class="cn">02 · Seguridad</span>
+    <h4>El nombre lo pone un UUID</h4>
+    <p>El nombre que trae el archivo del usuario <b>nunca</b> forma parte de una ruta: podría llevar
+    <code>../</code>, caracteres raros o repetirse. Se tira y se pone un identificador aleatorio.</p>
+    <span class="d">UUID.randomUUID() + "." + extension</span>
+  </div>
+
+  <div class="cpt seg">
+    <span class="cn">03 · Seguridad</span>
+    <h4>No salirse de la carpeta</h4>
+    <p>Antes de leer o borrar nada se normaliza la ruta (que resuelve los <code>..</code>) y se
+    comprueba que <b>siga empezando por la carpeta base</b>. Es la defensa contra el
+    <i>path traversal</i>.</p>
+    <span class="d">archivo.normalize().startsWith(base)</span>
+  </div>
+
+  <div class="cpt seg">
+    <span class="cn">04 · Seguridad</span>
+    <h4>Validar formato y tamaño en el servidor</h4>
+    <p>Solo pasan <code>png</code>, <code>jpg</code> y <code>webp</code>, y como mucho 2 MB. El
+    <code>accept</code> del formulario es una comodidad; quien manda es esta comprobación.</p>
+    <span class="d">AlmacenArchivos.extensionDe</span>
+  </div>
+
+  <div class="cpt seg">
+    <span class="cn">05 · Seguridad</span>
+    <h4>Público y privado en carpetas distintas</h4>
+    <p>Las imágenes van en <code>uploads</code>, que se sirve entero como web. Los ZIP de los juegos
+    van <b>fuera</b>, y solo se entregan por un controlador que antes comprueba si tienes una clave.</p>
+    <span class="d">app.uploads.dir vs app.juegos.dir</span>
+  </div>
+
+  <div class="cpt">
+    <span class="cn">06 · Diseño</span>
+    <h4>La carpeta se busca por id, no por nombre</h4>
+    <p>La carpeta se llama <code>&lt;id&gt;-&lt;slug&gt;</code>, pero se localiza buscando el patrón
+    <code>&lt;id&gt;-*</code>. Así <b>renombrar el juego no obliga a mover nada</b> de sitio: el slug
+    es decoración, la identidad es el id.</p>
+    <span class="d">buscarCarpeta(videojuegoId)</span>
+  </div>
+
+  <div class="cpt">
+    <span class="cn">07 · Diseño</span>
+    <h4>Convertir un título en nombre de carpeta</h4>
+    <p>El <i>slug</i> quita acentos, pasa a minúsculas, cambia lo raro por guiones y recorta a 40
+    caracteres, por el límite de 260 de las rutas de Windows. Un título solo de emojis se queda en
+    <code>juego</code>.</p>
+    <span class="d">AlmacenArchivos.slug(titulo)</span>
+  </div>
+
+  <div class="cpt rob">
+    <span class="cn">08 · Robustez</span>
+    <h4>El disco no tiene <i>rollback</i></h4>
+    <p>Si la transacción se deshace, la fila desaparece pero <b>el archivo sigue ahí</b>. Por eso el
+    código lo borra a mano en el <code>catch</code>: lo que la base hace sola, en el disco hay que
+    compensarlo.</p>
+    <span class="d">catch (RuntimeException) { almacen.borrar(ruta) }</span>
+  </div>
+
+  <div class="cpt bd">
+    <span class="cn">09 · Base de datos</span>
+    <h4>Borrar en cascada… solo las filas</h4>
+    <p>Al borrar un juego, <code>cascade = ALL</code> se lleva sus filas de imagen. Los archivos no:
+    hay que llamar aparte a <code>borrarCarpeta()</code>, o quedan huérfanos ocupando sitio.</p>
+    <span class="d">@OneToMany(cascade = ALL, orphanRemoval = true)</span>
+  </div>
+
+  <div class="cpt">
+    <span class="cn">10 · Diseño</span>
+    <h4>Servir una carpeta como si fuera web</h4>
+    <p>Las imágenes viven fuera del <code>.jar</code>, así que no son recursos de la aplicación.
+    <code>WebConfig</code> engancha la URL <code>/uploads/**</code> con esa carpeta del disco.</p>
+    <span class="d">registry.addResourceHandler("/uploads/**")</span>
+  </div>
+
+</div>
+
+<!-- =================== 5 · PREGUNTAS =================== -->
+
+<div class="seccion"><span class="n">5</span>Las dos preguntas de examen</div>
+
+<div class="examen">
+  <p class="q">¿Por qué no guardar la imagen en la base de datos como un <code>BLOB</code>?</p>
+  <p class="a">Porque la base dejaría de ser manejable. Unas pocas miles de portadas la hinchan a
+  varios gigas, y eso hace <b>lentas las copias de seguridad</b> y caras las restauraciones. Además,
+  cada vez que alguien abriera una ficha, los bytes tendrían que viajar <b>de la base a la aplicación
+  y de ahí al navegador</b>, gastando memoria y conexiones para algo que un servidor web hace
+  directamente y mucho mejor. Con una ruta, la imagen se sirve como un archivo estático, el navegador
+  <b>la guarda en caché</b> y no vuelve a pedirla. La regla general: la base de datos para datos que
+  se consultan y se relacionan; el disco para archivos que solo se entregan tal cual.</p>
+
+  <p class="q">¿Qué pasa si el archivo se escribe pero falla al guardar la fila?</p>
+  <p class="a">Que tendrías un archivo <b>huérfano</b>: ocupando espacio y sin que nadie sepa que
+  está ahí, porque nada lo apunta. La transacción de la base deshace la fila sola, pero
+  <b>el sistema de archivos no participa en ella</b> y no sabe deshacer nada. Por eso el servicio
+  envuelve el guardado en un <code>try</code> y, si salta la excepción, <b>borra el archivo antes de
+  relanzarla</b>. Es compensar a mano lo que la base hace automáticamente, y es el precio de tener
+  los datos en dos sitios que no se coordinan entre sí.</p>
+</div>
+
+<div class="pie">
+  Resumen escrito a partir del código en <code>master</code> (<code>abce22a</code>).
+  Fuente editable en <code>docs/resumenes/html/VideojuegoEImagenes.html</code> (usa <code>estilo.css</code>). Para regenerar el PDF:
+  <code>chrome --headless --no-pdf-header-footer --print-to-pdf=docs/resumenes/VideojuegoEImagenes.pdf docs/resumenes/html/VideojuegoEImagenes.html</code>
+</div>
+
+</body>
+</html>

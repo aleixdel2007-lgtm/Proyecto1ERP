@@ -1,0 +1,376 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>LudusERP · Órdenes de compra y claves de licencia</title>
+<!-- El aspecto sale de estilo.css, compartida por todos los resumenes.
+     Para regenerar el PDF:
+       chrome --headless --disable-gpu --no-pdf-header-footer
+              --print-to-pdf=docs/resumenes/ComprasYClaves.pdf docs/resumenes/html/ComprasYClaves.html -->
+<link rel="stylesheet" href="estilo.css">
+</head>
+<body>
+
+<!-- =================== 1 · PORTADA =================== -->
+
+<div class="cubierta">
+  <div class="cub-top">
+    <div class="cub-marca">L</div>
+    <div class="cub-eyebrow">LudusERP · resumen técnico</div>
+    <h1>Órdenes de compra<br>y claves</h1>
+    <div class="cub-sub">De una orden al proveedor hasta el stock<br>que un cliente puede comprar.</div>
+    <div class="cub-regla"></div>
+    <div class="cub-idea">
+      <h3>La idea en una frase</h3>
+      <p>Una clave de licencia <b>no se crea a mano ni aparece de la nada</b>: la única puerta por la
+      que entra stock es recibir una orden de compra. Cada clave recuerda de qué línea salió, y por
+      eso se sabe siempre <b>cuánto costó</b> lo que se vende.</p>
+    </div>
+  </div>
+  <div class="cub-pie">
+    <span><b>Clases centrales:</b> <code>CompraClavesServiceImpl</code> · <code>ClaveLicenciaServiceImpl</code></span>
+    <span><b>Código:</b> master en <code>abce22a</code></span>
+    <span><b>5 páginas</b></span>
+  </div>
+</div>
+
+<!-- =================== 2 · ÍNDICE =================== -->
+
+<div class="salto"></div>
+
+<div class="seccion">Índice</div>
+
+<div class="indice">
+  <div class="ix"><span class="ixn">1</span><span class="ixt">
+      <b>En 30 segundos</b><span>Lo esencial en seis frases, para repasar antes de un examen</span>
+      </span><span class="ixp">pág. 2</span></div>
+  <div class="ix"><span class="ixn">2</span><span class="ixt">
+      <b>Los cuatro estados de una orden</b><span>Qué se puede hacer en cada uno y qué queda prohibido</span>
+      </span><span class="ixp">pág. 2</span></div>
+  <div class="ix"><span class="ixn">3</span><span class="ixt">
+      <b>De la orden a la clave</b><span>Diagrama del ciclo completo y de cómo nace un código</span>
+      </span><span class="ixp">pág. 3</span></div>
+  <div class="ix"><span class="ixn">4</span><span class="ixt">
+      <b>Los conceptos que toca</b><span>Las diez ideas que se aprenden aquí y para qué sirve cada una</span>
+      </span><span class="ixp">pág. 4</span></div>
+  <div class="ix"><span class="ixn">5</span><span class="ixt">
+      <b>Las dos preguntas de examen</b><span>Por qué está hecho así, respondido</span>
+      </span><span class="ixp">pág. 5</span></div>
+</div>
+
+<div class="seccion"><span class="n">1</span>En 30 segundos</div>
+
+<div class="rapido">
+  <ol>
+    <li>Un gestor de inventario crea un <b>borrador</b> de orden: proveedor, fecha y su número,
+    <code>OC-2026-0001</code>.</li>
+    <li>Le añade <b>líneas</b>: un videojuego, cuántas unidades y a cuánto sale cada una. El total se
+    recalcula solo.</li>
+    <li>La <b>confirma</b> y la manda al proveedor. A partir de ahí la cabecera ya no se toca: ese
+    número ya está fuera.</li>
+    <li>Cuando llega la mercancía se <b>recibe</b>: se anota cuántas unidades han venido de cada
+    línea, con su albarán.</li>
+    <li>Solo entonces se <b>acuñan las claves</b>: una por unidad recibida, con su código generado,
+    cifrado y en estado <code>DISPONIBLE</code>.</li>
+    <li>Cada clave guarda <b>de qué línea de compra salió</b>, y de ahí sale el coste con el que el
+    panel calcula el margen.</li>
+  </ol>
+</div>
+
+<div class="seccion"><span class="n">2</span>Los cuatro estados de una orden</div>
+
+<table>
+  <thead>
+    <tr><th style="width:20%">Estado</th><th style="width:42%">Qué se puede hacer</th><th>Qué queda prohibido</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>BORRADOR</code><br><span style="color:#6b6b75">recién creada</span></td>
+      <td>Cambiar proveedor y fecha · añadir y quitar líneas · confirmar · cancelar</td>
+      <td class="rol">recibir<br><span style="color:#6b6b75">aún no se ha pedido nada</span></td>
+    </tr>
+    <tr>
+      <td><code>CONFIRMADA</code><br><span style="color:#6b6b75">enviada al proveedor</span></td>
+      <td>Tocar líneas todavía · recibir la mercancía · cancelar</td>
+      <td class="rol">cambiar proveedor<br>o fecha</td>
+    </tr>
+    <tr class="bueno">
+      <td><code>RECIBIDA</code><br><span style="color:#6b6b75">ya hay claves</span></td>
+      <td>Nada: es el final del camino</td>
+      <td class="rol">editar · cancelar<br>volver a recibir</td>
+    </tr>
+    <tr class="nadie">
+      <td><code>CANCELADA</code></td>
+      <td>Nada. Se queda como registro de que existió</td>
+      <td class="rol">todo</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="nota">
+  <b>Las líneas se pueden tocar aun estando confirmada.</b> Puede parecer raro, pero es lo que pasa
+  en la realidad: el proveedor llama y dice que de un juego no le quedan. Lo que ya <b>no</b> se
+  cambia es la cabecera, porque ese número de orden ya está en su poder.
+</div>
+
+<!-- =================== 3 · DIAGRAMA =================== -->
+
+<div class="salto"></div>
+
+<div class="seccion"><span class="n">3</span>De la orden a la clave</div>
+<p class="intro">Arriba, el ciclo de la orden. Abajo, lo que ocurre dentro del paso de acuñado:
+cómo nace un código y qué se guarda de él.</p>
+
+<div class="diagrama">
+<svg viewBox="0 0 560 486" xmlns="http://www.w3.org/2000/svg" role="img"
+     aria-label="Ciclo de vida de una orden de compra y detalle del acuñado de una clave de licencia">
+  <defs>
+    <marker id="f" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
+      <path d="M0,0 L7,3.5 L0,7 z" fill="#45454e"/></marker>
+    <marker id="fv" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
+      <path d="M0,0 L7,3.5 L0,7 z" fill="#137333"/></marker>
+    <marker id="fr" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
+      <path d="M0,0 L7,3.5 L0,7 z" fill="#b42318"/></marker>
+  </defs>
+
+  <!-- ===== PANEL 1: CICLO DE LA ORDEN ===== -->
+  <rect x="2" y="2" width="556" height="214" rx="5" fill="#fff" stroke="#d9d9e0" stroke-width="1.2"/>
+  <rect x="2" y="2" width="556" height="21" rx="5" fill="#1b1b1f"/>
+  <rect x="2" y="16" width="556" height="7" fill="#1b1b1f"/>
+  <text x="12" y="17" font-size="9.4" font-weight="700" fill="#fff" font-family="Segoe UI,sans-serif">EL CICLO DE LA ORDEN · cada paso comprueba antes en qué estado está</text>
+
+  <!-- borrador -->
+  <rect x="14" y="44" width="118" height="46" rx="4" fill="#f5f5f8" stroke="#45454e" stroke-width="1.4"/>
+  <text x="73" y="62" text-anchor="middle" font-size="9.6" font-weight="700" font-family="Consolas,monospace">BORRADOR</text>
+  <text x="73" y="75" text-anchor="middle" font-size="7.6" fill="#6b6b75" font-family="Segoe UI,sans-serif">proveedor, fecha</text>
+  <text x="73" y="85" text-anchor="middle" font-size="7.6" fill="#6b6b75" font-family="Consolas,monospace">OC-2026-0001</text>
+  <circle cx="24" cy="52" r="7.5" fill="#6d28d9"/><text x="24" y="55.2" text-anchor="middle" font-size="8.5" font-weight="700" fill="#fff" font-family="Segoe UI,sans-serif">1</text>
+
+  <!-- lineas (bucle) -->
+  <path d="M73,90 L73,106 L73,106" fill="none" stroke="#6d28d9" stroke-width="1.3"/>
+  <rect x="14" y="108" width="118" height="40" rx="4" fill="#f1ebfd" stroke="#6d28d9" stroke-width="1.2"/>
+  <text x="73" y="124" text-anchor="middle" font-size="9" font-weight="650" font-family="Segoe UI,sans-serif">Añade líneas</text>
+  <text x="73" y="135" text-anchor="middle" font-size="7.6" fill="#45454e" font-family="Segoe UI,sans-serif">juego · unidades · coste</text>
+  <text x="73" y="145" text-anchor="middle" font-size="7.4" fill="#6b6b75" font-family="Segoe UI,sans-serif">el total se recalcula solo</text>
+  <circle cx="24" cy="116" r="7.5" fill="#6d28d9"/><text x="24" y="119.2" text-anchor="middle" font-size="8.5" font-weight="700" fill="#fff" font-family="Segoe UI,sans-serif">2</text>
+
+  <line x1="132" y1="67" x2="166" y2="67" stroke="#45454e" stroke-width="1.3" marker-end="url(#f)"/>
+  <text x="149" y="61" text-anchor="middle" font-size="7.4" fill="#6b6b75" font-family="Segoe UI,sans-serif">confirmar</text>
+
+  <!-- confirmada -->
+  <rect x="168" y="44" width="124" height="46" rx="4" fill="#fdf3e2" stroke="#8a5a00" stroke-width="1.4"/>
+  <text x="230" y="62" text-anchor="middle" font-size="9.6" font-weight="700" fill="#8a5a00" font-family="Consolas,monospace">CONFIRMADA</text>
+  <text x="230" y="75" text-anchor="middle" font-size="7.6" fill="#5c3d00" font-family="Segoe UI,sans-serif">enviada al proveedor</text>
+  <text x="230" y="85" text-anchor="middle" font-size="7.4" fill="#6b6b75" font-family="Segoe UI,sans-serif">la cabecera ya no se toca</text>
+  <circle cx="178" cy="52" r="7.5" fill="#8a5a00"/><text x="178" y="55.2" text-anchor="middle" font-size="8.5" font-weight="700" fill="#fff" font-family="Segoe UI,sans-serif">3</text>
+
+  <line x1="292" y1="67" x2="326" y2="67" stroke="#45454e" stroke-width="1.3" marker-end="url(#f)"/>
+  <text x="309" y="61" text-anchor="middle" font-size="7.4" fill="#6b6b75" font-family="Segoe UI,sans-serif">recibir</text>
+
+  <!-- recepcion -->
+  <rect x="328" y="36" width="218" height="62" rx="4" fill="#f1ebfd" stroke="#6d28d9" stroke-width="1.2"/>
+  <text x="437" y="52" text-anchor="middle" font-size="9.4" font-weight="650" font-family="Segoe UI,sans-serif">Se anota lo que ha llegado</text>
+  <text x="437" y="64" text-anchor="middle" font-size="7.6" fill="#45454e" font-family="Segoe UI,sans-serif">unidades por línea, albarán y observaciones</text>
+  <text x="437" y="77" text-anchor="middle" font-size="7.4" fill="#b42318" font-family="Segoe UI,sans-serif">antes se valida TODO: una pareja por línea,</text>
+  <text x="437" y="87" text-anchor="middle" font-size="7.4" fill="#b42318" font-family="Segoe UI,sans-serif">ninguna repetida, nada negativo, total mayor que cero</text>
+  <circle cx="338" cy="44" r="7.5" fill="#6d28d9"/><text x="338" y="47.2" text-anchor="middle" font-size="8.5" font-weight="700" fill="#fff" font-family="Segoe UI,sans-serif">4</text>
+
+  <line x1="437" y1="98" x2="437" y2="112" stroke="#6d28d9" stroke-width="1.3" marker-end="url(#f)"/>
+  <rect x="328" y="114" width="218" height="40" rx="4" fill="#e6f4ea" stroke="#137333" stroke-width="1.4"/>
+  <text x="437" y="131" text-anchor="middle" font-size="9.6" font-weight="700" fill="#137333" font-family="Consolas,monospace">RECIBIDA</text>
+  <text x="437" y="145" text-anchor="middle" font-size="7.6" fill="#0b4f22" font-family="Segoe UI,sans-serif">la orden se cierra ANTES de acuñar nada</text>
+  <circle cx="338" cy="122" r="7.5" fill="#137333"/><text x="338" y="125.2" text-anchor="middle" font-size="8.5" font-weight="700" fill="#fff" font-family="Segoe UI,sans-serif">5</text>
+
+  <!-- cancelar -->
+  <path d="M73,148 L73,176 L196,176" fill="none" stroke="#b42318" stroke-width="1.2" marker-end="url(#fr)"/>
+  <path d="M230,90 L230,160 L204,160 L204,172" fill="none" stroke="#b42318" stroke-width="1.2" marker-end="url(#fr)"/>
+  <rect x="198" y="178" width="110" height="28" rx="4" fill="#fdecea" stroke="#b42318" stroke-width="1.3"/>
+  <text x="253" y="196" text-anchor="middle" font-size="9.2" font-weight="700" fill="#b42318" font-family="Consolas,monospace">CANCELADA</text>
+  <text x="320" y="190" font-size="7.4" fill="#7a1c10" font-family="Segoe UI,sans-serif">desde borrador o confirmada,</text>
+  <text x="320" y="200" font-size="7.4" fill="#7a1c10" font-family="Segoe UI,sans-serif">nunca desde recibida: ya hay claves fuera</text>
+
+  <!-- ===== PANEL 2: ACUÑADO ===== -->
+  <rect x="2" y="230" width="556" height="254" rx="5" fill="#fff" stroke="#d9d9e0" stroke-width="1.2"/>
+  <rect x="2" y="230" width="556" height="21" rx="5" fill="#6d28d9"/>
+  <rect x="2" y="244" width="556" height="7" fill="#6d28d9"/>
+  <text x="12" y="245" font-size="9.4" font-weight="700" fill="#fff" font-family="Segoe UI,sans-serif">EL ACUÑADO · se repite una vez por CADA unidad recibida</text>
+
+  <rect x="14" y="264" width="180" height="40" rx="4" fill="#f5f5f8" stroke="#45454e" stroke-width="1.2"/>
+  <text x="104" y="280" text-anchor="middle" font-size="8.6" font-weight="700" font-family="Segoe UI,sans-serif">La línea recibida</text>
+  <text x="104" y="292" text-anchor="middle" font-size="7.6" fill="#45454e" font-family="Segoe UI,sans-serif">Eclipse Protocol · 50 uds · 18,00 €</text>
+  <circle cx="24" cy="272" r="7.5" fill="#6d28d9"/><text x="24" y="275.2" text-anchor="middle" font-size="8.5" font-weight="700" fill="#fff" font-family="Segoe UI,sans-serif">6</text>
+  <line x1="194" y1="284" x2="218" y2="284" stroke="#45454e" stroke-width="1.3" marker-end="url(#f)"/>
+  <text x="206" y="278" text-anchor="middle" font-size="7" fill="#6b6b75" font-family="Segoe UI,sans-serif">×50</text>
+
+  <!-- anatomia del codigo -->
+  <rect x="220" y="260" width="326" height="48" rx="4" fill="#f1ebfd" stroke="#6d28d9" stroke-width="1.3"/>
+  <text x="383" y="280" text-anchor="middle" font-size="14" font-weight="700" fill="#6d28d9" font-family="Consolas,monospace">ECLI-4K7M-9PQR-2XYZ</text>
+  <text x="258" y="294" text-anchor="middle" font-size="7" fill="#45454e" font-family="Segoe UI,sans-serif">4 letras</text>
+  <text x="258" y="303" text-anchor="middle" font-size="7" fill="#45454e" font-family="Segoe UI,sans-serif">del título</text>
+  <text x="430" y="294" text-anchor="middle" font-size="7" fill="#45454e" font-family="Segoe UI,sans-serif">tres bloques al azar, de un alfabeto</text>
+  <text x="430" y="303" text-anchor="middle" font-size="7" fill="#45454e" font-family="Segoe UI,sans-serif">SIN la I, la O, el 0 ni el 1</text>
+
+  <!-- comprobar libre -->
+  <line x1="383" y1="308" x2="383" y2="320" stroke="#6d28d9" stroke-width="1.3" marker-end="url(#f)"/>
+  <rect x="200" y="322" width="346" height="40" rx="4" fill="#fdf3e2" stroke="#8a5a00" stroke-width="1.3"/>
+  <text x="373" y="338" text-anchor="middle" font-size="9" font-weight="700" fill="#5c3d00" font-family="Segoe UI,sans-serif">¿Está libre ese código?</text>
+  <text x="373" y="352" text-anchor="middle" font-size="7.6" fill="#5c3d00" font-family="Segoe UI,sans-serif">se mira contra la base Y contra lo ya generado en este lote · hasta 20 intentos</text>
+  <circle cx="210" cy="330" r="7.5" fill="#8a5a00"/><text x="210" y="333.2" text-anchor="middle" font-size="8.5" font-weight="700" fill="#fff" font-family="Segoe UI,sans-serif">7</text>
+
+  <!-- se guarda -->
+  <line x1="373" y1="362" x2="373" y2="374" stroke="#6d28d9" stroke-width="1.3" marker-end="url(#f)"/>
+  <rect x="14" y="376" width="532" height="60" rx="4" fill="#e6f4ea" stroke="#137333" stroke-width="1.4"/>
+  <text x="280" y="393" text-anchor="middle" font-size="9.4" font-weight="700" fill="#137333" font-family="Segoe UI,sans-serif">Nace la fila de clave_licencia</text>
+  <text x="26" y="409" font-size="7.8" fill="#45454e" font-family="Consolas,monospace">codigo_cifrado = AES-GCM(codigo)</text>
+  <text x="26" y="420" font-size="7.8" fill="#45454e" font-family="Consolas,monospace">codigo_hash    = HMAC(codigo) · UNIQUE</text>
+  <text x="300" y="409" font-size="7.8" fill="#45454e" font-family="Consolas,monospace">estado          = DISPONIBLE</text>
+  <text x="300" y="420" font-size="7.8" fill="#45454e" font-family="Consolas,monospace">linea_compra_id = de dónde salió</text>
+  <text x="280" y="432" text-anchor="middle" font-size="7.4" fill="#0b4f22" font-family="Segoe UI,sans-serif">esa última columna es la que, al venderse, dirá cuánto costó</text>
+  <circle cx="24" cy="384" r="7.5" fill="#137333"/><text x="24" y="387.2" text-anchor="middle" font-size="8.5" font-weight="700" fill="#fff" font-family="Segoe UI,sans-serif">8</text>
+
+  <line x1="280" y1="436" x2="280" y2="448" stroke="#137333" stroke-width="1.3" marker-end="url(#fv)"/>
+  <rect x="150" y="450" width="260" height="26" rx="4" fill="#137333"/>
+  <text x="280" y="467" text-anchor="middle" font-size="9.4" font-weight="700" fill="#fff" font-family="Segoe UI,sans-serif">YA ES STOCK: un cliente puede comprarla</text>
+</svg>
+</div>
+
+<!-- =================== 4 · CONCEPTOS =================== -->
+
+<div class="salto"></div>
+
+<div class="seccion"><span class="n">4</span>Los conceptos que toca</div>
+<p class="intro">Diez ideas de las que se estudian en clase, con el sitio exacto del proyecto donde
+están aplicadas. El color del borde dice de qué familia es cada una:
+<b style="color:#6d28d9">diseño</b>,
+<b style="color:#8a5a00">validación</b>,
+<b style="color:#137333">trazabilidad</b>,
+<b style="color:#b42318">seguridad</b>.</p>
+
+<div class="rejilla">
+
+  <div class="cpt">
+    <span class="cn">01 · Diseño</span>
+    <h4>Máquina de estados con guardias</h4>
+    <p>Cada acción empieza comprobando el estado y se niega si no cuadra. La base no impide ningún
+    cambio: <b>el guardia está en el servicio</b>, y por eso es lo primero de cada método.</p>
+    <span class="d">EstadoCompraInvalidoException</span>
+  </div>
+
+  <div class="cpt">
+    <span class="cn">02 · Diseño</span>
+    <h4>Numerar mirando el máximo</h4>
+    <p>El número sale de <code>max(numero)</code> del año, no de contar filas. Como el formato lleva
+    ceros delante, <b>el orden alfabético y el numérico coinciden</b> y el máximo es el último de
+    verdad.</p>
+    <span class="d">buscarUltimoNumeroDelAno("OC-2026-")</span>
+  </div>
+
+  <div class="cpt rob">
+    <span class="cn">03 · Validación</span>
+    <h4>Cantidad vacía = ilimitada</h4>
+    <p>Una línea sin unidades es un juego de descarga, del que no hay existencias que contar. Por eso
+    <b>no suma al total</b>: lo que se sabe que se va a pagar es lo de las líneas con cantidad.</p>
+    <span class="d">LineaCompra.cantidad · Integer, admite null</span>
+  </div>
+
+  <div class="cpt rob">
+    <span class="cn">04 · Validación</span>
+    <h4>Lo que no se le compra a nadie</h4>
+    <p>Un juego de colaborador no puede entrar en una orden: no hay proveedor a quien pedírselo. Se
+    comprueba al añadir la línea, no al final.</p>
+    <span class="d">if (videojuego.getColaborador() != null)</span>
+  </div>
+
+  <div class="cpt rob">
+    <span class="cn">05 · Validación</span>
+    <h4>Validar el formulario entero primero</h4>
+    <p>La recepción llega como dos listas en paralelo. Antes de anotar nada se comprueba que hay una
+    pareja por línea, que ninguna viene repetida y que no hay negativos: <b>mejor rechazar que
+    arreglar a medias</b>.</p>
+    <span class="d">recibirCompra · LineaCompraInvalidaException</span>
+  </div>
+
+  <div class="cpt">
+    <span class="cn">06 · Diseño</span>
+    <h4>Cerrar primero, acuñar después</h4>
+    <p>Se anota todo lo recibido y se cierra la orden, y <b>solo entonces</b> se crean las claves.
+    Todo va en una transacción: si algo no cuadra, se deshace entero y no queda ni media clave
+    suelta.</p>
+    <span class="d">@Transactional recibirCompra</span>
+  </div>
+
+  <div class="cpt bd">
+    <span class="cn">07 · Trazabilidad</span>
+    <h4>Una sola puerta de entrada</h4>
+    <p><code>acunarClaves</code> es el <b>único</b> sitio del que nacen claves. No hay pantalla para
+    crear una a mano, y eso garantiza que ninguna existe sin su línea de compra detrás.</p>
+    <span class="d">ClaveLicenciaServiceImpl.acunarClaves</span>
+  </div>
+
+  <div class="cpt bd">
+    <span class="cn">08 · Trazabilidad</span>
+    <h4>De la clave al coste</h4>
+    <p>Como la clave recuerda su línea, al venderse se sabe lo que costó. El margen del panel es
+    justo eso: la base imponible de lo vendido <b>menos</b> la suma del coste de las claves vendidas.</p>
+    <span class="d">sumarCostePorEstado(VENDIDA)</span>
+  </div>
+
+  <div class="cpt seg">
+    <span class="cn">09 · Seguridad</span>
+    <h4>Unicidad por partida doble</h4>
+    <p>Un código recién generado se mira contra la base <b>y contra el lote en memoria</b>, porque
+    las anteriores del mismo lote aún no están guardadas. Si tras 20 intentos no sale uno libre, se
+    falla en vez de insistir.</p>
+    <span class="d">existsByCodigoHash + hashesDelLote</span>
+  </div>
+
+  <div class="cpt seg">
+    <span class="cn">10 · Seguridad</span>
+    <h4>El código, cifrado y resumido</h4>
+    <p>Se guarda dos veces: cifrado con AES, para poder enseñárselo a su dueño, y como HMAC, para
+    poder buscarlo y declararlo <code>UNIQUE</code>. Un alfabeto <b>sin I, O, 0 ni 1</b> evita que
+    alguien lo copie mal del correo.</p>
+    <span class="d">@Convert · IndiceCiego · ALFABETO</span>
+  </div>
+
+</div>
+
+<!-- =================== 5 · PREGUNTAS =================== -->
+
+<div class="seccion"><span class="n">5</span>Las dos preguntas de examen</div>
+
+<div class="examen">
+  <p class="q">¿Por qué no hay una pantalla para crear claves a mano?</p>
+  <p class="a">Porque una clave sin orden de compra detrás sería <b>stock que apareció de la nada</b>,
+  y eso rompe dos cosas. La primera, la contabilidad: el margen del panel se calcula cruzando lo que
+  se ha vendido con lo que costó comprarlo, y ese coste sale de <code>linea_compra</code>; una clave
+  huérfana se vendería con <b>coste cero</b> e inflaría el beneficio. La segunda, la auditoría: si
+  mañana aparecen claves de más, hay que poder decir quién las metió y con qué orden. Obligar a que
+  la única puerta sea recibir una compra es lo que hace que las dos preguntas siempre tengan
+  respuesta.</p>
+
+  <p class="q">¿Por qué se anota toda la recepción antes de acuñar ninguna clave?</p>
+  <p class="a">Por el <b>todo o nada</b>. Acuñar 50 claves de la primera línea y descubrir en la
+  tercera que las unidades vienen en negativo dejaría medio lote suelto en la base, con códigos ya
+  gastados y una orden sin cerrar. Haciéndolo al revés —validar las parejas, anotar las cantidades,
+  cerrar la orden y <b>solo entonces</b> acuñar, todo dentro de la misma transacción— cualquier fallo
+  deshace el conjunto y la orden se queda exactamente como estaba. El comentario del propio método lo
+  dice: <i>si algo de lo que llega no cuadra, no queda ni media clave suelta</i>.</p>
+</div>
+
+<div class="ojo">
+  <b>Una recepción, y solo una.</b> Se admite que lleguen menos unidades de las pedidas —se anota lo
+  que haya venido—, pero la orden pasa a <code>RECIBIDA</code> igualmente y ya no se puede volver a
+  recibir. Si el proveedor manda el resto la semana siguiente, hoy <b>no hay forma de anotarlo</b> en
+  esa misma orden: habría que crear otra. Soportar entregas parciales sería el siguiente paso natural
+  de este módulo.
+</div>
+
+<div class="pie">
+  Resumen escrito a partir del código en <code>master</code> (<code>abce22a</code>).
+  Fuente editable en <code>docs/resumenes/html/ComprasYClaves.html</code> (usa <code>estilo.css</code>). Para regenerar el PDF:
+  <code>chrome --headless --no-pdf-header-footer --print-to-pdf=docs/resumenes/ComprasYClaves.pdf docs/resumenes/html/ComprasYClaves.html</code>
+</div>
+
+</body>
+</html>

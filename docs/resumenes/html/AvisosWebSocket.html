@@ -1,0 +1,363 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>LudusERP · Los avisos en vivo (WebSocket)</title>
+<!-- El aspecto sale de estilo.css, compartida por todos los resumenes.
+     Para regenerar el PDF:
+       chrome --headless --disable-gpu --no-pdf-header-footer
+              --print-to-pdf=docs/resumenes/AvisosWebSocket.pdf docs/resumenes/html/AvisosWebSocket.html -->
+<link rel="stylesheet" href="estilo.css"></head>
+<body>
+
+<!-- =================== 1 · PORTADA =================== -->
+
+<div class="cubierta">
+  <div class="cub-top">
+    <div class="cub-marca">L</div>
+    <div class="cub-eyebrow">LudusERP · resumen técnico</div>
+    <h1>Los avisos<br>en vivo</h1>
+    <div class="cub-sub">Cómo la campanita del panel se entera de algo<br>sin que nadie recargue la página.</div>
+    <div class="cub-regla"></div>
+    <div class="cub-idea">
+      <h3>La idea en una frase</h3>
+      <p>Con HTTP normal el servidor <b>solo puede contestar</b>, nunca hablar primero. El WebSocket
+      deja la línea abierta en las dos direcciones, y por ella el servidor empuja un aviso en cuanto
+      pasa algo que a ese gestor le interesa.</p>
+    </div>
+  </div>
+  <div class="cub-pie">
+    <span><b>Clases centrales:</b> <code>WebSocketConfig</code> · <code>GuardiaCanales</code></span>
+    <span><b>Código:</b> master en <code>abce22a</code></span>
+    <span><b>5 páginas</b></span>
+  </div>
+</div>
+
+<!-- =================== 2 · ÍNDICE =================== -->
+
+<div class="salto"></div>
+
+<div class="seccion">Índice</div>
+
+<div class="indice">
+  <div class="ix"><span class="ixn">1</span><span class="ixt">
+      <b>En 30 segundos</b><span>El mecanismo entero en seis frases, para repasar antes de un examen</span>
+      </span><span class="ixp">pág. 2</span></div>
+  <div class="ix"><span class="ixn">2</span><span class="ixt">
+      <b>Los dos canales que existen</b><span>Quién publica en cada uno, cuándo, y qué rol puede escucharlo</span>
+      </span><span class="ixp">pág. 2</span></div>
+  <div class="ix"><span class="ixn">3</span><span class="ixt">
+      <b>El recorrido completo</b><span>Diagrama de las dos fases, con el archivo responsable de cada paso</span>
+      </span><span class="ixp">pág. 3</span></div>
+  <div class="ix"><span class="ixn">4</span><span class="ixt">
+      <b>Los conceptos que toca</b><span>Las diez ideas que se aprenden aquí y para qué sirve cada una</span>
+      </span><span class="ixp">pág. 4</span></div>
+  <div class="ix"><span class="ixn">5</span><span class="ixt">
+      <b>Las dos preguntas de examen</b><span>Por qué está hecho así, respondido</span>
+      </span><span class="ixp">pág. 5</span></div>
+</div>
+
+<div class="seccion"><span class="n">1</span>En 30 segundos</div>
+
+<div class="rapido">
+  <ol>
+    <li>Al abrir una página del panel, un <code>@ControllerAdvice</code> <b>cuenta en la base de datos</b>
+    cuántos avisos hay pendientes y ese número se pinta en la campanita.</li>
+    <li>Acto seguido el navegador <b>abre un WebSocket</b> contra <code>/ws</code> y se suscribe al canal
+    que le corresponde por su rol.</li>
+    <li>Un <b>interceptor</b> comprueba ese rol antes de dejarle entrar, y bloquea cualquier intento de
+    publicar desde el navegador.</li>
+    <li>Cuando un colaborador sube un juego, el servicio <b>publica un aviso</b> en
+    <code>/topic/productos</code>.</li>
+    <li>El <b>broker</b> que vive en la memoria del servidor lo reparte a todos los navegadores suscritos
+    a ese canal.</li>
+    <li>Cada uno <b>suma 1</b> a su campanita. Nadie ha recargado nada ni ha vuelto a preguntar.</li>
+  </ol>
+</div>
+
+<div class="seccion"><span class="n">2</span>Los dos canales que existen</div>
+
+<table>
+  <thead>
+    <tr><th style="width:26%">Canal</th><th style="width:48%">Quién publica y cuándo</th><th>Quién puede escucharlo</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>/topic/clientes</code></td>
+      <td><b>ClienteServiceImpl</b> · cuando un cliente con la cuenta bloqueada pide que se la reactiven</td>
+      <td class="rol">GESTOR_CLIENTES<br>ADMIN</td>
+    </tr>
+    <tr>
+      <td><code>/topic/productos</code></td>
+      <td><b>VideojuegoServiceImpl</b> · cuando un colaborador sube un juego nuevo, o edita uno que ya estaba publicado</td>
+      <td class="rol">GESTOR_PRODUCTOS<br>ADMIN</td>
+    </tr>
+    <tr class="nadie">
+      <td><code>cualquier otro</code></td>
+      <td>Nadie. El guardia funciona con <b>lista blanca</b>: lo que no está escrito en el <code>switch</code> cae en el <code>default</code></td>
+      <td class="rol">NADIE</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="ojo">
+  <b>El aviso no lleva datos.</b> Lo que viaja por el canal es un texto fijo —
+  <code>"juego-pendiente"</code> o <code>"solicitud-activacion"</code> —, nunca el nombre del juego ni
+  el correo del cliente. El navegador solo necesita saber <i>que ha pasado algo</i>; si quiere el
+  detalle, pulsa la campanita y va al listado por HTTP de siempre.
+</div>
+
+<!-- =================== 3 · DIAGRAMA =================== -->
+
+<div class="salto"></div>
+
+<div class="seccion"><span class="n">3</span>El recorrido completo</div>
+<p class="intro">Son dos momentos distintos: primero el navegador <b>se coloca</b> (fase 1), y después,
+cuando ya está esperando, <b>le llega el aviso</b> (fase 2). Cada caja lleva debajo su archivo.</p>
+
+<div class="diagrama">
+<svg viewBox="0 0 560 486" xmlns="http://www.w3.org/2000/svg" role="img"
+     aria-label="Diagrama de carriles en dos fases: navegador del gestor, nuestro servidor y quien provoca el aviso">
+  <defs>
+    <marker id="f" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
+      <path d="M0,0 L7,3.5 L0,7 z" fill="#45454e"/></marker>
+    <marker id="fm" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
+      <path d="M0,0 L7,3.5 L0,7 z" fill="#6d28d9"/></marker>
+  </defs>
+
+  <!-- carriles -->
+  <rect x="2"   y="2" width="176" height="482" fill="#f5f5f8" stroke="#d9d9e0"/>
+  <rect x="186" y="2" width="188" height="482" fill="#fff"    stroke="#d9d9e0"/>
+  <rect x="382" y="2" width="176" height="482" fill="#f5f5f8" stroke="#d9d9e0"/>
+  <rect x="2"   y="2" width="176" height="24" fill="#1b1b1f"/>
+  <rect x="186" y="2" width="188" height="24" fill="#6d28d9"/>
+  <rect x="382" y="2" width="176" height="24" fill="#1b1b1f"/>
+  <text x="90"  y="18" text-anchor="middle" font-size="9.6" font-weight="700" fill="#fff" font-family="Segoe UI,sans-serif">NAVEGADOR DEL GESTOR</text>
+  <text x="280" y="18" text-anchor="middle" font-size="9.6" font-weight="700" fill="#fff" font-family="Segoe UI,sans-serif">NUESTRO SERVIDOR</text>
+  <text x="470" y="18" text-anchor="middle" font-size="9.6" font-weight="700" fill="#fff" font-family="Segoe UI,sans-serif">QUIEN PROVOCA EL AVISO</text>
+
+  <!-- ===== FASE 1 ===== -->
+  <rect x="2" y="32" width="556" height="19" fill="#f1ebfd"/>
+  <text x="10" y="45.5" font-size="9" font-weight="700" fill="#6d28d9" font-family="Segoe UI,sans-serif" letter-spacing=".5">FASE 1 · AL ABRIR EL PANEL · el número inicial y la conexión</text>
+
+  <!-- 1 -->
+  <rect x="12" y="60" width="156" height="38" rx="4" fill="#fff" stroke="#1b1b1f" stroke-width="1.2"/>
+  <text x="96" y="78" text-anchor="middle" font-size="10" font-weight="650" font-family="Segoe UI,sans-serif">Abres una página del panel</text>
+  <text x="96" y="91" text-anchor="middle" font-size="7.4" fill="#6b6b75" font-family="Consolas,monospace">fragments/panel.html</text>
+  <circle cx="22" cy="68" r="8" fill="#6d28d9"/><text x="22" y="71.5" text-anchor="middle" font-size="9" font-weight="700" fill="#fff" font-family="Segoe UI,sans-serif">1</text>
+  <line x1="168" y1="79" x2="196" y2="79" stroke="#45454e" stroke-width="1.3" marker-end="url(#f)"/>
+  <text x="182" y="73" text-anchor="middle" font-size="7" fill="#6b6b75" font-family="Consolas,monospace">GET</text>
+
+  <!-- 2 -->
+  <rect x="196" y="60" width="168" height="50" rx="4" fill="#f1ebfd" stroke="#6d28d9" stroke-width="1.2"/>
+  <text x="280" y="77" text-anchor="middle" font-size="10" font-weight="650" font-family="Segoe UI,sans-serif">Cuenta en la base de datos</text>
+  <text x="280" y="89" text-anchor="middle" font-size="8.4" fill="#45454e" font-family="Segoe UI,sans-serif">cuántos avisos hay pendientes</text>
+  <text x="280" y="103" text-anchor="middle" font-size="7.4" fill="#6b6b75" font-family="Consolas,monospace">ControllerAdviceNotificaciones</text>
+  <circle cx="206" cy="68" r="8" fill="#6d28d9"/><text x="206" y="71.5" text-anchor="middle" font-size="9" font-weight="700" fill="#fff" font-family="Segoe UI,sans-serif">2</text>
+
+  <!-- 3 -->
+  <path d="M280,110 L280,118 L96,118 L96,124" fill="none" stroke="#45454e" stroke-width="1.3" marker-end="url(#f)"/>
+  <rect x="12" y="130" width="156" height="46" rx="4" fill="#fff" stroke="#1b1b1f" stroke-width="1.2"/>
+  <text x="96" y="146" text-anchor="middle" font-size="10" font-weight="650" font-family="Segoe UI,sans-serif">La página llega con el</text>
+  <text x="96" y="158" text-anchor="middle" font-size="10" font-weight="650" font-family="Segoe UI,sans-serif">número ya puesto</text>
+  <text x="96" y="170" text-anchor="middle" font-size="7.4" fill="#6b6b75" font-family="Consolas,monospace">th:text="${pendientesJuegos}"</text>
+  <circle cx="22" cy="138" r="8" fill="#6d28d9"/><text x="22" y="141.5" text-anchor="middle" font-size="9" font-weight="700" fill="#fff" font-family="Segoe UI,sans-serif">3</text>
+
+  <!-- 4 -->
+  <line x1="96" y1="176" x2="96" y2="182" stroke="#45454e" stroke-width="1.3" marker-end="url(#f)"/>
+  <rect x="12" y="184" width="156" height="48" rx="4" fill="#fff" stroke="#1b1b1f" stroke-width="1.2"/>
+  <text x="96" y="201" text-anchor="middle" font-size="10" font-weight="650" font-family="Segoe UI,sans-serif">Abre el WebSocket</text>
+  <text x="96" y="213" text-anchor="middle" font-size="8.4" fill="#45454e" font-family="Segoe UI,sans-serif">y manda un SUBSCRIBE</text>
+  <text x="96" y="226" text-anchor="middle" font-size="7.4" fill="#6b6b75" font-family="Consolas,monospace">notificaciones.js · StompJs</text>
+  <circle cx="22" cy="192" r="8" fill="#6d28d9"/><text x="22" y="195.5" text-anchor="middle" font-size="9" font-weight="700" fill="#fff" font-family="Segoe UI,sans-serif">4</text>
+  <line x1="168" y1="208" x2="196" y2="208" stroke="#45454e" stroke-width="1.3" marker-end="url(#f)"/>
+
+  <!-- 5 -->
+  <rect x="196" y="184" width="168" height="48" rx="4" fill="#fdf3e2" stroke="#8a5a00" stroke-width="1.4"/>
+  <text x="280" y="201" text-anchor="middle" font-size="10" font-weight="700" font-family="Segoe UI,sans-serif">¿Tiene el rol de ese canal?</text>
+  <text x="280" y="213" text-anchor="middle" font-size="8.4" fill="#5c3d00" font-family="Segoe UI,sans-serif">si no, la suscripción se descarta</text>
+  <text x="280" y="226" text-anchor="middle" font-size="7.4" fill="#6b6b75" font-family="Consolas,monospace">GuardiaCanales · ChannelInterceptor</text>
+  <circle cx="206" cy="192" r="8" fill="#8a5a00"/><text x="206" y="195.5" text-anchor="middle" font-size="9" font-weight="700" fill="#fff" font-family="Segoe UI,sans-serif">5</text>
+
+  <!-- conexion abierta -->
+  <line x1="40" y1="246" x2="330" y2="246" stroke="#137333" stroke-width="1.6" stroke-dasharray="5 4"/>
+  <circle cx="40" cy="246" r="3.4" fill="#137333"/><circle cx="330" cy="246" r="3.4" fill="#137333"/>
+  <text x="340" y="249" font-size="8.4" font-weight="650" fill="#137333" font-family="Segoe UI,sans-serif">conexión abierta, a la espera</text>
+
+  <!-- ===== FASE 2 ===== -->
+  <rect x="2" y="262" width="556" height="19" fill="#f1ebfd"/>
+  <text x="10" y="275.5" font-size="9" font-weight="700" fill="#6d28d9" font-family="Segoe UI,sans-serif" letter-spacing=".5">FASE 2 · CUANDO OCURRE ALGO · el aviso viaja solo</text>
+
+  <!-- 6 -->
+  <rect x="392" y="290" width="156" height="48" rx="4" fill="#fff" stroke="#1b1b1f" stroke-width="1.2"/>
+  <text x="470" y="307" text-anchor="middle" font-size="10" font-weight="650" font-family="Segoe UI,sans-serif">Un colaborador</text>
+  <text x="470" y="319" text-anchor="middle" font-size="10" font-weight="650" font-family="Segoe UI,sans-serif">sube un juego</text>
+  <text x="470" y="332" text-anchor="middle" font-size="7.4" fill="#6b6b75" font-family="Consolas,monospace">ControllerColaboradorJuegos</text>
+  <circle cx="402" cy="298" r="8" fill="#6d28d9"/><text x="402" y="301.5" text-anchor="middle" font-size="9" font-weight="700" fill="#fff" font-family="Segoe UI,sans-serif">6</text>
+  <line x1="392" y1="314" x2="364" y2="314" stroke="#45454e" stroke-width="1.3" marker-end="url(#f)"/>
+
+  <!-- 7 -->
+  <rect x="196" y="290" width="168" height="56" rx="4" fill="#f1ebfd" stroke="#6d28d9" stroke-width="1.2"/>
+  <text x="280" y="307" text-anchor="middle" font-size="10" font-weight="650" font-family="Segoe UI,sans-serif">El servicio publica el aviso</text>
+  <text x="280" y="321" text-anchor="middle" font-size="7.8" font-family="Consolas,monospace" fill="#6d28d9">convertAndSend("/topic/productos")</text>
+  <text x="280" y="338" text-anchor="middle" font-size="7.4" fill="#6b6b75" font-family="Consolas,monospace">VideojuegoServiceImpl</text>
+  <circle cx="206" cy="298" r="8" fill="#6d28d9"/><text x="206" y="301.5" text-anchor="middle" font-size="9" font-weight="700" fill="#fff" font-family="Segoe UI,sans-serif">7</text>
+
+  <!-- 8 -->
+  <line x1="280" y1="346" x2="280" y2="358" stroke="#6d28d9" stroke-width="1.3" marker-end="url(#fm)"/>
+  <rect x="196" y="360" width="168" height="52" rx="4" fill="#f1ebfd" stroke="#6d28d9" stroke-width="1.4"/>
+  <text x="280" y="377" text-anchor="middle" font-size="10" font-weight="700" font-family="Segoe UI,sans-serif">El broker lo reparte</text>
+  <text x="280" y="390" text-anchor="middle" font-size="8.4" fill="#45454e" font-family="Segoe UI,sans-serif">a TODOS los suscritos al canal</text>
+  <text x="280" y="404" text-anchor="middle" font-size="7.4" fill="#6b6b75" font-family="Consolas,monospace">WebSocketConfig · enableSimpleBroker</text>
+  <circle cx="206" cy="368" r="8" fill="#6d28d9"/><text x="206" y="371.5" text-anchor="middle" font-size="9" font-weight="700" fill="#fff" font-family="Segoe UI,sans-serif">8</text>
+
+  <!-- 9 -->
+  <path d="M196,386 L180,386 L180,420 L96,420 L96,428" fill="none" stroke="#45454e" stroke-width="1.3" marker-end="url(#f)"/>
+  <text x="176" y="434" text-anchor="end" font-size="6.6" fill="#6b6b75" font-family="Consolas,monospace">MESSAGE</text>
+  <rect x="12" y="434" width="156" height="44" rx="4" fill="#e6f4ea" stroke="#137333" stroke-width="1.4"/>
+  <text x="96" y="451" text-anchor="middle" font-size="10.5" font-weight="700" font-family="Segoe UI,sans-serif">La campanita suma 1</text>
+  <text x="96" y="463" text-anchor="middle" font-size="8.4" fill="#0b4f22" font-family="Segoe UI,sans-serif">sin recargar la página</text>
+  <text x="96" y="474" text-anchor="middle" font-size="7.4" fill="#6b6b75" font-family="Consolas,monospace">notificaciones.js · sumarUno()</text>
+  <circle cx="22" cy="442" r="8" fill="#137333"/><text x="22" y="445.5" text-anchor="middle" font-size="9" font-weight="700" fill="#fff" font-family="Segoe UI,sans-serif">9</text>
+</svg>
+<p class="pie-fig">El paso 8 es la diferencia con HTTP: nadie ha preguntado, el servidor habla primero.</p>
+</div>
+
+<!-- =================== 4 · CONCEPTOS =================== -->
+
+<div class="salto"></div>
+
+<div class="seccion"><span class="n">4</span>Los conceptos que toca</div>
+<p class="intro">Diez ideas de las que se estudian en clase, con el sitio exacto del proyecto donde
+están aplicadas. El color del borde dice de qué familia es cada una:
+<b style="color:#6d28d9">diseño</b>,
+<b style="color:#1a56c4">protocolo</b>,
+<b style="color:#b42318">seguridad</b>,
+<b style="color:#8a5a00">robustez</b>.</p>
+
+<div class="rejilla">
+
+  <div class="cpt pro">
+    <span class="cn">01 · Protocolo</span>
+    <h4>Por qué no basta con HTTP</h4>
+    <p>En HTTP el navegador pregunta y el servidor contesta: <b>nunca habla primero</b>. Para avisar
+    habría que recargar o preguntar cada pocos segundos, gastando peticiones casi siempre en balde.
+    El WebSocket deja la línea abierta en los dos sentidos.</p>
+    <span class="d">registry.addEndpoint("/ws")</span>
+  </div>
+
+  <div class="cpt pro">
+    <span class="cn">02 · Protocolo</span>
+    <h4>STOMP, el idioma de dentro</h4>
+    <p>El WebSocket solo transporta bytes; no sabe de canales. <b>STOMP</b> es el protocolo que se
+    habla por encima y que añade los verbos <code>SUBSCRIBE</code>, <code>SEND</code> y
+    <code>MESSAGE</code>, y la idea de destino.</p>
+    <span class="d">stomp.umd.min.js · StompJs.Client</span>
+  </div>
+
+  <div class="cpt">
+    <span class="cn">03 · Diseño</span>
+    <h4>Publicar y suscribirse</h4>
+    <p>Quien publica <b>no sabe quién escucha</b>, ni si hay alguien. Suelta el aviso en un canal y se
+    desentiende. Eso desacopla: el servicio de videojuegos no conoce al gestor ni a su pantalla.</p>
+    <span class="d">patrón publish / subscribe</span>
+  </div>
+
+  <div class="cpt">
+    <span class="cn">04 · Diseño</span>
+    <h4>El broker en memoria</h4>
+    <p><code>enableSimpleBroker("/topic")</code> monta un repartidor dentro del propio servidor: guarda
+    quién está suscrito a qué y reenvía cada mensaje a todos ellos. No hace falta instalar nada aparte.</p>
+    <span class="d">WebSocketConfig.configureMessageBroker</span>
+  </div>
+
+  <div class="cpt">
+    <span class="cn">05 · Diseño</span>
+    <h4>Publicar desde cualquier servicio</h4>
+    <p><code>SimpMessagingTemplate</code> se inyecta como un bean más, así que avisar cuesta una línea
+    desde donde haga falta, sin que ese servicio sepa nada de WebSockets.</p>
+    <span class="d">mensajeria.convertAndSend(...)</span>
+  </div>
+
+  <div class="cpt seg">
+    <span class="cn">06 · Seguridad</span>
+    <h4>SecurityConfig no llega aquí</h4>
+    <p>Las reglas de <code>SecurityConfig</code> protegen <b>URL</b>, y un canal
+    <code>/topic/…</code> no es una URL: viaja dentro de una conexión ya abierta. Por eso hace falta
+    un portero propio.</p>
+    <span class="d">GuardiaCanales implements ChannelInterceptor</span>
+  </div>
+
+  <div class="cpt seg">
+    <span class="cn">07 · Seguridad</span>
+    <h4>Lista blanca, no lista negra</h4>
+    <p>El <code>switch</code> nombra los canales permitidos y el <code>default</code> devuelve
+    <b>false</b>. Un canal nuevo nace cerrado: si alguien olvida añadirlo, falla hacia el lado
+    seguro en vez de quedar abierto.</p>
+    <span class="d">puedeSuscribirse(...) · default → false</span>
+  </div>
+
+  <div class="cpt seg">
+    <span class="cn">08 · Seguridad</span>
+    <h4>Nadie publica desde el navegador</h4>
+    <p>Todo mensaje <code>SEND</code> que llega del cliente se descarta. Sin esto, cualquier usuario
+    con sesión podría <b>colar un aviso falso</b> en el canal de otro rol.</p>
+    <span class="d">if (StompCommand.SEND…) return null</span>
+  </div>
+
+  <div class="cpt seg">
+    <span class="cn">09 · Seguridad</span>
+    <h4>El aviso no lleva datos</h4>
+    <p>Por el canal viaja un texto fijo, <code>"juego-pendiente"</code>. Ningún dato personal sale por
+    ahí: quien quiera el detalle lo pide por HTTP, donde sí se comprueba el permiso fila a fila.</p>
+    <span class="d">convertAndSend(canal, "juego-pendiente")</span>
+  </div>
+
+  <div class="cpt rob">
+    <span class="cn">10 · Robustez</span>
+    <h4>Reconectar y vivir sin JavaScript</h4>
+    <p>Si la conexión se cae, <code>reconnectDelay: 5000</code> la reintenta sola cada 5 segundos. Y si
+    el JavaScript no carga, la página <b>funciona igual</b>: el número inicial ya venía pintado desde
+    el servidor.</p>
+    <span class="d">notificaciones.js · cliente.activate()</span>
+  </div>
+
+</div>
+
+<!-- =================== 5 · PREGUNTAS =================== -->
+
+<div class="seccion"><span class="n">5</span>Las dos preguntas de examen</div>
+
+<div class="examen">
+  <p class="q">¿Por qué un WebSocket y no preguntar al servidor cada pocos segundos?</p>
+  <p class="a">Porque preguntar en bucle (<i>polling</i>) gasta una petición completa cada vez —con su
+  cabecera, su sesión y su consulta a la base— y <b>casi siempre para oír que no hay nada nuevo</b>.
+  Además el aviso llega tarde, hasta lo que tarde el siguiente turno. El WebSocket paga el coste una
+  sola vez, al abrir la conexión, y a partir de ahí el aviso llega <b>en el instante</b> en que ocurre
+  y sin gastar nada mientras no pasa nada.</p>
+
+  <p class="q">Si ya existe <code>SecurityConfig</code>, ¿para qué un guardia de canales?</p>
+  <p class="a">Porque <code>SecurityConfig</code> decide sobre <b>URL</b>, y sus reglas solo se aplican
+  cuando entra una petición HTTP. Un <code>SUBSCRIBE</code> a <code>/topic/clientes</code> no es una
+  URL: es un mensaje que viaja dentro de una conexión que ya pasó el control al abrirse. Sin el
+  interceptor, <b>cualquier usuario con sesión podría escuchar el canal de cualquier rol</b> —y, si no
+  se bloqueara el <code>SEND</code>, hasta publicar avisos falsos en él.</p>
+</div>
+
+<div class="ojo">
+  <b>Las dos limitaciones de este montaje.</b> El broker vive <b>en la memoria del servidor</b>: si
+  mañana la aplicación corriera en dos máquinas, un aviso publicado en una no llegaría a los
+  conectados en la otra (haría falta un broker externo, tipo RabbitMQ). Y el número de la campanita
+  <b>solo sabe subir</b>: si otro gestor atiende la solicitud, tu contador sigue marcando lo mismo
+  hasta que recargues la página.
+</div>
+
+<div class="pie">
+  Resumen escrito a partir del código en <code>master</code> (<code>abce22a</code>).
+  Fuente editable en <code>docs/resumenes/html/AvisosWebSocket.html</code>. Para regenerar el PDF:
+  <code>chrome --headless --no-pdf-header-footer --print-to-pdf=docs/resumenes/AvisosWebSocket.pdf docs/resumenes/html/AvisosWebSocket.html</code>
+</div>
+
+</body>
+</html>
+

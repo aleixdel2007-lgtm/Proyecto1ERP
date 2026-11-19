@@ -1,0 +1,367 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>LudusERP · Cifrado y hashes</title>
+<!-- El aspecto sale de estilo.css, compartida por todos los resumenes.
+     Para regenerar el PDF:
+       chrome --headless --disable-gpu --no-pdf-header-footer
+              --print-to-pdf=docs/resumenes/CifradoYHashes.pdf docs/resumenes/html/CifradoYHashes.html -->
+<link rel="stylesheet" href="estilo.css">
+</head>
+<body>
+
+<!-- =================== 1 · PORTADA =================== -->
+
+<div class="cubierta">
+  <div class="cub-top">
+    <div class="cub-marca">L</div>
+    <div class="cub-eyebrow">LudusERP · resumen técnico</div>
+    <h1>Cifrado<br>y hashes</h1>
+    <div class="cub-sub">Tres herramientas distintas para tres problemas distintos,<br>y por qué algunos datos se guardan dos veces.</div>
+    <div class="cub-regla"></div>
+    <div class="cub-idea">
+      <h3>La idea en una frase</h3>
+      <p>Una contraseña se guarda con un <b>hash</b>, del que no se vuelve nunca. Un NIF se guarda
+      <b>cifrado</b>, porque hay que poder volver a leerlo. Y como lo cifrado no se puede buscar, al
+      lado se guarda <b>un segundo hash que sí</b>: el índice ciego.</p>
+    </div>
+  </div>
+  <div class="cub-pie">
+    <span><b>Clases centrales:</b> <code>CifradoAesConverter</code> · <code>IndiceCiego</code></span>
+    <span><b>Código:</b> master en <code>abce22a</code></span>
+    <span><b>5 páginas</b></span>
+  </div>
+</div>
+
+<!-- =================== 2 · ÍNDICE =================== -->
+
+<div class="salto"></div>
+
+<div class="seccion">Índice</div>
+
+<div class="indice">
+  <div class="ix"><span class="ixn">1</span><span class="ixt">
+      <b>En 30 segundos</b><span>Lo esencial en seis frases, para repasar antes de un examen</span>
+      </span><span class="ixp">pág. 2</span></div>
+  <div class="ix"><span class="ixn">2</span><span class="ixt">
+      <b>Qué protege cada columna</b><span>Los seis datos sensibles del proyecto y con qué se guarda cada uno</span>
+      </span><span class="ixp">pág. 2</span></div>
+  <div class="ix"><span class="ixn">3</span><span class="ixt">
+      <b>Por qué el hash duplicado</b><span>Diagrama de guardar y de buscar: el problema y su solución</span>
+      </span><span class="ixp">pág. 3</span></div>
+  <div class="ix"><span class="ixn">4</span><span class="ixt">
+      <b>Los conceptos que toca</b><span>Las diez ideas que se aprenden aquí y para qué sirve cada una</span>
+      </span><span class="ixp">pág. 4</span></div>
+  <div class="ix"><span class="ixn">5</span><span class="ixt">
+      <b>Las dos preguntas de examen</b><span>Por qué está hecho así, respondido</span>
+      </span><span class="ixp">pág. 5</span></div>
+</div>
+
+<div class="seccion"><span class="n">1</span>En 30 segundos</div>
+
+<div class="rapido">
+  <ol>
+    <li>Un <b>hash</b> va solo de ida: de la contraseña sale el hash, pero del hash no sale la
+    contraseña. Sirve para <b>comprobar</b>, no para leer.</li>
+    <li>El <b>cifrado</b> va de ida y vuelta: el NIF se guarda ilegible, pero con la clave maestra se
+    recupera entero para enseñarlo en pantalla.</li>
+    <li>AES-GCM mete un <b>número aleatorio</b> (el IV) en cada cifrado, así que el mismo NIF guardado
+    dos veces sale <b>distinto</b> en la columna.</li>
+    <li>Eso es bueno para la privacidad, pero rompe dos cosas: ya no se puede <b>buscar</b> un valor
+    ni poner un <code>UNIQUE</code> sobre la columna.</li>
+    <li>La solución es el <b>índice ciego</b>: al lado del dato cifrado se guarda un HMAC, que
+    siempre da lo mismo para el mismo valor. Ese sí se busca y sí es <code>UNIQUE</code>.</li>
+    <li>La clave maestra de todo esto vive en una <b>variable de entorno</b>,
+    <code>LUDUSERP_AES_KEY</code>, y nunca en el repositorio.</li>
+  </ol>
+</div>
+
+<div class="seccion"><span class="n">2</span>Qué protege cada columna</div>
+
+<table>
+  <thead>
+    <tr><th style="width:23%">Dato</th><th style="width:25%">Herramienta</th><th style="width:28%">Columnas</th><th>¿Se lee?</th><th>¿Se busca?</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><b>Contraseña</b><br><span style="color:#6b6b75">de cualquier usuario</span></td>
+      <td>BCrypt<br><span style="color:#6b6b75">hash con sal</span></td>
+      <td><code>password_hash</code> (60)</td>
+      <td class="rol">NO<br>nunca</td><td class="rol">no hace<br>falta</td>
+    </tr>
+    <tr>
+      <td><b>NIF</b> del empleado<br><b>CIF</b> del proveedor</td>
+      <td>AES-GCM<br><b>+ índice ciego</b></td>
+      <td><code>nif</code> + <code>nif_hash</code> · UNIQUE<br><code>cif</code> + <code>cif_hash</code> · UNIQUE</td>
+      <td class="rol">sí</td><td class="rol">sí, por<br>el hash</td>
+    </tr>
+    <tr>
+      <td><b>Código de clave</b><br><span style="color:#6b6b75">de licencia</span></td>
+      <td>AES-GCM<br><b>+ índice ciego</b></td>
+      <td><code>codigo_cifrado</code> (128)<br><code>codigo_hash</code> (64) · UNIQUE</td>
+      <td class="rol">sí</td><td class="rol">sí, por<br>el hash</td>
+    </tr>
+    <tr>
+      <td><b>IBAN</b><br><span style="color:#6b6b75">de empleado y proveedor</span></td>
+      <td>AES-GCM<br><span style="color:#6b6b75">sin índice</span></td>
+      <td><code>iban</code> (128)</td>
+      <td class="rol">sí</td><td class="rol">no, y no<br>hace falta</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="nota">
+  <b>Por qué el IBAN no lleva índice ciego.</b> Porque nadie busca a nadie por su número de cuenta ni
+  hace falta que sea único. El índice solo se añade cuando el dato hay que <b>encontrarlo</b> o
+  <b>no repetirlo</b>.
+</div>
+
+<!-- =================== 3 · DIAGRAMA =================== -->
+
+<div class="salto"></div>
+
+<div class="seccion"><span class="n">3</span>Por qué el hash duplicado</div>
+<p class="intro">Arriba, qué pasa al guardar el <b>mismo</b> NIF dos veces. Abajo, el problema que
+eso causa al buscarlo y cómo lo resuelve el índice ciego.</p>
+
+<div class="diagrama">
+<svg viewBox="0 0 560 466" xmlns="http://www.w3.org/2000/svg" role="img"
+     aria-label="Diagrama de cómo se guarda un dato cifrado junto a su índice ciego y cómo se busca después">
+  <defs>
+    <marker id="f" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
+      <path d="M0,0 L7,3.5 L0,7 z" fill="#45454e"/></marker>
+    <marker id="fv" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
+      <path d="M0,0 L7,3.5 L0,7 z" fill="#137333"/></marker>
+    <marker id="fr" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
+      <path d="M0,0 L7,3.5 L0,7 z" fill="#b42318"/></marker>
+  </defs>
+
+  <!-- ===== PANEL 1: GUARDAR ===== -->
+  <rect x="2" y="2" width="556" height="218" rx="5" fill="#fff" stroke="#d9d9e0" stroke-width="1.2"/>
+  <rect x="2" y="2" width="556" height="21" rx="5" fill="#6d28d9"/>
+  <rect x="2" y="16" width="556" height="7" fill="#6d28d9"/>
+  <text x="12" y="17" font-size="9.4" font-weight="700" fill="#fff" font-family="Segoe UI,sans-serif">GUARDAR · el mismo NIF, dos empleados distintos, dos días distintos</text>
+
+  <rect x="14" y="88" width="104" height="38" rx="4" fill="#fdf3e2" stroke="#8a5a00" stroke-width="1.4"/>
+  <text x="66" y="104" text-anchor="middle" font-size="8" fill="#5c3d00" font-family="Segoe UI,sans-serif">en claro</text>
+  <text x="66" y="118" text-anchor="middle" font-size="10.5" font-weight="700" fill="#5c3d00" font-family="Consolas,monospace">12345678Z</text>
+
+  <!-- camino cifrado -->
+  <path d="M118,100 L150,100 L150,56 L176,56" fill="none" stroke="#45454e" stroke-width="1.3" marker-end="url(#f)"/>
+  <rect x="178" y="38" width="128" height="36" rx="4" fill="#f1ebfd" stroke="#6d28d9" stroke-width="1.2"/>
+  <text x="242" y="53" text-anchor="middle" font-size="9" font-weight="650" font-family="Segoe UI,sans-serif">AES-GCM</text>
+  <text x="242" y="66" text-anchor="middle" font-size="7.6" fill="#6d28d9" font-family="Segoe UI,sans-serif">con un IV aleatorio nuevo</text>
+
+  <line x1="306" y1="47" x2="330" y2="47" stroke="#45454e" stroke-width="1.1" marker-end="url(#f)"/>
+  <rect x="332" y="32" width="214" height="20" rx="3" fill="#fff" stroke="#b42318"/>
+  <text x="340" y="46" font-size="7.6" fill="#45454e" font-family="Consolas,monospace">nif = "k7Fm2pQ…A=="</text>
+  <text x="538" y="46" text-anchor="end" font-size="7.2" fill="#b42318" font-family="Segoe UI,sans-serif">lunes</text>
+  <line x1="306" y1="63" x2="330" y2="63" stroke="#45454e" stroke-width="1.1" marker-end="url(#f)"/>
+  <rect x="332" y="56" width="214" height="20" rx="3" fill="#fff" stroke="#b42318"/>
+  <text x="340" y="70" font-size="7.6" fill="#45454e" font-family="Consolas,monospace">nif = "9xWr5tB…Q=="</text>
+  <text x="538" y="70" text-anchor="end" font-size="7.2" fill="#b42318" font-family="Segoe UI,sans-serif">martes</text>
+  <text x="439" y="90" text-anchor="middle" font-size="8.4" font-weight="700" fill="#b42318" font-family="Segoe UI,sans-serif">¡DISTINTO cada vez!</text>
+
+  <!-- camino hash -->
+  <path d="M118,114 L150,114 L150,158 L176,158" fill="none" stroke="#45454e" stroke-width="1.3" marker-end="url(#f)"/>
+  <rect x="178" y="140" width="128" height="36" rx="4" fill="#e6f4ea" stroke="#137333" stroke-width="1.2"/>
+  <text x="242" y="155" text-anchor="middle" font-size="9" font-weight="650" font-family="Segoe UI,sans-serif">HMAC-SHA256</text>
+  <text x="242" y="168" text-anchor="middle" font-size="7.6" fill="#137333" font-family="Segoe UI,sans-serif">sin nada aleatorio</text>
+
+  <line x1="306" y1="149" x2="330" y2="149" stroke="#45454e" stroke-width="1.1" marker-end="url(#fv)"/>
+  <rect x="332" y="134" width="214" height="20" rx="3" fill="#fff" stroke="#137333"/>
+  <text x="340" y="148" font-size="7.6" fill="#45454e" font-family="Consolas,monospace">nif_hash = "a3f91c…e7"</text>
+  <text x="538" y="148" text-anchor="end" font-size="7.2" fill="#137333" font-family="Segoe UI,sans-serif">lunes</text>
+  <line x1="306" y1="165" x2="330" y2="165" stroke="#45454e" stroke-width="1.1" marker-end="url(#fv)"/>
+  <rect x="332" y="158" width="214" height="20" rx="3" fill="#fff" stroke="#137333"/>
+  <text x="340" y="172" font-size="7.6" fill="#45454e" font-family="Consolas,monospace">nif_hash = "a3f91c…e7"</text>
+  <text x="538" y="172" text-anchor="end" font-size="7.2" fill="#137333" font-family="Segoe UI,sans-serif">martes</text>
+  <text x="439" y="192" text-anchor="middle" font-size="8.4" font-weight="700" fill="#137333" font-family="Segoe UI,sans-serif">¡SIEMPRE EL MISMO!</text>
+
+  <text x="280" y="211" text-anchor="middle" font-size="8.2" fill="#6b6b75" font-family="Segoe UI,sans-serif">Las dos columnas se escriben a la vez, en la misma fila. Por eso se dice que el dato se guarda «dos veces».</text>
+
+  <!-- ===== PANEL 2: BUSCAR ===== -->
+  <rect x="2" y="234" width="556" height="230" rx="5" fill="#fff" stroke="#d9d9e0" stroke-width="1.2"/>
+  <rect x="2" y="234" width="556" height="21" rx="5" fill="#1b1b1f"/>
+  <rect x="2" y="248" width="556" height="7" fill="#1b1b1f"/>
+  <text x="12" y="249" font-size="9.4" font-weight="700" fill="#fff" font-family="Segoe UI,sans-serif">BUSCAR · «¿hay ya algún empleado con el NIF 12345678Z?»</text>
+
+  <!-- intento fallido -->
+  <rect x="14" y="270" width="532" height="78" rx="4" fill="#fdecea" stroke="#b42318" stroke-width="1.3"/>
+  <text x="26" y="288" font-size="9.4" font-weight="700" fill="#b42318" font-family="Segoe UI,sans-serif">✗ Contra la columna cifrada: no funciona NUNCA</text>
+  <rect x="26" y="296" width="330" height="20" rx="3" fill="#fff" stroke="#d9d9e0"/>
+  <text x="34" y="310" font-size="8" fill="#45454e" font-family="Consolas,monospace">where nif like '%12345678Z%'</text>
+  <line x1="360" y1="306" x2="386" y2="306" stroke="#b42318" stroke-width="1.3" marker-end="url(#fr)"/>
+  <text x="394" y="310" font-size="8.6" font-weight="700" fill="#b42318" font-family="Segoe UI,sans-serif">0 filas</text>
+  <text x="26" y="333" font-size="8.2" fill="#7a1c10" font-family="Segoe UI,sans-serif">En la columna no pone «12345678Z», pone «k7Fm2pQ…». Y como cada fila se cifró con un IV</text>
+  <text x="26" y="344" font-size="8.2" fill="#7a1c10" font-family="Segoe UI,sans-serif">distinto, ni siquiera cifrando lo buscado saldría el mismo texto que hay guardado.</text>
+
+  <!-- intento bueno -->
+  <rect x="14" y="358" width="532" height="96" rx="4" fill="#e6f4ea" stroke="#137333" stroke-width="1.4"/>
+  <text x="26" y="376" font-size="9.4" font-weight="700" fill="#137333" font-family="Segoe UI,sans-serif">✓ Contra el índice ciego: se calcula el hash de lo buscado y se compara</text>
+
+  <rect x="26" y="384" width="104" height="22" rx="3" fill="#fdf3e2" stroke="#8a5a00"/>
+  <text x="78" y="399" text-anchor="middle" font-size="8.6" font-weight="700" fill="#5c3d00" font-family="Consolas,monospace">12345678Z</text>
+  <line x1="130" y1="395" x2="152" y2="395" stroke="#45454e" stroke-width="1.2" marker-end="url(#f)"/>
+  <rect x="154" y="384" width="112" height="22" rx="3" fill="#fff" stroke="#137333"/>
+  <text x="210" y="399" text-anchor="middle" font-size="8.2" font-family="Segoe UI,sans-serif">IndiceCiego.hash()</text>
+  <line x1="266" y1="395" x2="288" y2="395" stroke="#45454e" stroke-width="1.2" marker-end="url(#fv)"/>
+  <rect x="290" y="384" width="116" height="22" rx="3" fill="#fff" stroke="#137333"/>
+  <text x="348" y="399" text-anchor="middle" font-size="8" fill="#45454e" font-family="Consolas,monospace">"a3f91c…e7"</text>
+  <line x1="406" y1="395" x2="428" y2="395" stroke="#45454e" stroke-width="1.2" marker-end="url(#fv)"/>
+  <rect x="430" y="384" width="112" height="22" rx="3" fill="#137333"/>
+  <text x="486" y="399" text-anchor="middle" font-size="8.6" font-weight="700" fill="#fff" font-family="Segoe UI,sans-serif">¡ENCONTRADO!</text>
+
+  <rect x="26" y="414" width="330" height="20" rx="3" fill="#fff" stroke="#d9d9e0"/>
+  <text x="34" y="428" font-size="8" fill="#45454e" font-family="Consolas,monospace">where nif_hash = :hashCalculado</text>
+  <text x="366" y="428" font-size="8.2" fill="#0b4f22" font-family="Segoe UI,sans-serif">y además la base puede</text>
+  <text x="366" y="438" font-size="8.2" font-weight="700" fill="#0b4f22" font-family="Segoe UI,sans-serif">poner UNIQUE sobre esa columna</text>
+  <text x="26" y="448" font-size="8.2" fill="#0b4f22" font-family="Segoe UI,sans-serif">Nunca se descifra ni una fila para buscar: de ahí el nombre «ciego».</text>
+</svg>
+</div>
+
+<!-- =================== 4 · CONCEPTOS =================== -->
+
+<div class="salto"></div>
+
+<div class="seccion"><span class="n">4</span>Los conceptos que toca</div>
+<p class="intro">Diez ideas de las que se estudian en clase, con el sitio exacto del proyecto donde
+están aplicadas. El color del borde dice de qué familia es cada una:
+<b style="color:#b42318">hashes</b>,
+<b style="color:#1a56c4">cifrado</b>,
+<b style="color:#137333">índice ciego</b>,
+<b style="color:#8a5a00">las claves maestras</b>.</p>
+
+<div class="rejilla">
+
+  <div class="cpt seg">
+    <span class="cn">01 · Hashes</span>
+    <h4>Hash no es cifrado</h4>
+    <p>El hash va <b>solo de ida</b>: no existe la operación de vuelta, ni con clave ni sin ella. El
+    cifrado va de ida y vuelta. Elegir uno u otro depende de una pregunta: ¿necesito <b>volver a leer
+    el dato</b>, o solo comprobarlo?</p>
+    <span class="d">password_hash vs nif</span>
+  </div>
+
+  <div class="cpt seg">
+    <span class="cn">02 · Hashes</span>
+    <h4>BCrypt: sal dentro y lento aposta</h4>
+    <p>Mete una sal aleatoria en cada hash, así que la misma contraseña da resultados distintos y las
+    tablas de hashes precalculados no sirven. Y tarda a propósito, para arruinarle el plan a quien
+    pruebe millones.</p>
+    <span class="d">BCryptPasswordEncoder · 60 caracteres</span>
+  </div>
+
+  <div class="cpt pro">
+    <span class="cn">03 · Cifrado</span>
+    <h4>AES-GCM, simétrico y autenticado</h4>
+    <p><b>Simétrico</b>: la misma clave cifra y descifra. <b>Autenticado</b>: además del secreto
+    añade una etiqueta de 128 bits, así que si alguien toca un byte en la base, al descifrar
+    <b>salta un error</b> en vez de devolver basura.</p>
+    <span class="d">CifradoAesConverter · AES/GCM/NoPadding</span>
+  </div>
+
+  <div class="cpt pro">
+    <span class="cn">04 · Cifrado</span>
+    <h4>El IV va delante y no es secreto</h4>
+    <p>Son 12 bytes al azar por cada cifrado. Hacen falta para descifrar, así que se pegan
+    <b>delante</b> del resultado y se guardan juntos. No hay que esconderlos: lo único secreto es la
+    clave.</p>
+    <span class="d">[ IV (12) ][ cifrado + etiqueta ] en Base64</span>
+  </div>
+
+  <div class="cpt pro">
+    <span class="cn">05 · Cifrado</span>
+    <h4>No determinista, y eso es bueno</h4>
+    <p>Como el IV cambia, cifrar lo mismo dos veces da resultados distintos. Si fuera determinista,
+    mirando la tabla se vería <b>qué filas comparten valor</b> sin descifrar nada. El precio es que
+    deja de poder buscarse.</p>
+    <span class="d">ALEATORIO.nextBytes(iv)</span>
+  </div>
+
+  <div class="cpt bd">
+    <span class="cn">06 · Índice ciego</span>
+    <h4>Un HMAC que sí se repite</h4>
+    <p>Es la pieza que arregla el problema anterior. Un HMAC del valor en claro, <b>siempre igual</b>
+    para el mismo dato, guardado en una columna aparte. Con él se busca y se compara, sin descifrar
+    nada.</p>
+    <span class="d">IndiceCiego.hash(...) · 64 caracteres hex</span>
+  </div>
+
+  <div class="cpt bd">
+    <span class="cn">07 · Índice ciego</span>
+    <h4>HMAC y no SHA a secas</h4>
+    <p>Un SHA-256 normal lo puede calcular cualquiera. El HMAC lleva <b>clave</b>, así que sin ella no
+    se puede comprobar si una fila contiene un NIF concreto, aunque se robe la tabla entera.</p>
+    <span class="d">Mac.getInstance("HmacSHA256")</span>
+  </div>
+
+  <div class="cpt bd">
+    <span class="cn">08 · Índice ciego</span>
+    <h4>Normalizar antes de resumir</h4>
+    <p>Se hace <code>trim()</code> y mayúsculas antes del HMAC, para que <code>"a1 "</code> y
+    <code>"A1"</code> den el mismo hash. Si no, el mismo NIF escrito con un espacio de más se colaría
+    saltándose el <code>UNIQUE</code>.</p>
+    <span class="d">enClaro.trim().toUpperCase()</span>
+  </div>
+
+  <div class="cpt rob">
+    <span class="cn">09 · Claves maestras</span>
+    <h4>Fuera del repositorio</h4>
+    <p>La clave de 32 bytes se lee de <code>LUDUSERP_AES_KEY</code> al arrancar, y si falta o no mide
+    lo que debe, la aplicación <b>se niega a funcionar</b> en vez de guardar nada en claro.</p>
+    <span class="d">System.getenv(VARIABLE_CLAVE)</span>
+  </div>
+
+  <div class="cpt pro">
+    <span class="cn">10 · Cifrado</span>
+    <h4>El resto del código ni se entera</h4>
+    <p><code>@Convert</code> engancha el cifrador a la columna: JPA cifra al guardar y descifra al
+    leer. Los servicios manejan un <code>String</code> normal y <b>nadie llama al cifrador a mano</b>.</p>
+    <span class="d">@Convert(converter = CifradoAesConverter.class)</span>
+  </div>
+
+</div>
+
+<!-- =================== 5 · PREGUNTAS =================== -->
+
+<div class="seccion"><span class="n">5</span>Las dos preguntas de examen</div>
+
+<div class="examen">
+  <p class="q">¿Por qué la contraseña lleva hash y el NIF va cifrado?</p>
+  <p class="a">Porque la pregunta que hay que responder sobre cada uno es distinta. De la contraseña
+  <b>nunca</b> hace falta saber cuál es: solo si la que acaban de escribir coincide, y eso se
+  responde volviendo a calcular el hash y comparando. Como no hace falta recuperarla, se elige lo más
+  seguro: algo <b>irreversible</b>, que ni el administrador de la base puede deshacer. El NIF es lo
+  contrario: hay que <b>enseñarlo entero</b> en la ficha del empleado y en los documentos, así que
+  tiene que poder recuperarse, y lo único que se puede hacer es guardarlo ilegible para quien no
+  tenga la clave.</p>
+
+  <p class="q">Si el dato ya está cifrado, ¿para qué el hash duplicado al lado?</p>
+  <p class="a">Porque la columna cifrada <b>no se puede consultar</b>. AES-GCM usa un IV aleatorio
+  distinto en cada escritura, así que el mismo NIF está guardado con textos diferentes en cada fila:
+  un <code>LIKE</code> no encuentra nada y cifrar lo buscado tampoco serviría, porque saldría un
+  texto que no coincide con ninguno. La única salida sería <b>descifrar la tabla entera</b> fila a
+  fila para comparar, que es lento y expone todos los datos. El índice ciego da un valor
+  <b>determinista</b>: se calcula el hash de lo que buscas y se compara contra la columna. De paso,
+  permite que la base ponga un <code>UNIQUE</code> y garantice que no hay dos empleados con el mismo
+  NIF, algo imposible sobre la columna cifrada.</p>
+</div>
+
+<div class="ojo">
+  <b>Las dos cosas que hay que tener claras.</b> El índice ciego <b>no es gratis</b>: si dos filas
+  tienen el mismo hash, se sabe que tienen el mismo NIF, aunque no se sepa cuál. Por eso solo se pone
+  donde hace falta buscar o exigir unicidad, y nunca en el IBAN. Y lo segundo: <b>si se pierde
+  <code>LUDUSERP_AES_KEY</code>, se pierden los datos</b>. No hay forma de recuperar un NIF cifrado
+  sin ella, así que la clave hay que guardarla con el mismo cuidado que una copia de seguridad.
+</div>
+
+<div class="pie">
+  Resumen escrito a partir del código en <code>master</code> (<code>abce22a</code>).
+  Fuente editable en <code>docs/resumenes/html/CifradoYHashes.html</code> (usa <code>estilo.css</code>). Para regenerar el PDF:
+  <code>chrome --headless --no-pdf-header-footer --print-to-pdf=docs/resumenes/CifradoYHashes.pdf docs/resumenes/html/CifradoYHashes.html</code>
+</div>
+
+</body>
+</html>

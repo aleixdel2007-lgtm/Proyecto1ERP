@@ -1,0 +1,387 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>LudusERP · El pago con Stripe</title>
+<!-- El aspecto sale de estilo.css, compartida por todos los resumenes.
+     Para regenerar el PDF:
+       chrome --headless --disable-gpu --no-pdf-header-footer
+              --print-to-pdf=docs/resumenes/PagoStripe.pdf docs/resumenes/html/PagoStripe.html -->
+<link rel="stylesheet" href="estilo.css"></head>
+<body>
+
+<!-- =================== 1 · PORTADA =================== -->
+
+<div class="cubierta">
+  <div class="cub-top">
+    <div class="cub-marca">L</div>
+    <div class="cub-eyebrow">LudusERP · resumen técnico</div>
+    <h1>El pago<br>con Stripe</h1>
+    <div class="cub-sub">Qué ocurre desde que pulsas «Tramitar pedido»<br>hasta que vuelves a tu biblioteca.</div>
+    <div class="cub-regla"></div>
+    <div class="cub-idea">
+      <h3>La idea en una frase</h3>
+      <p>El pedido se crea <b>antes</b> de pagar y las claves se apartan <b>antes</b> de pagar.
+      Stripe solo confirma que el dinero ha entrado: los precios, las claves y la factura los
+      decide siempre nuestra base de datos.</p>
+    </div>
+  </div>
+  <div class="cub-pie">
+    <span><b>Clase central:</b> <code>PagoServiceImpl</code></span>
+    <span><b>Código:</b> master en <code>abce22a</code></span>
+    <span><b>5 páginas</b></span>
+  </div>
+</div>
+
+<!-- =================== 2 · ÍNDICE =================== -->
+
+<div class="salto"></div>
+
+<div class="seccion">Índice</div>
+
+<div class="indice">
+  <div class="ix"><span class="ixn">1</span><span class="ixt">
+      <b>En 30 segundos</b><span>El flujo entero en seis frases, para repasar antes de un examen</span>
+      </span><span class="ixp">pág. 2</span></div>
+  <div class="ix"><span class="ixn">2</span><span class="ixt">
+      <b>Los estados por los que pasa</b><span>Pedido y clave avanzan en paralelo: lo único que hay que memorizar</span>
+      </span><span class="ixp">pág. 2</span></div>
+  <div class="ix"><span class="ixn">3</span><span class="ixt">
+      <b>El recorrido completo</b><span>Diagrama de quién hace qué, con el archivo responsable de cada paso</span>
+      </span><span class="ixp">pág. 3</span></div>
+  <div class="ix"><span class="ixn">4</span><span class="ixt">
+      <b>Los conceptos que toca</b><span>Las diez ideas que se aprenden aquí y para qué sirve cada una</span>
+      </span><span class="ixp">pág. 4</span></div>
+  <div class="ix"><span class="ixn">5</span><span class="ixt">
+      <b>Las dos preguntas de examen</b><span>Por qué está hecho así, respondido</span>
+      </span><span class="ixp">pág. 5</span></div>
+</div>
+
+<div class="seccion"><span class="n">1</span>En 30 segundos</div>
+
+<div class="rapido">
+  <ol>
+    <li>Tu cesta se convierte en un <b>pedido pendiente</b>, copiando los precios de ese instante.</li>
+    <li>Se <b>aparta una clave</b> de cada juego con un bloqueo de base de datos, para que nadie más
+    se la lleve mientras pagas.</li>
+    <li>Se le pide a Stripe una página de pago con el <b>id del pedido dentro</b>: es lo único que volverá.</li>
+    <li>Pagas en Stripe. <b>Nuestro servidor no ve la tarjeta.</b></li>
+    <li>Al volver, el servidor <b>no se fía de la URL</b>: le pregunta a Stripe si está pagada de verdad.</li>
+    <li>Si lo está: claves a <b>vendidas</b>, pedido a <b>pagado</b>, nace la factura, se vacía la
+    cesta y apareces en tu biblioteca.</li>
+  </ol>
+</div>
+
+<div class="seccion"><span class="n">2</span>Los estados por los que pasa</div>
+
+<div class="diagrama">
+<svg viewBox="0 8 560 228" xmlns="http://www.w3.org/2000/svg" role="img"
+     aria-label="Máquina de estados del pedido y de la clave">
+  <defs>
+    <marker id="g" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
+      <path d="M0,0 L7,3.5 L0,7 z" fill="#45454e"/></marker>
+    <marker id="gr" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
+      <path d="M0,0 L7,3.5 L0,7 z" fill="#b42318"/></marker>
+  </defs>
+
+  <text x="6" y="24" font-size="10" font-weight="700" fill="#6b6b75" font-family="Segoe UI,sans-serif" letter-spacing="1">PEDIDO</text>
+  <rect x="6" y="36" width="104" height="34" rx="4" fill="#f5f5f8" stroke="#d9d9e0"/>
+  <text x="58" y="57" text-anchor="middle" font-size="10" fill="#6b6b75" font-family="Consolas,monospace">(no existe)</text>
+  <line x1="110" y1="53" x2="146" y2="53" stroke="#45454e" stroke-width="1.3" marker-end="url(#g)"/>
+  <text x="128" y="47" text-anchor="middle" font-size="7.5" fill="#6b6b75" font-family="Segoe UI,sans-serif">tramitar</text>
+  <rect x="148" y="36" width="138" height="34" rx="4" fill="#fdf3e2" stroke="#8a5a00" stroke-width="1.3"/>
+  <text x="217" y="57" text-anchor="middle" font-size="10.5" font-weight="700" fill="#8a5a00" font-family="Consolas,monospace">PENDIENTE_PAGO</text>
+  <line x1="286" y1="53" x2="314" y2="53" stroke="#45454e" stroke-width="1.3" marker-end="url(#g)"/>
+  <text x="300" y="47" text-anchor="middle" font-size="7.5" fill="#137333" font-family="Segoe UI,sans-serif">pagas</text>
+  <rect x="316" y="36" width="100" height="34" rx="4" fill="#e6f4ea" stroke="#137333" stroke-width="1.4"/>
+  <text x="366" y="57" text-anchor="middle" font-size="10.5" font-weight="700" fill="#137333" font-family="Consolas,monospace">PAGADO</text>
+  <path d="M217,70 L217,98 L496,98 L496,76" fill="none" stroke="#b42318" stroke-width="1.3" marker-end="url(#gr)"/>
+  <text x="330" y="110" text-anchor="middle" font-size="7.5" fill="#b42318" font-family="Segoe UI,sans-serif">35 min sin pagar, o tramitas otro pedido</text>
+  <rect x="446" y="36" width="100" height="34" rx="4" fill="#fdecea" stroke="#b42318" stroke-width="1.3"/>
+  <text x="496" y="57" text-anchor="middle" font-size="10.5" font-weight="700" fill="#b42318" font-family="Consolas,monospace">CANCELADO</text>
+
+  <line x1="6" y1="126" x2="554" y2="126" stroke="#d9d9e0" stroke-width="1"/>
+
+  <text x="6" y="150" font-size="10" font-weight="700" fill="#6b6b75" font-family="Segoe UI,sans-serif" letter-spacing="1">CLAVE</text>
+  <rect x="6" y="162" width="124" height="34" rx="4" fill="#f5f5f8" stroke="#d9d9e0" stroke-width="1.3"/>
+  <text x="68" y="183" text-anchor="middle" font-size="10.5" font-weight="700" fill="#45454e" font-family="Consolas,monospace">DISPONIBLE</text>
+  <line x1="130" y1="179" x2="172" y2="179" stroke="#45454e" stroke-width="1.3" marker-end="url(#g)"/>
+  <text x="151" y="173" text-anchor="middle" font-size="7.5" fill="#6b6b75" font-family="Segoe UI,sans-serif">tramitar</text>
+  <rect x="174" y="162" width="118" height="34" rx="4" fill="#fdf3e2" stroke="#8a5a00" stroke-width="1.3"/>
+  <text x="233" y="183" text-anchor="middle" font-size="10.5" font-weight="700" fill="#8a5a00" font-family="Consolas,monospace">RESERVADA</text>
+  <line x1="292" y1="179" x2="334" y2="179" stroke="#45454e" stroke-width="1.3" marker-end="url(#g)"/>
+  <text x="313" y="173" text-anchor="middle" font-size="7.5" fill="#137333" font-family="Segoe UI,sans-serif">pagas</text>
+  <rect x="336" y="162" width="104" height="34" rx="4" fill="#e6f4ea" stroke="#137333" stroke-width="1.4"/>
+  <text x="388" y="183" text-anchor="middle" font-size="10.5" font-weight="700" fill="#137333" font-family="Consolas,monospace">VENDIDA</text>
+  <text x="498" y="177" text-anchor="middle" font-size="8.5" fill="#6b6b75" font-family="Segoe UI,sans-serif">(ANULADA es aparte:</text>
+  <text x="498" y="188" text-anchor="middle" font-size="8.5" fill="#6b6b75" font-family="Segoe UI,sans-serif">la retira inventario)</text>
+  <path d="M233,196 L233,220 L68,220 L68,200" fill="none" stroke="#b42318" stroke-width="1.3" marker-end="url(#gr)"/>
+  <text x="151" y="232" text-anchor="middle" font-size="7.5" fill="#b42318" font-family="Segoe UI,sans-serif">vuelve al stock si el pedido se cancela</text>
+</svg>
+<p class="pie-fig">Pedido y clave avanzan en paralelo: lo que le pasa a uno le pasa al otro.</p>
+</div>
+
+<div class="ojo">
+  <b>El camino rojo lo lleva un reloj.</b> <code>TareaPedidosCaducados</code> pasa cada 5 minutos y
+  cancela lo que lleva más de <b>35 minutos</b> sin pagar: los 31 que Stripe mantiene viva su página,
+  más 4 de margen.
+</div>
+
+<!-- =================== 3 · DIAGRAMA =================== -->
+
+<div class="salto"></div>
+
+<div class="seccion"><span class="n">3</span>El recorrido completo</div>
+<p class="intro">Cada caja lleva debajo el archivo que hace ese trabajo. Todo lo morado ocurre dentro
+de <code>PagoServiceImpl</code>.</p>
+
+<div class="diagrama">
+<svg viewBox="0 0 560 590" xmlns="http://www.w3.org/2000/svg" role="img"
+     aria-label="Diagrama de carriles: navegador, nuestro servidor y Stripe, con los archivos">
+  <defs>
+    <marker id="f" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
+      <path d="M0,0 L7,3.5 L0,7 z" fill="#45454e"/></marker>
+    <marker id="fm" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
+      <path d="M0,0 L7,3.5 L0,7 z" fill="#6d28d9"/></marker>
+  </defs>
+
+  <rect x="2"   y="2" width="176" height="586" fill="#f5f5f8" stroke="#d9d9e0"/>
+  <rect x="186" y="2" width="188" height="586" fill="#fff"    stroke="#d9d9e0"/>
+  <rect x="382" y="2" width="176" height="586" fill="#f5f5f8" stroke="#d9d9e0"/>
+  <rect x="2"   y="2" width="176" height="24" fill="#1b1b1f"/>
+  <rect x="186" y="2" width="188" height="24" fill="#6d28d9"/>
+  <rect x="382" y="2" width="176" height="24" fill="#1b1b1f"/>
+  <text x="90"  y="18" text-anchor="middle" font-size="10.5" font-weight="700" fill="#fff" font-family="Segoe UI,sans-serif">NAVEGADOR</text>
+  <text x="280" y="18" text-anchor="middle" font-size="10.5" font-weight="700" fill="#fff" font-family="Segoe UI,sans-serif">NUESTRO SERVIDOR</text>
+  <text x="470" y="18" text-anchor="middle" font-size="10.5" font-weight="700" fill="#fff" font-family="Segoe UI,sans-serif">STRIPE</text>
+
+  <!-- 1 -->
+  <rect x="12" y="38" width="156" height="42" rx="4" fill="#fff" stroke="#1b1b1f" stroke-width="1.2"/>
+  <text x="96" y="56" text-anchor="middle" font-size="10.5" font-weight="650" font-family="Segoe UI,sans-serif">Pulsas «Tramitar pedido»</text>
+  <text x="96" y="70" text-anchor="middle" font-size="7.6" fill="#6b6b75" font-family="Consolas,monospace">client/cesta.html</text>
+  <circle cx="22" cy="46" r="8" fill="#6d28d9"/><text x="22" y="49.5" text-anchor="middle" font-size="9" font-weight="700" fill="#fff" font-family="Segoe UI,sans-serif">1</text>
+  <line x1="168" y1="59" x2="196" y2="59" stroke="#45454e" stroke-width="1.3" marker-end="url(#f)"/>
+  <text x="182" y="53" text-anchor="middle" font-size="7.2" fill="#6b6b75" font-family="Consolas,monospace">POST</text>
+
+  <!-- 2 -->
+  <rect x="196" y="38" width="168" height="52" rx="4" fill="#f1ebfd" stroke="#6d28d9" stroke-width="1.2"/>
+  <text x="280" y="55" text-anchor="middle" font-size="10.5" font-weight="650" font-family="Segoe UI,sans-serif">Crea el PEDIDO</text>
+  <text x="280" y="68" text-anchor="middle" font-size="9" font-family="Consolas,monospace" fill="#8a5a00">PENDIENTE_PAGO</text>
+  <text x="280" y="82" text-anchor="middle" font-size="7.6" fill="#6b6b75" font-family="Consolas,monospace">ControllerCesta → PedidoServiceImpl</text>
+  <circle cx="206" cy="46" r="8" fill="#6d28d9"/><text x="206" y="49.5" text-anchor="middle" font-size="9" font-weight="700" fill="#fff" font-family="Segoe UI,sans-serif">2</text>
+
+  <!-- 3 -->
+  <line x1="280" y1="90" x2="280" y2="104" stroke="#6d28d9" stroke-width="1.3" marker-end="url(#fm)"/>
+  <rect x="196" y="106" width="168" height="52" rx="4" fill="#f1ebfd" stroke="#6d28d9" stroke-width="1.2"/>
+  <text x="280" y="123" text-anchor="middle" font-size="10.5" font-weight="650" font-family="Segoe UI,sans-serif">Aparta las CLAVES</text>
+  <text x="280" y="136" text-anchor="middle" font-size="9" font-family="Consolas,monospace" fill="#8a5a00">DISPONIBLE → RESERVADA</text>
+  <text x="280" y="150" text-anchor="middle" font-size="7.6" fill="#6b6b75" font-family="Consolas,monospace">ClaveLicenciaDao · @Lock</text>
+  <circle cx="206" cy="114" r="8" fill="#6d28d9"/><text x="206" y="117.5" text-anchor="middle" font-size="9" font-weight="700" fill="#fff" font-family="Segoe UI,sans-serif">3</text>
+
+  <!-- 4 -->
+  <line x1="280" y1="158" x2="280" y2="172" stroke="#6d28d9" stroke-width="1.3" marker-end="url(#fm)"/>
+  <rect x="196" y="174" width="168" height="48" rx="4" fill="#f1ebfd" stroke="#6d28d9" stroke-width="1.2"/>
+  <text x="280" y="191" text-anchor="middle" font-size="10.5" font-weight="650" font-family="Segoe UI,sans-serif">Pide la sesión de pago</text>
+  <text x="280" y="203" text-anchor="middle" font-size="8.4" fill="#45454e" font-family="Segoe UI,sans-serif">con el id del pedido dentro</text>
+  <text x="280" y="215" text-anchor="middle" font-size="7.6" fill="#6b6b75" font-family="Consolas,monospace">PagoServiceImpl.iniciarPago</text>
+  <circle cx="206" cy="182" r="8" fill="#6d28d9"/><text x="206" y="185.5" text-anchor="middle" font-size="9" font-weight="700" fill="#fff" font-family="Segoe UI,sans-serif">4</text>
+
+  <line x1="364" y1="186" x2="396" y2="186" stroke="#45454e" stroke-width="1.3" marker-end="url(#f)"/>
+  <rect x="396" y="174" width="148" height="34" rx="4" fill="#fff" stroke="#1b1b1f" stroke-width="1.2"/>
+  <text x="470" y="189" text-anchor="middle" font-size="10" font-weight="650" font-family="Segoe UI,sans-serif">Devuelve la URL</text>
+  <text x="470" y="202" text-anchor="middle" font-size="10" font-weight="650" font-family="Segoe UI,sans-serif">de su pasarela</text>
+  <line x1="396" y1="216" x2="364" y2="216" stroke="#45454e" stroke-width="1.3" marker-end="url(#f)"/>
+
+  <!-- 5 -->
+  <line x1="196" y1="246" x2="170" y2="246" stroke="#45454e" stroke-width="1.3" marker-end="url(#f)"/>
+  <text x="183" y="240" text-anchor="middle" font-size="7.2" fill="#6b6b75" font-family="Consolas,monospace">302</text>
+  <rect x="12" y="228" width="158" height="36" rx="4" fill="#fff" stroke="#1b1b1f" stroke-width="1.2"/>
+  <text x="96" y="243" text-anchor="middle" font-size="10.5" font-weight="650" font-family="Segoe UI,sans-serif">Vas a la pasarela</text>
+  <text x="96" y="256" text-anchor="middle" font-size="10.5" font-weight="650" font-family="Segoe UI,sans-serif">de Stripe</text>
+  <circle cx="22" cy="236" r="8" fill="#6d28d9"/><text x="22" y="239.5" text-anchor="middle" font-size="9" font-weight="700" fill="#fff" font-family="Segoe UI,sans-serif">5</text>
+
+  <!-- 6 -->
+  <line x1="96" y1="264" x2="96" y2="284" stroke="#45454e" stroke-width="1.3"/>
+  <line x1="96" y1="284" x2="396" y2="284" stroke="#45454e" stroke-width="1.3" marker-end="url(#f)"/>
+  <rect x="396" y="292" width="148" height="46" rx="4" fill="#e6f4ea" stroke="#137333" stroke-width="1.4"/>
+  <text x="470" y="310" text-anchor="middle" font-size="11" font-weight="700" font-family="Segoe UI,sans-serif">Pagas con tarjeta</text>
+  <text x="470" y="326" text-anchor="middle" font-size="8.6" fill="#0b4f22" font-family="Segoe UI,sans-serif">nuestro servidor no la ve</text>
+  <circle cx="406" cy="300" r="8" fill="#137333"/><text x="406" y="303.5" text-anchor="middle" font-size="9" font-weight="700" fill="#fff" font-family="Segoe UI,sans-serif">6</text>
+
+  <!-- 7 -->
+  <line x1="470" y1="338" x2="470" y2="356" stroke="#45454e" stroke-width="1.3"/>
+  <line x1="470" y1="356" x2="96" y2="356" stroke="#45454e" stroke-width="1.3" marker-end="url(#f)"/>
+  <rect x="12" y="366" width="158" height="42" rx="4" fill="#fff" stroke="#1b1b1f" stroke-width="1.2"/>
+  <text x="96" y="383" text-anchor="middle" font-size="10.5" font-weight="650" font-family="Segoe UI,sans-serif">Vuelves con el</text>
+  <text x="96" y="398" text-anchor="middle" font-size="8" font-family="Consolas,monospace" fill="#6d28d9">/pago/exito?session_id</text>
+  <circle cx="22" cy="374" r="8" fill="#6d28d9"/><text x="22" y="377.5" text-anchor="middle" font-size="9" font-weight="700" fill="#fff" font-family="Segoe UI,sans-serif">7</text>
+
+  <!-- 8 -->
+  <line x1="170" y1="387" x2="196" y2="387" stroke="#45454e" stroke-width="1.3" marker-end="url(#f)"/>
+  <rect x="196" y="366" width="168" height="48" rx="4" fill="#fdf3e2" stroke="#8a5a00" stroke-width="1.4"/>
+  <text x="280" y="383" text-anchor="middle" font-size="10.5" font-weight="700" font-family="Segoe UI,sans-serif">¿De verdad está pagada?</text>
+  <text x="280" y="395" text-anchor="middle" font-size="8.4" fill="#5c3d00" font-family="Segoe UI,sans-serif">no se fía de la URL, pregunta</text>
+  <text x="280" y="407" text-anchor="middle" font-size="7.6" fill="#6b6b75" font-family="Consolas,monospace">ControllerPago → confirmarPago</text>
+  <circle cx="206" cy="374" r="8" fill="#8a5a00"/><text x="206" y="377.5" text-anchor="middle" font-size="9" font-weight="700" fill="#fff" font-family="Segoe UI,sans-serif">8</text>
+
+  <line x1="364" y1="378" x2="396" y2="378" stroke="#45454e" stroke-width="1.3" marker-end="url(#f)"/>
+  <rect x="396" y="366" width="148" height="34" rx="4" fill="#fff" stroke="#1b1b1f" stroke-width="1.2"/>
+  <text x="470" y="382" text-anchor="middle" font-size="10" font-weight="650" font-family="Segoe UI,sans-serif">Responde</text>
+  <text x="470" y="395" text-anchor="middle" font-size="9.5" font-family="Consolas,monospace" fill="#137333">"paid"</text>
+  <line x1="396" y1="408" x2="364" y2="408" stroke="#45454e" stroke-width="1.3" marker-end="url(#f)"/>
+
+  <!-- 9 -->
+  <line x1="280" y1="414" x2="280" y2="434" stroke="#6d28d9" stroke-width="1.3" marker-end="url(#fm)"/>
+  <rect x="196" y="436" width="168" height="90" rx="4" fill="#f1ebfd" stroke="#6d28d9" stroke-width="1.4"/>
+  <text x="280" y="453" text-anchor="middle" font-size="10.5" font-weight="700" font-family="Segoe UI,sans-serif">Cierra la compra</text>
+  <text x="280" y="468" text-anchor="middle" font-size="9" font-family="Consolas,monospace" fill="#137333">CLAVES → VENDIDA</text>
+  <text x="280" y="481" text-anchor="middle" font-size="9" font-family="Consolas,monospace" fill="#137333">PEDIDO → PAGADO</text>
+  <text x="280" y="495" text-anchor="middle" font-size="8.6" fill="#45454e" font-family="Segoe UI,sans-serif">crea la factura · vacía la cesta</text>
+  <text x="280" y="509" text-anchor="middle" font-size="7.6" fill="#6b6b75" font-family="Consolas,monospace">PagoServiceImpl · FacturasDAO</text>
+  <text x="280" y="521" text-anchor="middle" font-size="7.6" fill="#6b6b75" font-family="Consolas,monospace">CestaServiceImpl</text>
+  <circle cx="206" cy="444" r="8" fill="#6d28d9"/><text x="206" y="447.5" text-anchor="middle" font-size="9" font-weight="700" fill="#fff" font-family="Segoe UI,sans-serif">9</text>
+
+  <!-- 10 -->
+  <path d="M280,526 L280,552 L172,552" fill="none" stroke="#45454e" stroke-width="1.3" marker-end="url(#f)"/>
+  <rect x="12" y="532" width="158" height="42" rx="4" fill="#e6f4ea" stroke="#137333" stroke-width="1.4"/>
+  <text x="96" y="549" text-anchor="middle" font-size="11" font-weight="700" font-family="Segoe UI,sans-serif">Tu biblioteca</text>
+  <text x="96" y="563" text-anchor="middle" font-size="7.6" fill="#0b4f22" font-family="Consolas,monospace">ControllerBiblioteca · listarBiblioteca</text>
+  <circle cx="22" cy="540" r="8" fill="#137333"/><text x="22" y="543.5" text-anchor="middle" font-size="9" font-weight="700" fill="#fff" font-family="Segoe UI,sans-serif">10</text>
+</svg>
+</div>
+
+<!-- =================== 4 · CONCEPTOS =================== -->
+
+<div class="salto"></div>
+
+<div class="seccion"><span class="n">4</span>Los conceptos que toca</div>
+<p class="intro">Diez ideas de las que se estudian en clase, con el sitio exacto del proyecto donde
+están aplicadas. El color del borde dice de qué familia es cada una:
+<b style="color:#6d28d9">diseño</b>,
+<b style="color:#8a5a00">concurrencia</b>,
+<b style="color:#1a56c4">servicio externo</b>,
+<b style="color:#b42318">seguridad</b>.</p>
+
+<div class="rejilla">
+
+  <div class="cpt">
+    <span class="cn">01 · Diseño</span>
+    <h4>Reservar antes de cobrar</h4>
+    <p>El pedido y la reserva nacen antes del pago porque hace falta un identificador que viaje a
+    Stripe, y porque el stock hay que apartarlo <b>antes</b> de cobrar: si no, dos clientes podrían
+    pagar por la última clave.</p>
+    <span class="d">PagoServiceImpl.iniciarPago</span>
+  </div>
+
+  <div class="cpt">
+    <span class="cn">02 · Diseño</span>
+    <h4>Congelar el precio en la línea</h4>
+    <p>Al crear el pedido se <b>copia</b> el precio del catálogo en cada línea. Si mañana el juego
+    sube o baja, los pedidos antiguos no cambian: la factura tiene que seguir cuadrando años después.</p>
+    <span class="d">PedidoServiceImpl.crearPedidoDesdeCesta</span>
+  </div>
+
+  <div class="cpt rob">
+    <span class="cn">03 · Concurrencia</span>
+    <h4>Bloqueo pesimista</h4>
+    <p><code>@Lock(PESSIMISTIC_WRITE)</code> hace que MySQL bloquee la fila de la clave. Si dos
+    clientes tramitan a la vez, el segundo espera y se lleva otra clave distinta. Es lo que impide
+    vender dos veces el mismo código.</p>
+    <span class="d">ClaveLicenciaDao.findFirst…</span>
+  </div>
+
+  <div class="cpt rob">
+    <span class="cn">04 · Concurrencia</span>
+    <h4>Atomicidad: todo o nada</h4>
+    <p>Crear el pedido, apartar las claves y hablar con Stripe van dentro de <b>una sola</b>
+    <code>@Transactional</code>. Si falla cualquier paso, la base deshace los anteriores y no queda
+    un pedido a medias.</p>
+    <span class="d">@Transactional en PagoServiceImpl</span>
+  </div>
+
+  <div class="cpt pro">
+    <span class="cn">05 · Servicio externo</span>
+    <h4>Correlación con <code>clientReferenceId</code></h4>
+    <p>Stripe no conoce nuestras tablas. Le metemos el id del pedido en un campo libre que él guarda
+    y nos devuelve tal cual: es el único hilo que une su sesión de pago con nuestra compra.</p>
+    <span class="d">setClientReferenceId(pedido.getId())</span>
+  </div>
+
+  <div class="cpt pro">
+    <span class="cn">06 · Servicio externo</span>
+    <h4>Delegar los datos sensibles</h4>
+    <p>La tarjeta se teclea en el dominio de Stripe, no en el nuestro. El servidor <b>nunca</b> la ve,
+    así que no tiene que cumplir las normas de guardar datos de tarjeta ni puede filtrarlos.</p>
+    <span class="d">redirect a checkout.stripe.com</span>
+  </div>
+
+  <div class="cpt seg">
+    <span class="cn">07 · Seguridad</span>
+    <h4>No fiarse del navegador</h4>
+    <p>Llegar a <code>/pago/exito</code> no demuestra nada: esa URL es pública. El servidor coge el
+    <code>session_id</code> y <b>le pregunta a Stripe</b> si está pagada. Es la comprobación más
+    importante de todo el flujo.</p>
+    <span class="d">confirmarPago → sessions().retrieve</span>
+  </div>
+
+  <div class="cpt seg">
+    <span class="cn">08 · Seguridad</span>
+    <h4>Identidad desde la sesión</h4>
+    <p>El cliente sale siempre de <code>authentication.getName()</code>, nunca de un parámetro. Y en
+    la biblioteca el estado <code>VENDIDA</code> va <b>escrito dentro</b> del JPQL, no como parámetro,
+    para que nadie pida claves que no le tocan.</p>
+    <span class="d">ControllerCesta · listarBiblioteca</span>
+  </div>
+
+  <div class="cpt">
+    <span class="cn">09 · Diseño</span>
+    <h4>Idempotencia</h4>
+    <p>Si recargas la página de éxito, el pedido ya está <code>PAGADO</code> y el método devuelve sin
+    entregar nada otra vez. Una operación que se puede repetir sin hacer daño es <b>idempotente</b>.</p>
+    <span class="d">confirmarPago, comprobación de estado</span>
+  </div>
+
+  <div class="cpt rob">
+    <span class="cn">10 · Concurrencia</span>
+    <h4>Liberar lo reservado</h4>
+    <p>Una reserva que nadie paga bloquearía el stock para siempre. Una tarea <code>@Scheduled</code>
+    pasa cada 5 minutos, cancela lo que lleva más de 35 esperando y devuelve las claves.</p>
+    <span class="d">TareaPedidosCaducados</span>
+  </div>
+
+</div>
+
+<!-- =================== 5 · PREGUNTAS =================== -->
+
+<div class="seccion"><span class="n">5</span>Las dos preguntas de examen</div>
+
+<div class="examen">
+  <p class="q">¿Por qué se crea el pedido <i>antes</i> de pagar?</p>
+  <p class="a">Por dos motivos. Primero, porque hace falta un identificador que viaje a Stripe y
+  vuelva — el <code>clientReferenceId</code> —, y sin él no habría forma de saber a qué compra
+  corresponde un pago. Y segundo, porque <b>hay que apartar el stock antes de cobrar</b>: si no, dos
+  clientes podrían pagar los dos por la última clave y uno se quedaría sin nada después de pagar.</p>
+
+  <p class="q">¿Por qué se le pregunta a Stripe en vez de fiarse de la vuelta?</p>
+  <p class="a">Porque la URL de éxito es pública y cualquiera puede escribirla a mano. Sin el
+  <code>retrieve()</code> y la comprobación de <code>"paid"</code>, un cliente podría teclear
+  <code>/tienda/pago/exito?session_id=loquesea</code> y llevarse el juego sin pagar. La regla general:
+  <b>un dato que ha pasado por el navegador no es una prueba de nada</b>.</p>
+</div>
+
+<div class="ojo">
+  <b>Lo que le falta a este flujo: el webhook.</b> La entrega solo ocurre cuando el cliente vuelve a
+  <code>/tienda/pago/exito</code>. Si paga y cierra el navegador sin volver, el cobro se hace pero a
+  los 35 minutos la tarea cancela el pedido: <b>cobrado y sin entregar</b>. La solución estándar es que
+  Stripe avise al servidor por su cuenta (un <i>webhook</i>), sin depender de que el cliente regrese.
+</div>
+
+<div class="pie">
+  Resumen escrito a partir del código en <code>master</code> (<code>abce22a</code>).
+  Fuente editable en <code>docs/resumenes/html/PagoStripe.html</code>. Para regenerar el PDF:
+  <code>chrome --headless --no-pdf-header-footer --print-to-pdf=docs/resumenes/PagoStripe.pdf docs/resumenes/html/PagoStripe.html</code>
+</div>
+
+</body>
+</html>
+

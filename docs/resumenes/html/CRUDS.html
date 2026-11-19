@@ -1,0 +1,988 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>LudusERP · Los CRUD de la aplicación</title>
+<!-- El aspecto base sale de estilo.css, compartida por todos los resumenes.
+     Para regenerar el PDF:
+       chrome --headless --disable-gpu --no-pdf-header-footer
+              --print-to-pdf=docs/resumenes/CRUDS.pdf docs/resumenes/html/CRUDS.html -->
+<link rel="stylesheet" href="estilo.css">
+<style>
+/* ===========================================================================
+   Estilos propios de este documento: la matriz de flujo de cada CRUD.
+   Una fila por operacion y cuatro capas por fila, de la vista a la tabla.
+   Van aqui y no en estilo.css porque no los usa ningun otro resumen.
+   =========================================================================== */
+
+/* Ocho columnas: la etiqueta de la operacion, cuatro capas y tres flechas */
+.flujo{
+  display:grid;
+  grid-template-columns:30px 1fr 12px 1.04fr 12px 1fr 12px .96fr;
+  gap:4.5pt 0;margin:0 0 6pt;
+}
+.flujo .cab{
+  background:var(--tinta);color:#fff;font-size:7.2pt;font-weight:700;
+  text-transform:uppercase;letter-spacing:.05em;padding:3.5pt 4pt;text-align:center;
+}
+.flujo .cab.vacia{background:transparent}
+
+/* Etiqueta vertical de la operacion, con su color */
+.op{
+  display:grid;place-items:center;border-radius:4px;padding:3pt 0;
+  font-size:7pt;font-weight:700;letter-spacing:.09em;
+  writing-mode:vertical-rl;transform:rotate(180deg);
+}
+.op.c{background:var(--verde-claro);color:var(--verde)}
+.op.r{background:var(--azul-claro);color:var(--azul)}
+.op.u{background:var(--ambar-claro);color:var(--ambar)}
+.op.d{background:var(--rojo-claro);color:var(--rojo)}
+.op.x{background:var(--morado-claro);color:var(--morado)}
+
+/* Cada capa */
+.paso{border:1px solid var(--linea);border-radius:4px;padding:4.5pt 6pt;background:#fff}
+.paso.vista{background:var(--fondo-2);border-color:#c4c4d0}
+.paso.bd{background:#fbfdfb;border-color:#b7d8c2}
+.paso b{display:block;font-size:8.2pt;line-height:1.22;margin-bottom:2pt}
+.paso .f{display:block;font-family:Consolas,"Cascadia Mono",monospace;font-size:7.1pt;
+         color:var(--morado);line-height:1.35;overflow-wrap:anywhere}
+.paso .l{display:block;font-family:Consolas,"Cascadia Mono",monospace;font-size:7.4pt;
+         font-weight:700;color:var(--rojo);margin-top:1pt}
+.paso .d{display:block;font-size:7.1pt;color:var(--suave);line-height:1.3;margin-top:1.5pt}
+.paso .t{display:block;font-family:Consolas,"Cascadia Mono",monospace;font-size:7.3pt;
+         font-weight:700;color:var(--verde)}
+
+/* Flecha entre capas */
+.fl{display:grid;place-items:center;color:#b4b4c0;font-size:11pt;font-weight:700;line-height:1}
+
+/* Linea de contexto bajo el titulo de cada CRUD */
+.ctx{display:flex;gap:16pt;flex-wrap:wrap;font-size:8.2pt;color:var(--suave);margin:-3pt 0 7pt}
+.ctx b{color:var(--tinta-2);font-weight:650}
+.ctx code{font-size:7.8pt;background:transparent;padding:0}
+
+/* Tabla del indice */
+table.idx td{padding:3.4pt 7pt}
+table.idx td.n{font-weight:700;color:var(--morado);text-align:center;width:26px}
+table.idx td.p{text-align:right;color:var(--suave);white-space:nowrap}
+table.idx td code{font-size:8pt}
+table.idx tr.grupo td{background:var(--tinta);color:#fff;font-size:7.6pt;font-weight:700;
+                      text-transform:uppercase;letter-spacing:.05em;padding:3pt 7pt}
+</style>
+</head>
+<body>
+
+<!-- =================== PORTADA =================== -->
+
+<div class="cubierta">
+  <div class="cub-top">
+    <div class="cub-marca">L</div>
+    <div class="cub-eyebrow">LudusERP · referencia técnica</div>
+    <h1>Los CRUD<br>de la aplicación</h1>
+    <div class="cub-sub">Los diecinueve, uno por página:<br>de la vista HTML hasta la tabla.</div>
+    <div class="cub-regla"></div>
+    <div class="cub-idea">
+      <h3>Cómo leer cada diagrama</h3>
+      <p>Una <b>fila por operación</b> y cuatro capas por fila, siempre en el mismo orden. En la
+      columna de la vista va el <b>archivo y las líneas exactas</b> del formulario; en las demás, el
+      proceso y el archivo que lo hace.</p>
+    </div>
+  </div>
+  <div class="cub-pie">
+    <span><b>19 CRUD</b> · 21 páginas</span>
+    <span><b>Código:</b> master en <code>abce22a</code></span>
+    <span><b>Líneas:</b> las del archivo tal y como está hoy</span>
+  </div>
+</div>
+
+<!-- =================== ÍNDICE =================== -->
+
+<div class="salto"></div>
+
+<div class="seccion">Índice</div>
+
+<table class="idx">
+  <thead><tr><th style="width:26px">#</th><th style="width:30%">CRUD</th><th>Ruta base</th><th style="width:24%">Tabla</th><th style="width:48px">Pág.</th></tr></thead>
+  <tbody>
+    <tr class="grupo"><td colspan="5">A · Completos — crear, listar, editar y borrar</td></tr>
+    <tr><td class="n">01</td><td><b>Categoría</b></td><td><code>/catalogo/categorias</code></td><td><code>categoria</code></td><td class="p">3</td></tr>
+    <tr><td class="n">02</td><td><b>Plataforma</b></td><td><code>/catalogo/plataformas</code></td><td><code>plataforma</code></td><td class="p">4</td></tr>
+    <tr><td class="n">03</td><td><b>Departamento</b></td><td><code>/departamentos</code></td><td><code>departamento</code></td><td class="p">5</td></tr>
+    <tr><td class="n">04</td><td><b>Empleado</b></td><td><code>/empleados</code></td><td><code>usuario</code> + <code>empleado</code></td><td class="p">6</td></tr>
+    <tr><td class="n">05</td><td><b>Colaborador</b></td><td><code>/admin/colaboradores</code></td><td><code>usuario</code> + <code>colaborador</code></td><td class="p">7</td></tr>
+    <tr><td class="n">06</td><td><b>Proveedor</b></td><td><code>/compras/proveedores</code></td><td><code>proveedor</code></td><td class="p">8</td></tr>
+    <tr><td class="n">07</td><td><b>Videojuego</b></td><td><code>/catalogo/videojuegos</code></td><td><code>videojuego</code></td><td class="p">9</td></tr>
+
+    <tr class="grupo"><td colspan="5">B · Con todo menos borrar</td></tr>
+    <tr><td class="n">08</td><td><b>Orden de compra</b></td><td><code>/compras/ordenes</code></td><td><code>compra</code></td><td class="p">10</td></tr>
+    <tr><td class="n">09</td><td><b>Juego de colaborador</b></td><td><code>/colaborador/mis-juegos</code></td><td><code>videojuego</code> + <code>version_juego</code></td><td class="p">11</td></tr>
+
+    <tr class="grupo"><td colspan="5">C · Anidados — viven dentro del formulario de su padre</td></tr>
+    <tr><td class="n">10</td><td><b>Imagen de videojuego</b></td><td><code>/catalogo/videojuegos/{id}/imagenes</code></td><td><code>imagen_videojuego</code></td><td class="p">12</td></tr>
+    <tr><td class="n">11</td><td><b>Imagen de juego de colaborador</b></td><td><code>/colaborador/mis-juegos/{id}/imagen</code></td><td><code>imagen_videojuego</code></td><td class="p">13</td></tr>
+    <tr><td class="n">12</td><td><b>Línea de compra</b></td><td><code>/compras/ordenes/{id}/lineas</code></td><td><code>linea_compra</code></td><td class="p">14</td></tr>
+    <tr><td class="n">13</td><td><b>Línea de cesta</b></td><td><code>/tienda/cesta</code></td><td><code>cesta</code> + <code>linea_cesta</code></td><td class="p">15</td></tr>
+
+    <tr class="grupo"><td colspan="5">D · Parciales — les falta alguna operación por diseño</td></tr>
+    <tr><td class="n">14</td><td><b>Cliente</b></td><td><code>/clientes</code></td><td><code>usuario</code> + <code>cliente</code></td><td class="p">16</td></tr>
+    <tr><td class="n">15</td><td><b>Registro de cuenta</b></td><td><code>/registro</code></td><td><code>usuario</code> + <code>cliente</code></td><td class="p">17</td></tr>
+    <tr><td class="n">16</td><td><b>Perfil de usuario</b></td><td><code>/user/profile</code></td><td><code>usuario</code> + <code>imagen_usuario</code></td><td class="p">18</td></tr>
+    <tr><td class="n">17</td><td><b>Contraseña</b></td><td><code>/user/changePassword</code></td><td><code>usuario</code></td><td class="p">19</td></tr>
+    <tr><td class="n">18</td><td><b>Clave de licencia</b></td><td><code>/inventario/claves</code></td><td><code>clave_licencia</code></td><td class="p">20</td></tr>
+    <tr><td class="n">19</td><td><b>Valoración</b></td><td><code>/valoraciones</code></td><td><code>valoracion</code></td><td class="p">21</td></tr>
+  </tbody>
+</table>
+
+<div class="ctx" style="margin-top:11pt">
+  <span><b>Leyenda de las operaciones:</b></span>
+  <span><span class="op c" style="writing-mode:horizontal-tb;transform:none;display:inline-block;padding:1pt 6pt">CREAR</span></span>
+  <span><span class="op r" style="writing-mode:horizontal-tb;transform:none;display:inline-block;padding:1pt 6pt">LISTAR</span></span>
+  <span><span class="op u" style="writing-mode:horizontal-tb;transform:none;display:inline-block;padding:1pt 6pt">EDITAR</span></span>
+  <span><span class="op d" style="writing-mode:horizontal-tb;transform:none;display:inline-block;padding:1pt 6pt">BORRAR</span></span>
+  <span><span class="op x" style="writing-mode:horizontal-tb;transform:none;display:inline-block;padding:1pt 6pt">OTRAS</span></span>
+</div>
+
+<!-- ======================================================================
+     01 · CATEGORÍA
+     ====================================================================== -->
+<div class="salto"></div>
+<div class="seccion"><span class="n">01</span>Categoría</div>
+<div class="ctx"><span><b>Controlador:</b> <code>ControllerCategoria</code></span>
+  <span><b>Servicio:</b> <code>CategoriaServiceImpl</code></span>
+  <span><b>Tabla:</b> <code>categoria</code></span></div>
+
+<div class="flujo">
+  <div class="cab vacia"></div><div class="cab">Vista · HTML</div><div></div>
+  <div class="cab">Controlador</div><div></div><div class="cab">Servicio</div><div></div>
+  <div class="cab">DAO → base de datos</div>
+
+  <div class="op c">CREAR</div>
+  <div class="paso vista"><b>Formulario de alta</b><span class="f">catalogo/formularioNuevoCat.html</span><span class="l">líneas 36-64</span><span class="d">código y nombre</span></div>
+  <div class="fl">›</div>
+  <div class="paso"><b>Recibe el objeto ya montado</b><span class="f">guardarCategoria()</span><span class="d">POST /catalogo/categorias/guardar</span></div>
+  <div class="fl">›</div>
+  <div class="paso"><b>Normaliza y valida</b><span class="f">guardarCategoria()</span><span class="d">código y nombre únicos; sin id = alta</span></div>
+  <div class="fl">›</div>
+  <div class="paso bd"><b>Inserta la fila</b><span class="f">CategoriaDao.save()</span><span class="t">INSERT categoria</span></div>
+
+  <div class="op r">LISTAR</div>
+  <div class="paso vista"><b>Tabla con filtro por texto</b><span class="f">catalogo/categorias.html</span><span class="l">líneas 47-63</span><span class="d">formulario GET</span></div>
+  <div class="fl">›</div>
+  <div class="paso"><b>Pasa el texto del filtro</b><span class="f">listarCategorias()</span><span class="d">GET /catalogo/categorias</span></div>
+  <div class="fl">›</div>
+  <div class="paso"><b>Lista y cuenta juegos</b><span class="f">listarCategorias()<br>contarJuegos()</span></div>
+  <div class="fl">›</div>
+  <div class="paso bd"><b>Consulta con filtro opcional</b><span class="f">CategoriaDao.listarFiltrado()</span><span class="t">SELECT categoria</span></div>
+
+  <div class="op u">EDITAR</div>
+  <div class="paso vista"><b>Mismo formulario, relleno</b><span class="f">catalogo/formularioEditarCat.html</span><span class="l">líneas 36-66</span><span class="d">lleva el id oculto</span></div>
+  <div class="fl">›</div>
+  <div class="paso"><b>La misma ruta que el alta</b><span class="f">guardarCategoria()</span><span class="d">POST …/guardar</span></div>
+  <div class="fl">›</div>
+  <div class="paso"><b>Como trae id, actualiza</b><span class="f">guardarCategoria()</span><span class="d">los únicos se comprueban ignorándose a sí misma</span></div>
+  <div class="fl">›</div>
+  <div class="paso bd"><b>Actualiza la fila</b><span class="f">CategoriaDao.save()</span><span class="t">UPDATE categoria</span></div>
+
+  <div class="op d">BORRAR</div>
+  <div class="paso vista"><b>Botón de cada fila</b><span class="f">catalogo/categorias.html</span><span class="l">líneas 92-99</span><span class="d">con diálogo de confirmación</span></div>
+  <div class="fl">›</div>
+  <div class="paso"><b>Captura el error y vuelve</b><span class="f">eliminarCategoria()</span><span class="d">POST …/eliminar/{id}</span></div>
+  <div class="fl">›</div>
+  <div class="paso"><b>Se niega si tiene juegos</b><span class="f">eliminarCategoria()</span><span class="d">CategoriaConJuegosException</span></div>
+  <div class="fl">›</div>
+  <div class="paso bd"><b>Borra la fila</b><span class="f">CategoriaDao.delete()</span><span class="t">DELETE categoria</span></div>
+</div>
+
+<!-- ======================================================================
+     02 · PLATAFORMA
+     ====================================================================== -->
+<div class="salto"></div>
+<div class="seccion"><span class="n">02</span>Plataforma</div>
+<div class="ctx"><span><b>Controlador:</b> <code>ControllerPlataforma</code></span>
+  <span><b>Servicio:</b> <code>PlataformaServiceImpl</code></span>
+  <span><b>Tabla:</b> <code>plataforma</code></span></div>
+
+<div class="flujo">
+  <div class="cab vacia"></div><div class="cab">Vista · HTML</div><div></div>
+  <div class="cab">Controlador</div><div></div><div class="cab">Servicio</div><div></div>
+  <div class="cab">DAO → base de datos</div>
+
+  <div class="op c">CREAR</div>
+  <div class="paso vista"><b>Formulario de alta</b><span class="f">catalogo/formularioNuevoPlat.html</span><span class="l">líneas 36-64</span><span class="d">código y nombre</span></div>
+  <div class="fl">›</div>
+  <div class="paso"><b>Recibe el objeto ya montado</b><span class="f">guardarPlataforma()</span><span class="d">POST /catalogo/plataformas/guardar</span></div>
+  <div class="fl">›</div>
+  <div class="paso"><b>Normaliza y valida</b><span class="f">guardarPlataforma()</span><span class="d">código y nombre únicos; sin id = alta</span></div>
+  <div class="fl">›</div>
+  <div class="paso bd"><b>Inserta la fila</b><span class="f">PlataformaDao.save()</span><span class="t">INSERT plataforma</span></div>
+
+  <div class="op r">LISTAR</div>
+  <div class="paso vista"><b>Tabla con filtro por texto</b><span class="f">catalogo/plataformas.html</span><span class="l">líneas 47-63</span><span class="d">formulario GET</span></div>
+  <div class="fl">›</div>
+  <div class="paso"><b>Pasa el texto del filtro</b><span class="f">listarPlataformas()</span><span class="d">GET /catalogo/plataformas</span></div>
+  <div class="fl">›</div>
+  <div class="paso"><b>Lista y cuenta juegos</b><span class="f">listarPlataformas()<br>contarJuegos()</span></div>
+  <div class="fl">›</div>
+  <div class="paso bd"><b>Consulta con filtro opcional</b><span class="f">PlataformaDao.listarFiltrado()</span><span class="t">SELECT plataforma</span></div>
+
+  <div class="op u">EDITAR</div>
+  <div class="paso vista"><b>Mismo formulario, relleno</b><span class="f">catalogo/formularioEditarPlat.html</span><span class="l">líneas 36-66</span><span class="d">lleva el id oculto</span></div>
+  <div class="fl">›</div>
+  <div class="paso"><b>La misma ruta que el alta</b><span class="f">guardarPlataforma()</span><span class="d">POST …/guardar</span></div>
+  <div class="fl">›</div>
+  <div class="paso"><b>Como trae id, actualiza</b><span class="f">guardarPlataforma()</span><span class="d">los únicos se comprueban ignorándose a sí misma</span></div>
+  <div class="fl">›</div>
+  <div class="paso bd"><b>Actualiza la fila</b><span class="f">PlataformaDao.save()</span><span class="t">UPDATE plataforma</span></div>
+
+  <div class="op d">BORRAR</div>
+  <div class="paso vista"><b>Botón de cada fila</b><span class="f">catalogo/plataformas.html</span><span class="l">líneas 92-99</span><span class="d">con diálogo de confirmación</span></div>
+  <div class="fl">›</div>
+  <div class="paso"><b>Captura el error y vuelve</b><span class="f">eliminarPlataforma()</span><span class="d">POST …/eliminar/{id}</span></div>
+  <div class="fl">›</div>
+  <div class="paso"><b>Se niega si tiene juegos</b><span class="f">eliminarPlataforma()</span><span class="d">PlataformaConJuegosException</span></div>
+  <div class="fl">›</div>
+  <div class="paso bd"><b>Borra la fila</b><span class="f">PlataformaDao.delete()</span><span class="t">DELETE plataforma</span></div>
+</div>
+
+<!-- ======================================================================
+     03 · DEPARTAMENTO
+     ====================================================================== -->
+<div class="salto"></div>
+<div class="seccion"><span class="n">03</span>Departamento</div>
+<div class="ctx"><span><b>Controlador:</b> <code>ControllerDepartamento</code></span>
+  <span><b>Servicio:</b> <code>DepartamentoServiceImpl</code></span>
+  <span><b>Tabla:</b> <code>departamento</code></span></div>
+
+<div class="flujo">
+  <div class="cab vacia"></div><div class="cab">Vista · HTML</div><div></div>
+  <div class="cab">Controlador</div><div></div><div class="cab">Servicio</div><div></div>
+  <div class="cab">DAO → base de datos</div>
+
+  <div class="op c">CREAR</div>
+  <div class="paso vista"><b>Formulario de alta</b><span class="f">departamentos/formularioNuevoDep.html</span><span class="l">líneas 36-75</span><span class="d">nombre, descripción y responsable</span></div>
+  <div class="fl">›</div>
+  <div class="paso"><b>Pasa además el responsable</b><span class="f">guardarDepartamento()</span><span class="d">POST /departamentos/guardar</span></div>
+  <div class="fl">›</div>
+  <div class="paso"><b>Nombre único y responsable libre</b><span class="f">guardarDepartamento(dep, responsableId)</span><span class="d">ResponsableOcupadoException</span></div>
+  <div class="fl">›</div>
+  <div class="paso bd"><b>Inserta la fila</b><span class="f">DepartamentoDao.save()</span><span class="t">INSERT departamento</span></div>
+
+  <div class="op r">LISTAR</div>
+  <div class="paso vista"><b>Tabla directa, sin filtros</b><span class="f">departamentos/listado.html</span><span class="d">no hay formulario de búsqueda</span></div>
+  <div class="fl">›</div>
+  <div class="paso"><b>Pide la lista entera</b><span class="f">listarDepartamentos()</span><span class="d">GET /departamentos</span></div>
+  <div class="fl">›</div>
+  <div class="paso"><b>Lista con su responsable</b><span class="f">listarDepartamentos()</span></div>
+  <div class="fl">›</div>
+  <div class="paso bd"><b>Consulta con fetch del responsable</b><span class="f">DepartamentoDao</span><span class="t">SELECT departamento</span></div>
+
+  <div class="op u">EDITAR</div>
+  <div class="paso vista"><b>Mismo formulario, relleno</b><span class="f">departamentos/formularioEditarDep.html</span><span class="l">líneas 36-78</span><span class="d">lleva el id oculto</span></div>
+  <div class="fl">›</div>
+  <div class="paso"><b>La misma ruta que el alta</b><span class="f">guardarDepartamento()</span><span class="d">POST …/guardar</span></div>
+  <div class="fl">›</div>
+  <div class="paso"><b>Como trae id, actualiza</b><span class="f">guardarDepartamento()</span><span class="d">puede cambiar de responsable</span></div>
+  <div class="fl">›</div>
+  <div class="paso bd"><b>Actualiza la fila</b><span class="f">DepartamentoDao.save()</span><span class="t">UPDATE departamento</span></div>
+
+  <div class="op d">BORRAR</div>
+  <div class="paso vista"><b>Botón de cada fila</b><span class="f">departamentos/listado.html</span><span class="l">líneas 85-92</span><span class="d">con diálogo de confirmación</span></div>
+  <div class="fl">›</div>
+  <div class="paso"><b>Captura el error y vuelve</b><span class="f">eliminarDepartamento()</span><span class="d">POST …/eliminar/{id}</span></div>
+  <div class="fl">›</div>
+  <div class="paso"><b>Se niega si tiene empleados</b><span class="f">eliminarDepartamento()</span><span class="d">DepartamentoConTrabajadoresException</span></div>
+  <div class="fl">›</div>
+  <div class="paso bd"><b>Borra la fila</b><span class="f">DepartamentoDao.delete()</span><span class="t">DELETE departamento</span></div>
+</div>
+
+<!-- ======================================================================
+     04 · EMPLEADO
+     ====================================================================== -->
+<div class="salto"></div>
+<div class="seccion"><span class="n">04</span>Empleado</div>
+<div class="ctx"><span><b>Controlador:</b> <code>ControllerEmpleado</code></span>
+  <span><b>Servicio:</b> <code>EmpleadoServiceImpl</code></span>
+  <span><b>Tablas:</b> <code>usuario</code> + <code>empleado</code> (herencia JOINED)</span></div>
+
+<div class="flujo">
+  <div class="cab vacia"></div><div class="cab">Vista · HTML</div><div></div>
+  <div class="cab">Controlador</div><div></div><div class="cab">Servicio</div><div></div>
+  <div class="cab">DAO → base de datos</div>
+
+  <div class="op c">CREAR</div>
+  <div class="paso vista"><b>Alta con foto</b><span class="f">empleados/formularioNuevoEmp.html</span><span class="l">líneas 37-154</span><span class="d">multipart: datos + NIF + IBAN + foto</span></div>
+  <div class="fl">›</div>
+  <div class="paso"><b>Separa la foto del resto</b><span class="f">guardarEmpleado()</span><span class="d">POST /empleados/guardar</span></div>
+  <div class="fl">›</div>
+  <div class="paso"><b>BCrypt la contraseña, cifra el NIF y calcula su índice ciego</b><span class="f">guardarEmpleado()<br>guardarImagenPerfil()</span></div>
+  <div class="fl">›</div>
+  <div class="paso bd"><b>Dos tablas, misma clave</b><span class="f">EmpleadoDao.save()<br>AlmacenArchivos</span><span class="t">INSERT usuario + empleado</span></div>
+
+  <div class="op r">LISTAR</div>
+  <div class="paso vista"><b>Filtro por texto, departamento y rol</b><span class="f">empleados/listado.html</span><span class="l">líneas 47-83</span><span class="d">formulario GET</span></div>
+  <div class="fl">›</div>
+  <div class="paso"><b>Pasa los tres filtros</b><span class="f">listarEmpleados()</span><span class="d">GET /empleados</span></div>
+  <div class="fl">›</div>
+  <div class="paso"><b>Lista y añade las fotos</b><span class="f">listarEmpleados()<br>listarImagenesPerfil()</span></div>
+  <div class="fl">›</div>
+  <div class="paso bd"><b>Filtros que se saltan si son nulos</b><span class="f">EmpleadoDao.listarFiltrado()</span><span class="t">SELECT usuario ⋈ empleado</span></div>
+
+  <div class="op u">EDITAR</div>
+  <div class="paso vista"><b>Mismo formulario, relleno</b><span class="f">empleados/formularioEditarEmp.html</span><span class="l">líneas 37-170</span><span class="d">la contraseña solo si se escribe</span></div>
+  <div class="fl">›</div>
+  <div class="paso"><b>La misma ruta que el alta</b><span class="f">guardarEmpleado()</span><span class="d">POST …/guardar</span></div>
+  <div class="fl">›</div>
+  <div class="paso"><b>Conserva la contraseña si viene vacía</b><span class="f">guardarEmpleado()</span><span class="d">NIF y correo únicos ignorándose a sí mismo</span></div>
+  <div class="fl">›</div>
+  <div class="paso bd"><b>Actualiza las dos filas</b><span class="f">EmpleadoDao.save()</span><span class="t">UPDATE usuario + empleado</span></div>
+
+  <div class="op d">BORRAR</div>
+  <div class="paso vista"><b>Botón de cada fila</b><span class="f">empleados/listado.html</span><span class="l">líneas 139-146</span><span class="d">con diálogo de confirmación</span></div>
+  <div class="fl">›</div>
+  <div class="paso"><b>Captura el error y vuelve</b><span class="f">eliminarEmpleado()</span><span class="d">POST …/eliminar/{id}</span></div>
+  <div class="fl">›</div>
+  <div class="paso"><b>Se niega si firma órdenes o manda un departamento</b><span class="f">eliminarEmpleado()</span><span class="d">EmpleadoConReferenciasException</span></div>
+  <div class="fl">›</div>
+  <div class="paso bd"><b>Borra las dos filas</b><span class="f">EmpleadoDao.delete()</span><span class="t">DELETE empleado + usuario</span></div>
+</div>
+
+<!-- ======================================================================
+     05 · COLABORADOR
+     ====================================================================== -->
+<div class="salto"></div>
+<div class="seccion"><span class="n">05</span>Colaborador</div>
+<div class="ctx"><span><b>Controlador:</b> <code>ControllerColaborador</code></span>
+  <span><b>Servicio:</b> <code>ColaboradorServiceImpl</code></span>
+  <span><b>Tablas:</b> <code>usuario</code> + <code>colaborador</code></span></div>
+
+<div class="flujo">
+  <div class="cab vacia"></div><div class="cab">Vista · HTML</div><div></div>
+  <div class="cab">Controlador</div><div></div><div class="cab">Servicio</div><div></div>
+  <div class="cab">DAO → base de datos</div>
+
+  <div class="op c">CREAR</div>
+  <div class="paso vista"><b>Alta con foto</b><span class="f">admin/formularioNuevoCol.html</span><span class="l">líneas 37-118</span><span class="d">multipart: estudio, país y foto</span></div>
+  <div class="fl">›</div>
+  <div class="paso"><b>Separa la foto del resto</b><span class="f">guardarColaborador()</span><span class="d">POST /admin/colaboradores/guardar</span></div>
+  <div class="fl">›</div>
+  <div class="paso"><b>BCrypt la contraseña temporal y marca que debe cambiarla</b><span class="f">guardarColaborador()<br>guardarImagenPerfil()</span></div>
+  <div class="fl">›</div>
+  <div class="paso bd"><b>Dos tablas, misma clave</b><span class="f">ColaboradorDao.save()<br>AlmacenArchivos</span><span class="t">INSERT usuario + colaborador</span></div>
+
+  <div class="op r">LISTAR</div>
+  <div class="paso vista"><b>Filtro por texto y estado</b><span class="f">admin/colaboradores.html</span><span class="l">líneas 47-71</span><span class="d">formulario GET</span></div>
+  <div class="fl">›</div>
+  <div class="paso"><b>Pasa los dos filtros</b><span class="f">listarColaboradores()</span><span class="d">GET /admin/colaboradores</span></div>
+  <div class="fl">›</div>
+  <div class="paso"><b>Lista, cuenta sus juegos y añade las fotos</b><span class="f">listarColaboradores()<br>contarJuegos()</span></div>
+  <div class="fl">›</div>
+  <div class="paso bd"><b>Filtros que se saltan si son nulos</b><span class="f">ColaboradorDao.listarFiltrado()</span><span class="t">SELECT usuario ⋈ colaborador</span></div>
+
+  <div class="op u">EDITAR</div>
+  <div class="paso vista"><b>Mismo formulario, relleno</b><span class="f">admin/formularioEditarCol.html</span><span class="l">líneas 37-134</span><span class="d">enseña si la contraseña sigue pendiente</span></div>
+  <div class="fl">›</div>
+  <div class="paso"><b>La misma ruta que el alta</b><span class="f">guardarColaborador()</span><span class="d">POST …/guardar</span></div>
+  <div class="fl">›</div>
+  <div class="paso"><b>Conserva la contraseña si viene vacía</b><span class="f">guardarColaborador()</span><span class="d">correo único ignorándose a sí mismo</span></div>
+  <div class="fl">›</div>
+  <div class="paso bd"><b>Actualiza las dos filas</b><span class="f">ColaboradorDao.save()</span><span class="t">UPDATE usuario + colaborador</span></div>
+
+  <div class="op d">BORRAR</div>
+  <div class="paso vista"><b>Botón de cada fila</b><span class="f">admin/colaboradores.html</span><span class="l">líneas 131-138</span><span class="d">con diálogo de confirmación</span></div>
+  <div class="fl">›</div>
+  <div class="paso"><b>Captura el error y vuelve</b><span class="f">eliminarColaborador()</span><span class="d">POST …/eliminar/{id}</span></div>
+  <div class="fl">›</div>
+  <div class="paso"><b>Se niega si tiene juegos subidos</b><span class="f">eliminarColaborador()</span><span class="d">ColaboradorConJuegosException</span></div>
+  <div class="fl">›</div>
+  <div class="paso bd"><b>Borra las dos filas</b><span class="f">ColaboradorDao.delete()</span><span class="t">DELETE colaborador + usuario</span></div>
+</div>
+
+<!-- ======================================================================
+     06 · PROVEEDOR
+     ====================================================================== -->
+<div class="salto"></div>
+<div class="seccion"><span class="n">06</span>Proveedor</div>
+<div class="ctx"><span><b>Controlador:</b> <code>ControllerProveedor</code></span>
+  <span><b>Servicio:</b> <code>ProveedorServiceImpl</code></span>
+  <span><b>Tabla:</b> <code>proveedor</code></span></div>
+
+<div class="flujo">
+  <div class="cab vacia"></div><div class="cab">Vista · HTML</div><div></div>
+  <div class="cab">Controlador</div><div></div><div class="cab">Servicio</div><div></div>
+  <div class="cab">DAO → base de datos</div>
+
+  <div class="op c">CREAR</div>
+  <div class="paso vista"><b>Una sola plantilla para alta y edición</b><span class="f">compras/proveedor.html</span><span class="l">líneas 35-109</span><span class="d">razón social, CIF, IBAN, contacto</span></div>
+  <div class="fl">›</div>
+  <div class="paso"><b>Recibe el objeto ya montado</b><span class="f">guardarProveedor()</span><span class="d">POST /compras/proveedores</span></div>
+  <div class="fl">›</div>
+  <div class="paso"><b>Valida el dígito de control del CIF, lo cifra y calcula su índice ciego</b><span class="f">guardarProveedor()<br>ValidadorCif · IndiceCiego</span></div>
+  <div class="fl">›</div>
+  <div class="paso bd"><b>Inserta la fila</b><span class="f">ProveedorDao.save()</span><span class="t">INSERT proveedor</span><span class="d">cif cifrado + cif_hash UNIQUE</span></div>
+
+  <div class="op r">LISTAR</div>
+  <div class="paso vista"><b>Filtro por texto, país y estado</b><span class="f">compras/proveedores.html</span><span class="l">líneas 45-79</span><span class="d">formulario GET</span></div>
+  <div class="fl">›</div>
+  <div class="paso"><b>Pasa los tres filtros</b><span class="f">listarProveedores()</span><span class="d">GET /compras/proveedores</span></div>
+  <div class="fl">›</div>
+  <div class="paso"><b>Lista y saca los países para el desplegable</b><span class="f">listarProveedores()<br>listarPaises()</span></div>
+  <div class="fl">›</div>
+  <div class="paso bd"><b>Filtros que se saltan si son nulos</b><span class="f">ProveedorDao.listarFiltrado()</span><span class="t">SELECT proveedor</span></div>
+
+  <div class="op u">EDITAR</div>
+  <div class="paso vista"><b>La misma plantilla, con el objeto cargado</b><span class="f">compras/proveedor.html</span><span class="l">líneas 35-109</span><span class="d">el id oculto decide alta o edición</span></div>
+  <div class="fl">›</div>
+  <div class="paso"><b>La misma ruta que el alta</b><span class="f">guardarProveedor()</span><span class="d">POST /compras/proveedores</span></div>
+  <div class="fl">›</div>
+  <div class="paso"><b>Como trae id, actualiza</b><span class="f">guardarProveedor()</span><span class="d">CIF único ignorándose a sí mismo</span></div>
+  <div class="fl">›</div>
+  <div class="paso bd"><b>Actualiza la fila</b><span class="f">ProveedorDao.save()</span><span class="t">UPDATE proveedor</span></div>
+
+  <div class="op d">BORRAR</div>
+  <div class="paso vista"><b>Botón de cada fila</b><span class="f">compras/proveedores.html</span><span class="l">líneas 130-137</span><span class="d">con diálogo de confirmación</span></div>
+  <div class="fl">›</div>
+  <div class="paso"><b>Captura el error y vuelve</b><span class="f">eliminarProveedor()</span><span class="d">POST /{id}/eliminar</span></div>
+  <div class="fl">›</div>
+  <div class="paso"><b>Se niega si tiene juegos u órdenes</b><span class="f">eliminarProveedor()</span><span class="d">ProveedorConReferenciasException</span></div>
+  <div class="fl">›</div>
+  <div class="paso bd"><b>Borra la fila</b><span class="f">ProveedorDao.delete()</span><span class="t">DELETE proveedor</span></div>
+</div>
+
+<!-- ======================================================================
+     07 · VIDEOJUEGO
+     ====================================================================== -->
+<div class="salto"></div>
+<div class="seccion"><span class="n">07</span>Videojuego</div>
+<div class="ctx"><span><b>Controlador:</b> <code>ControllerVideojuego</code></span>
+  <span><b>Servicio:</b> <code>VideojuegoServiceImpl</code></span>
+  <span><b>Tabla:</b> <code>videojuego</code> + sus cruces</span></div>
+
+<div class="flujo">
+  <div class="cab vacia"></div><div class="cab">Vista · HTML</div><div></div>
+  <div class="cab">Controlador</div><div></div><div class="cab">Servicio</div><div></div>
+  <div class="cab">DAO → base de datos</div>
+
+  <div class="op c">CREAR</div>
+  <div class="paso vista"><b>Una sola plantilla para alta y edición</b><span class="f">catalogo/videojuego.html</span><span class="l">líneas 57-206</span><span class="d">ficha, precios, categorías y plataformas</span></div>
+  <div class="fl">›</div>
+  <div class="paso"><b>Recibe el objeto y las listas de ids</b><span class="f">guardarVideojuego()</span><span class="d">POST /catalogo/videojuegos/guardar</span></div>
+  <div class="fl">›</div>
+  <div class="paso"><b>Valida título, PEGI y precios, y resuelve proveedor, categorías y plataformas</b><span class="f">guardarVideojuego()</span></div>
+  <div class="fl">›</div>
+  <div class="paso bd"><b>Inserta la fila y sus cruces</b><span class="f">VideojuegoDao.save()</span><span class="t">INSERT videojuego<br>+ videojuego_categoria<br>+ videojuego_plataforma</span></div>
+
+  <div class="op r">LISTAR</div>
+  <div class="paso vista"><b>Dos tablas: propios y de colaboradores</b><span class="f">catalogo/videojuegos.html</span><span class="l">líneas 46-100</span><span class="d">filtros GET con precio mínimo y máximo</span></div>
+  <div class="fl">›</div>
+  <div class="paso"><b>Pide las dos listas por separado</b><span class="f">listarVideojuegos()</span><span class="d">GET /catalogo/videojuegos</span></div>
+  <div class="fl">›</div>
+  <div class="paso"><b>Filtra y vuelve a por las categorías y plataformas de los que quedan</b><span class="f">listarVideojuegosPropios()<br>listarVideojuegosDeColaboradores()</span></div>
+  <div class="fl">›</div>
+  <div class="paso bd"><b>Dos consultas: filtrar y clasificar</b><span class="f">VideojuegoDao.listarFiltrado()<br>listarConClasificacion()</span><span class="t">SELECT videojuego</span></div>
+
+  <div class="op u">EDITAR</div>
+  <div class="paso vista"><b>La misma plantilla, con el objeto cargado</b><span class="f">catalogo/videojuego.html</span><span class="l">líneas 57-206</span><span class="d">y abajo el bloque de imágenes</span></div>
+  <div class="fl">›</div>
+  <div class="paso"><b>La misma ruta que el alta</b><span class="f">guardarVideojuego()</span><span class="d">POST …/guardar</span></div>
+  <div class="fl">›</div>
+  <div class="paso"><b>Como trae id, actualiza; al publicarlo por primera vez sella la fecha</b><span class="f">guardarVideojuego()</span></div>
+  <div class="fl">›</div>
+  <div class="paso bd"><b>Actualiza la fila y rehace los cruces</b><span class="f">VideojuegoDao.save()</span><span class="t">UPDATE videojuego</span></div>
+
+  <div class="op d">BORRAR</div>
+  <div class="paso vista"><b>Botón de cada fila del fragmento de tabla</b><span class="f">fragments/videojuegos.html</span><span class="l">líneas 91-98</span><span class="d">con diálogo de confirmación</span></div>
+  <div class="fl">›</div>
+  <div class="paso"><b>Captura el error y vuelve</b><span class="f">eliminarVideojuego()</span><span class="d">POST …/eliminar/{id}</span></div>
+  <div class="fl">›</div>
+  <div class="paso"><b>Se niega si está en pedidos o tiene claves; borra sus archivos</b><span class="f">eliminarVideojuego()<br>AlmacenArchivos.borrarCarpeta()</span></div>
+  <div class="fl">›</div>
+  <div class="paso bd"><b>Borra la fila; las imágenes caen en cascada</b><span class="f">VideojuegoDao.delete()</span><span class="t">DELETE videojuego</span></div>
+</div>
+
+<!-- ======================================================================
+     08 · ORDEN DE COMPRA
+     ====================================================================== -->
+<div class="salto"></div>
+<div class="seccion"><span class="n">08</span>Orden de compra</div>
+<div class="ctx"><span><b>Controlador:</b> <code>ControllerCompraClaves</code></span>
+  <span><b>Servicio:</b> <code>CompraClavesServiceImpl</code></span>
+  <span><b>Tabla:</b> <code>compra</code></span></div>
+
+<div class="flujo">
+  <div class="cab vacia"></div><div class="cab">Vista · HTML</div><div></div>
+  <div class="cab">Controlador</div><div></div><div class="cab">Servicio</div><div></div>
+  <div class="cab">DAO → base de datos</div>
+
+  <div class="op c">CREAR</div>
+  <div class="paso vista"><b>Cabecera del borrador</b><span class="f">compras/orden.html</span><span class="l">líneas 59-109</span><span class="d">proveedor, fecha y observaciones</span></div>
+  <div class="fl">›</div>
+  <div class="paso"><b>Añade el email del empleado que firma</b><span class="f">guardarOrden()</span><span class="d">POST /compras/ordenes/guardar</span></div>
+  <div class="fl">›</div>
+  <div class="paso"><b>Nace en BORRADOR con su número, sacado del máximo del año</b><span class="f">guardarCompra()<br>siguienteNumero()</span></div>
+  <div class="fl">›</div>
+  <div class="paso bd"><b>Inserta la cabecera</b><span class="f">CompraClavesDao.save()</span><span class="t">INSERT compra</span><span class="d">numero OC-2026-0001 UNIQUE</span></div>
+
+  <div class="op r">LISTAR</div>
+  <div class="paso vista"><b>Filtro por proveedor, estado y fechas</b><span class="f">compras/ordenes.html</span><span class="l">líneas 68-105</span><span class="d">formulario GET</span></div>
+  <div class="fl">›</div>
+  <div class="paso"><b>Pasa los filtros y pide los contadores</b><span class="f">listarOrdenes()</span><span class="d">GET /compras/ordenes</span></div>
+  <div class="fl">›</div>
+  <div class="paso"><b>Lista y cuenta por estado para la cabecera</b><span class="f">listarCompras()<br>contarPorEstado()</span></div>
+  <div class="fl">›</div>
+  <div class="paso bd"><b>Consulta con fetch de proveedor y líneas</b><span class="f">CompraClavesDao.listarFiltrado()</span><span class="t">SELECT compra</span></div>
+
+  <div class="op u">EDITAR</div>
+  <div class="paso vista"><b>La misma cabecera, con la orden cargada</b><span class="f">compras/orden.html</span><span class="l">líneas 59-109</span><span class="d">solo mientras sea BORRADOR</span></div>
+  <div class="fl">›</div>
+  <div class="paso"><b>La misma ruta que el alta</b><span class="f">guardarOrden()</span><span class="d">POST …/guardar</span></div>
+  <div class="fl">›</div>
+  <div class="paso"><b>Se niega si no es BORRADOR; el número y el firmante no se tocan</b><span class="f">actualizarCompra()</span></div>
+  <div class="fl">›</div>
+  <div class="paso bd"><b>Actualiza la cabecera</b><span class="f">CompraClavesDao.save()</span><span class="t">UPDATE compra</span></div>
+
+  <div class="op x">CONFIR­MAR</div>
+  <div class="paso vista"><b>Botón del pie de la orden</b><span class="f">compras/orden.html</span><span class="l">líneas 314-318</span><span class="d">solo visible en BORRADOR</span></div>
+  <div class="fl">›</div>
+  <div class="paso"><b>Confirma y vuelve a la orden</b><span class="f">confirmarOrden()</span><span class="d">POST …/{id}/confirmar</span></div>
+  <div class="fl">›</div>
+  <div class="paso"><b>Exige BORRADOR y al menos una línea</b><span class="f">confirmarCompra()</span></div>
+  <div class="fl">›</div>
+  <div class="paso bd"><b>Cambia el estado</b><span class="f">CompraClavesDao.save()</span><span class="t">UPDATE compra SET estado</span></div>
+
+  <div class="op x">RECIBIR</div>
+  <div class="paso vista"><b>Unidades recibidas por línea</b><span class="f">compras/recepcion.html</span><span class="l">líneas 39-161</span><span class="d">albarán y observaciones</span></div>
+  <div class="fl">›</div>
+  <div class="paso"><b>Manda las dos listas en paralelo</b><span class="f">recibirOrden()</span><span class="d">POST …/{id}/recepcion</span></div>
+  <div class="fl">›</div>
+  <div class="paso"><b>Valida todo, cierra la orden y solo entonces acuña las claves</b><span class="f">recibirCompra()<br>acunarClaves()</span></div>
+  <div class="fl">›</div>
+  <div class="paso bd"><b>Cierra y crea el stock</b><span class="f">CompraClavesDao.save()<br>ClaveLicenciaDao.saveAll()</span><span class="t">UPDATE compra<br>INSERT clave_licencia</span></div>
+
+  <div class="op d">CAN­CELAR</div>
+  <div class="paso vista"><b>Botón del pie de la orden</b><span class="f">compras/orden.html</span><span class="l">líneas 324-330</span><span class="d">no se borra: se marca</span></div>
+  <div class="fl">›</div>
+  <div class="paso"><b>Cancela y vuelve al listado</b><span class="f">cancelarOrden()</span><span class="d">POST …/{id}/cancelar</span></div>
+  <div class="fl">›</div>
+  <div class="paso"><b>Solo desde BORRADOR o CONFIRMADA</b><span class="f">cancelarCompra()</span></div>
+  <div class="fl">›</div>
+  <div class="paso bd"><b>Cambia el estado</b><span class="f">CompraClavesDao.save()</span><span class="t">UPDATE compra SET estado</span></div>
+</div>
+
+<!-- ======================================================================
+     09 · JUEGO DE COLABORADOR
+     ====================================================================== -->
+<div class="salto"></div>
+<div class="seccion"><span class="n">09</span>Juego de colaborador</div>
+<div class="ctx"><span><b>Controlador:</b> <code>ControllerColaboradorJuegos</code></span>
+  <span><b>Servicio:</b> <code>VideojuegoServiceImpl</code></span>
+  <span><b>Tablas:</b> <code>videojuego</code> + <code>version_juego</code></span></div>
+
+<div class="flujo">
+  <div class="cab vacia"></div><div class="cab">Vista · HTML</div><div></div>
+  <div class="cab">Controlador</div><div></div><div class="cab">Servicio</div><div></div>
+  <div class="cab">DAO → base de datos</div>
+
+  <div class="op c">CREAR</div>
+  <div class="paso vista"><b>Subida del juego con su ZIP</b><span class="f">colaboradores/nuevo-juego.html</span><span class="l">líneas 30-174</span><span class="d">multipart; se envía por XHR con barra de progreso</span></div>
+  <div class="fl">›</div>
+  <div class="paso"><b>Responde vista o JSON según la cabecera</b><span class="f">guardarJuego()</span><span class="d">POST /colaborador/mis-juegos/guardar</span></div>
+  <div class="fl">›</div>
+  <div class="paso"><b>Valida la ficha y el ZIP por su firma, guarda archivos y calcula el SHA-256</b><span class="f">publicarJuegoColaborador()<br>AlmacenArchivos.guardarZip()</span></div>
+  <div class="fl">›</div>
+  <div class="paso bd"><b>Nace inactivo y pendiente de revisión</b><span class="f">VideojuegoDao.save()<br>VersionJuegoDao.save()</span><span class="t">INSERT videojuego<br>+ version_juego</span></div>
+
+  <div class="op r">LISTAR</div>
+  <div class="paso vista"><b>Tarjetas de sus juegos</b><span class="f">colaboradores/mis-juegos.html</span><span class="d">sin formulario: solo tarjetas</span></div>
+  <div class="fl">›</div>
+  <div class="paso"><b>El colaborador sale de la sesión</b><span class="f">misJuegos()</span><span class="d">GET /colaborador/mis-juegos</span></div>
+  <div class="fl">›</div>
+  <div class="paso"><b>Solo los suyos, con portada y versión activa</b><span class="f">listarJuegosDeColaborador()</span></div>
+  <div class="fl">›</div>
+  <div class="paso bd"><b>Filtra por el email del dueño</b><span class="f">VideojuegoDao.listarDeColaborador()</span><span class="t">SELECT videojuego</span></div>
+
+  <div class="op u">EDITAR</div>
+  <div class="paso vista"><b>Ficha, imágenes y nueva versión</b><span class="f">colaboradores/editar-juego.html</span><span class="l">líneas 47-292</span><span class="d">el ZIP es opcional al editar</span></div>
+  <div class="fl">›</div>
+  <div class="paso"><b>Responde vista o JSON</b><span class="f">actualizarJuego()</span><span class="d">POST …/{id}/actualizar</span></div>
+  <div class="fl">›</div>
+  <div class="paso"><b>Comprueba que el juego es suyo; al guardar vuelve a quedar pendiente de revisión</b><span class="f">actualizarJuegoColaborador()<br>buscarJuegoDeColaborador()</span></div>
+  <div class="fl">›</div>
+  <div class="paso bd"><b>Actualiza y, si hay ZIP, añade versión</b><span class="f">VideojuegoDao.save()</span><span class="t">UPDATE videojuego</span></div>
+</div>
+
+<!-- ======================================================================
+     10 · IMAGEN DE VIDEOJUEGO
+     ====================================================================== -->
+<div class="salto"></div>
+<div class="seccion"><span class="n">10</span>Imagen de videojuego</div>
+<div class="ctx"><span><b>Controlador:</b> <code>ControllerVideojuego</code></span>
+  <span><b>Servicio:</b> <code>VideojuegoServiceImpl</code> + <code>AlmacenArchivos</code></span>
+  <span><b>Tabla:</b> <code>imagen_videojuego</code></span></div>
+
+<div class="flujo">
+  <div class="cab vacia"></div><div class="cab">Vista · HTML</div><div></div>
+  <div class="cab">Controlador</div><div></div><div class="cab">Servicio</div><div></div>
+  <div class="cab">DAO → disco y base de datos</div>
+
+  <div class="op c">CREAR</div>
+  <div class="paso vista"><b>Subir imagen desde la ficha del juego</b><span class="f">catalogo/videojuego.html</span><span class="l">líneas 324-361</span><span class="d">multipart: archivo, tipo y texto alternativo</span></div>
+  <div class="fl">›</div>
+  <div class="paso"><b>Captura el error y vuelve a la edición</b><span class="f">guardarImagen()</span><span class="d">POST …/{id}/imagenes</span></div>
+  <div class="fl">›</div>
+  <div class="paso"><b>Comprueba formato y 2 MB; de portada y banner solo cabe uno</b><span class="f">guardarImagen()<br>extensionDe() · validarQueNoExista()</span></div>
+  <div class="fl">›</div>
+  <div class="paso bd"><b>El archivo al disco con nombre UUID, la ruta a la tabla</b><span class="f">AlmacenArchivos.guardarImagen()<br>ImagenVideojuegoDao.save()</span><span class="t">INSERT imagen_videojuego</span></div>
+
+  <div class="op r">LISTAR</div>
+  <div class="paso vista"><b>Portada, banner y capturas, repartidas por tipo</b><span class="f">catalogo/videojuego.html</span><span class="d">tres bloques, sin formulario</span></div>
+  <div class="fl">›</div>
+  <div class="paso"><b>Reparte las imágenes por tipo</b><span class="f">cargarImagenes()</span><span class="d">GET …/editar/{id}</span></div>
+  <div class="fl">›</div>
+  <div class="paso"><b>Devuelve todas las del juego, ordenadas</b><span class="f">listarImagenes()</span></div>
+  <div class="fl">›</div>
+  <div class="paso bd"><b>Consulta por juego y orden</b><span class="f">ImagenVideojuegoDao<br>.findByVideojuegoId…()</span><span class="t">SELECT imagen_videojuego</span></div>
+
+  <div class="op d">BORRAR</div>
+  <div class="paso vista"><b>Una x sobre cada imagen</b><span class="f">catalogo/videojuego.html</span><span class="l">236-244 · 268-276 · 301-309</span><span class="d">portada, banner y cada captura</span></div>
+  <div class="fl">›</div>
+  <div class="paso"><b>Borra y vuelve a la edición</b><span class="f">eliminarImagen()</span><span class="d">POST …/{id}/imagenes/{imagenId}/eliminar</span></div>
+  <div class="fl">›</div>
+  <div class="paso"><b>Comprueba que la imagen es de ese juego</b><span class="f">eliminarImagen()<br>buscarImagenXId()</span></div>
+  <div class="fl">›</div>
+  <div class="paso bd"><b>Primero la fila, después el archivo</b><span class="f">ImagenVideojuegoDao.delete()<br>AlmacenArchivos.borrar()</span><span class="t">DELETE imagen_videojuego</span></div>
+</div>
+
+<!-- ======================================================================
+     11 · IMAGEN DE JUEGO DE COLABORADOR
+     ====================================================================== -->
+<div class="salto"></div>
+<div class="seccion"><span class="n">11</span>Imagen de juego de colaborador</div>
+<div class="ctx"><span><b>Controlador:</b> <code>ControllerColaboradorJuegos</code></span>
+  <span><b>Servicio:</b> <code>VideojuegoServiceImpl</code></span>
+  <span><b>Tabla:</b> <code>imagen_videojuego</code></span></div>
+
+<div class="flujo">
+  <div class="cab vacia"></div><div class="cab">Vista · HTML</div><div></div>
+  <div class="cab">Controlador</div><div></div><div class="cab">Servicio</div><div></div>
+  <div class="cab">DAO → disco y base de datos</div>
+
+  <div class="op c">CREAR</div>
+  <div class="paso vista"><b>Van dentro del formulario del juego, no por separado</b><span class="f">colaboradores/editar-juego.html</span><span class="l">líneas 47-292</span><span class="d">portada, banner y hasta 4 capturas</span></div>
+  <div class="fl">›</div>
+  <div class="paso"><b>Llegan junto al resto del formulario</b><span class="f">actualizarJuego()</span><span class="d">POST …/{id}/actualizar</span></div>
+  <div class="fl">›</div>
+  <div class="paso"><b>Valida cuántas caben antes de escribir ninguna</b><span class="f">validarImagenesDeColaborador()<br>guardarImagenesDeColaborador()</span></div>
+  <div class="fl">›</div>
+  <div class="paso bd"><b>Archivos al disco, rutas a la tabla</b><span class="f">AlmacenArchivos.guardarImagen()<br>ImagenVideojuegoDao.save()</span><span class="t">INSERT imagen_videojuego</span></div>
+
+  <div class="op d">BORRAR</div>
+  <div class="paso vista"><b>Una x sobre cada imagen ya subida</b><span class="f">colaboradores/editar-juego.html</span><span class="l">178-185 · 214-221 · 252-259</span><span class="d">portada, banner y cada captura</span></div>
+  <div class="fl">›</div>
+  <div class="paso"><b>Borra y vuelve a la edición</b><span class="f">quitarImagen()</span><span class="d">POST …/{id}/imagen/{imagenId}/quitar</span></div>
+  <div class="fl">›</div>
+  <div class="paso"><b>Comprueba que el juego es suyo y que la imagen es de ese juego</b><span class="f">eliminarImagenDeColaborador()<br>buscarJuegoDeColaborador()</span></div>
+  <div class="fl">›</div>
+  <div class="paso bd"><b>Primero la fila, después el archivo</b><span class="f">ImagenVideojuegoDao.delete()<br>AlmacenArchivos.borrar()</span><span class="t">DELETE imagen_videojuego</span></div>
+</div>
+
+<!-- ======================================================================
+     12 · LÍNEA DE COMPRA
+     ====================================================================== -->
+<div class="salto"></div>
+<div class="seccion"><span class="n">12</span>Línea de compra</div>
+<div class="ctx"><span><b>Controlador:</b> <code>ControllerCompraClaves</code></span>
+  <span><b>Servicio:</b> <code>CompraClavesServiceImpl</code></span>
+  <span><b>Tabla:</b> <code>linea_compra</code></span></div>
+
+<div class="flujo">
+  <div class="cab vacia"></div><div class="cab">Vista · HTML</div><div></div>
+  <div class="cab">Controlador</div><div></div><div class="cab">Servicio</div><div></div>
+  <div class="cab">DAO → base de datos</div>
+
+  <div class="op c">CREAR</div>
+  <div class="paso vista"><b>Fila de alta bajo la tabla de líneas</b><span class="f">compras/orden.html</span><span class="l">líneas 214-249</span><span class="d">juego, unidades y coste unitario</span></div>
+  <div class="fl">›</div>
+  <div class="paso"><b>Captura el error y vuelve a la orden</b><span class="f">anadirLinea()</span><span class="d">POST …/{id}/lineas</span></div>
+  <div class="fl">›</div>
+  <div class="paso"><b>Exige BORRADOR o CONFIRMADA; sin juegos de colaborador ni repetidos; recalcula el total</b><span class="f">anadirLinea()<br>recalcularTotal()</span></div>
+  <div class="fl">›</div>
+  <div class="paso bd"><b>La línea entra en cascada con su orden</b><span class="f">CompraClavesDao.save()</span><span class="t">INSERT linea_compra<br>UPDATE compra (total)</span></div>
+
+  <div class="op r">LISTAR</div>
+  <div class="paso vista"><b>Tabla de líneas de la orden</b><span class="f">compras/orden.html</span><span class="d">sin formulario: se pintan con la orden</span></div>
+  <div class="fl">›</div>
+  <div class="paso"><b>Llegan dentro de la orden</b><span class="f">verOrden()</span><span class="d">GET /compras/ordenes/{id}</span></div>
+  <div class="fl">›</div>
+  <div class="paso"><b>La orden ya viene con sus líneas cargadas</b><span class="f">buscarCompraXId()</span></div>
+  <div class="fl">›</div>
+  <div class="paso bd"><b>Un solo fetch con la cabecera</b><span class="f">CompraClavesDao<br>.buscarConDetalle()</span><span class="t">SELECT compra ⋈ linea_compra</span></div>
+
+  <div class="op d">BORRAR</div>
+  <div class="paso vista"><b>Botón al final de cada línea</b><span class="f">compras/orden.html</span><span class="l">líneas 173-181</span><span class="d">solo si aún no se ha recibido</span></div>
+  <div class="fl">›</div>
+  <div class="paso"><b>Quita y vuelve a la orden</b><span class="f">quitarLinea()</span><span class="d">POST …/{id}/lineas/{lineaId}/eliminar</span></div>
+  <div class="fl">›</div>
+  <div class="paso"><b>Se niega si esa línea ya tiene unidades recibidas; recalcula el total</b><span class="f">quitarLinea()</span></div>
+  <div class="fl">›</div>
+  <div class="paso bd"><b>Sale de la lista y se borra sola</b><span class="f">orphanRemoval = true</span><span class="t">DELETE linea_compra<br>UPDATE compra (total)</span></div>
+</div>
+
+<!-- ======================================================================
+     13 · LÍNEA DE CESTA
+     ====================================================================== -->
+<div class="salto"></div>
+<div class="seccion"><span class="n">13</span>Línea de cesta</div>
+<div class="ctx"><span><b>Controlador:</b> <code>ControllerCesta</code></span>
+  <span><b>Servicio:</b> <code>CestaServiceImpl</code></span>
+  <span><b>Tablas:</b> <code>cesta</code> + <code>linea_cesta</code></span></div>
+
+<div class="flujo">
+  <div class="cab vacia"></div><div class="cab">Vista · HTML</div><div></div>
+  <div class="cab">Controlador</div><div></div><div class="cab">Servicio</div><div></div>
+  <div class="cab">DAO → base de datos</div>
+
+  <div class="op c">CREAR</div>
+  <div class="paso vista"><b>Botón «añadir a la cesta» de la ficha</b><span class="f">client/ficha.html</span><span class="l">líneas 204-209</span><span class="d">solo manda el id del juego</span></div>
+  <div class="fl">›</div>
+  <div class="paso"><b>El cliente sale de la sesión, nunca del formulario</b><span class="f">anadirJuego()</span><span class="d">POST /tienda/cesta/anadir</span></div>
+  <div class="fl">›</div>
+  <div class="paso"><b>Tres reglas: que no sea gratis, que no lo tenga ya y que no esté en la cesta</b><span class="f">anadirVideojuego()<br>buscarOCrearCesta()</span></div>
+  <div class="fl">›</div>
+  <div class="paso bd"><b>La cesta se crea sola la primera vez</b><span class="f">CestaDao.save()</span><span class="t">INSERT linea_cesta</span><span class="d">UNIQUE (cesta, videojuego)</span></div>
+
+  <div class="op r">LISTAR</div>
+  <div class="paso vista"><b>Tabla de la cesta con el total</b><span class="f">client/cesta.html</span><span class="d">sin formulario: el total lo calcula el servicio</span></div>
+  <div class="fl">›</div>
+  <div class="paso"><b>Pide la cesta y su total</b><span class="f">verCesta()</span><span class="d">GET /tienda/cesta</span></div>
+  <div class="fl">›</div>
+  <div class="paso"><b>Si no tiene cesta se le crea una vacía en memoria</b><span class="f">buscarOCrearCesta()<br>calcularTotal()</span></div>
+  <div class="fl">›</div>
+  <div class="paso bd"><b>Consulta con fetch de las líneas</b><span class="f">CestaDao<br>.buscarConLineasXEmail()</span><span class="t">SELECT cesta ⋈ linea_cesta</span></div>
+
+  <div class="op d">BORRAR</div>
+  <div class="paso vista"><b>Quitar una línea · vaciar la cesta</b><span class="f">client/cesta.html</span><span class="l">62-64 (quitar) · 80-82 (vaciar)</span></div>
+  <div class="fl">›</div>
+  <div class="paso"><b>Dos rutas distintas</b><span class="f">quitarLinea() · vaciarCesta()</span><span class="d">POST …/linea/{id}/quitar<br>POST …/vaciar</span></div>
+  <div class="fl">›</div>
+  <div class="paso"><b>La línea se busca solo dentro de la cesta de ese cliente</b><span class="f">quitarLinea()<br>vaciarCesta()</span></div>
+  <div class="fl">›</div>
+  <div class="paso bd"><b>Salen de la lista y se borran solas</b><span class="f">orphanRemoval = true</span><span class="t">DELETE linea_cesta</span></div>
+</div>
+
+<!-- ======================================================================
+     14 · CLIENTE
+     ====================================================================== -->
+<div class="salto"></div>
+<div class="seccion"><span class="n">14</span>Cliente</div>
+<div class="ctx"><span><b>Controlador:</b> <code>ControllerCliente</code></span>
+  <span><b>Servicio:</b> <code>ClienteServiceImpl</code></span>
+  <span><b>Alta:</b> no hay — se crea en el registro (nº 15)</span></div>
+
+<div class="flujo">
+  <div class="cab vacia"></div><div class="cab">Vista · HTML</div><div></div>
+  <div class="cab">Controlador</div><div></div><div class="cab">Servicio</div><div></div>
+  <div class="cab">DAO → base de datos</div>
+
+  <div class="op r">LISTAR</div>
+  <div class="paso vista"><b>Filtro por texto, país y fecha de alta</b><span class="f">gestorCliente/listadoClientes.html</span><span class="l">líneas 41-65</span><span class="d">formulario GET</span></div>
+  <div class="fl">›</div>
+  <div class="paso"><b>Pasa los tres filtros</b><span class="f">listarClientes()</span><span class="d">GET /clientes</span></div>
+  <div class="fl">›</div>
+  <div class="paso"><b>Lista, saca los países y añade las fotos</b><span class="f">buscarFiltrado()<br>listarImagenesPerfil()</span></div>
+  <div class="fl">›</div>
+  <div class="paso bd"><b>Filtros que se saltan si son nulos</b><span class="f">ClienteDao.buscarFiltrado()</span><span class="t">SELECT usuario ⋈ cliente</span></div>
+
+  <div class="op u">ACTIVAR</div>
+  <div class="paso vista"><b>Botón en las cuentas bloqueadas</b><span class="f">gestorCliente/listadoClientes.html</span><span class="l">líneas 137-142</span><span class="d">manda activo=true, sin motivo</span></div>
+  <div class="fl">›</div>
+  <div class="paso"><b>Captura el error y vuelve</b><span class="f">cambiarEstado()</span><span class="d">POST /clientes/{id}/estado</span></div>
+  <div class="fl">›</div>
+  <div class="paso"><b>Limpia el motivo, pone los intentos a cero y manda el correo de aviso</b><span class="f">cambiarEstado()<br>enviarCuentaActivada()</span></div>
+  <div class="fl">›</div>
+  <div class="paso bd"><b>Actualiza la fila de usuario</b><span class="f">ClienteDao.save()</span><span class="t">UPDATE usuario</span></div>
+
+  <div class="op u">INAC­TIVAR</div>
+  <div class="paso vista"><b>Diálogo que pide el motivo</b><span class="f">fragments/dialogos.html</span><span class="l">líneas 44-57</span><span class="d">fragmento motivoInactivacion</span></div>
+  <div class="fl">›</div>
+  <div class="paso"><b>La misma ruta que activar</b><span class="f">cambiarEstado()</span><span class="d">POST /clientes/{id}/estado</span></div>
+  <div class="fl">›</div>
+  <div class="paso"><b>El motivo es obligatorio al bloquear</b><span class="f">cambiarEstado()</span><span class="d">MotivoInactivacionObligatorioException</span></div>
+  <div class="fl">›</div>
+  <div class="paso bd"><b>Actualiza la fila de usuario</b><span class="f">ClienteDao.save()</span><span class="t">UPDATE usuario</span></div>
+
+  <div class="op d">BORRAR</div>
+  <div class="paso vista"><b>Botón de cada fila</b><span class="f">gestorCliente/listadoClientes.html</span><span class="l">líneas 143-150</span><span class="d">con diálogo de confirmación</span></div>
+  <div class="fl">›</div>
+  <div class="paso"><b>Captura el error y vuelve</b><span class="f">eliminarCliente()</span><span class="d">POST /clientes/{id}/eliminar</span></div>
+  <div class="fl">›</div>
+  <div class="paso"><b>Se niega si tiene pedidos, claves o valoraciones</b><span class="f">eliminarCliente()</span><span class="d">ClienteConDatosAsociadosException</span></div>
+  <div class="fl">›</div>
+  <div class="paso bd"><b>Borra las dos filas</b><span class="f">ClienteDao.delete()</span><span class="t">DELETE cliente + usuario</span></div>
+</div>
+
+<!-- ======================================================================
+     15 · REGISTRO DE CUENTA
+     ====================================================================== -->
+<div class="salto"></div>
+<div class="seccion"><span class="n">15</span>Registro de cuenta</div>
+<div class="ctx"><span><b>Controlador:</b> <code>ControllerLogin</code></span>
+  <span><b>Servicio:</b> <code>ClienteServiceImpl</code> + <code>UsuarioDao</code></span>
+  <span><b>Único CRUD público:</b> no hace falta sesión</span></div>
+
+<div class="flujo">
+  <div class="cab vacia"></div><div class="cab">Vista · HTML</div><div></div>
+  <div class="cab">Controlador</div><div></div><div class="cab">Servicio</div><div></div>
+  <div class="cab">DAO → base de datos</div>
+
+  <div class="op c">CREAR</div>
+  <div class="paso vista"><b>Formulario de alta de cliente</b><span class="f">login/crearCuenta.html</span><span class="l">líneas 21-102</span><span class="d">nombre, correo, contraseña repetida, país, fecha de nacimiento y condiciones</span></div>
+  <div class="fl">›</div>
+  <div class="paso"><b>Recibe campo a campo y devuelve el formulario relleno si falla</b><span class="f">crearCuenta()</span><span class="d">POST /registro</span></div>
+  <div class="fl">›</div>
+  <div class="paso"><b>Correo libre entre TODOS los usuarios; contraseña de 8 con mayúscula y número; BCrypt antes de guardar</b><span class="f">comprobarCorreoLibre()<br>PASSWORD_VALIDA · encode()</span></div>
+  <div class="fl">›</div>
+  <div class="paso bd"><b>Nace como CLIENTE y activo</b><span class="f">UsuarioDao.save()</span><span class="t">INSERT usuario + cliente</span><span class="d">email UNIQUE</span></div>
+
+  <div class="op x">PEDIR ALTA</div>
+  <div class="paso vista"><b>Enlace de la pantalla de login bloqueado</b><span class="f">login/login.html</span><span class="d">llega con el correo en la URL</span></div>
+  <div class="fl">›</div>
+  <div class="paso"><b>Siempre responde lo mismo</b><span class="f">solicitarActivacion()</span><span class="d">POST /solicitar-activacion</span></div>
+  <div class="fl">›</div>
+  <div class="paso"><b>Solo anota si existe, está inactivo y no tiene una pendiente; avisa al gestor por WebSocket</b><span class="f">solicitarActivacion()</span></div>
+  <div class="fl">›</div>
+  <div class="paso bd"><b>Marca la fecha de solicitud</b><span class="f">ClienteDao.save()</span><span class="t">UPDATE cliente</span></div>
+</div>
+
+<!-- ======================================================================
+     16 · PERFIL DE USUARIO
+     ====================================================================== -->
+<div class="salto"></div>
+<div class="seccion"><span class="n">16</span>Perfil de usuario</div>
+<div class="ctx"><span><b>Controlador:</b> <code>ControllerPerfil</code></span>
+  <span><b>Servicio:</b> <code>UsuarioServiceImpl</code></span>
+  <span><b>Tablas:</b> <code>usuario</code> + <code>imagen_usuario</code></span></div>
+
+<div class="flujo">
+  <div class="cab vacia"></div><div class="cab">Vista · HTML</div><div></div>
+  <div class="cab">Controlador</div><div></div><div class="cab">Servicio</div><div></div>
+  <div class="cab">DAO → disco y base de datos</div>
+
+  <div class="op r">VER</div>
+  <div class="paso vista"><b>Ficha del usuario de la sesión</b><span class="f">clients/configuracionUsuario.html</span><span class="d">los datos extra solo si es cliente</span></div>
+  <div class="fl">›</div>
+  <div class="paso"><b>Si la sesión apunta a alguien que ya no existe, al login</b><span class="f">profile()</span><span class="d">GET /user/profile</span></div>
+  <div class="fl">›</div>
+  <div class="paso"><b>Busca por el correo de la sesión, nunca por un id recibido</b><span class="f">buscarUsuarioXEmail()<br>buscarImagenPerfil()</span></div>
+  <div class="fl">›</div>
+  <div class="paso bd"><b>Dos consultas</b><span class="f">UsuarioDao.findByEmail()<br>ImagenUsuarioDao.findById()</span><span class="t">SELECT usuario</span></div>
+
+  <div class="op u">EDITAR DATOS</div>
+  <div class="paso vista"><b>Datos personales</b><span class="f">clients/configuracionUsuario.html</span><span class="l">líneas 91-180</span><span class="d">nombre, teléfono, dirección, país…</span></div>
+  <div class="fl">›</div>
+  <div class="paso"><b>El usuario sale de la sesión</b><span class="f">guardarPerfil()</span><span class="d">POST /user/profile</span></div>
+  <div class="fl">›</div>
+  <div class="paso"><b>Nombre obligatorio; los campos de cliente solo si lo es</b><span class="f">guardarDatosPersonales()</span></div>
+  <div class="fl">›</div>
+  <div class="paso bd"><b>Actualiza la fila</b><span class="f">UsuarioDao.save()</span><span class="t">UPDATE usuario (+ cliente)</span></div>
+
+  <div class="op u">CAMBIAR FOTO</div>
+  <div class="paso vista"><b>Subida de la foto de perfil</b><span class="f">clients/configuracionUsuario.html</span><span class="l">líneas 45-80</span><span class="d">multipart: archivo y texto alternativo</span></div>
+  <div class="fl">›</div>
+  <div class="paso"><b>Captura el error y vuelve al perfil</b><span class="f">cambiarImagen()</span><span class="d">POST /user/profile/imagen</span></div>
+  <div class="fl">›</div>
+  <div class="paso"><b>Formato y 2 MB; si la fila falla borra el archivo, y si va bien borra el anterior</b><span class="f">guardarImagenPerfil()</span></div>
+  <div class="fl">›</div>
+  <div class="paso bd"><b>El archivo al disco, la ruta a la tabla</b><span class="f">AlmacenArchivos<br>.guardarImagenPerfil()<br>ImagenUsuarioDao.save()</span><span class="t">INSERT/UPDATE imagen_usuario</span></div>
+</div>
+
+<!-- ======================================================================
+     17 · CONTRASEÑA
+     ====================================================================== -->
+<div class="salto"></div>
+<div class="seccion"><span class="n">17</span>Contraseña</div>
+<div class="ctx"><span><b>Controlador:</b> <code>ControllerLogin</code></span>
+  <span><b>Vista:</b> <code>ControllerPerfil.changePasswordForm()</code></span>
+  <span><b>Tabla:</b> <code>usuario</code></span></div>
+
+<div class="flujo">
+  <div class="cab vacia"></div><div class="cab">Vista · HTML</div><div></div>
+  <div class="cab">Controlador</div><div></div><div class="cab">Comprobaciones</div><div></div>
+  <div class="cab">DAO → base de datos</div>
+
+  <div class="op u">EDITAR</div>
+  <div class="paso vista"><b>Contraseña actual, nueva y repetida</b><span class="f">clients/cambiarPassword.html</span><span class="l">líneas 21-126</span><span class="d">el formulario lo sirve ControllerPerfil</span></div>
+  <div class="fl">›</div>
+  <div class="paso"><b>Un aviso distinto por cada motivo de fallo, y vuelta al formulario</b><span class="f">cambiarPassword()</span><span class="d">POST /user/changePassword</span></div>
+  <div class="fl">›</div>
+  <div class="paso"><b>Cuatro comprobaciones en orden: la actual encaja, la nueva coincide con su copia, mide 8 o más, y es distinta de la actual</b><span class="f">passwordEncoder.matches()<br>nunca encode() + equals</span></div>
+  <div class="fl">›</div>
+  <div class="paso bd"><b>Guarda el hash nuevo</b><span class="f">UsuarioDao.save()</span><span class="t">UPDATE usuario<br>SET password_hash</span></div>
+</div>
+
+<!-- ======================================================================
+     18 · CLAVE DE LICENCIA
+     ====================================================================== -->
+<div class="salto"></div>
+<div class="seccion"><span class="n">18</span>Clave de licencia</div>
+<div class="ctx"><span><b>Controlador:</b> <code>ControllerClaveLicencia</code></span>
+  <span><b>Servicio:</b> <code>ClaveLicenciaServiceImpl</code></span>
+  <span><b>Alta:</b> no hay formulario — nacen al recibir una orden (nº 8)</span></div>
+
+<div class="flujo">
+  <div class="cab vacia"></div><div class="cab">Vista · HTML</div><div></div>
+  <div class="cab">Controlador</div><div></div><div class="cab">Servicio</div><div></div>
+  <div class="cab">DAO → base de datos</div>
+
+  <div class="op r">LISTAR</div>
+  <div class="paso vista"><b>Filtro por código, juego y estado</b><span class="f">inventario/claves.html</span><span class="l">líneas 67-103</span><span class="d">formulario GET, con cuatro contadores arriba</span></div>
+  <div class="fl">›</div>
+  <div class="paso"><b>Pasa los filtros y pide los contadores</b><span class="f">listarClaves()</span><span class="d">GET /inventario/claves</span></div>
+  <div class="fl">›</div>
+  <div class="paso"><b>El código escrito se convierte en hash antes de bajar al DAO</b><span class="f">listarClaves()<br>IndiceCiego.hash()</span></div>
+  <div class="fl">›</div>
+  <div class="paso bd"><b>Busca por el hash, nunca por la columna cifrada</b><span class="f">ClaveLicenciaDao.listarFiltrado()</span><span class="t">SELECT clave_licencia</span></div>
+
+  <div class="op u">ANULAR</div>
+  <div class="paso vista"><b>Pantalla propia que pide el motivo</b><span class="f">inventario/anularClave.html</span><span class="l">líneas 71-90</span><span class="d">motivo obligatorio, máximo 255</span></div>
+  <div class="fl">›</div>
+  <div class="paso"><b>Captura el error y vuelve al formulario</b><span class="f">anularClave()</span><span class="d">POST /inventario/claves/{id}/anular</span></div>
+  <div class="fl">›</div>
+  <div class="paso"><b>Solo se anula una DISPONIBLE: la base no impide ningún cambio de estado, el guardia está aquí</b><span class="f">anularClave()</span><span class="d">ClaveNoAnulableException</span></div>
+  <div class="fl">›</div>
+  <div class="paso bd"><b>No se borra la fila: se marca</b><span class="f">ClaveLicenciaDao.save()</span><span class="t">UPDATE clave_licencia<br>SET estado = ANULADA</span></div>
+</div>
+
+<!-- ======================================================================
+     19 · VALORACIÓN
+     ====================================================================== -->
+<div class="salto"></div>
+<div class="seccion"><span class="n">19</span>Valoración</div>
+<div class="ctx"><span><b>Controlador:</b> <code>ControllerValoracion</code></span>
+  <span><b>Servicio:</b> <code>ValoracionServiceImpl</code></span>
+  <span><b>Tabla:</b> <code>valoracion</code></span></div>
+
+<div class="flujo">
+  <div class="cab vacia"></div><div class="cab">Vista · HTML</div><div></div>
+  <div class="cab">Controlador</div><div></div><div class="cab">Servicio</div><div></div>
+  <div class="cab">DAO → base de datos</div>
+
+  <div class="op c">CREAR</div>
+  <div class="paso vista"><b>Formulario al pie de la ficha del juego</b><span class="f">client/ficha.html</span><span class="l">líneas 107-133</span><span class="d">solo aparece si aún no la ha valorado</span></div>
+  <div class="fl">›</div>
+  <div class="paso"><b>Captura el error y vuelve a la ficha con el aviso</b><span class="f">guardar()</span><span class="d">POST /valoraciones/guardar</span></div>
+  <div class="fl">›</div>
+  <div class="paso"><b>Título obligatorio y de 150 como mucho, puntuación de 1 a 5, y una por cliente y juego</b><span class="f">crear()</span><span class="d">ValoracionDuplicadaException</span></div>
+  <div class="fl">›</div>
+  <div class="paso bd"><b>Nace ACTIVA</b><span class="f">ValoracionDao.save()</span><span class="t">INSERT valoracion</span></div>
+
+  <div class="op r">LISTAR</div>
+  <div class="paso vista"><b>Lista de opiniones de la ficha</b><span class="f">client/ficha.html</span><span class="d">sin formulario: llegan con la ficha</span></div>
+  <div class="fl">›</div>
+  <div class="paso"><b>Las pide al pintar el juego</b><span class="f">ControllerTienda.verJuego()</span><span class="d">GET /tienda/juego/{id}</span></div>
+  <div class="fl">›</div>
+  <div class="paso"><b>Solo las ACTIVAS, y de paso mira si este cliente ya valoró</b><span class="f">listarVisiblesPorVideojuego()<br>haValorado()</span></div>
+  <div class="fl">›</div>
+  <div class="paso bd"><b>El estado va escrito en la consulta</b><span class="f">ValoracionDao<br>.listarVisiblesPorVideojuego()</span><span class="t">SELECT valoracion</span></div>
+</div>
+
+</body>
+</html>
