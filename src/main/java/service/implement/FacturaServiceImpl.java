@@ -1,7 +1,7 @@
 package service.implement;
 
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
-import dao.FacturasDAO;
+import dao.FacturasDao;
 import exception.factura.FacturaNoEncontradaException;
 import model.ventas.Factura;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,7 +17,7 @@ import java.util.List;
 @Service
 public class FacturaServiceImpl implements FacturasService {
     @Autowired
-    private FacturasDAO facturasDAO;
+    private FacturasDao facturasDAO;
 
     @Autowired
     private TemplateEngine templateEngine;

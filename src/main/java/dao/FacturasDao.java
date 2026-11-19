@@ -8,7 +8,7 @@ import org.springframework.data.repository.query.Param;
 import java.util.List;
 import java.util.Optional;
 
-public interface FacturasDAO extends JpaRepository<Factura, Long> {
+public interface FacturasDao extends JpaRepository<Factura, Long> {
 
     // Factura no tiene cliente, lineas, estado ni importes: viven en el pedido, asi que se
     // traen con join fetch (la vista los lee y open-in-view esta desactivado). El importe

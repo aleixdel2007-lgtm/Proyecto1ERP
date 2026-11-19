@@ -9,7 +9,7 @@ import com.stripe.exception.StripeException;
 import com.stripe.model.checkout.Session;
 import com.stripe.param.checkout.SessionCreateParams;
 import dao.ClaveLicenciaDao;
-import dao.FacturasDAO;
+import dao.FacturasDao;
 import dao.PedidoDao;
 import exception.pago.PagoNoCompletadoException;
 import exception.pago.SinClavesDisponiblesException;
@@ -63,7 +63,7 @@ public class PagoServiceImpl implements PagoService {
     private ClaveLicenciaDao claveLicenciaDao;
 
     @Autowired
-    private FacturasDAO facturasDAO;
+    private FacturasDao facturasDAO;
 
     @Autowired
     private CestaService cestaService;
