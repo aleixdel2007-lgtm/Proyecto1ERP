@@ -34,16 +34,15 @@ public class ControllerAdviceNotificaciones {
                 ? videojuegoService.contarPendientesRevision() : 0;
     }
 
-    // Vale si el usuario tiene ese rol o es ADMIN. Spring guarda los roles con "ROLE_" delante
+    // Vale si el usuario tiene ese rol. Spring guarda los roles con "ROLE_" delante
     private boolean tieneRol(Authentication authentication, String rol) {
 
         if (authentication == null || !authentication.isAuthenticated()) {
             return false;
         }
 
-        // Solo el gestor de ese aviso y el admin pueden verlo
+        // Solo el gestor de ese aviso
         return authentication.getAuthorities().stream()
-                .anyMatch(a -> a.getAuthority().equals("ROLE_" + rol)
-                            || a.getAuthority().equals("ROLE_ADMIN"));
+                .anyMatch(a -> a.getAuthority().equals("ROLE_" + rol));
     }
 }

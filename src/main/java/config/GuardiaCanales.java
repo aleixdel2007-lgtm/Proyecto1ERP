@@ -69,9 +69,9 @@ public class GuardiaCanales implements ChannelInterceptor {
 
         return switch (destino) {
             case "/topic/clientes" ->
-                tieneRol(usuario, Rol.GESTOR_CLIENTES) || tieneRol(usuario, Rol.ADMIN);
+                tieneRol(usuario, Rol.GESTOR_CLIENTES);
             case "/topic/productos" ->
-                tieneRol(usuario, Rol.GESTOR_PRODUCTOS) || tieneRol(usuario, Rol.ADMIN);
+                tieneRol(usuario, Rol.GESTOR_PRODUCTOS);
             default ->
                 false;
         };

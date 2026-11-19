@@ -92,7 +92,7 @@
     </select>
     
          <!-- Campanita del gestor de clientes: al pulsarla se abre un desplegable con el aviso -->
-        <div sec:authorize="hasAnyRole('GESTOR_CLIENTES','ADMIN')" class="campana-wrap">
+        <div sec:authorize="hasAnyRole('GESTOR_CLIENTES')" class="campana-wrap">
             <button type="button" id="campana" class="campana" data-canal="/topic/clientes"
                     title="Avisos de clientes" aria-haspopup="true" aria-expanded="false">
                 <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor"
@@ -111,7 +111,7 @@
         </div>
 
         <!-- Campanita del gestor de productos: juegos de colaboradores pendientes de revision -->
-        <div sec:authorize="hasAnyRole('GESTOR_PRODUCTOS','ADMIN')" class="campana-wrap">
+        <div sec:authorize="hasAnyRole('GESTOR_PRODUCTOS')" class="campana-wrap">
             <button type="button" class="campana" data-canal="/topic/productos"
                     title="Avisos de productos" aria-haspopup="true" aria-expanded="false">
                 <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor"
