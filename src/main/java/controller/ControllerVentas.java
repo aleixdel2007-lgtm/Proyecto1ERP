@@ -31,6 +31,7 @@ public class ControllerVentas {
             @RequestParam(required = false) EstadoPedido estado,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate desde,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate hasta,
+            @RequestParam(defaultValue = "0") int pagina,
             Model model) {
 
         model.addAttribute("pedidos", pedidoService.listarPedidos(texto, estado, desde, hasta));
@@ -46,6 +47,7 @@ public class ControllerVentas {
         model.addAttribute("estado", estado);
         model.addAttribute("desde", desde);
         model.addAttribute("hasta", hasta);
+        model.addAttribute("pagina", Math.max(0, pagina));
 
         return "ventas/pedidos";
     }
@@ -58,9 +60,16 @@ public class ControllerVentas {
     }
 
     @GetMapping("/facturas")
-    public String listarFacturas(@RequestParam(required = false) String texto, Model model) {
+    public String listarFacturas(
+            @RequestParam(required = false) String texto,
+            @RequestParam(defaultValue = "0") int pagina,
+            Model model) {
 
         model.addAttribute("facturas", facturasService.listarFiltrado(texto));
+
+        model.addAttribute("texto", texto);
+        model.addAttribute("pagina", Math.max(0, pagina));
+
         return "ventas/facturas";
     }
 

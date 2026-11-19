@@ -45,7 +45,13 @@
                 </div>
             </div>
 
-            <div class="card">
+            <div class="card"
+                 th:with="tam=${10},
+                          total=${#lists.size(pedidos)},
+                          paginas=${(total + tam - 1) / tam},
+                          actual=${paginas == 0 ? 0 : (pagina > paginas - 1 ? paginas - 1 : pagina)},
+                          inicio=${actual * tam},
+                          fin=${actual * tam + tam > total ? total : actual * tam + tam}">
 
                 <form class="filters" method="get" th:action="@{/ventas/pedidos}">
                     <div class="fld">
@@ -107,7 +113,7 @@
                             </tr>
                             </thead>
                             <tbody>
-                            <tr th:each="p : ${pedidos}">
+                            <tr th:each="p : ${pedidos.subList(inicio, fin)}">
                                 <td><span class="mono-violet" th:text="${p.numero}">C-2026-1884</span></td>
                                 <td>
                                     <div>
@@ -140,12 +146,20 @@
                 </div>
 
                 <div class="pager" th:if="${!#lists.isEmpty(pedidos)}">
-                    <span><span th:text="#{comun.mostrando}">Mostrando</span> <b th:text="${#lists.size(pedidos)}">0</b>
-                        <span th:text="#{comun.de}">de</span> <b th:text="${#lists.size(pedidos)}">0</b> <span th:text="#{comun.registros}">registros</span></span>
+                    <span><span th:text="#{comun.mostrando}">Mostrando</span> <b th:text="${fin - inicio}">10</b>
+                        <span th:text="#{comun.de}">de</span> <b th:text="${total}">0</b> <span th:text="#{comun.registros}">registros</span></span>
                     <div class="pages">
-                        <button class="pg" disabled>&lsaquo;</button>
-                        <button class="pg on" disabled>1</button>
-                        <button class="pg" disabled>&rsaquo;</button>
+                        <a class="pg" th:classappend="${actual == 0} ? 'off' : ''"
+                           th:href="@{/ventas/pedidos(texto=${texto}, estado=${estado}, desde=${desde},
+                                                      hasta=${hasta}, pagina=${actual - 1})}">&lsaquo;</a>
+                        <a class="pg" th:each="i : ${#numbers.sequence(0, paginas - 1)}"
+                           th:classappend="${i == actual} ? 'on' : ''"
+                           th:text="${i + 1}"
+                           th:href="@{/ventas/pedidos(texto=${texto}, estado=${estado}, desde=${desde},
+                                                      hasta=${hasta}, pagina=${i})}">1</a>
+                        <a class="pg" th:classappend="${actual >= paginas - 1} ? 'off' : ''"
+                           th:href="@{/ventas/pedidos(texto=${texto}, estado=${estado}, desde=${desde},
+                                                      hasta=${hasta}, pagina=${actual + 1})}">&rsaquo;</a>
                     </div>
                 </div>
 
