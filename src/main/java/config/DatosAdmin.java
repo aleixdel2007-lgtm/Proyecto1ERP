@@ -46,10 +46,17 @@ public class DatosAdmin implements CommandLineRunner {
                     "Falta app.admin.password: es la contrasena del administrador inicial");
         }
 
-        Departamento direccion = new Departamento();
-        direccion.setNombre("Direccion");
-        direccion.setDescripcion("Gerencia y administracion del sistema");
-        em.persist(direccion);
+        // Departamentos
+        Departamento direccion = departamento("Direccion", "Gerencia y administracion del sistema");
+        departamento("Producto", "Catalogo, fichas, precios y publicaciones");
+        departamento("Atencion al cliente", "Soporte, pedidos y reembolsos");
+        departamento("Almacen", "Claves de licencia y aprovisionamiento");
+        departamento("Compras", "Ordenes de compra y relacion con proveedores");
+        departamento("Calidad", "Revision de solicitudes de publicacion");
+        departamento("Marketing", "Campanas, descuentos y novedades");
+        departamento("Finanzas", "Facturacion, cobros y cierres");
+        departamento("Sistemas", "Infraestructura, copias y seguridad");
+        departamento("Legal", "Contratos, licencias y proteccion de datos");
 
         Empleado admin = new Empleado();
         admin.setEmail(email);
@@ -65,5 +72,13 @@ public class DatosAdmin implements CommandLineRunner {
         admin.setIban("ES9121000418450200051332");
         admin.setFechaContratacion(LocalDate.now());
         em.persist(admin);
+    }
+
+    private Departamento departamento(String nombre, String descripcion) {
+        Departamento d = new Departamento();
+        d.setNombre(nombre);
+        d.setDescripcion(descripcion);
+        em.persist(d);
+        return d;
     }
 }
