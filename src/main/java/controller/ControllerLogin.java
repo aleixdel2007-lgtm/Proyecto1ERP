@@ -37,6 +37,10 @@ public class ControllerLogin {
     // Minimo 8 caracteres, una mayuscula y un numero
     private static final Pattern PASSWORD_VALIDA = Pattern.compile("^(?=.*[A-Z])(?=.*\\d).{8,}$");
 
+    // Reglas del cambio de contraseña: una mayúscula (también Ñ, À...) y un símbolo especial
+    private static final Pattern TIENE_MAYUSCULA = Pattern.compile("\\p{Lu}");
+    private static final Pattern TIENE_SIMBOLO = Pattern.compile("[^\\p{L}\\p{N}\\s]");
+
     private final UsuarioDao usuarioDao;
     private final PasswordEncoder codificador;
     private final ClienteService clienteService;
@@ -142,13 +146,25 @@ public class ControllerLogin {
             return "redirect:/user/changePassword";
         }
 
-        // 4. Distinta de la actual
+        // 4. Al menos una mayúscula
+        if (!TIENE_MAYUSCULA.matcher(nuevaPassword).find()) {
+            flash.addFlashAttribute("error", messageSource.getMessage("password.error.mayuscula", null, locale));
+            return "redirect:/user/changePassword";
+        }
+
+        // 5. Al menos un símbolo especial (cualquier cosa que no sea letra, número ni espacio)
+        if (!TIENE_SIMBOLO.matcher(nuevaPassword).find()) {
+            flash.addFlashAttribute("error", messageSource.getMessage("password.error.simbolo", null, locale));
+            return "redirect:/user/changePassword";
+        }
+
+        // 6. Distinta de la actual
         if (codificador.matches(nuevaPassword, usuario.getPasswordHash())) {
             flash.addFlashAttribute("error", messageSource.getMessage("password.error.igual", null, locale));
             return "redirect:/user/changePassword";
         }
 
-        // 5. Todo bien: codificar, guardar y volver al perfil
+        // 7. Todo bien: codificar, guardar y volver al perfil
         usuario.setPasswordHash(codificador.encode(nuevaPassword));
         usuarioDao.save(usuario);
 

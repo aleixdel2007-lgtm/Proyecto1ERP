@@ -185,3 +185,6 @@ select.inp{
     content:"";flex:none;width:6px;height:6px;border-radius:50%;
     background:var(--purple);
 }
+/* Regla cumplida (la marca cambiarPassword.js) */
+.pass-rules li.ok{color:var(--good)}
+.pass-rules li.ok::before{background:var(--good)}
