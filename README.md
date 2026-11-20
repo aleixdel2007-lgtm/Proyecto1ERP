@@ -2,15 +2,16 @@
 
 ERP de distribución de videojuegos con tienda para el cliente final. Por un lado el panel
 interno —catálogo, proveedores, órdenes de compra, claves de licencia, pedidos y facturas,
-clientes y empleados—, y por otro la tienda, donde el cliente compra, recibe su clave, la
-guarda en su biblioteca, se descarga el juego y lo valora. Los colaboradores publican sus
-propios juegos, que un gestor revisa antes de que salgan al catálogo.
+clientes, empleados y departamentos, más un panel de control que resume los números del
+negocio—, y por otro la tienda, donde el cliente compra, recibe su clave, la guarda en su
+biblioteca, se descarga el juego y lo valora. Los colaboradores publican sus propios juegos,
+que un gestor revisa antes de que salgan al catálogo.
 
 Todo el panel y la tienda están en castellano, inglés y catalán.
 
 ## Documentación
 
-La entrega completa está en `docs/Documentació final/`, en HTML y en PDF:
+La entrega completa está en `docs/Documentació final/`, en PDF:
 
 | Documento | Qué cuenta |
 |---|---|
@@ -18,8 +19,9 @@ La entrega completa está en `docs/Documentació final/`, en HTML y en PDF:
 | `ManualUsuario` | Qué ve cada rol y cómo se hace cada cosa, pantalla por pantalla |
 | `Arquitectura` | Las capas, las decisiones técnicas con su porqué, y lo que quedó fuera |
 
-El resto de `docs/`: el diseño de clases y de la base de datos en `LudusERP-Disseny-UML.pdf`, y los
-resúmenes por tema en `resumenes/`.
+El resto de `docs/`: el diseño de clases y de la base de datos en `LudusERP-Disseny-UML.pdf`, los
+resúmenes por tema en `resumenes/` —cada uno en PDF y en HTML, los HTML dentro de
+`resumenes/html/`— y el prototipo visual del panel en `prototipo.html`.
 
 ## Tecnologías
 
@@ -33,6 +35,7 @@ resúmenes por tema en `resumenes/`.
 | Avisos | WebSocket (STOMP) sobre `/topic` |
 | Pago | Stripe |
 | Correo | Spring Mail contra Mailpit |
+| Tareas | `@Scheduled`: cada 5 minutos cancela los pedidos pendientes de pago que han caducado |
 | Facturas | openhtmltopdf |
 
 ## Requisitos
@@ -102,12 +105,33 @@ Fuera del perfil `dev` manda `config/DatosAdmin`, que sobre una base sin usuario
 `app.admin.password`; si esa contraseña no está configurada, la aplicación no arranca, para
 que no quede nunca un admin con una contraseña conocida.
 
+## Contraseñas y bloqueo de cuenta
+
+Cada usuario se cambia la contraseña desde su perfil (`POST /user/changePassword`). Hay que
+acertar la actual, y la nueva necesita ocho caracteres, una mayúscula, un símbolo y ser
+distinta de la vieja. El registro del cliente pide ocho caracteres con mayúscula y número.
+
+**No hay cambio obligatorio en el primer acceso.** La marca `debe_cambiar_password` que lo
+preparaba se eliminó el 20/11/2026 —columna, campo, servicios y vistas incluidos— porque
+nadie la leía y el cambio desde el perfil cubre el caso.
+
+A los **cinco intentos fallidos** la cuenta se desactiva sola y la aplicación le escribe el
+motivo, que el gestor ve al pasar el ratón por el badge INACTIVO del listado de clientes. Un
+acierto antes del quinto devuelve el contador a cero. El límite vive en un solo sitio,
+`UsuarioServiceImpl.MAX_INTENTOS`, y el texto del motivo lo toma de ahí. Al reactivar la
+cuenta se borran el motivo y el contador; al desactivarla a mano, el gestor tiene que
+escribir el motivo, que es obligatorio.
+
 ## Base de datos y migraciones
 
 El esquema lo construye Flyway desde `src/main/resources/db/migration` (`V1` a `V10`).
 Hibernate va con `ddl-auto=validate`: no toca el esquema, solo comprueba que las entidades
 cuadren con las tablas y se niega a arrancar si no. Una entidad nueva sin su migración
 reventará el arranque, y es queriendo.
+
+Convención del proyecto: cuando hay que cambiar el esquema **se edita la migración que ya
+existe**, no se añade una nueva. El esquema se lee de un tirón, pero cambia el checksum de
+esa migración, así que cada cambio obliga a recrear la base.
 
 **Si alguien edita una migración ya aplicada**, Flyway se quejará del checksum al siguiente
 arranque. La salida buena es recrear la base:
@@ -138,8 +162,10 @@ falten sin pisar las que ya están, y desde ahí las sirve `MongoMessageSource`.
 mvn test
 ```
 
-Son pruebas de la capa web con `@WebMvcTest`: no necesitan ni base de datos ni Docker, y los
-textos se leen de los `.properties`, así que una clave que falte hace fallar la prueba.
+Son 22 pruebas en cuatro clases. `AccesoTest`, `ClientesTest` y `PanelControlTest` levantan
+solo su controlador con `@WebMvcTest`; `PanelServiceTest` prueba el servicio del panel con
+Mockito. Ninguna necesita base de datos ni Docker, y los textos se leen de los `.properties`,
+así que una clave que falte hace fallar la prueba.
 
 Están enganchadas a la fase `process-classes`, de modo que **se ejecutan también al arrancar
 la aplicación**: si una se rompe, el arranque se para antes de levantar nada.
@@ -161,6 +187,8 @@ src/main/resources/
   i18n/          los tres .properties
   templates/     Thymeleaf
   static/        css, js e imágenes
+
+src/test/java/test/  las pruebas y la clase de arranque que necesitan
 
 docs/            diseño UML, documentación final y resúmenes
 ```
