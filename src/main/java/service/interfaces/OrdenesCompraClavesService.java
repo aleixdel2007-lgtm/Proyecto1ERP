@@ -8,7 +8,7 @@ import model.aprovisionamiento.EstadoCompra;
 import model.aprovisionamiento.Proveedor;
 import model.catalogo.Videojuego;
 
-public interface CompraClavesService {
+public interface OrdenesCompraClavesService {
 
     // El listado del panel, saltandose cada filtro que llegue vacio
     List<Compra> listarCompras(Long proveedorId, EstadoCompra estado,

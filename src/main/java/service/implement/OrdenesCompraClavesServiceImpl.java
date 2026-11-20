@@ -22,11 +22,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import service.interfaces.ClaveLicenciaService;
-import service.interfaces.CompraClavesService;
+import service.interfaces.OrdenesCompraClavesService;
 
 @Service
 @Transactional(readOnly = true)
-public class CompraClavesServiceImpl implements CompraClavesService {
+public class OrdenesCompraClavesServiceImpl implements OrdenesCompraClavesService {
 
     // Las fechas del filtro llegan vacias casi siempre y la consulta las quiere con valor:
     // estos dos son el limite abierto, igual que en PedidoServiceImpl

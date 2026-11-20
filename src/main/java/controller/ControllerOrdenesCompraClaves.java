@@ -21,14 +21,14 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import service.interfaces.CompraClavesService;
+import service.interfaces.OrdenesCompraClavesService;
 
 @Controller
 @RequestMapping("/compras")
 @RequiredArgsConstructor
-public class ControllerCompraClaves {
+public class ControllerOrdenesCompraClaves {
 
-    private final CompraClavesService compraClavesService;
+    private final OrdenesCompraClavesService compraClavesService;
     private final MessageSource messageSource;
 
     // Listado de ordenes de compra con cuatro filtros y un contador por estado
