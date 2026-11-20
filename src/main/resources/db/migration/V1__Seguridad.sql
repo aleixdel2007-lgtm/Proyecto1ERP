@@ -20,7 +20,6 @@ CREATE TABLE usuario (
     nombre                VARCHAR(80)  NOT NULL,
     apellidos             VARCHAR(120) NULL,
     activo                BOOLEAN      NOT NULL DEFAULT TRUE,
-    debe_cambiar_password BOOLEAN      NOT NULL DEFAULT FALSE,
     motivo_inactivacion   VARCHAR(255) NULL,
     intentos_fallidos     INT          NOT NULL DEFAULT 0,
     fecha_alta            DATETIME     NOT NULL,

@@ -85,7 +85,6 @@
                                 <th th:text="#{comun.correo}">Correo</th>
                                 <th class="num" th:text="#{colaboradores.col.juegos}">Juegos publicados</th>
                                 <th th:text="#{colaboradores.col.alta}">Fecha de alta</th>
-                                <th th:text="#{colaboradores.col.password}">Contraseña</th>
                                 <th th:text="#{comun.estado}">Estado</th>
                                 <th class="acts"></th>
                             </tr>
@@ -114,11 +113,6 @@
                                 <td><span class="mono" th:text="${c.email}">jordi.bastida@example.com</span></td>
                                 <td class="num" th:text="${juegos[c.id] != null ? juegos[c.id] : 0}">0</td>
                                 <td th:text="${#temporals.format(c.fechaAlta, 'dd/MM/yyyy')}">12/10/2026</td>
-                                <td>
-                                    <span class="badge"
-                                          th:classappend="${c.debeCambiarPassword} ? 'b-warn' : 'b-good'"
-                                          th:text="${c.debeCambiarPassword} ? #{colaboradores.passPendiente} : #{colaboradores.passActiva}">ACTIVA</span>
-                                </td>
                                 <td>
                                     <span class="badge" th:classappend="${c.activo} ? 'b-good' : 'b-mute'"
                                           th:text="${c.activo} ? #{comun.activo} : #{comun.inactivo}">ACTIVO</span>

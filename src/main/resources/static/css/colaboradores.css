@@ -12,9 +12,6 @@
 .kv dt{color:var(--muted)}
 .kv dd{margin:0;color:var(--ink-2)}
 
-/* El distintivo de la contrasena, alineado con la altura de los campos */
-.col-estado-pwd{margin-top:6px}
-
 /* Campos que el formulario muestra pero no deja tocar */
 .col-fijo:disabled{
     color:var(--muted);background:rgba(0,0,0,.18);border-style:dashed;cursor:not-allowed;

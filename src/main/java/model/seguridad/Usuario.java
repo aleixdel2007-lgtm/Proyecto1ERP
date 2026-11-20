@@ -36,9 +36,6 @@ public abstract class Usuario {
     @Column(name = "activo", nullable = false)
     private boolean activo = true;
 
-    @Column(name = "debe_cambiar_password", nullable = false)
-    private boolean debeCambiarPassword = false;
-
     @Column(name = "motivo_inactivacion", length = 255)
     private String motivoInactivacion;
 

@@ -88,16 +88,6 @@
                                     <span class="hint" th:text="#{colaboradores.hint.activo}">Si lo desmarcas, no podrá iniciar sesión.</span>
                                 </div>
 
-                                <div class="frow">
-                                    <label th:text="#{colaboradores.col.password}">Contraseña</label>
-                                    <div class="col-estado-pwd">
-                                        <span class="badge"
-                                              th:classappend="${colaborador.debeCambiarPassword} ? 'b-warn' : 'b-good'"
-                                              th:text="${colaborador.debeCambiarPassword} ? #{colaboradores.passPendiente} : #{colaboradores.passActiva}">ACTIVA</span>
-                                    </div>
-                                    <span class="hint" th:text="#{colaboradores.hint.passwordEditar}">No se edita desde aquí.</span>
-                                </div>
-
                             </div>
 
                             <!-- La foto actual, o el avatar generico si todavia no tiene. Vacio

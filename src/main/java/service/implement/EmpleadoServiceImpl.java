@@ -87,7 +87,6 @@ public class EmpleadoServiceImpl implements EmpleadoService {
         }
 
         empleado.setPasswordHash(codificador.encode(password));
-        empleado.setDebeCambiarPassword(true);
         empleado.setDepartamento(buscarDepartamento(departamentoId));
         empleado.setNifHash(hashDelNif(empleado.getNif()));
 
@@ -112,7 +111,6 @@ public class EmpleadoServiceImpl implements EmpleadoService {
 
         if (password != null && !password.isBlank()) {
             existente.setPasswordHash(codificador.encode(password));
-            existente.setDebeCambiarPassword(true);
         }
 
         return empleadoDao.save(existente);

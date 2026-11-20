@@ -237,8 +237,6 @@ public class DatosIniciales implements CommandLineRunner {
         c.setNombre(nombre);
         c.setApellidos(apellidos);
         c.setPais(pais);
-        // Los colaboradores deben cambiar la contrasena en su primer acceso
-        c.setDebeCambiarPassword(true);
         em.persist(c);
         return c;
     }

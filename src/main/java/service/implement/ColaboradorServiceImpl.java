@@ -75,7 +75,6 @@ public class ColaboradorServiceImpl implements ColaboradorService {
         }
 
         colaborador.setPasswordHash(codificador.encode(password));
-        colaborador.setDebeCambiarPassword(true);
 
         return colaboradorDao.save(colaborador);
     }
@@ -92,7 +91,6 @@ public class ColaboradorServiceImpl implements ColaboradorService {
 
         if (password != null && !password.isBlank()) {
             existente.setPasswordHash(codificador.encode(password));
-            existente.setDebeCambiarPassword(true);
         }
 
         return colaboradorDao.save(existente);
