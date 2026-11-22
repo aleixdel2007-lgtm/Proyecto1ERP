@@ -38,6 +38,19 @@
             onclick="document.getElementById('dlg-salir').showModal()">Cerrar sesión</button>
     <th:block th:replace="~{fragments/dialogos :: confirmarSalida}"></th:block>
     <script th:src="@{/js/client-profile.js}" src="../static/js/client-profile.js"></script>
+
+    <script type="speculationrules" th:inline="none">
+        {
+          "prerender": [{
+            "where": { "and": [
+              { "href_matches": "/*" },
+              { "not": { "href_matches": "/tienda/descargar/*" } },
+              { "not": { "href_matches": "/ventas/facturas/*/pdf" } }
+            ]},
+            "eagerness": "moderate"
+          }]
+        }
+    </script>
 </header>
 
 <!-- La barra de la tienda. No es la de arriba: aqui la marca lleva al catalogo y no al
@@ -109,6 +122,19 @@
 
     </div>
     <script th:src="@{/js/client-profile.js}" src="../static/js/client-profile.js"></script>
+
+    <script type="speculationrules" th:inline="none">
+        {
+          "prerender": [{
+            "where": { "and": [
+              { "href_matches": "/*" },
+              { "not": { "href_matches": "/tienda/descargar/*" } },
+              { "not": { "href_matches": "/ventas/facturas/*/pdf" } }
+            ]},
+            "eagerness": "moderate"
+          }]
+        }
+    </script>
 </header>
 </body>
 </html>

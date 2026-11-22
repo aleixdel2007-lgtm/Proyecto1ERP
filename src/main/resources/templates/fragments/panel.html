@@ -76,6 +76,19 @@
                 onclick="document.getElementById('dlg-salir').showModal()">Cerrar sesión</button>
         <th:block th:replace="~{fragments/dialogos :: confirmarSalida}"></th:block>
     </div>
+
+    <script type="speculationrules" th:inline="none">
+        {
+          "prerender": [{
+            "where": { "and": [
+              { "href_matches": "/*" },
+              { "not": { "href_matches": "/tienda/descargar/*" } },
+              { "not": { "href_matches": "/ventas/facturas/*/pdf" } }
+            ]},
+            "eagerness": "moderate"
+          }]
+        }
+    </script>
 </aside>
 
 <header class="top" th:fragment="barra(seccion, titulo)">
