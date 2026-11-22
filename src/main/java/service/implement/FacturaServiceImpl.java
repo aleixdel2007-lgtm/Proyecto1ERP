@@ -1,6 +1,5 @@
 package service.implement;
 
-import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
 import dao.FacturasDao;
 import exception.factura.FacturaNoEncontradaException;
 import model.ventas.Factura;
@@ -9,9 +8,8 @@ import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 import service.interfaces.FacturasService;
+import service.interfaces.PdfService;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.util.List;
 
 @Service
@@ -21,6 +19,9 @@ public class FacturaServiceImpl implements FacturasService {
 
     @Autowired
     private TemplateEngine templateEngine;
+
+    @Autowired
+    private PdfService pdfService;
 
     @Override
     public List<Factura> listarFiltrado(String texto) {
@@ -41,16 +42,6 @@ public class FacturaServiceImpl implements FacturasService {
 
         String html = templateEngine.process("ventas/facturaPdf", contexto);
 
-        try (ByteArrayOutputStream salida = new ByteArrayOutputStream()) {
-            PdfRendererBuilder constructor = new PdfRendererBuilder();
-            constructor.useFastMode();
-            constructor.withHtmlContent(html, null);
-            constructor.toStream(salida);
-            constructor.run();
-            return salida.toByteArray();
-
-        } catch (IOException e) {
-            throw new IllegalStateException("No se pudo generar el PDF de la factura", e);
-        }
+        return pdfService.desdeHtml(html);
     }
 }
