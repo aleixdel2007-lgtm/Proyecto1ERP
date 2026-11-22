@@ -1,16 +1,13 @@
 package controller;
 
-import dao.UsuarioDao;
 import exception.email.CorreoYaRegistradoException;
 import exception.usuario.UsuarioNoEncontradoException;
 import lombok.RequiredArgsConstructor;
-import model.seguridad.Cliente;
 import model.seguridad.Paises;
 import model.seguridad.Usuario;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -22,10 +19,9 @@ import java.beans.Encoder;
 import java.net.Authenticator;
 import java.time.LocalDate;
 import java.util.Locale;
-import java.util.regex.Pattern;
 import org.springframework.ui.Model;
 import service.interfaces.ClienteService;
-import service.interfaces.UsuarioService;
+import service.interfaces.CuentaService;
 
 import org.springframework.web.bind.annotation.RequestBody;
 
@@ -34,18 +30,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 @RequiredArgsConstructor
 public class ControllerLogin {
 
-    // Minimo 8 caracteres, una mayuscula y un numero
-    private static final Pattern PASSWORD_VALIDA = Pattern.compile("^(?=.*[A-Z])(?=.*\\d).{8,}$");
-
-    // Reglas del cambio de contraseña: una mayúscula (también Ñ, À...) y un símbolo especial
-    private static final Pattern TIENE_MAYUSCULA = Pattern.compile("\\p{Lu}");
-    private static final Pattern TIENE_SIMBOLO = Pattern.compile("[^\\p{L}\\p{N}\\s]");
-
-    private final UsuarioDao usuarioDao;
-    private final PasswordEncoder codificador;
     private final ClienteService clienteService;
     private final MessageSource messageSource;
-    private final UsuarioService usuarioService;
+    private final CuentaService cuentaService;
 
     // Con sesion va al home; sin ella, al login
     @GetMapping("/")
@@ -74,12 +61,9 @@ public class ControllerLogin {
             @RequestParam(required = false) LocalDate fechaNacimiento,
             @RequestParam(required = false) String aceptaCondiciones,
             Model model, Locale locale) {
-        // El correo se guarda siempre en minusculas y sin espacios
-        String correo = email.trim().toLowerCase();
-
         try {
-            // Primera comprobacion: que el correo no este ya registrado
-            clienteService.comprobarCorreoLibre(correo);
+            cuentaService.registrarCliente(nombre, apellidos, email, password, repetirPassword,
+                    pais, fechaNacimiento, aceptaCondiciones != null);
         } catch (CorreoYaRegistradoException e) {
             // Se devuelve el formulario sin redirect para conservar lo escrito (menos las contrasenas)
             model.addAttribute("errorEmail", messageSource.getMessage(e.getMessage(), null, e.getMessage(), locale));
@@ -90,27 +74,9 @@ public class ControllerLogin {
             model.addAttribute("paises", Paises.values());
             model.addAttribute("fechaNacimiento", fechaNacimiento);
             return "login/crearCuenta";
-        }
-        // Validacion del servidor: no se fia de lo que haya comprobado el navegador
-        boolean valido = aceptaCondiciones != null
-                && !nombre.isBlank() && !apellidos.isBlank()
-                && password.equals(repetirPassword)
-                && PASSWORD_VALIDA.matcher(password).matches()
-                && usuarioDao.findByEmail(correo).isEmpty();
-        if (!valido) {
+        } catch (IllegalArgumentException e) {
             return "redirect:/registro?error";
         }
-
-        // Todo correcto: se crea el cliente con los datos ya limpios
-        Cliente cliente = new Cliente();
-        cliente.setNombre(nombre.trim());
-        cliente.setApellidos(apellidos.trim());
-        cliente.setEmail(correo);
-        // La contrasena se guarda cifrada, nunca en claro
-        cliente.setPasswordHash(codificador.encode(password));
-        cliente.setPais(pais == null || pais.isBlank() ? null : pais);
-        cliente.setFechaNacimiento(fechaNacimiento);
-        usuarioDao.save(cliente);
         return "redirect:/login?registrado";
     }
 
@@ -121,52 +87,15 @@ public class ControllerLogin {
                                 Authentication authentication,
                                 RedirectAttributes flash, Locale locale) {
 
-        Usuario usuario;
         try {
-            usuario = usuarioService.buscarUsuarioXEmail(authentication.getName());
+            cuentaService.cambiarPassword(authentication.getName(),
+                    passwordActual, nuevaPassword, repetirPassword);
         } catch (UsuarioNoEncontradoException e) {
             return "redirect:/login";
-        }
-
-        // 1. La contraseña actual: matches(claro, hash), nunca encode + equals
-        if (!codificador.matches(passwordActual, usuario.getPasswordHash())) {
-            flash.addFlashAttribute("error", messageSource.getMessage("password.error.actual", null, locale));
+        } catch (IllegalArgumentException e) {
+            flash.addFlashAttribute("error", messageSource.getMessage(e.getMessage(), null, locale));
             return "redirect:/user/changePassword";
         }
-
-        // 2. La nueva y su repetición deben coincidir
-        if (!nuevaPassword.equals(repetirPassword)) {
-            flash.addFlashAttribute("error", messageSource.getMessage("password.error.noCoincide", null, locale));
-            return "redirect:/user/changePassword";
-        }
-
-        // 3. Longitud mínima
-        if (nuevaPassword.length() < 8) {
-            flash.addFlashAttribute("error", messageSource.getMessage("password.error.corta", null, locale));
-            return "redirect:/user/changePassword";
-        }
-
-        // 4. Al menos una mayúscula
-        if (!TIENE_MAYUSCULA.matcher(nuevaPassword).find()) {
-            flash.addFlashAttribute("error", messageSource.getMessage("password.error.mayuscula", null, locale));
-            return "redirect:/user/changePassword";
-        }
-
-        // 5. Al menos un símbolo especial (cualquier cosa que no sea letra, número ni espacio)
-        if (!TIENE_SIMBOLO.matcher(nuevaPassword).find()) {
-            flash.addFlashAttribute("error", messageSource.getMessage("password.error.simbolo", null, locale));
-            return "redirect:/user/changePassword";
-        }
-
-        // 6. Distinta de la actual
-        if (codificador.matches(nuevaPassword, usuario.getPasswordHash())) {
-            flash.addFlashAttribute("error", messageSource.getMessage("password.error.igual", null, locale));
-            return "redirect:/user/changePassword";
-        }
-
-        // 7. Todo bien: codificar, guardar y volver al perfil
-        usuario.setPasswordHash(codificador.encode(nuevaPassword));
-        usuarioDao.save(usuario);
 
         flash.addFlashAttribute("okPassword", messageSource.getMessage("password.ok", null, locale));
         return "redirect:/user/profile";
