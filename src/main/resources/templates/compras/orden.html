@@ -27,7 +27,7 @@
                              Una RECIBIDA o una CANCELADA son de solo lectura: de la recibida han
                              salido claves, y alguna puede estar ya vendida. -->
         <main class="canvas"
-              th:with="editable=${compra.id == null or compra.estado.name() == 'BORRADOR'},
+              th:with="editable=${compra.id == null},
                        lineasEditables=${compra.id != null and (compra.estado.name() == 'BORRADOR'
                                         or compra.estado.name() == 'CONFIRMADA')}">
 
