@@ -13,5 +13,5 @@ public interface ValoracionService {
 
     boolean haValorado(String emailCliente, Long videojuegoId);
 
-    boolean tieneJuego(String emailCliente, Long videojuegoId);
+    boolean puedeValorar(String emailCliente, Long videojuegoId);
 }

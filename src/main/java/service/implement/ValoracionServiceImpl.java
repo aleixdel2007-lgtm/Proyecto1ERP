@@ -10,6 +10,7 @@ import exception.valoracion.ValoracionInvalidaException;
 import exception.valoracion.ValoracionSinCompraException;
 import exception.videojuego.VideojuegoNoEncontradoException;
 import java.util.List;
+import model.catalogo.Videojuego;
 import model.valoracion.EstadoValoracion;
 import model.valoracion.Valoracion;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,7 +47,11 @@ public class ValoracionServiceImpl implements ValoracionService {
     @Override
     @Transactional
     public Valoracion crear(String emailCliente, Long videojuegoId, String titulo, String descripcion, int puntuacion) {
-        if (!claveLicenciaDao.estaEnBiblioteca(emailCliente, videojuegoId)) {
+        Videojuego videojuego = videojuegoDao.findById(videojuegoId)
+                .orElseThrow(() -> new VideojuegoNoEncontradoException(videojuegoId));
+
+        if (!esGratis(videojuego)
+                && !claveLicenciaDao.estaEnBiblioteca(emailCliente, videojuegoId)) {
             throw new ValoracionSinCompraException(videojuegoId);
         }
         if (titulo == null || titulo.isBlank()) {
@@ -66,8 +71,7 @@ public class ValoracionServiceImpl implements ValoracionService {
         Valoracion v = new Valoracion();
         v.setCliente(clienteDao.findByEmail(emailCliente)
                 .orElseThrow(() -> new UsuarioNoEncontradoException(emailCliente)));
-        v.setVideojuego(videojuegoDao.findById(videojuegoId)
-                .orElseThrow(() -> new VideojuegoNoEncontradoException(videojuegoId)));
+        v.setVideojuego(videojuego);
         v.setTitulo(titulo.trim());
         v.setDescripcion(descripcion == null || descripcion.isBlank() ? null : descripcion.trim());
         v.setValoracion(puntuacion);
@@ -80,8 +84,23 @@ public class ValoracionServiceImpl implements ValoracionService {
         return valoracionDao.existsByClienteEmailAndVideojuegoId(emailCliente, videojuegoId);
     }
 
+    // Un juego gratis se juega sin comprarlo, asi que tambien se valora sin tenerlo
     @Override
-    public boolean tieneJuego(String emailCliente, Long videojuegoId) {
-        return claveLicenciaDao.estaEnBiblioteca(emailCliente, videojuegoId);
+    public boolean puedeValorar(String emailCliente, Long videojuegoId) {
+
+        Videojuego videojuego = videojuegoDao.findById(videojuegoId).orElse(null);
+
+        if (videojuego == null) {
+            return false;
+        }
+        return esGratis(videojuego)
+                || claveLicenciaDao.estaEnBiblioteca(emailCliente, videojuegoId);
+    }
+
+    // El mismo criterio que la descarga en BibliotecaServiceImpl: manda el precio con descuento
+    private boolean esGratis(Videojuego videojuego) {
+        return (videojuego.getPrecioDescuento() != null
+                ? videojuego.getPrecioDescuento()
+                : videojuego.getPrecio()).signum() == 0;
     }
 }
