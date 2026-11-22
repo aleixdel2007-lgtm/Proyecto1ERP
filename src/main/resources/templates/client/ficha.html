@@ -101,7 +101,7 @@
                     <p th:if="${mensaje}" th:text="${mensaje}" style="color:var(--good)">Valoración publicada</p>
                     <p th:if="${error}" th:text="${error}" style="color:#ff7b72">Error</p>
 
-                    <th:block sec:authorize="hasRole('CLIENTE')">
+                    <th:block sec:authorize="hasRole('CLIENTE')" th:if="${tieneJuego}">
                     <p class="sinopsis muted" th:unless="${yaValorado}" th:text="#{ficha.val.escribe}">Escribe alguna reseña de este juego.</p>
                     <p class="sinopsis muted" th:if="${yaValorado}" th:text="#{ficha.val.yaValorado}">Ya has valorado este juego. Solo se puede dejar una reseña por juego.</p>
                     <form class="stack" th:unless="${yaValorado}" th:action="@{/valoraciones/guardar}" method="post">

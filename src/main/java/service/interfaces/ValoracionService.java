@@ -12,4 +12,6 @@ public interface ValoracionService {
     Valoracion crear(String emailCliente, Long videojuegoId, String titulo, String descripcion, int puntuacion);
 
     boolean haValorado(String emailCliente, Long videojuegoId);
+
+    boolean tieneJuego(String emailCliente, Long videojuegoId);
 }

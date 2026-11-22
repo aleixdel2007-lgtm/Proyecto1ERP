@@ -122,6 +122,7 @@ public class ControllerTienda {
         model.addAttribute("tieneDescarga", tiendaService.tieneDescarga(id));
         // Si ya valoro, se oculta el formulario de resena
         model.addAttribute("yaValorado", valoracionService.haValorado(authentication.getName(), id));
+        model.addAttribute("tieneJuego", valoracionService.tieneJuego(authentication.getName(), id));
 
         cargarImagenes(model, id);
 

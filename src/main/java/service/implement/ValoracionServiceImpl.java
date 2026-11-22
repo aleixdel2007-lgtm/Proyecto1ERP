@@ -1,11 +1,13 @@
 package service.implement;
 
+import dao.ClaveLicenciaDao;
 import dao.ClienteDao;
 import dao.ValoracionDao;
 import dao.VideojuegoDao;
 import exception.usuario.UsuarioNoEncontradoException;
 import exception.valoracion.ValoracionDuplicadaException;
 import exception.valoracion.ValoracionInvalidaException;
+import exception.valoracion.ValoracionSinCompraException;
 import exception.videojuego.VideojuegoNoEncontradoException;
 import java.util.List;
 import model.valoracion.EstadoValoracion;
@@ -28,6 +30,9 @@ public class ValoracionServiceImpl implements ValoracionService {
     @Autowired
     private VideojuegoDao videojuegoDao;
 
+    @Autowired
+    private ClaveLicenciaDao claveLicenciaDao;
+
     @Override
     public List<Valoracion> listarVisiblesPorVideojuego(Long videojuegoId) {
         return valoracionDao.listarVisiblesPorVideojuego(videojuegoId, EstadoValoracion.ACTIVA);
@@ -41,6 +46,9 @@ public class ValoracionServiceImpl implements ValoracionService {
     @Override
     @Transactional
     public Valoracion crear(String emailCliente, Long videojuegoId, String titulo, String descripcion, int puntuacion) {
+        if (!claveLicenciaDao.estaEnBiblioteca(emailCliente, videojuegoId)) {
+            throw new ValoracionSinCompraException(videojuegoId);
+        }
         if (titulo == null || titulo.isBlank()) {
             throw new ValoracionInvalidaException("valoraciones.error.tituloObligatorio");
         }
@@ -70,5 +78,10 @@ public class ValoracionServiceImpl implements ValoracionService {
     @Override
     public boolean haValorado(String emailCliente, Long videojuegoId) {
         return valoracionDao.existsByClienteEmailAndVideojuegoId(emailCliente, videojuegoId);
+    }
+
+    @Override
+    public boolean tieneJuego(String emailCliente, Long videojuegoId) {
+        return claveLicenciaDao.estaEnBiblioteca(emailCliente, videojuegoId);
     }
 }
