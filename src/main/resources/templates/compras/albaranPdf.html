@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html th:lang="${#locale.language}" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8" />
+    <title th:text="#{compras.albaranPdf} + ' ' + ${compra.numero}">Albarán de recepción</title>
+    <style>
+        @page { size: A4; margin: 20mm; }
+        body { font-family: sans-serif; font-size: 11pt; color: #222; }
+        h1 { font-size: 20pt; margin: 0 0 4pt 0; }
+        .muted { color: #666; }
+        table { width: 100%; border-collapse: collapse; margin-top: 18pt; }
+        th { text-align: left; border-bottom: 1pt solid #333; padding: 6pt 4pt; }
+        td { border-bottom: 0.5pt solid #ccc; padding: 6pt 4pt; }
+        .num { text-align: right; }
+        .notas { margin-top: 18pt; }
+    </style>
+</head>
+<body>
+    <h1>LudusERP</h1>
+    <div class="muted"><span th:text="#{compras.albaranPdf}">Albarán de recepción</span>
+        <b th:text="${compra.numero}">OC-2026-0001</b>
+        · <span th:text="#{compras.recibidaEl}">recibida el</span>
+        <span th:text="${#temporals.format(compra.fechaRecepcion, 'dd/MM/yyyy')}">01/01/2026</span></div>
+    <div class="muted" th:if="${compra.numeroAlbaran != null}">
+        <span th:text="#{compras.albaran}">Número de albarán</span>
+        <span th:text="${compra.numeroAlbaran}">ALB-IDS-77213</span></div>
+
+    <p>
+        <span class="muted" th:text="#{proveedores.col.proveedor}">Proveedor</span><br />
+        <b th:text="${compra.proveedor.nombreComercial}">Iberia Digital Supply</b><br />
+        <span th:text="${compra.proveedor.email}">pedidos@iberiadig.es</span>
+    </p>
+
+    <table>
+        <thead>
+        <tr>
+            <th th:text="#{panel.menu.videojuegos}">Videojuego</th>
+            <th class="num" th:text="#{compras.col.pedido}">Pedido</th>
+            <th class="num" th:text="#{compras.col.recibido}">Recibido</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="l : ${compra.lineas}">
+            <td th:text="${l.videojuego.titulo}">Juego</td>
+            <td class="num" th:text="${l.cantidad != null} ? ${l.cantidad} : '—'">200</td>
+            <td class="num" th:text="${l.cantidadRecibida != null} ? ${l.cantidadRecibida} : '0'">200</td>
+        </tr>
+        </tbody>
+    </table>
+
+    <div class="notas" th:if="${compra.observaciones != null and !compra.observaciones.isEmpty()}">
+        <span class="muted" th:text="#{compras.observaciones}">Observaciones</span><br />
+        <span th:text="${compra.observaciones}">20 unidades menos en Ashen Crown.</span>
+    </div>
+</body>
+</html>

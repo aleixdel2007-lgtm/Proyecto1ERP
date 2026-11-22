@@ -183,6 +183,11 @@
                                        th:href="@{/compras/ordenes/{id}(id=${c.id})}">
                                         <svg th:replace="~{fragments/iconos :: eye}"></svg>
                                     </a>
+                                    <a class="btn btn-sm btn-ghost" title="Ver el albarán en PDF" th:title="#{compras.verAlbaran}"
+                                       th:if="${c.estado.name() == 'RECIBIDA'}" target="_blank"
+                                       th:href="@{/compras/ordenes/{id}/albaran(id=${c.id})}">
+                                        <svg th:replace="~{fragments/iconos :: pdf}"></svg>
+                                    </a>
                                     <a class="btn btn-sm btn-primary" title="Recibir mercancía" th:title="#{compras.recibir}"
                                        th:if="${c.estado.name() == 'CONFIRMADA'}"
                                        th:href="@{/compras/ordenes/{id}/recepcion(id=${c.id})}">

@@ -83,7 +83,8 @@
             "where": { "and": [
               { "href_matches": "/*" },
               { "not": { "href_matches": "/tienda/descargar/*" } },
-              { "not": { "href_matches": "/ventas/facturas/*/pdf" } }
+              { "not": { "href_matches": "/ventas/facturas/*/pdf" } },
+              { "not": { "href_matches": "/compras/ordenes/*/albaran" } }
             ]},
             "eagerness": "moderate"
           }]

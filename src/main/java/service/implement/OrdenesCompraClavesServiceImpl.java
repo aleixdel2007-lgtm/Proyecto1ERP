@@ -12,6 +12,7 @@ import exception.videojuego.VideojuegoNoEncontradoException;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Locale;
 import model.aprovisionamiento.Compra;
 import model.aprovisionamiento.EstadoCompra;
 import model.aprovisionamiento.LineaCompra;
@@ -21,8 +22,11 @@ import model.seguridad.Empleado;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.thymeleaf.TemplateEngine;
+import org.thymeleaf.context.Context;
 import service.interfaces.ClaveLicenciaService;
 import service.interfaces.OrdenesCompraClavesService;
+import service.interfaces.PdfService;
 
 @Service
 @Transactional(readOnly = true)
@@ -47,6 +51,12 @@ public class OrdenesCompraClavesServiceImpl implements OrdenesCompraClavesServic
 
     @Autowired
     private ClaveLicenciaService claveLicenciaService;
+
+    @Autowired
+    private TemplateEngine templateEngine;
+
+    @Autowired
+    private PdfService pdfService;
 
     @Override
     public List<Compra> listarCompras(Long proveedorId, EstadoCompra estado,
@@ -292,6 +302,22 @@ public class OrdenesCompraClavesServiceImpl implements OrdenesCompraClavesServic
             acunadas += claveLicenciaService.acunarClaves(linea, linea.getCantidadRecibida());
         }
         return acunadas;
+    }
+
+    // Exige la orden RECIBIDA: antes de eso no hay ni albaran, ni fecha, ni cantidades recibidas
+    @Override
+    public byte[] generarAlbaranPdf(Long id, Locale locale) {
+
+        Compra compra = buscarCompraXId(id);
+
+        if (compra.getEstado() != EstadoCompra.RECIBIDA) {
+            throw new EstadoCompraInvalidoException("compras.accion.albaran", compra.getEstado());
+        }
+
+        Context contexto = new Context(locale);
+        contexto.setVariable("compra", compra);
+
+        return pdfService.desdeHtml(templateEngine.process("compras/albaranPdf", contexto));
     }
 
     // Las lineas se tocan mientras el proveedor todavia puede cambiar el pedido. Una RECIBIDA

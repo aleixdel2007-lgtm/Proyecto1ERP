@@ -3,6 +3,7 @@ package service.interfaces;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Locale;
 import model.aprovisionamiento.Compra;
 import model.aprovisionamiento.EstadoCompra;
 import model.aprovisionamiento.Proveedor;
@@ -41,4 +42,7 @@ public interface OrdenesCompraClavesService {
     // Cierra la orden con lo que ha llegado y acuna las claves. Devuelve cuantas ha creado
     int recibirCompra(Long id, List<Long> lineaIds, List<Integer> recibidas,
                       String numeroAlbaran, String observaciones);
+
+    // El albaran de recepcion en PDF. Solo tiene sentido sobre una orden RECIBIDA
+    byte[] generarAlbaranPdf(Long id, Locale locale);
 }

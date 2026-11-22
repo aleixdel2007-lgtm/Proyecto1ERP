@@ -11,6 +11,9 @@ import model.aprovisionamiento.Compra;
 import model.aprovisionamiento.EstadoCompra;
 import org.springframework.context.MessageSource;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -231,6 +234,19 @@ public class ControllerOrdenesCompraClaves {
         }
 
         return "redirect:/compras/ordenes/" + id;
+    }
+
+    // Genera el albaran de recepcion; inline lo abre en el navegador en vez de descargarlo
+    @GetMapping("/ordenes/{id}/albaran")
+    public ResponseEntity<byte[]> descargarAlbaranPdf(@PathVariable Long id, Locale locale) {
+
+        byte[] pdf = compraClavesService.generarAlbaranPdf(id, locale);
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION,
+                        "inline; filename=\"albaran-" + id + ".pdf\"")
+                .contentType(MediaType.APPLICATION_PDF)
+                .body(pdf);
     }
 
     // Prepara la ficha de la orden y decide que partes se pueden editar
