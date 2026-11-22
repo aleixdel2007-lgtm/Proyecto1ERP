@@ -13,6 +13,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.assertj.MockMvcTester;
 import service.interfaces.ClienteService;
+import service.interfaces.CuentaService;
 import service.interfaces.UsuarioService;
 import service.interfaces.VideojuegoService;
 
@@ -37,6 +38,9 @@ class AccesoTest {
 
     @MockitoBean
     private VideojuegoService videojuegoService;
+
+    @MockitoBean
+    private CuentaService cuentaService;
 
     @Test
     void sinSesionLaRaizPideIdentificarse() {
