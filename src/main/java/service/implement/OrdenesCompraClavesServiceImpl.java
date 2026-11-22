@@ -81,8 +81,8 @@ public class OrdenesCompraClavesServiceImpl implements OrdenesCompraClavesServic
     // Los juegos de un colaborador no se le compran a nadie, asi que el desplegable de las
     // lineas pide el listado del panel con soloColaborador en false
     @Override
-    public List<Videojuego> listarVideojuegosPropios() {
-        return videojuegoDao.listarFiltrado(null, null, null, null, null, null, false);
+    public List<Videojuego> listarVideojuegosPropios(Long proveedorId) {
+        return videojuegoDao.listarFiltrado(null, null, null, null, null, null, proveedorId, false);
     }
 
     @Override
@@ -156,6 +156,11 @@ public class OrdenesCompraClavesServiceImpl implements OrdenesCompraClavesServic
         if (videojuego.getColaborador() != null) {
             throw new LineaCompraInvalidaException(
                     "Los juegos de un colaborador no se le compran a nadie");
+        }
+
+        if (videojuego.getProveedor() == null
+                || !videojuego.getProveedor().getId().equals(compra.getProveedor().getId())) {
+            throw new LineaCompraInvalidaException("compras.error.juegoDeOtroProveedor");
         }
 
         if (buscarLineaXVideojuego(compra, videojuegoId) != null) {

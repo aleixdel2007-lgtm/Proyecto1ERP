@@ -24,7 +24,7 @@ public interface OrdenesCompraClavesService {
     List<Proveedor> listarProveedoresActivos();
 
     // Los juegos del desplegable de las lineas: los nuestros, que son los que se compran
-    List<Videojuego> listarVideojuegosPropios();
+    List<Videojuego> listarVideojuegosPropios(Long proveedorId);
 
     // Crea el borrador con su numero, o guarda la cabecera de uno que ya existe
     Compra guardarCompra(Compra compra, Long proveedorId, String emailEmpleado);

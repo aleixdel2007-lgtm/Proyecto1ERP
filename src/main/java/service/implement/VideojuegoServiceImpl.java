@@ -96,7 +96,7 @@ public class VideojuegoServiceImpl implements VideojuegoService {
 
         List<Videojuego> filtrados = videojuegoDao.listarFiltrado(
                 normalizarTexto(texto), categoriaId, plataformaId, precioMin, precioMax,
-                activo, soloColaborador);
+                activo, null, soloColaborador);
 
         if (filtrados.isEmpty()) {
             return filtrados;

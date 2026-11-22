@@ -236,9 +236,11 @@ public class ControllerOrdenesCompraClaves {
     // Prepara la ficha de la orden y decide que partes se pueden editar
     private String prepararFicha(Compra compra, Model model) {
 
+        Long proveedorId = compra.getProveedor() != null ? compra.getProveedor().getId() : null;
+
         model.addAttribute("compra", compra);
         model.addAttribute("proveedores", compraClavesService.listarProveedoresActivos());
-        model.addAttribute("videojuegos", compraClavesService.listarVideojuegosPropios());
+        model.addAttribute("videojuegos", compraClavesService.listarVideojuegosPropios(proveedorId));
 
         // La cabecera solo se edita en BORRADOR; las lineas tambien en CONFIRMADA y si ya existe la orden
         model.addAttribute("editable", compra.getEstado() == EstadoCompra.BORRADOR);

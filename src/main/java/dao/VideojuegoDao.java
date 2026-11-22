@@ -34,6 +34,7 @@ public interface VideojuegoDao extends JpaRepository<Videojuego, Long> {
             + "and (:precioMin is null or v.precio >= :precioMin) "
             + "and (:precioMax is null or v.precio <= :precioMax) "
             + "and (:activo is null or v.activo = :activo) "
+            + "and (:proveedorId is null or v.proveedor.id = :proveedorId) "
             + "and (:soloColaborador is null "
             + "     or (:soloColaborador = true and v.colaborador is not null) "
             + "     or (:soloColaborador = false and v.colaborador is null)) "
@@ -44,6 +45,7 @@ public interface VideojuegoDao extends JpaRepository<Videojuego, Long> {
             @Param("precioMin") BigDecimal precioMin,
             @Param("precioMax") BigDecimal precioMax,
             @Param("activo") Boolean activo,
+            @Param("proveedorId") Long proveedorId,
             @Param("soloColaborador") Boolean soloColaborador);
 
     @Query("select distinct v from Videojuego v "
