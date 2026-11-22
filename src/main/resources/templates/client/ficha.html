@@ -170,14 +170,6 @@
                             videojuego.precioDescuento != null ? videojuego.precioDescuento : videojuego.precio,1, 'POINT', 2, 'COMMA')} + ' €'">44,99 €</span>
                 </div>
 
-                <!-- El stock sale de clave_licencia, que todavia no tiene ni DAO. Un numero
-                     inventado aqui enganaria en la unica pantalla que existe para comprobar
-                     como queda, asi que se queda con el mismo guion que el listado. -->
-                <div class="row">
-                    <span class="muted" title="Pendiente de las claves de licencia" th:title="#{ficha.pendienteClaves}">—</span>
-                    <span class="hint" th:text="#{ficha.clavesStock}">claves en stock</span>
-                </div>
-
                 <!-- Un juego gratis no pasa por la cesta ni por la biblioteca: no hay nada que
                      cobrar y no hace falta clave que pruebe que es tuyo, asi que se baja de
                      aqui. tieneDescarga lo pone el controlador y dice si hay version con ZIP;
