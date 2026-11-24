@@ -1,0 +1,353 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>LudusERP · Entrar y bloquearse a los cinco fallos</title>
+<!-- El aspecto sale de estilo.css, compartida por todos los resumenes.
+     Para regenerar el PDF:
+       chrome --headless --disable-gpu --no-pdf-header-footer
+              --print-to-pdf=docs/resumenes/BloqueoDeCuenta.pdf docs/resumenes/html/BloqueoDeCuenta.html -->
+<link rel="stylesheet" href="estilo.css">
+</head>
+<body>
+
+<!-- =================== 1 · PORTADA =================== -->
+
+<div class="cubierta">
+  <div class="cub-top">
+    <div class="cub-marca">L</div>
+    <div class="cub-eyebrow">LudusERP · resumen técnico</div>
+    <h1>Entrar, y bloquearse<br>a los cinco fallos</h1>
+    <div class="cub-sub">Quién recibe el POST del login si no hay ningún controlador que lo escuche,
+    quién cuenta los intentos y qué pasa exactamente en el quinto.</div>
+    <div class="cub-regla"></div>
+    <div class="cub-idea">
+      <h3>La idea en una frase</h3>
+      <p>El POST del login <b>no lo recibe ningún controlador</b>: lo intercepta un filtro de Spring
+      Security antes de llegar a Spring MVC. Nuestro código solo pone dos cosas: <b>de dónde se saca
+      el usuario</b> y <b>qué hacer cuando acierta o falla</b>. El contador de intentos vive justo
+      ahí, en el camino del fallo.</p>
+    </div>
+  </div>
+  <div class="cub-pie">
+    <span><b>Clases centrales:</b> <code>SecurityConfig</code> · <code>UsuarioServiceImpl</code> · <code>UsuarioDao</code></span>
+    <span><b>Código:</b> master en <code>57c3c62</code></span>
+    <span><b>5 páginas</b></span>
+  </div>
+</div>
+
+<!-- =================== 2 · INDICE Y RESUMEN =================== -->
+
+<div class="salto"></div>
+<div class="seccion">Índice</div>
+
+<div class="indice">
+  <div class="ix"><span class="ixn">1</span><span class="ixt">
+      <b>En 30 segundos</b><span>El mecanismo entero en seis frases, para repasar antes de un examen</span>
+      </span><span class="ixp">pág. 2</span></div>
+  <div class="ix"><span class="ixn">2</span><span class="ixt">
+      <b>Qué pieza pone cada uno</b><span>Lo que trae Spring Security hecho y las cuatro cosas que escribimos nosotros</span>
+      </span><span class="ixp">pág. 2</span></div>
+  <div class="ix"><span class="ixn">3</span><span class="ixt">
+      <b>El recorrido de un intento</b><span>Diagrama con los dos finales posibles, y el archivo de cada paso</span>
+      </span><span class="ixp">pág. 3</span></div>
+  <div class="ix"><span class="ixn">4</span><span class="ixt">
+      <b>Los conceptos que toca</b><span>Las ocho ideas que se aprenden aquí y para qué sirve cada una</span>
+      </span><span class="ixp">pág. 4</span></div>
+  <div class="ix"><span class="ixn">5</span><span class="ixt">
+      <b>Las preguntas de examen</b><span>Por qué está hecho así, respondido</span>
+      </span><span class="ixp">pág. 5</span></div>
+</div>
+
+<div class="seccion"><span class="n">1</span>En 30 segundos</div>
+
+<div class="rapido">
+  <ol>
+    <li>El formulario postea a <code>/login</code> con dos campos que se llaman obligatoriamente
+    <code>username</code> y <code>password</code>.</li>
+    <li>Ese POST lo intercepta un <b>filtro</b>: <b>no existe ningún
+    <code>@PostMapping("/login")</code></b> en el proyecto.</li>
+    <li>Nuestro <code>UserDetailsService</code> carga el usuario de MySQL por su email y lo marca
+    deshabilitado si no está activo.</li>
+    <li>El proveedor vuelve a aplicar <b>BCrypt</b> a lo escrito y lo compara con el hash: nunca se
+    descifra nada.</li>
+    <li>Si acierta, el <code>successHandler</code> <b>deja el contador a cero</b> y reparte: tienda
+    para cliente y colaborador, panel para el resto.</li>
+    <li>Si falla, el <code>failureHandler</code> <b>suma un intento en la base</b>, y si ha sido el
+    quinto desactiva la cuenta, escribe el motivo y avisa en el momento.</li>
+  </ol>
+</div>
+
+<div class="seccion"><span class="n">2</span>Qué pieza pone cada uno</div>
+
+<table>
+  <thead>
+    <tr><th style="width:30%">Pieza</th><th style="width:22%">De quién es</th><th>Qué hace</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><code>UsernamePassword<br>AuthenticationFilter</code> y<br><code>DaoAuthenticationProvider</code></td>
+        <td class="rol">Spring Security<br><span style="color:#6b6b75">no se escribe</span></td>
+        <td>El filtro intercepta el POST y lee <code>username</code> y <code>password</code> —por eso
+        esos nombres no se pueden cambiar—; el proveedor pide el usuario, comprueba la contraseña con
+        el <code>PasswordEncoder</code> y mira si la cuenta está habilitada</td></tr>
+    <tr class="bueno"><td>Los dos <code>@Bean</code>:<br><code>PasswordEncoder</code> y<br><code>UserDetailsService</code><br><span class="rol">SecurityConfig:27-46</span></td>
+        <td class="rol">NUESTRO</td>
+        <td>Con qué se comprueban las contraseñas (<code>BCryptPasswordEncoder</code>) y de dónde
+        sale el usuario: <code>findByEmail</code>, el hash, el rol y
+        <code>.disabled(!u.isActivo())</code></td></tr>
+    <tr class="bueno"><td><code>successHandler</code> y<br><code>failureHandler</code><br><span class="rol">SecurityConfig:84-103</span></td>
+        <td class="rol">NUESTRO</td>
+        <td>Qué pasa al acertar y al fallar. Aquí se engancha el contador de intentos, que no es cosa
+        de Spring sino nuestra</td></tr>
+  </tbody>
+</table>
+
+<!-- =================== 3 · DIAGRAMA =================== -->
+
+<div class="salto"></div>
+<div class="seccion"><span class="n">3</span>El recorrido de un intento</div>
+<p class="intro">Primero se comprueba quién eres (fase 1), y según el resultado se toma uno de los dos
+caminos (fase 2). Las cajas <b>moradas</b> son piezas de Spring Security; las <b>blancas</b>, código
+nuestro. Cada caja lleva debajo su archivo.</p>
+
+<div class="diagrama">
+<svg viewBox="0 0 560 500" xmlns="http://www.w3.org/2000/svg" role="img"
+     aria-label="Diagrama del recorrido de un intento de login, con el camino del acierto y el del fallo">
+  <defs>
+    <marker id="f" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
+      <path d="M0,0 L7,3.5 L0,7 z" fill="#45454e"/></marker>
+  </defs>
+
+  <!-- carriles -->
+  <rect x="2"   y="2" width="178" height="496" fill="#f5f5f8" stroke="#d9d9e0"/>
+  <rect x="188" y="2" width="370" height="496" fill="#fff"    stroke="#d9d9e0"/>
+  <rect x="2"   y="2" width="178" height="24" fill="#1b1b1f"/>
+  <rect x="188" y="2" width="370" height="24" fill="#6d28d9"/>
+  <text x="91"  y="18" text-anchor="middle" font-size="9.6" font-weight="700" fill="#fff" font-family="Segoe UI,sans-serif">NAVEGADOR</text>
+  <text x="373" y="18" text-anchor="middle" font-size="9.6" font-weight="700" fill="#fff" font-family="Segoe UI,sans-serif">NUESTRO SERVIDOR</text>
+
+  <!-- ===== FASE 1 ===== -->
+  <rect x="2" y="32" width="556" height="19" fill="#f1ebfd"/>
+  <text x="10" y="45.5" font-size="9" font-weight="700" fill="#6d28d9" font-family="Segoe UI,sans-serif" letter-spacing=".5">FASE 1 · SE COMPRUEBA QUIÉN ERES</text>
+
+  <!-- 1 -->
+  <rect x="12" y="60" width="158" height="46" rx="4" fill="#fff" stroke="#1b1b1f" stroke-width="1.2"/>
+  <text x="91" y="78" text-anchor="middle" font-size="10" font-weight="650" font-family="Segoe UI,sans-serif">Escribes correo y</text>
+  <text x="91" y="90" text-anchor="middle" font-size="10" font-weight="650" font-family="Segoe UI,sans-serif">contraseña</text>
+  <text x="91" y="101" text-anchor="middle" font-size="7.4" fill="#6b6b75" font-family="Consolas,monospace">login.html:21 · username/password</text>
+  <circle cx="22" cy="70" r="8" fill="#6d28d9"/><text x="22" y="73.5" text-anchor="middle" font-size="9" font-weight="700" fill="#fff" font-family="Segoe UI,sans-serif">1</text>
+  <line x1="170" y1="83" x2="198" y2="83" stroke="#45454e" stroke-width="1.3" marker-end="url(#f)"/>
+  <text x="184" y="77" text-anchor="middle" font-size="7" fill="#6b6b75" font-family="Consolas,monospace">POST</text>
+
+  <!-- 2 -->
+  <rect x="200" y="60" width="344" height="46" rx="4" fill="#f1ebfd" stroke="#6d28d9" stroke-width="1.2"/>
+  <text x="372" y="77" text-anchor="middle" font-size="10" font-weight="650" font-family="Segoe UI,sans-serif">Un filtro intercepta el POST, antes de Spring MVC</text>
+  <text x="372" y="89" text-anchor="middle" font-size="8.4" fill="#45454e" font-family="Segoe UI,sans-serif">no hay ningún @PostMapping("/login") en el proyecto</text>
+  <text x="372" y="101" text-anchor="middle" font-size="7.4" fill="#6b6b75" font-family="Consolas,monospace">UsernamePasswordAuthenticationFilter</text>
+  <circle cx="210" cy="70" r="8" fill="#6d28d9"/><text x="210" y="73.5" text-anchor="middle" font-size="9" font-weight="700" fill="#fff" font-family="Segoe UI,sans-serif">2</text>
+
+  <line x1="372" y1="106" x2="372" y2="116" stroke="#45454e" stroke-width="1.3" marker-end="url(#f)"/>
+
+  <!-- 3 -->
+  <rect x="200" y="118" width="344" height="48" rx="4" fill="#fff" stroke="#1b1b1f" stroke-width="1.4"/>
+  <text x="372" y="136" text-anchor="middle" font-size="10" font-weight="650" font-family="Segoe UI,sans-serif">Carga el usuario de MySQL por su email</text>
+  <text x="372" y="148" text-anchor="middle" font-size="8.4" fill="#45454e" font-family="Segoe UI,sans-serif">y lo marca deshabilitado si la cuenta no está activa</text>
+  <text x="372" y="160" text-anchor="middle" font-size="7.4" fill="#6b6b75" font-family="Consolas,monospace">SecurityConfig:33-46 · UserDetailsService</text>
+  <circle cx="210" cy="128" r="8" fill="#1b1b1f"/><text x="210" y="131.5" text-anchor="middle" font-size="9" font-weight="700" fill="#fff" font-family="Segoe UI,sans-serif">3</text>
+
+  <line x1="372" y1="166" x2="372" y2="176" stroke="#45454e" stroke-width="1.3" marker-end="url(#f)"/>
+
+  <!-- 4 -->
+  <rect x="200" y="178" width="344" height="48" rx="4" fill="#f1ebfd" stroke="#6d28d9" stroke-width="1.2"/>
+  <text x="372" y="196" text-anchor="middle" font-size="10" font-weight="650" font-family="Segoe UI,sans-serif">Vuelve a aplicar BCrypt a lo escrito y compara</text>
+  <text x="372" y="208" text-anchor="middle" font-size="8.4" fill="#45454e" font-family="Segoe UI,sans-serif">no se descifra nada: la sal va dentro del propio hash</text>
+  <text x="372" y="220" text-anchor="middle" font-size="7.4" fill="#6b6b75" font-family="Consolas,monospace">DaoAuthenticationProvider + BCryptPasswordEncoder</text>
+  <circle cx="210" cy="188" r="8" fill="#6d28d9"/><text x="210" y="191.5" text-anchor="middle" font-size="9" font-weight="700" fill="#fff" font-family="Segoe UI,sans-serif">4</text>
+
+  <!-- ===== FASE 2 ===== -->
+  <rect x="2" y="238" width="556" height="19" fill="#f1ebfd"/>
+  <text x="10" y="251.5" font-size="9" font-weight="700" fill="#6d28d9" font-family="Segoe UI,sans-serif" letter-spacing=".5">FASE 2 · EL RESULTADO · dos caminos, los dos escritos por nosotros</text>
+
+  <!-- bifurcacion -->
+  <path d="M372,226 L372,268 L282,268 L282,276" fill="none" stroke="#137333" stroke-width="1.4" marker-end="url(#f)"/>
+  <path d="M372,268 L462,268 L462,276" fill="none" stroke="#b42318" stroke-width="1.4" marker-end="url(#f)"/>
+  <text x="252" y="265" text-anchor="middle" font-size="8.4" font-weight="700" fill="#137333" font-family="Segoe UI,sans-serif">ACIERTA</text>
+  <text x="494" y="265" text-anchor="middle" font-size="8.4" font-weight="700" fill="#b42318" font-family="Segoe UI,sans-serif">FALLA</text>
+
+  <!-- 5 acierto -->
+  <rect x="200" y="278" width="164" height="50" rx="4" fill="#e6f4ea" stroke="#137333" stroke-width="1.4"/>
+  <text x="282" y="296" text-anchor="middle" font-size="10" font-weight="650" font-family="Segoe UI,sans-serif">successHandler</text>
+  <text x="282" y="308" text-anchor="middle" font-size="8.4" fill="#0b4f22" font-family="Segoe UI,sans-serif">el contador vuelve a cero</text>
+  <text x="282" y="321" text-anchor="middle" font-size="7.4" fill="#6b6b75" font-family="Consolas,monospace">SecurityConfig:84-90</text>
+  <circle cx="210" cy="288" r="8" fill="#137333"/><text x="210" y="291.5" text-anchor="middle" font-size="9" font-weight="700" fill="#fff" font-family="Segoe UI,sans-serif">5</text>
+
+  <line x1="282" y1="328" x2="282" y2="338" stroke="#45454e" stroke-width="1.3" marker-end="url(#f)"/>
+  <rect x="200" y="340" width="164" height="50" rx="4" fill="#fff" stroke="#1b1b1f" stroke-width="1.2"/>
+  <text x="282" y="358" text-anchor="middle" font-size="9.4" font-weight="650" font-family="Segoe UI,sans-serif">Cliente o colaborador → /tienda</text>
+  <text x="282" y="371" text-anchor="middle" font-size="9.4" font-weight="650" font-family="Segoe UI,sans-serif">el resto → /panelControl</text>
+  <text x="282" y="383" text-anchor="middle" font-size="7.4" fill="#6b6b75" font-family="Consolas,monospace">se mira si tiene ROLE_CLIENTE</text>
+
+  <!-- 6 fallo -->
+  <rect x="380" y="278" width="164" height="50" rx="4" fill="#fdecea" stroke="#b42318" stroke-width="1.4"/>
+  <text x="462" y="296" text-anchor="middle" font-size="10" font-weight="650" font-family="Segoe UI,sans-serif">failureHandler</text>
+  <text x="462" y="308" text-anchor="middle" font-size="8.4" fill="#7a1c10" font-family="Segoe UI,sans-serif">llama a registrarFalloLogin</text>
+  <text x="462" y="321" text-anchor="middle" font-size="7.4" fill="#6b6b75" font-family="Consolas,monospace">SecurityConfig:94-103</text>
+  <circle cx="390" cy="288" r="8" fill="#b42318"/><text x="390" y="291.5" text-anchor="middle" font-size="9" font-weight="700" fill="#fff" font-family="Segoe UI,sans-serif">6</text>
+
+  <line x1="462" y1="328" x2="462" y2="338" stroke="#45454e" stroke-width="1.3" marker-end="url(#f)"/>
+  <rect x="380" y="340" width="164" height="50" rx="4" fill="#fff" stroke="#1b1b1f" stroke-width="1.2"/>
+  <text x="462" y="358" text-anchor="middle" font-size="9.6" font-weight="650" font-family="Segoe UI,sans-serif">UPDATE … intentos + 1</text>
+  <text x="462" y="370" text-anchor="middle" font-size="8.4" fill="#45454e" font-family="Segoe UI,sans-serif">la suma la hace la base</text>
+  <text x="462" y="383" text-anchor="middle" font-size="7.4" fill="#6b6b75" font-family="Consolas,monospace">UsuarioDao:23-25</text>
+
+  <line x1="462" y1="390" x2="462" y2="400" stroke="#45454e" stroke-width="1.3" marker-end="url(#f)"/>
+  <rect x="380" y="402" width="164" height="42" rx="4" fill="#fdf3e2" stroke="#8a5a00" stroke-width="1.4"/>
+  <text x="462" y="420" text-anchor="middle" font-size="10" font-weight="700" font-family="Segoe UI,sans-serif">¿ha llegado a 5?</text>
+  <text x="462" y="436" text-anchor="middle" font-size="7.4" fill="#6b6b75" font-family="Consolas,monospace">UsuarioServiceImpl:124</text>
+
+  <!-- salidas de la decision -->
+  <path d="M380,423 L300,423 L300,452" fill="none" stroke="#b42318" stroke-width="1.4" marker-end="url(#f)"/>
+  <text x="336" y="418" text-anchor="middle" font-size="8" font-weight="700" fill="#b42318" font-family="Segoe UI,sans-serif">SÍ</text>
+  <line x1="462" y1="444" x2="462" y2="452" stroke="#45454e" stroke-width="1.3" marker-end="url(#f)"/>
+  <text x="476" y="452" font-size="8" font-weight="700" fill="#45454e" font-family="Segoe UI,sans-serif">NO</text>
+
+  <rect x="200" y="454" width="200" height="40" rx="4" fill="#fdecea" stroke="#b42318" stroke-width="1.4"/>
+  <text x="300" y="470" text-anchor="middle" font-size="9.4" font-weight="650" font-family="Segoe UI,sans-serif">activo = false, se escribe el motivo</text>
+  <text x="300" y="483" text-anchor="middle" font-size="8.4" fill="#7a1c10" font-family="Segoe UI,sans-serif">y se avisa ya: /login?inactivo</text>
+
+  <rect x="410" y="454" width="134" height="40" rx="4" fill="#fff" stroke="#1b1b1f" stroke-width="1.2"/>
+  <text x="477" y="470" text-anchor="middle" font-size="9.4" font-weight="650" font-family="Segoe UI,sans-serif">/login?error</text>
+  <text x="477" y="483" text-anchor="middle" font-size="8" fill="#6b6b75" font-family="Segoe UI,sans-serif">mensaje genérico</text>
+</svg>
+</div>
+<p class="pie-fig">El paso 3 es también el que frena una cuenta ya desactivada: al marcarla
+deshabilitada, el paso 4 ni llega a comparar la contraseña.</p>
+
+<div class="ojo"><b>El «username» de Spring es nuestro email.</b> La clase se llama así por convenio,
+pero lo que se guarda en <code>User.builder().username(...)</code> es <code>u.getEmail()</code>
+(<code>SecurityConfig:39</code>). De ahí que <code>authentication.getName()</code>, en cualquier
+controlador del proyecto, devuelva el correo del usuario.</div>
+
+<!-- =================== 4 · CONCEPTOS =================== -->
+
+<div class="salto"></div>
+<div class="seccion"><span class="n">4</span>Los conceptos que toca</div>
+<p class="intro">Ocho ideas, agrupadas por color: <b>seguridad</b> en rojo, <b>Spring</b> en azul,
+<b>robustez</b> en ámbar y <b>base de datos</b> en verde.</p>
+
+<div class="rejilla">
+  <div class="cpt seg"><span class="cn">Seguridad</span>
+    <h4>Hash, no cifrado</h4>
+    <p>BCrypt <b>no tiene vuelta atrás</b>. Al entrar no se descifra el hash guardado: se vuelve a
+    calcular el de lo escrito y se comparan. Cada hash lleva su propia sal dentro, así que dos
+    usuarios con la misma contraseña tienen hashes distintos.</p>
+    <span class="d">SecurityConfig:27-30</span></div>
+
+  <div class="cpt seg"><span class="cn">Seguridad</span>
+    <h4>No revelar qué cuentas existen</h4>
+    <p>Un correo que no existe y una contraseña mal dan <b>exactamente la misma respuesta</b>:
+    <code>/login?error</code>. Si una de las dos dijera algo distinto, se podría ir probando correos
+    para saber quién está registrado.</p>
+    <span class="d">enumeración de usuarios</span></div>
+
+  <div class="cpt pro"><span class="cn">Spring</span>
+    <h4>Filtro, no controlador</h4>
+    <p>Los filtros se ejecutan <b>antes</b> de Spring MVC. Por eso el login no tiene
+    <code>@PostMapping</code> y por eso los campos tienen que llamarse <code>username</code> y
+    <code>password</code>: los nombres los decide el filtro, no nosotros.</p>
+    <span class="d">UsernamePasswordAuthenticationFilter</span></div>
+
+  <div class="cpt pro"><span class="cn">Spring</span>
+    <h4>UserDetails y el prefijo ROLE_</h4>
+    <p>Spring no distingue roles de permisos: todo son <code>GrantedAuthority</code>, y el convenio
+    es que un rol lleva <code>ROLE_</code> delante. <code>roles(...)</code> y
+    <code>hasRole(...)</code> lo añaden solos; comparando a mano hay que escribirlo.</p>
+    <span class="d">SecurityConfig:41, :87</span></div>
+
+  <div class="cpt rob"><span class="cn">Robustez</span>
+    <h4>Un booleano con información</h4>
+    <p><code>registrarFalloLogin</code> devuelve <code>true</code> <b>solo si ha sido este intento el
+    que ha bloqueado la cuenta</b>. Así el handler puede avisar en el momento en vez de dejar al
+    usuario con un error genérico y que se entere al intento siguiente.</p>
+    <span class="d">UsuarioServiceImpl:112</span></div>
+
+  <div class="cpt rob"><span class="cn">Robustez</span>
+    <h4>El límite, en un solo sitio</h4>
+    <p><code>MAX_INTENTOS = 5</code> es una constante, y <b>el mismo valor se mete en el texto</b> del
+    motivo como argumento <code>{0}</code>. Cambiarlo a 3 cambia la regla y el mensaje a la vez: no
+    hay dos verdades que se puedan desincronizar.</p>
+    <span class="d">UsuarioServiceImpl:22, :129-130</span></div>
+
+  <div class="cpt bd"><span class="cn">Base de datos</span>
+    <h4>Sumar en la sentencia</h4>
+    <p>El contador se incrementa con <code>set intentos = intentos + 1</code>, no leyendo y volviendo
+    a guardar. Dos intentos a la vez leerían el mismo valor y se perdería un fallo: el clásico
+    <i>lost update</i>. Las filas tocadas delatan además si el correo existe.</p>
+    <span class="d">UsuarioDao:23-25</span></div>
+
+  <div class="cpt bd"><span class="cn">Base de datos</span>
+    <h4>clearAutomatically</h4>
+    <p>Un <code>@Modifying</code> escribe saltándose el contexto de JPA, que seguiría dando el
+    contador viejo. Limpiarlo es lo que permite releer el usuario justo después y ver el valor nuevo.
+    Sin esto, la cuenta <b>nunca llegaría a bloquearse</b>.</p>
+    <span class="d">UsuarioDao:23, :29</span></div>
+</div>
+
+<div class="nota"><b>Y el motivo se guarda siempre en castellano</b>
+(<code>IDIOMA_MOTIVO</code>, <code>UsuarioServiceImpl:23</code>), aunque el que falló tuviera la
+interfaz en inglés. Ese texto no lo lee él: lo lee el gestor de clientes, en el tooltip del badge
+INACTIVO del listado. Traducirlo al idioma del que se equivoca llenaría la columna de motivos en
+tres idiomas distintos.</div>
+
+<!-- =================== 5 · PREGUNTAS =================== -->
+
+<div class="salto"></div>
+<div class="seccion"><span class="n">5</span>Las preguntas de examen</div>
+<p class="intro">Las que se responden mirando este recorrido, con la respuesta corta primero.</p>
+
+<div class="examen">
+  <p class="q">¿Qué controlador recibe el usuario y la contraseña del login?</p>
+  <p class="a"><b>Ninguno.</b> Lo intercepta el filtro
+  <code>UsernamePasswordAuthenticationFilter</code> antes de llegar a Spring MVC. Lo que sí sirve un
+  controlador es la <b>página</b>: <code>ControllerLogin:105-107</code>, un
+  <code>@GetMapping("/login")</code>, necesario porque <code>SecurityConfig:82</code> declara
+  <code>.loginPage("/login")</code> y con eso renunciamos a la página que Spring genera sola.</p>
+
+  <p class="q">¿Por qué los campos se llaman <code>username</code> y <code>password</code>?</p>
+  <p class="a">Porque son los nombres que lee ese filtro por defecto. Con <code>name="email"</code> no
+  llegaría nada y el login fallaría siempre, aunque la contraseña fuese correcta.</p>
+
+  <p class="q">¿Quién compara la contraseña, si lo guardado es un hash?</p>
+  <p class="a">El <code>DaoAuthenticationProvider</code>, usando nuestro
+  <code>BCryptPasswordEncoder</code>. Llama a <code>matches(escrita, hash)</code>: aplica BCrypt a lo
+  escrito con la sal que viaja dentro del hash guardado y compara los resultados.</p>
+
+  <p class="q">Si la cuenta ya estaba desactivada a mano, ¿se pisa el motivo que escribió el gestor?</p>
+  <p class="a">No, y está protegido dos veces. El proveedor lanza <code>DisabledException</code> sin
+  llegar a comparar la contraseña, y aunque llegara, <code>UsuarioServiceImpl:124</code> corta por
+  <code>!usuario.isActivo()</code> antes de escribir nada.</p>
+
+  <p class="q">¿Y si alguien prueba cinco veces con un correo que no existe?</p>
+  <p class="a">No pasa nada: el <code>UPDATE</code> toca <b>cero filas</b>,
+  <code>registrarFalloLogin</code> devuelve <code>false</code> y se responde el error genérico. No
+  hay fila que bloquear, y el que lo intenta no aprende nada.</p>
+
+  <p class="q">¿Por qué el reinicio del contador lleva <code>and intentosFallidos &gt; 0</code>?</p>
+  <p class="a">Para no escribir en la tabla en cada inicio de sesión correcto —que son la inmensa
+  mayoría, y casi todos con el contador ya a cero— solo para dejarlo igual.</p>
+
+  <p class="q">El formulario no lleva ningún token CSRF escrito. ¿Por qué pasa el POST?</p>
+  <p class="a">Spring Security trae CSRF activado por defecto, y como el formulario usa
+  <code>th:action</code>, Thymeleaf le añade solo el campo oculto <code>_csrf</code>. Con un
+  <code>action="/login"</code> a secas no lo añadiría y la respuesta sería un <b>403</b>.</p>
+</div>
+
+<div class="pie">
+  Las líneas citadas son las del commit <code>57c3c62</code> de <code>master</code>: si se toca un
+  archivo, se mueven. Cómo se guarda una contraseña al registrarse y el resto del camino de la cuenta
+  están en <code>LoginYRegistro</code>; el cifrado y los hashes del proyecto, en
+  <code>CifradoYHashes</code>.
+</div>
+
+</body>
+</html>

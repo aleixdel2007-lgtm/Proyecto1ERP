@@ -1,0 +1,384 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>LudusERP · La descarga de un juego</title>
+<!-- El aspecto sale de estilo.css, compartida por todos los resumenes.
+     Para regenerar el PDF:
+       chrome --headless --disable-gpu --no-pdf-header-footer
+              --print-to-pdf=docs/resumenes/DescargaDeJuegos.pdf docs/resumenes/html/DescargaDeJuegos.html -->
+<link rel="stylesheet" href="estilo.css">
+</head>
+<body>
+
+<!-- =================== 1 · PORTADA =================== -->
+
+<div class="cubierta">
+  <div class="cub-top">
+    <div class="cub-marca">L</div>
+    <div class="cub-eyebrow">LudusERP · resumen técnico</div>
+    <h1>La descarga<br>de un juego</h1>
+    <div class="cub-sub">Del botón de la biblioteca al ZIP en tu carpeta,<br>y por qué no basta con poner un enlace.</div>
+    <div class="cub-regla"></div>
+    <div class="cub-idea">
+      <h3>La idea en una frase</h3>
+      <p>El ZIP <b>no está donde el navegador pueda pedirlo</b>: vive fuera de las carpetas que la
+      aplicación sirve sola, y la única puerta es una URL que antes de abrir nada comprueba quién
+      eres y si ese juego es tuyo. La ruta del archivo no sale nunca del servidor.</p>
+    </div>
+  </div>
+  <div class="cub-pie">
+    <span><b>Clases centrales:</b> <code>ControllerBiblioteca</code> · <code>AlmacenArchivos</code></span>
+    <span><b>Código:</b> master en <code>57c3c62</code></span>
+    <span><b>5 páginas</b></span>
+  </div>
+</div>
+
+<!-- =================== 2 · ÍNDICE =================== -->
+
+<div class="salto"></div>
+
+<div class="seccion">Índice</div>
+
+<div class="indice">
+  <div class="ix"><span class="ixn">1</span><span class="ixt">
+      <b>En 30 segundos</b><span>Lo esencial en seis frases, para repasar antes de un examen</span>
+      </span><span class="ixp">pág. 2</span></div>
+  <div class="ix"><span class="ixn">2</span><span class="ixt">
+      <b>Quién puede bajarse qué</b><span>Los cinco casos y la respuesta exacta de cada uno</span>
+      </span><span class="ixp">pág. 2</span></div>
+  <div class="ix"><span class="ixn">3</span><span class="ixt">
+      <b>El recorrido completo</b><span>Diagrama del camino bueno, de los tres finales malos y del origen del ZIP</span>
+      </span><span class="ixp">pág. 3</span></div>
+  <div class="ix"><span class="ixn">4</span><span class="ixt">
+      <b>Los conceptos que toca</b><span>Las diez ideas que se aprenden aquí y para qué sirve cada una</span>
+      </span><span class="ixp">pág. 4</span></div>
+  <div class="ix"><span class="ixn">5</span><span class="ixt">
+      <b>Las dos preguntas de examen</b><span>Por qué está hecho así, respondido</span>
+      </span><span class="ixp">pág. 5</span></div>
+</div>
+
+<div class="seccion"><span class="n">1</span>En 30 segundos</div>
+
+<div class="rapido">
+  <ol>
+    <li>El botón es un <b>enlace normal</b> a <code>/tienda/descargar/{id}</code>, y ese id es el del
+    <b>juego</b>: ni el del archivo, ni el de tu clave.</li>
+    <li>Solo aparece si el juego tiene una <b>versión activa</b> con ZIP subido. Si no, sale un botón
+    apagado que explica por qué.</li>
+    <li>El servicio decide quién pasa: si es <b>gratis</b>, basta con que siga publicado; si es de
+    pago, necesitas una <b>clave VENDIDA</b> suya.</li>
+    <li>De la versión activa salen las dos cosas que hacen falta: la <b>ruta en disco</b> y el
+    <b>nombre</b> con el que se te entrega.</li>
+    <li>El ZIP vive en <code>juegos-privados/</code>, <b>fuera de <code>uploads/</code></b>: nadie lo
+    sirve como recurso público, lo abre este controlador o no lo abre nadie.</li>
+    <li>Se responde con un <code>Resource</code>, no con los bytes: el archivo puede pesar un giga y
+    se va enviando <b>según se lee</b>.</li>
+  </ol>
+</div>
+
+<div class="seccion"><span class="n">2</span>Quién puede bajarse qué</div>
+
+<table>
+  <thead>
+    <tr><th style="width:30%">El juego que pides</th><th style="width:44%">Qué se comprueba</th><th>Respuesta</th></tr>
+  </thead>
+  <tbody>
+    <tr class="bueno">
+      <td><b>Gratis</b> y publicado</td>
+      <td>Nada más: cualquiera que haya entrado en la tienda se lo lleva, sin clave y sin pasar por la biblioteca</td>
+      <td class="rol">200<br>el ZIP</td>
+    </tr>
+    <tr class="bueno">
+      <td><b>De pago</b>, con clave tuya</td>
+      <td>Que exista una clave <code>VENDIDA</code> de ese juego a tu nombre. Aquí no se mira si sigue publicado</td>
+      <td class="rol">200<br>el ZIP</td>
+    </tr>
+    <tr class="nadie">
+      <td><b>De pago</b>, sin clave tuya</td>
+      <td>La misma comprobación, que falla. No lo compraste, y da igual que la URL la tengas</td>
+      <td class="rol">403<br>error/403.html</td>
+    </tr>
+    <tr class="nadie">
+      <td><b>Gratis</b> pero retirado</td>
+      <td>Que el juego siga <code>activo</code>. Retirado no lo tiene nadie, así que se contesta lo mismo que en su ficha</td>
+      <td class="rol">404<br>error/404.html</td>
+    </tr>
+    <tr class="nadie">
+      <td>Sin <b>versión activa</b></td>
+      <td>Que haya una versión con ZIP y que el archivo siga en el disco. Si falta cualquiera de las dos, no hay nada que servir</td>
+      <td class="rol">404<br>error/404.html</td>
+    </tr>
+  </tbody>
+</table>
+
+<!-- =================== 3 · DIAGRAMA =================== -->
+
+<div class="salto"></div>
+
+<div class="seccion"><span class="n">3</span>El recorrido completo</div>
+<p class="intro">Arriba, el camino bueno: seis pasos entre el clic y el archivo. En medio, los tres
+sitios donde se corta. Abajo, cómo llegó ese ZIP al disco. Cada caja lleva debajo su archivo.</p>
+
+<div class="diagrama">
+<svg viewBox="0 0 560 520" xmlns="http://www.w3.org/2000/svg" role="img"
+     aria-label="Diagrama de la descarga de un juego: el camino correcto, los tres errores posibles y la subida previa del ZIP">
+  <defs>
+    <marker id="f" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
+      <path d="M0,0 L7,3.5 L0,7 z" fill="#45454e"/></marker>
+    <marker id="fm" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
+      <path d="M0,0 L7,3.5 L0,7 z" fill="#6d28d9"/></marker>
+    <marker id="fv" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
+      <path d="M0,0 L7,3.5 L0,7 z" fill="#137333"/></marker>
+  </defs>
+
+  <!-- ============ EL CAMINO BUENO ============ -->
+  <rect x="2" y="2" width="556" height="286" rx="5" fill="#fff" stroke="#d9d9e0" stroke-width="1.2"/>
+  <rect x="2" y="2" width="556" height="21" rx="5" fill="#6d28d9"/>
+  <rect x="2" y="16" width="556" height="7" fill="#6d28d9"/>
+  <text x="12" y="17" font-size="9.4" font-weight="700" fill="#fff" font-family="Segoe UI,sans-serif">EL CAMINO BUENO · del clic al archivo, sin que viaje ninguna ruta</text>
+
+  <rect x="14" y="34" width="124" height="44" rx="4" fill="#f5f5f8" stroke="#1b1b1f" stroke-width="1.2"/>
+  <text x="76" y="52" text-anchor="middle" font-size="9.6" font-weight="650" font-family="Segoe UI,sans-serif">Pulsas el botón</text>
+  <text x="76" y="64" text-anchor="middle" font-size="9.6" font-weight="650" font-family="Segoe UI,sans-serif">Descargar 1,1 MB</text>
+  <text x="76" y="74" text-anchor="middle" font-size="7.2" fill="#6b6b75" font-family="Consolas,monospace">client/biblioteca.html</text>
+  <circle cx="24" cy="42" r="7.5" fill="#6d28d9"/><text x="24" y="45.2" text-anchor="middle" font-size="8.5" font-weight="700" fill="#fff" font-family="Segoe UI,sans-serif">1</text>
+  <line x1="138" y1="56" x2="158" y2="56" stroke="#45454e" stroke-width="1.3" marker-end="url(#f)"/>
+
+  <rect x="160" y="34" width="124" height="44" rx="4" fill="#f5f5f8" stroke="#1b1b1f" stroke-width="1.2"/>
+  <text x="222" y="52" text-anchor="middle" font-size="9.6" font-weight="650" font-family="Segoe UI,sans-serif">Es un enlace normal</text>
+  <text x="222" y="64" text-anchor="middle" font-size="9.6" font-weight="650" font-family="Segoe UI,sans-serif">con el id del juego</text>
+  <text x="222" y="74" text-anchor="middle" font-size="7.2" fill="#6b6b75" font-family="Consolas,monospace">GET /tienda/descargar/7</text>
+  <circle cx="170" cy="42" r="7.5" fill="#6d28d9"/><text x="170" y="45.2" text-anchor="middle" font-size="8.5" font-weight="700" fill="#fff" font-family="Segoe UI,sans-serif">2</text>
+  <line x1="284" y1="56" x2="304" y2="56" stroke="#45454e" stroke-width="1.3" marker-end="url(#f)"/>
+
+  <rect x="306" y="34" width="124" height="44" rx="4" fill="#fdf3e2" stroke="#8a5a00" stroke-width="1.3"/>
+  <text x="368" y="52" text-anchor="middle" font-size="9.6" font-weight="650" font-family="Segoe UI,sans-serif">¿Estás dentro</text>
+  <text x="368" y="64" text-anchor="middle" font-size="9.6" font-weight="650" font-family="Segoe UI,sans-serif">de la tienda?</text>
+  <text x="368" y="74" text-anchor="middle" font-size="7.2" fill="#6b6b75" font-family="Consolas,monospace">SecurityConfig · /tienda/**</text>
+  <circle cx="316" cy="42" r="7.5" fill="#8a5a00"/><text x="316" y="45.2" text-anchor="middle" font-size="8.5" font-weight="700" fill="#fff" font-family="Segoe UI,sans-serif">3</text>
+  <line x1="430" y1="56" x2="450" y2="56" stroke="#45454e" stroke-width="1.3" marker-end="url(#f)"/>
+
+  <rect x="452" y="34" width="96" height="44" rx="4" fill="#fdf3e2" stroke="#8a5a00" stroke-width="1.3"/>
+  <text x="500" y="52" text-anchor="middle" font-size="9.6" font-weight="650" font-family="Segoe UI,sans-serif">¿Es gratis,</text>
+  <text x="500" y="64" text-anchor="middle" font-size="9.6" font-weight="650" font-family="Segoe UI,sans-serif">o es tuyo?</text>
+  <text x="500" y="74" text-anchor="middle" font-size="7.2" fill="#6b6b75" font-family="Consolas,monospace">prepararDescarga()</text>
+  <circle cx="462" cy="42" r="7.5" fill="#8a5a00"/><text x="462" y="45.2" text-anchor="middle" font-size="8.5" font-weight="700" fill="#fff" font-family="Segoe UI,sans-serif">4</text>
+
+  <path d="M500,78 L500,90 L175,90 L175,102" fill="none" stroke="#45454e" stroke-width="1.3" marker-end="url(#f)"/>
+
+  <rect x="80" y="104" width="190" height="44" rx="4" fill="#f1ebfd" stroke="#6d28d9" stroke-width="1.3"/>
+  <text x="175" y="122" text-anchor="middle" font-size="9.6" font-weight="650" font-family="Segoe UI,sans-serif">La versión activa da</text>
+  <text x="175" y="134" text-anchor="middle" font-size="9.6" font-weight="650" font-family="Segoe UI,sans-serif">la ruta y el nombre</text>
+  <text x="175" y="144" text-anchor="middle" font-size="7.2" fill="#6b6b75" font-family="Consolas,monospace">version_juego · activa = true</text>
+  <circle cx="90" cy="112" r="7.5" fill="#6d28d9"/><text x="90" y="115.2" text-anchor="middle" font-size="8.5" font-weight="700" fill="#fff" font-family="Segoe UI,sans-serif">5</text>
+  <line x1="270" y1="126" x2="288" y2="126" stroke="#45454e" stroke-width="1.3" marker-end="url(#f)"/>
+
+  <rect x="290" y="104" width="190" height="44" rx="4" fill="#f1ebfd" stroke="#6d28d9" stroke-width="1.3"/>
+  <text x="385" y="122" text-anchor="middle" font-size="9.6" font-weight="650" font-family="Segoe UI,sans-serif">Se abre el ZIP sin</text>
+  <text x="385" y="134" text-anchor="middle" font-size="9.6" font-weight="650" font-family="Segoe UI,sans-serif">salir de su carpeta</text>
+  <text x="385" y="144" text-anchor="middle" font-size="7.2" fill="#6b6b75" font-family="Consolas,monospace">leerZip() · normalize()</text>
+  <circle cx="300" cy="112" r="7.5" fill="#6d28d9"/><text x="300" y="115.2" text-anchor="middle" font-size="8.5" font-weight="700" fill="#fff" font-family="Segoe UI,sans-serif">6</text>
+
+  <path d="M385,148 L385,162 L280,162 L280,172" fill="none" stroke="#6d28d9" stroke-width="1.3" marker-end="url(#fm)"/>
+
+  <rect x="110" y="176" width="340" height="46" rx="4" fill="#f1ebfd" stroke="#6d28d9" stroke-width="1.3"/>
+  <text x="280" y="194" text-anchor="middle" font-size="9.8" font-weight="700" font-family="Segoe UI,sans-serif">La respuesta no es una página: es el archivo</text>
+  <text x="280" y="207" text-anchor="middle" font-size="8.2" fill="#45454e" font-family="Segoe UI,sans-serif">attachment hace que se guarde; el tamaño pinta la barra de progreso</text>
+  <text x="280" y="216" text-anchor="middle" font-size="7.2" fill="#6b6b75" font-family="Consolas,monospace">Content-Disposition · Content-Length · FileSystemResource</text>
+  <circle cx="120" cy="184" r="7.5" fill="#6d28d9"/><text x="120" y="187.2" text-anchor="middle" font-size="8.5" font-weight="700" fill="#fff" font-family="Segoe UI,sans-serif">7</text>
+
+  <line x1="280" y1="222" x2="280" y2="232" stroke="#137333" stroke-width="1.3" marker-end="url(#fv)"/>
+  <rect x="130" y="236" width="300" height="26" rx="4" fill="#137333"/>
+  <text x="280" y="253" text-anchor="middle" font-size="9.4" font-weight="700" fill="#fff" font-family="Segoe UI,sans-serif">EL ZIP CAE EN TU CARPETA DE DESCARGAS</text>
+
+  <text x="280" y="278" text-anchor="middle" font-size="8.4" fill="#6b6b75" font-family="Segoe UI,sans-serif">Lo único que ha visto el navegador es /tienda/descargar/7: ni la carpeta, ni el nombre en disco</text>
+
+  <!-- ============ LOS TRES FINALES MALOS ============ -->
+  <rect x="2" y="302" width="556" height="112" rx="5" fill="#fff" stroke="#d9d9e0" stroke-width="1.2"/>
+  <rect x="2" y="302" width="556" height="21" rx="5" fill="#b42318"/>
+  <rect x="2" y="316" width="556" height="7" fill="#b42318"/>
+  <text x="12" y="317" font-size="9.4" font-weight="700" fill="#fff" font-family="Segoe UI,sans-serif">SI ALGO NO CUADRA · los tres sitios donde se corta</text>
+
+  <rect x="14" y="334" width="168" height="52" rx="4" fill="#fdecea" stroke="#b42318" stroke-width="1.3"/>
+  <text x="98" y="352" text-anchor="middle" font-size="9.6" font-weight="650" font-family="Segoe UI,sans-serif">403 · No es tuyo</text>
+  <text x="98" y="365" text-anchor="middle" font-size="8.2" fill="#45454e" font-family="Segoe UI,sans-serif">de pago y sin clave vendida</text>
+  <text x="98" y="378" text-anchor="middle" font-size="7.2" fill="#6b6b75" font-family="Consolas,monospace">JuegoNoAdquiridoException</text>
+
+  <rect x="204" y="334" width="168" height="52" rx="4" fill="#fdecea" stroke="#b42318" stroke-width="1.3"/>
+  <text x="288" y="352" text-anchor="middle" font-size="9.6" font-weight="650" font-family="Segoe UI,sans-serif">404 · No existe</text>
+  <text x="288" y="365" text-anchor="middle" font-size="8.2" fill="#45454e" font-family="Segoe UI,sans-serif">id inventado, o gratis y retirado</text>
+  <text x="288" y="378" text-anchor="middle" font-size="7.2" fill="#6b6b75" font-family="Consolas,monospace">VideojuegoNoEncontradoException</text>
+
+  <rect x="394" y="334" width="154" height="52" rx="4" fill="#fdecea" stroke="#b42318" stroke-width="1.3"/>
+  <text x="471" y="352" text-anchor="middle" font-size="9.6" font-weight="650" font-family="Segoe UI,sans-serif">404 · Sin archivo</text>
+  <text x="471" y="365" text-anchor="middle" font-size="8.2" fill="#45454e" font-family="Segoe UI,sans-serif">sin versión, o borrado del disco</text>
+  <text x="471" y="378" text-anchor="middle" font-size="7.2" fill="#6b6b75" font-family="Consolas,monospace">DescargaNoDisponibleException</text>
+
+  <text x="280" y="403" text-anchor="middle" font-size="8.4" fill="#6b6b75" font-family="Segoe UI,sans-serif">El código lo lleva escrito cada excepción en su @ResponseStatus; de pintarlo se encargan error/403.html y error/404.html</text>
+
+  <!-- ============ DE DONDE SALIO EL ZIP ============ -->
+  <rect x="2" y="428" width="556" height="88" rx="5" fill="#fff" stroke="#d9d9e0" stroke-width="1.2"/>
+  <rect x="2" y="428" width="556" height="21" rx="5" fill="#137333"/>
+  <rect x="2" y="442" width="556" height="7" fill="#137333"/>
+  <text x="12" y="443" font-size="9.4" font-weight="700" fill="#fff" font-family="Segoe UI,sans-serif">DE DÓNDE SALIÓ ESE ZIP · lo que hizo antes el colaborador</text>
+
+  <rect x="14" y="460" width="168" height="42" rx="4" fill="#f5f5f8" stroke="#1b1b1f" stroke-width="1.2"/>
+  <text x="98" y="477" text-anchor="middle" font-size="9.6" font-weight="650" font-family="Segoe UI,sans-serif">Sube el archivo</text>
+  <text x="98" y="489" text-anchor="middle" font-size="8.2" fill="#45454e" font-family="Segoe UI,sans-serif">se mira la firma, no el nombre</text>
+  <text x="98" y="498" text-anchor="middle" font-size="7.2" fill="#6b6b75" font-family="Consolas,monospace">validarZip() · PK</text>
+  <line x1="182" y1="481" x2="202" y2="481" stroke="#45454e" stroke-width="1.3" marker-end="url(#f)"/>
+
+  <rect x="204" y="460" width="168" height="42" rx="4" fill="#e6f4ea" stroke="#137333" stroke-width="1.3"/>
+  <text x="288" y="477" text-anchor="middle" font-size="9.6" font-weight="650" font-family="Segoe UI,sans-serif">Se guarda con otro nombre</text>
+  <text x="288" y="489" text-anchor="middle" font-size="8.2" fill="#45454e" font-family="Segoe UI,sans-serif">y su SHA-256 al vuelo</text>
+  <text x="288" y="498" text-anchor="middle" font-size="7.2" fill="#6b6b75" font-family="Consolas,monospace">juegos-privados/7/uuid.zip</text>
+  <line x1="372" y1="481" x2="392" y2="481" stroke="#45454e" stroke-width="1.3" marker-end="url(#f)"/>
+
+  <rect x="394" y="460" width="154" height="42" rx="4" fill="#e6f4ea" stroke="#137333" stroke-width="1.3"/>
+  <text x="471" y="477" text-anchor="middle" font-size="9.6" font-weight="650" font-family="Segoe UI,sans-serif">La anterior se apaga</text>
+  <text x="471" y="489" text-anchor="middle" font-size="8.2" fill="#45454e" font-family="Segoe UI,sans-serif">solo una activa por juego</text>
+  <text x="471" y="498" text-anchor="middle" font-size="7.2" fill="#6b6b75" font-family="Consolas,monospace">setActiva(false)</text>
+</svg>
+</div>
+
+<!-- =================== 4 · CONCEPTOS =================== -->
+
+<div class="salto"></div>
+
+<div class="seccion"><span class="n">4</span>Los conceptos que toca</div>
+<p class="intro">Diez ideas de las que se estudian en clase, con el sitio exacto del proyecto donde
+están aplicadas. El color del borde dice de qué familia es cada una:
+<b style="color:#6d28d9">diseño</b>,
+<b style="color:#1a56c4">plataforma</b>,
+<b style="color:#b42318">seguridad</b>,
+<b style="color:#8a5a00">robustez</b>.</p>
+
+<div class="rejilla">
+
+  <div class="cpt">
+    <span class="cn">01 · Diseño</span>
+    <h4>Fuera de la carpeta pública</h4>
+    <p>Todo lo que cuelga de <code>uploads/</code> lo sirve la aplicación a cualquiera. Los ZIP están
+    en otra carpeta justo por eso: un juego de pago no puede quedar a una URL de distancia.</p>
+    <span class="d">app.juegos.dir · juegos-privados/</span>
+  </div>
+
+  <div class="cpt seg">
+    <span class="cn">02 · Seguridad</span>
+    <h4>La URL lleva el juego, no el archivo</h4>
+    <p>Se pide <code>/tienda/descargar/{id del juego}</code>. El nombre en disco es un UUID que no
+    aparece en ningún sitio, así que no hay nada que adivinar ni que retocar a mano.</p>
+    <span class="d">@GetMapping("/descargar/{id}")</span>
+  </div>
+
+  <div class="cpt seg">
+    <span class="cn">03 · Seguridad</span>
+    <h4>Quién eres sale de la sesión</h4>
+    <p>El correo no viaja en la petición: lo pone <code>Authentication</code>. Cambiar el id de la
+    URL sirve para pedir otro juego, <b>nunca para pedirlo como otro</b>.</p>
+    <span class="d">prepararDescarga(authentication.getName(), id)</span>
+  </div>
+
+  <div class="cpt seg">
+    <span class="cn">04 · Seguridad</span>
+    <h4>No salir de la carpeta</h4>
+    <p>La ruta guardada se resuelve, se normaliza y luego se comprueba que <b>sigue empezando por la
+    carpeta de juegos</b>. Un <code>../..</code> colado en esa columna no serviría para sacar otro
+    archivo del disco.</p>
+    <span class="d">archivo.startsWith(base)</span>
+  </div>
+
+  <div class="cpt pro">
+    <span class="cn">05 · Plataforma</span>
+    <h4>Resource, no byte[]</h4>
+    <p>Un ZIP puede pesar un giga: cargarlo entero en memoria tumbaría el servidor con dos descargas
+    a la vez. Un <code>FileSystemResource</code> se va leyendo <b>mientras se envía</b>.</p>
+    <span class="d">ResponseEntity&lt;Resource&gt;</span>
+  </div>
+
+  <div class="cpt pro">
+    <span class="cn">06 · Plataforma</span>
+    <h4>Las dos cabeceras que importan</h4>
+    <p><code>attachment</code> hace que el navegador lo guarde en vez de intentar abrirlo, y
+    <code>Content-Length</code> es lo que le permite pintar la barra y decir cuánto falta.</p>
+    <span class="d">CONTENT_DISPOSITION · contentLength()</span>
+  </div>
+
+  <div class="cpt">
+    <span class="cn">07 · Diseño</span>
+    <h4>Una sola versión activa</h4>
+    <p>La descarga no elige nada: se lleva la que tenga <code>activa = true</code>. Al subir una
+    nueva, la anterior se apaga en la misma operación, así que siempre hay una y solo una.</p>
+    <span class="d">findByVideojuegoIdAndActivaTrue</span>
+  </div>
+
+  <div class="cpt rob">
+    <span class="cn">08 · Robustez</span>
+    <h4>Gratis y de pago no se miran igual</h4>
+    <p>Al gratis se le exige que <b>siga publicado</b>. Al de pago no se le mira el <code>activo</code>:
+    lo compraste, y que luego se retire de la tienda no te lo quita.</p>
+    <span class="d">if (gratis &amp;&amp; !videojuego.isActivo())</span>
+  </div>
+
+  <div class="cpt rob">
+    <span class="cn">09 · Robustez</span>
+    <h4>Si el archivo no está, 404</h4>
+    <p>La fila puede apuntar a un ZIP que ya no existe —recrear la base deja huérfanos en disco, y al
+    revés—. No sale un error raro: sale el mismo «sin archivo» que si no hubiera versión.</p>
+    <span class="d">Files.isRegularFile(archivo)</span>
+  </div>
+
+  <div class="cpt seg">
+    <span class="cn">10 · Seguridad</span>
+    <h4>El nombre se limpia al subir</h4>
+    <p>De lo que manda el navegador solo sobrevive el nombre, sin rutas, sin comillas y sin
+    caracteres de control: ese texto acaba <b>dentro de una cabecera HTTP</b>, y una comilla la
+    partiría en dos.</p>
+    <span class="d">nombreVisible() · replaceAll("[\\p{Cntrl}\"]", "")</span>
+  </div>
+
+</div>
+
+<!-- =================== 5 · PREGUNTAS =================== -->
+
+<div class="seccion"><span class="n">5</span>Las dos preguntas de examen</div>
+
+<div class="examen">
+  <p class="q">¿Por qué no se deja el ZIP en uploads/ y se enlaza sin más?</p>
+  <p class="a">Porque lo que hay en <code>uploads/</code> lo sirve Spring <b>sin preguntar nada</b>:
+  está puesto así para las portadas y las fotos de perfil, que son públicas y conviene que el
+  servidor las despache sin pasar por ningún controlador. Un ZIP de pago con ese trato sería
+  gratis para cualquiera que tuviese la dirección, y las direcciones se copian y se pegan. Al
+  dejarlo fuera, la carpeta deja de tener puerta propia y la única entrada es
+  <code>/tienda/descargar/{id}</code>, que antes de abrir nada mira quién eres y si ese juego es
+  tuyo. Lo que se paga a cambio es que cada descarga ocupa un hilo del servidor mientras dura, en vez
+  de resolverse sola.</p>
+
+  <p class="q">¿Por qué se devuelve un Resource y no los bytes del archivo?</p>
+  <p class="a">Porque un <code>byte[]</code> hay que <b>tenerlo entero en memoria</b> antes de
+  empezar a enviarlo. Con un ZIP de un giga, eso es un giga de montón por cada descarga en curso:
+  tres clientes a la vez y el servidor se queda sin memoria, y encima nadie empieza a recibir nada
+  hasta que el archivo está leído del todo. Un <code>Resource</code> es una <b>promesa</b> de que ahí
+  hay algo que se puede leer: Spring lo abre y lo va copiando a la respuesta por trozos, así que la
+  memoria que ocupa no depende del tamaño del juego. El <code>contentLength</code> se saca de la
+  columna <code>tamano_bytes</code>, que se guardó al subirlo, y por eso puede anunciarse sin haber
+  leído el archivo.</p>
+</div>
+
+<div class="ojo">
+  <b>Dos cosas que hoy están a medias.</b> El <b>SHA-256</b> se calcula al subir el ZIP y se guarda
+  en su columna, pero no lo lee nadie: ni se enseña junto al botón para que puedas comprobar lo
+  descargado, ni se verifica al servirlo. Está listo para el día que haga falta, y mientras tanto no
+  hace nada. Y la descarga <b>no se puede reanudar</b>: la respuesta no anuncia soporte de rangos,
+  así que una descarga cortada a los 900 MB empieza otra vez desde cero.
+</div>
+
+<div class="pie">
+  Resumen escrito a partir del código en <code>master</code> (<code>57c3c62</code>).
+  Fuente editable en <code>docs/resumenes/html/DescargaDeJuegos.html</code> (usa <code>estilo.css</code>). Para regenerar el PDF:
+  <code>chrome --headless --no-pdf-header-footer --print-to-pdf=docs/resumenes/DescargaDeJuegos.pdf docs/resumenes/html/DescargaDeJuegos.html</code>
+</div>
+
+</body>
+</html>

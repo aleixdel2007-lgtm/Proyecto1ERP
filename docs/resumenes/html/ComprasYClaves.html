@@ -29,7 +29,7 @@
   </div>
   <div class="cub-pie">
     <span><b>Clases centrales:</b> <code>OrdenesCompraClavesServiceImpl</code> · <code>ClaveLicenciaServiceImpl</code></span>
-    <span><b>Código:</b> master en <code>abce22a</code></span>
+    <span><b>Código:</b> master en <code>57c3c62</code></span>
     <span><b>5 páginas</b></span>
   </div>
 </div>
@@ -64,12 +64,12 @@
   <ol>
     <li>Un gestor de inventario crea un <b>borrador</b> de orden: proveedor, fecha y su número,
     <code>OC-2026-0001</code>.</li>
-    <li>Le añade <b>líneas</b>: un videojuego, cuántas unidades y a cuánto sale cada una. El total se
-    recalcula solo.</li>
-    <li>La <b>confirma</b> y la manda al proveedor. A partir de ahí la cabecera ya no se toca: ese
-    número ya está fuera.</li>
+    <li>Le añade <b>líneas</b>: un videojuego <b>de ese proveedor</b>, cuántas unidades y a cuánto
+    sale cada una. El total se recalcula solo.</li>
+    <li>La <b>confirma</b> y la manda al proveedor. La cabecera se queda fija en cuanto la orden se
+    guarda, antes incluso de confirmarla.</li>
     <li>Cuando llega la mercancía se <b>recibe</b>: se anota cuántas unidades han venido de cada
-    línea, con su albarán.</li>
+    línea, y desde el listado ya se puede sacar el <b>albarán en PDF</b>.</li>
     <li>Solo entonces se <b>acuñan las claves</b>: una por unidad recibida, con su código generado,
     cifrado y en estado <code>DISPONIBLE</code>.</li>
     <li>Cada clave guarda <b>de qué línea de compra salió</b>, y de ahí sale el coste con el que el
@@ -86,8 +86,8 @@
   <tbody>
     <tr>
       <td><code>BORRADOR</code><br><span style="color:#6b6b75">recién creada</span></td>
-      <td>Cambiar proveedor y fecha · añadir y quitar líneas · confirmar · cancelar</td>
-      <td class="rol">recibir<br><span style="color:#6b6b75">aún no se ha pedido nada</span></td>
+      <td>Añadir y quitar líneas · confirmar · cancelar</td>
+      <td class="rol">recibir · tocar la cabecera<br><span style="color:#6b6b75">una vez guardada ya no se edita</span></td>
     </tr>
     <tr>
       <td><code>CONFIRMADA</code><br><span style="color:#6b6b75">enviada al proveedor</span></td>
@@ -96,7 +96,7 @@
     </tr>
     <tr class="bueno">
       <td><code>RECIBIDA</code><br><span style="color:#6b6b75">ya hay claves</span></td>
-      <td>Nada: es el final del camino</td>
+      <td>Solo sacar el albarán en PDF: es el final del camino</td>
       <td class="rol">editar · cancelar<br>volver a recibir</td>
     </tr>
     <tr class="nadie">
@@ -109,8 +109,9 @@
 
 <div class="nota">
   <b>Las líneas se pueden tocar aun estando confirmada.</b> Puede parecer raro, pero es lo que pasa
-  en la realidad: el proveedor llama y dice que de un juego no le quedan. Lo que ya <b>no</b> se
-  cambia es la cabecera, porque ese número de orden ya está en su poder.
+  en la realidad: el proveedor llama y dice que de un juego no le quedan. La <b>cabecera</b> va al
+  revés y es más estricta de lo que parece: se rellena al crear la orden y, en cuanto esta se guarda,
+  queda de solo lectura aunque siga en <code>BORRADOR</code>.
 </div>
 
 <!-- =================== 3 · DIAGRAMA =================== -->
@@ -276,9 +277,10 @@ están aplicadas. El color del borde dice de qué familia es cada una:
   <div class="cpt rob">
     <span class="cn">04 · Validación</span>
     <h4>Lo que no se le compra a nadie</h4>
-    <p>Un juego de colaborador no puede entrar en una orden: no hay proveedor a quien pedírselo. Se
-    comprueba al añadir la línea, no al final.</p>
-    <span class="d">if (videojuego.getColaborador() != null)</span>
+    <p>Un juego de colaborador no puede entrar en una orden: no hay proveedor a quien pedírselo. Y el
+    que sí tiene proveedor <b>ha de ser el de esta orden</b>: el desplegable ya viene filtrado y el
+    servicio lo vuelve a comprobar al añadir la línea.</p>
+    <span class="d">LineaCompraInvalidaException · juegoDeOtroProveedor</span>
   </div>
 
   <div class="cpt rob">
@@ -367,7 +369,7 @@ están aplicadas. El color del borde dice de qué familia es cada una:
 </div>
 
 <div class="pie">
-  Resumen escrito a partir del código en <code>master</code> (<code>abce22a</code>).
+  Resumen escrito a partir del código en <code>master</code> (<code>57c3c62</code>).
   Fuente editable en <code>docs/resumenes/html/ComprasYClaves.html</code> (usa <code>estilo.css</code>). Para regenerar el PDF:
   <code>chrome --headless --no-pdf-header-footer --print-to-pdf=docs/resumenes/ComprasYClaves.pdf docs/resumenes/html/ComprasYClaves.html</code>
 </div>

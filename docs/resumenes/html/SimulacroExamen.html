@@ -1,0 +1,636 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>LudusERP · Simulacro de examen</title>
+<!-- El aspecto sale de estilo.css, compartida por todos los resumenes.
+     Para regenerar el PDF:
+       chrome --headless --disable-gpu --no-pdf-header-footer
+              --print-to-pdf=docs/resumenes/SimulacroExamen.pdf docs/resumenes/html/SimulacroExamen.html -->
+<link rel="stylesheet" href="estilo.css">
+</head>
+<body>
+
+<!-- =================== 1 · PORTADA =================== -->
+
+<div class="cubierta">
+  <div class="cub-top">
+    <div class="cub-marca">L</div>
+    <div class="cub-eyebrow">LudusERP · simulacro de examen</div>
+    <h1>Cuatro preguntas<br>con su respuesta</h1>
+    <div class="cub-sub">El recorrido completo de cuatro acciones del proyecto: vista, controlador,
+    servicio y DAO, con el archivo y la línea de cada paso.</div>
+    <div class="cub-regla"></div>
+    <div class="cub-idea">
+      <h3>La idea en una frase</h3>
+      <p>Casi todo sigue el mismo camino —<b>vista → controlador → servicio → DAO</b>— y lo que
+      distingue a quien se lo sabe es saber <b>dónde se rompe ese camino</b>: un
+      <code>@ControllerAdvice</code> que mete datos sin controlador, un filtro de Spring Security
+      que recibe un POST que no tiene <code>@PostMapping</code>, y un WebSocket que no pasa por
+      ninguna URL.</p>
+    </div>
+  </div>
+  <div class="cub-pie">
+    <span><b>Temas:</b> cesta · compras · avisos · login</span>
+    <span><b>Código:</b> master en <code>57c3c62</code></span>
+    <span><b>12 páginas</b></span>
+  </div>
+</div>
+
+<!-- =================== 2 · INDICE =================== -->
+
+<div class="salto"></div>
+<div class="seccion"><span class="n">01</span>Qué hay dentro</div>
+
+<div class="indice">
+  <div class="ix"><span class="ixn">1</span><span class="ixt">
+    <b>Añadir un juego a la cesta</b>
+    <span>Parte cliente · el botón de la ficha, el flash que sobrevive al redirect y el join fetch</span>
+  </span><span class="ixp">pág. 3</span></div>
+
+  <div class="ix"><span class="ixn">2</span><span class="ixt">
+    <b>Recepción de una orden de compra</b>
+    <span>Parte ERP · dos listas paralelas, el estado de la orden y el acuñado de claves</span>
+  </span><span class="ixp">pág. 5</span></div>
+
+  <div class="ix"><span class="ixn">3</span><span class="ixt">
+    <b>La campanita de avisos</b>
+    <span>Parte ERP · una variable sin controlador, el WebSocket y el portero de los canales</span>
+  </span><span class="ixp">pág. 8</span></div>
+
+  <div class="ix"><span class="ixn">4</span><span class="ixt">
+    <b>Entrar y quedarse bloqueado a los cinco fallos</b>
+    <span>Spring Security · el POST que no tiene controlador y el contador de intentos</span>
+  </span><span class="ixp">pág. 10</span></div>
+
+  <div class="ix"><span class="ixn">5</span><span class="ixt">
+    <b>Preguntas cortas</b>
+    <span>Tipos de variable, anotaciones y de dónde sale cada cosa</span>
+  </span><span class="ixp">pág. 12</span></div>
+</div>
+
+<div class="seccion"><span class="n">02</span>El método para contestar cualquiera</div>
+
+<div class="rapido">
+  <h3>Siempre en este orden</h3>
+  <ol>
+    <li><b>Vista:</b> qué archivo, a qué URL postea el <code>&lt;form&gt;</code> (nunca el botón) y qué datos viajan.</li>
+    <li><b>Controlador:</b> clase, anotación de mapeo, nombre del método y de dónde saca el usuario.</li>
+    <li><b>Servicio:</b> el método, sus validaciones y qué excepción lanza cada una.</li>
+    <li><b>DAO:</b> qué repositorios, y si la consulta es derivada del nombre o un <code>@Query</code>.</li>
+    <li><b>La vuelta:</b> qué devuelve el controlador y qué ve el usuario.</li>
+  </ol>
+</div>
+
+<div class="ojo"><b>Lo que más puntúa:</b> explicar <b>por qué</b> está así. Por qué solo viaja el id y no el
+precio, por qué el usuario sale de <code>Authentication</code> y no del formulario, por qué el
+<code>@Transactional</code> envuelve las dos escrituras. El recorrido lo recita cualquiera; el porqué
+es lo que demuestra que el código es tuyo.</div>
+
+<div class="nota"><b>Tres frases que valen para todo el proyecto.</b> Un botón <code>type="submit"</code>
+no llama a ninguna URL: envía el <code>&lt;form&gt;</code> que lo contiene, y la URL está en el
+<code>th:action</code> de ese formulario. El mensaje de una excepción propia <b>es la clave de
+traducción</b>, no el texto: lo resuelve el controlador con <code>messageSource</code>. Y
+<code>sec:authorize</code> decide qué se pinta, no a qué se puede entrar: eso es
+<code>SecurityConfig</code>.</div>
+
+<!-- =================== 3 · PREGUNTA 1 =================== -->
+
+<div class="salto"></div>
+<div class="seccion"><span class="n">03</span>Pregunta 1 · Añadir un juego a la cesta</div>
+<p class="intro"><b>Enunciado.</b> Un CLIENTE entra en la ficha de un juego de pago y pulsa
+«Añadir a la cesta». Recorrido completo, capa por capa, con líneas.</p>
+
+<table>
+  <thead><tr><th style="width:30%">Capa</th><th>Qué pasa</th></tr></thead>
+  <tbody>
+    <tr><td class="rol">client/ficha.html<br>:193, :196-200</td><td>
+      <code>th:unless="${gratis}"</code> (193) envuelve el bloque de compra: un juego gratis no pasa por
+      la cesta. Dentro, <code>&lt;form th:action="@{/tienda/cesta/anadir}" method="post"&gt;</code> (196)
+      con <code>sec:authorize="hasRole('CLIENTE')"</code> (197), un
+      <code>&lt;input type="hidden" name="videojuegoId"&gt;</code> (198) y el submit (199-200).
+      Para los demás roles, el botón <code>disabled</code> de 204-207.</td></tr>
+
+    <tr><td class="rol">ControllerCesta<br>:46-59</td><td>
+      <code>@PostMapping("/tienda/cesta/anadir")</code> (46) →
+      <code>anadirJuego(@RequestParam Long videojuegoId, Authentication authentication,
+      RedirectAttributes flash, Locale locale)</code> (47-48). Llama al servicio con
+      <code>authentication.getName()</code> (51), que es <b>el email</b>. Flash y
+      <code>redirect:/tienda/cesta</code> (57-58).</td></tr>
+
+    <tr><td class="rol">CestaServiceImpl<br>:48-66</td><td>
+      <code>@Transactional</code> (47) sobre una clase <code>@Transactional(readOnly=true)</code> (31).
+      Orden: <code>buscarOCrearCesta</code> (50) · <code>buscarVideojuegoDisponible</code> (51) ·
+      <code>comprobarQueSePuedeComprar</code> (54) · crea la <code>LineaCesta</code> (60-63) ·
+      <code>cestaDao.save(cesta)</code> (65).</td></tr>
+
+    <tr><td class="rol">CestaDao :23-27<br>ClaveLicenciaDao :34-39</td><td>
+      <code>buscarConLineasXEmail</code>, un <code>@Query</code> con
+      <code>left join fetch</code> de líneas y videojuego. <code>estaEnBiblioteca</code> es un
+      <code>select count(c) &gt; 0</code> filtrando por <code>EstadoClave.VENDIDA</code>. El
+      videojuego se busca con el <code>findById</code> heredado de <code>JpaRepository</code>.</td></tr>
+
+    <tr class="bueno"><td class="rol">client/cesta.html<br>:30-31</td><td>
+      El redirect provoca un <b>GET nuevo</b> que entra por <code>verCesta</code>
+      (<code>ControllerCesta:36-44</code>), que recalcula el total en el servicio. El mensaje se pinta
+      con <code>th:if="${mensaje}"</code> (30) y el error en la 31.</td></tr>
+  </tbody>
+</table>
+
+<div class="ojo"><b>Solo viaja el id.</b> El precio lo pone el servidor en
+<code>precioAPagar</code> (<code>CestaServiceImpl:154-160</code>): el de descuento si existe, y si no el
+normal. Si el precio viajara en el formulario, cualquiera lo cambiaría con las herramientas del
+navegador y compraría a cero.</div>
+
+<div class="nota"><b>Y la cesta es la del usuario de la sesión</b>, sacada de
+<code>Authentication</code>, nunca de un id recibido. Si llegara por formulario, bastaría cambiarlo
+para llenarle la cesta a otro cliente.</div>
+
+<div class="salto"></div>
+<div class="seccion"><span class="n">03</span>Pregunta 1 · lo que preguntan después</div>
+
+<div class="rejilla">
+  <div class="cpt"><span class="cn">Las tres reglas</span>
+    <h4>comprobarQueSePuedeComprar</h4>
+    <p>Precio cero → <code>cesta.error.gratis</code>. Ya en su biblioteca →
+    <code>cesta.error.enBiblioteca</code>. Ya en la cesta → <code>cesta.error.yaEnCesta</code>.
+    Las tres lanzan <code>JuegoNoComprableException</code>.</p>
+    <span class="d">CestaServiceImpl:140-151</span></div>
+
+  <div class="cpt bd"><span class="cn">Sin cantidad</span>
+    <h4>Una línea es un juego</h4>
+    <p>Se compra una licencia, una clave por cuenta, así que la línea no tiene campo cantidad. Lo
+    que impide el duplicado en la base es el <code>UNIQUE (cesta_id, videojuego_id)</code>.</p>
+    <span class="d">CestaServiceImpl:56-59 (comentario)</span></div>
+
+  <div class="cpt pro"><span class="cn">Por qué join fetch</span>
+    <h4>El problema N+1</h4>
+    <p>Trae cesta, líneas y videojuegos en <b>una</b> consulta. Con un <code>findBy</code> normal las
+    colecciones son LAZY: una consulta por línea al recorrerlas, o
+    <code>LazyInitializationException</code>. El <code>distinct</code> quita las filas repetidas que
+    genera el join.</p>
+    <span class="d">CestaDao:23-27</span></div>
+
+  <div class="cpt rob"><span class="cn">Flash vs Model</span>
+    <h4>Por qué no sirve el Model</h4>
+    <p>El <code>Model</code> muere con la petición y aquí hay un redirect. El
+    <code>RedirectAttributes</code> guarda el valor en sesión, lo pasa al Model de la petición
+    siguiente y lo borra: por eso al recargar ya no está.</p>
+    <span class="d">ControllerCesta:56-58</span></div>
+
+  <div class="cpt seg"><span class="cn">Y por qué redirect</span>
+    <h4>POST-redirect-GET</h4>
+    <p>Si el POST devolviera la plantilla directamente, pulsar F5 reenviaría el POST y añadiría otra
+    vez. Con el redirect, lo que se recarga es un GET inofensivo.</p>
+    <span class="d">ControllerCesta:58</span></div>
+
+  <div class="cpt"><span class="cn">La excepción</span>
+    <h4>El mensaje es la clave</h4>
+    <p><code>getMessage()</code> devuelve <code>cesta.error.gratis</code>, no un texto. El
+    controlador lo traduce en <code>traducir(...)</code>, pasando la propia clave como valor por
+    defecto: si falta, se ve la clave y no revienta.</p>
+    <span class="d">ControllerCesta:96-98</span></div>
+</div>
+
+<div class="examen">
+  <p class="q">El parámetro que recibe el id, ¿qué tipo es y qué anotación lo trae?</p>
+  <p class="a">Un <code>Long</code> (objeto, no primitivo) con <code>@RequestParam</code>. Objeto
+  porque un parámetro de petición <b>puede no llegar</b>, y un <code>long</code> no admite nulo.</p>
+  <p class="q">¿Y si el <code>input</code> se llamara distinto?</p>
+  <p class="a"><code>@RequestParam</code> es <code>required=true</code> por defecto → <b>400 Bad
+  Request</b>, «Required request parameter 'videojuegoId' is not present». No llega a entrar en el
+  método.</p>
+  <p class="q">¿Para qué sirve entonces el <code>findByClienteEmail</code> del DAO?</p>
+  <p class="a">Lo usa <code>vaciarCesta</code> (<code>CestaServiceImpl:103</code>), que no necesita
+  las líneas cargadas una a una.</p>
+</div>
+
+<!-- =================== 4 · PREGUNTA 2 =================== -->
+
+<div class="salto"></div>
+<div class="seccion"><span class="n">04</span>Pregunta 2 · Recepción de una orden de compra</div>
+<p class="intro"><b>Enunciado.</b> Una orden <code>CONFIRMADA</code>: el gestor de inventario abre la
+recepción, teclea lo que ha llegado y pulsa «Confirmar recepción». ¿Qué pasa, y de dónde salen las
+claves?</p>
+
+<div class="rapido">
+  <h3>Primero, no confundir los dos botones</h3>
+  <ol>
+    <li><b>«Recibir mercancía»</b> — <code>compras/orden.html:322</code>. Es un <code>&lt;a&gt;</code>,
+    un enlace <b>GET</b>, visible solo si la orden está <code>CONFIRMADA</code>. No cambia nada:
+    abre el formulario (<code>formularioRecepcion</code>, controlador línea 191).</li>
+    <li><b>«Confirmar recepción»</b> — <code>compras/recepcion.html:111</code>. El
+    <code>type="submit"</code> del <code>&lt;form&gt;</code> de la línea 39. Este sí ejecuta la
+    transición a <code>RECIBIDA</code>.</li>
+  </ol>
+</div>
+
+<table>
+  <thead><tr><th style="width:22%">Desde</th><th style="width:34%">Acción</th><th style="width:16%">Hasta</th><th>Se valida en</th></tr></thead>
+  <tbody>
+    <tr><td class="rol">BORRADOR</td><td>Confirmar (POST <code>/confirmar</code>)</td><td class="rol">CONFIRMADA</td><td class="rol">ServiceImpl:216</td></tr>
+    <tr><td class="rol">CONFIRMADA</td><td>Recibir mercancía + Confirmar recepción</td><td class="rol">RECIBIDA</td><td class="rol">ServiceImpl:254</td></tr>
+    <tr><td class="rol">BORRADOR / CONFIRMADA</td><td>Cancelar orden</td><td class="rol">CANCELADA</td><td class="rol">ServiceImpl:235-236</td></tr>
+    <tr class="nadie"><td class="rol">RECIBIDA</td><td>nada: de ella han salido claves</td><td class="rol">—</td><td class="rol">estado terminal</td></tr>
+  </tbody>
+</table>
+
+<div class="nota"><b>El enum</b> está en <code>model/aprovisionamiento/EstadoCompra.java:4</code>:
+<code>BORRADOR, CONFIRMADA, RECIBIDA, CANCELADA</code>. Mientras se rellena el formulario de
+recepción la orden <b>sigue CONFIRMADA</b>.</div>
+
+<div class="ojo"><b>El formulario abre en la línea 39 y no cierra hasta la 161</b>, y por el medio hay
+varias tarjetas. Por eso el número de albarán (<code>:144</code>), que está en otra tarjeta, viaja en
+el mismo POST que las cantidades: lo que envía un submit es <b>todo input con <code>name</code> que
+esté dentro de su formulario</b>, no lo que tiene al lado.</div>
+
+<div class="salto"></div>
+<div class="seccion"><span class="n">04</span>Pregunta 2 · el recorrido</div>
+
+<table>
+  <thead><tr><th style="width:30%">Capa</th><th>Qué pasa</th></tr></thead>
+  <tbody>
+    <tr><td class="rol">compras/recepcion.html<br>:39, :79-80, :111</td><td>
+      Una fila por línea de la orden, y en cada fila <b>dos input</b>:
+      <code>&lt;input type="hidden" name="lineaId"&gt;</code> (79) y
+      <code>&lt;input type="number" name="recibida" required min="0"&gt;</code> (80).
+      El navegador manda <code>lineaId=3&amp;recibida=200&amp;lineaId=4&amp;recibida=280</code>:
+      <b>dos listas paralelas</b>.</td></tr>
+
+    <tr><td class="rol">ControllerOrdenes<br>CompraClaves<br>:213-237</td><td>
+      <code>@PostMapping("/ordenes/{id}/recepcion")</code> → <code>recibirOrden</code>, con
+      <code>@RequestParam(name="lineaId", required=false) List&lt;Long&gt; lineaIds</code> y
+      <code>@RequestParam(name="recibida", required=false) List&lt;Integer&gt; recibidas</code>
+      (215-216). Devuelve cuántas claves se han creado (224), lo pone en el flash (227-228) y
+      redirige a la ficha de la orden (236).</td></tr>
+
+    <tr><td class="rol">OrdenesCompra<br>ClavesServiceImpl<br>:249-305</td><td>
+      <code>@Transactional</code> (248). Valida, anota lo recibido línea a línea, cierra la orden
+      (293-297) y <b>solo después</b> acuña las claves (301-303).</td></tr>
+
+    <tr class="bueno"><td class="rol">ClaveLicenciaServiceImpl<br>:144-175</td><td>
+      <code>acunarClaves(linea, cantidad)</code>: por cada unidad genera un código libre (160), lo
+      guarda cifrado (166) y guarda además su hash (167), en estado
+      <code>DISPONIBLE</code> (165). Un único <code>saveAll</code> al final (172).</td></tr>
+  </tbody>
+</table>
+
+<div class="ojo"><b>Por qué listas y no nombres con índice.</b> Un <code>&lt;form&gt;</code> plano no
+sabe generar <code>lineas[0].id</code>: lo que sabe es repetir el mismo <code>name</code>, y Spring
+agrupa los valores repetidos en un <code>List</code>. El <code>name=</code> explícito está porque el
+parámetro Java se llama distinto (<code>lineaIds</code> ≠ <code>lineaId</code>), y
+<code>required=false</code> para que, si no llega nada, entre como <code>null</code> y lo juzgue el
+servicio en vez de responder un 400 seco.</div>
+
+<table style="margin-top:9pt">
+  <thead><tr><th style="width:22%">Línea</th><th>Validación del servicio, en orden</th></tr></thead>
+  <tbody>
+    <tr><td class="rol">:254</td><td>Estado distinto de <code>CONFIRMADA</code> → <code>EstadoCompraInvalidoException</code></td></tr>
+    <tr><td class="rol">:258-260</td><td>Listas nulas, de <b>tamaño distinto</b>, o que no cuadran con el número de líneas de la orden</td></tr>
+    <tr><td class="rol">:272</td><td>Unidades nulas o negativas</td></tr>
+    <tr class="nadie"><td class="rol">:279</td><td><b>La trampa:</b> <code>cantidadRecibida != null</code> → «esa línea viene dos veces». Repetir un <code>lineaId</code> dejaría otra línea sin anotar, y llegaría al acuñado con <code>null</code></td></tr>
+    <tr><td class="rol">:288</td><td>Total cero → una orden de la que no ha llegado nada <b>se cancela</b>, no se recibe</td></tr>
+  </tbody>
+</table>
+
+<div class="nota"><b>Las dos cosas que se guardan de cada código, y por qué dos.</b> El código va
+cifrado con <b>AES-256-GCM</b>, que lleva IV aleatorio: cifrado dos veces da bytes distintos, así que
+no se puede buscar ni poner <code>UNIQUE</code>. De ahí el <b>hash determinista</b> de
+<code>codigo_hash</code>, que es el que lleva el índice, la unicidad y el
+<code>existsByCodigoHash</code>: el patrón de <b>índice ciego</b>.</div>
+
+<div class="examen">
+  <p class="q">¿Y si entro a mano en la URL de recepción de una orden en BORRADOR?</p>
+  <p class="a">Lo paran <b>dos</b> sitios. <code>formularioRecepcion:198</code> no te enseña el
+  formulario y redirige con un flash; <code>recibirCompra:254</code> no te deja escribir. El primero
+  es comodidad, el segundo es seguridad: el primero se lo salta cualquiera con un POST a mano o con
+  dos pestañas abiertas.</p>
+  <p class="q">¿Por qué primero se cierra la orden y después se acuñan las claves?</p>
+  <p class="a">Porque todo está en <b>una sola transacción</b> (<code>:248</code>). Si el acuñado
+  falla a mitad se deshace también la orden: no quedan claves sueltas de una orden que sigue
+  CONFIRMADA. Y el JavaScript de esa pantalla no envía nada: solo repinta «Diferencia» y «Claves a
+  generar» mientras teclas.</p>
+</div>
+
+<!-- =================== 5 · PREGUNTA 3 =================== -->
+
+<div class="salto"></div>
+<div class="seccion"><span class="n">05</span>Pregunta 3 · La campanita de avisos</div>
+<p class="intro"><b>Enunciado.</b> El gestor de clientes tiene el panel abierto y la campanita marca 1.
+Un cliente pide la activación de su cuenta y, <b>sin recargar</b>, la campanita pasa a 2. ¿De dónde
+sale cada número?</p>
+
+<div class="rapido">
+  <h3>Son dos caminos distintos, y ahí está la pregunta</h3>
+  <ol>
+    <li><b>El número inicial</b> llega por HTTP, contado de MySQL, al cargar la página.</li>
+    <li><b>El incremento</b> llega por WebSocket y <b>no toca la base de datos</b>: lo suma el
+    navegador en el DOM.</li>
+  </ol>
+</div>
+
+<table>
+  <thead><tr><th style="width:30%">Pieza</th><th>Qué hace</th></tr></thead>
+  <tbody>
+    <tr><td class="rol">ControllerAdvice<br>Notificaciones<br>:14, :23-27</td><td>
+      <code>@ControllerAdvice</code> en la clase (14) y
+      <code>@ModelAttribute("pendientesClientes")</code> en el método (23): Spring ejecuta ese método
+      antes de renderizar <b>cualquier</b> vista y mete el resultado en el modelo. Así la campanita
+      funciona en todas las páginas del panel sin repetir código en 22 controladores.</td></tr>
+
+    <tr><td class="rol">ClienteServiceImpl :162<br>ClienteDao :41</td><td>
+      <code>select count(c) from Cliente c where c.fechaSolicitud is not null</code>. La solicitud
+      pendiente no es una tabla aparte: es el campo <code>fechaSolicitud</code> del cliente.</td></tr>
+
+    <tr><td class="rol">fragments/panel.html<br>:109-110, :117-119</td><td>
+      El <code>&lt;div&gt;</code> lleva <code>sec:authorize="hasAnyRole('GESTOR_CLIENTES')"</code> (109);
+      el botón, <code>type="button"</code> y <code>data-canal="/topic/clientes"</code> (110); el
+      número, <code>th:text="${pendientesClientes}"</code> y un <code>th:classappend</code> que añade
+      la clase <code>vacio</code> cuando vale 0 (117-119).</td></tr>
+
+    <tr><td class="rol">ClienteServiceImpl<br>:138-151</td><td>
+      <code>solicitarActivacion</code>: si el cliente no existe, ya está activo o ya tiene solicitud,
+      <b>return sin decir nada</b> (142-144), para no revelar qué cuentas existen. Si no, guarda la
+      fecha y publica el aviso: <code>mensajeria.convertAndSend("/topic/clientes",
+      "solicitud-activacion")</code> (150).</td></tr>
+
+    <tr><td class="rol">WebSocketConfig<br>:12, :22, :28, :34-36</td><td>
+      <code>@EnableWebSocketMessageBroker</code>; endpoint <code>/ws</code> (22); broker en memoria
+      sobre <code>/topic</code> (28); y el portero metido en la cola de entrada (34-36).</td></tr>
+
+    <tr class="bueno"><td class="rol">static/js/<br>notificaciones.js<br>:7, :55-71</td><td>
+      Busca <code>.campana[data-canal]</code> (7) y si no hay ninguna <b>ni abre el WebSocket</b>
+      (10-12). Conecta con <code>StompJs.Client</code> a <code>/ws</code> (55-58) y en
+      <code>onConnect</code> se suscribe al canal que lee de
+      <code>campana.dataset.canal</code> (63-71). Al llegar un mensaje, <code>sumarUno</code>.</td></tr>
+  </tbody>
+</table>
+
+<div class="ojo"><b>El canal no está escrito en el JavaScript.</b> Está en el atributo
+<code>data-canal</code> del HTML, y el JS lo lee con <code>dataset.canal</code>. Así el mismo
+archivo sirve para las dos campanitas; y como el <code>&lt;div&gt;</code> lleva
+<code>sec:authorize</code>, a quien no le toca el botón <b>no existe en el DOM</b> y ni se intenta
+suscribir.</div>
+
+<div class="salto"></div>
+<div class="seccion"><span class="n">05</span>Pregunta 3 · seguridad y la trampa</div>
+
+<p class="intro">Las reglas de <code>SecurityConfig</code> son <b>por URL</b>, y aquí solo hay una URL:
+<code>/ws</code>. Lo que va por dentro son mensajes STOMP, no peticiones HTTP, así que Spring Security
+no los ve. La protección por rol tiene que estar en un interceptor del canal:
+<code>config/GuardiaCanales.java</code>, un <code>@Component</code> que implementa
+<code>ChannelInterceptor</code> y se engancha en <code>WebSocketConfig:35</code>. Su método es
+<code>preSend</code>, y <b>devolver <code>null</code> descarta el mensaje</b>.</p>
+
+<table>
+  <thead><tr><th style="width:26%">Comando STOMP</th><th>Qué hace el portero</th></tr></thead>
+  <tbody>
+    <tr class="nadie"><td class="rol">SEND (:42-45)</td><td>Bloqueado <b>siempre, para todos</b>. Nadie publica desde el navegador: solo el servidor avisa. Sin esto, cualquiera con sesión podría colar un aviso falso en un canal</td></tr>
+    <tr><td class="rol">SUBSCRIBE (:48-58)</td><td>Comprueba el rol contra el destino. El usuario sale de <code>cabecera.getUser()</code>: viaja con la conexión, es el que inició sesión</td></tr>
+    <tr><td class="rol">CONNECT, DISCONNECT…</td><td>Pasan</td></tr>
+  </tbody>
+</table>
+
+<table style="margin-top:9pt">
+  <thead><tr><th style="width:34%">Canal</th><th>Quién puede escucharlo</th></tr></thead>
+  <tbody>
+    <tr><td class="rol">/topic/clientes</td><td><code>GESTOR_CLIENTES</code></td></tr>
+    <tr><td class="rol">/topic/productos</td><td><code>GESTOR_PRODUCTOS</code></td></tr>
+    <tr class="nadie"><td class="rol">cualquier otro</td><td><code>default → false</code>: <b>nadie</b>, ni el admin. Lista blanca, no lista negra</td></tr>
+  </tbody>
+</table>
+
+<div class="nota"><b>Qué ve un COLABORADOR que se suscribe a mano a <code>/topic/clientes</code>.</b>
+Nada, nunca. No es que se le oculte el aviso: el mensaje de suscripción se descarta, así que
+<b>no llega a estar en la lista</b> de suscritos. En el servidor queda un <code>log.warn</code>
+(<code>GuardiaCanales:54-55</code>).</div>
+
+<div class="ojo"><b>Qué viaja en el mensaje: solo el texto fijo</b>
+<code>"solicitud-activacion"</code>. Ningún dato del cliente. A un <code>/topic/…</code> se suscriben
+todos los que puedan escucharlo y el broker no filtra por persona: mandar el email sería repartir
+datos personales. El mensaje es un <b>timbre</b> —«ha pasado algo, mira»—; quien quiera el detalle
+pincha y lo pide por HTTP, donde sí hay control de acceso.</div>
+
+<div class="examen">
+  <p class="q">¿Cuánto vale <code>pendientesClientes</code> para un ADMIN?</p>
+  <p class="a">Cero, y lo importante: <b>ni se ejecuta la consulta</b>. El ternario de la línea 25
+  corta antes de llamar al servicio. El <code>@ModelAttribute</code> corre en todas las peticiones,
+  también las de un anónimo: de ahí el <code>authentication == null</code> de la línea 40, que si no
+  revienta con NPE en el login.</p>
+  <p class="q">Si ya hay <code>@ControllerAdvice</code>, ¿para qué el <code>sec:authorize</code>?</p>
+  <p class="a">Uno controla <b>el dato</b>, el otro <b>el marcado</b>. Sin el
+  <code>sec:authorize</code>, el admin vería una campanita con un 0 eterno y un desplegable que
+  enlaza a una pantalla que no le toca.</p>
+  <p class="q">El 2 que aparece sin recargar, ¿lo ha calculado el servidor?</p>
+  <p class="a"><b>No.</b> El servidor manda una cadena sin ningún número; el 2 lo pone el navegador
+  sumando uno a lo que había pintado (<code>notificaciones.js:46-50</code>). Al pulsar F5 se vuelve a
+  contar de verdad contra MySQL. Consecuencias: si el gestor <b>atiende</b> una solicitud en otra
+  pestaña, esta campanita <b>no baja</b>, porque solo sabe sumar; y si el WebSocket está caído, el
+  número no sube pero al recargar sale bien. <b>El dato de verdad siempre es el de la base</b>; el
+  WebSocket es un aviso optimista para no estar dando F5.</p>
+</div>
+
+<!-- =================== 6 · PREGUNTA 4 =================== -->
+
+<div class="salto"></div>
+<div class="seccion"><span class="n">06</span>Pregunta 4 · Entrar, y bloquearse a los cinco fallos</div>
+<p class="intro"><b>Enunciado.</b> Alguien falla la contraseña cinco veces seguidas. La cuenta se
+desactiva sola y sale el aviso de cuenta inactiva. ¿Quién recibe el POST del login, quién compara la
+contraseña y quién cuenta los fallos?</p>
+
+<div class="rapido">
+  <h3>La trampa: aquí casi no hay MVC</h3>
+  <ol>
+    <li><b>No existe ningún <code>@PostMapping("/login")</code>.</b> El POST lo intercepta el filtro
+    <code>UsernamePasswordAuthenticationFilter</code>, antes de llegar a Spring MVC.</li>
+    <li>La página del login sí la sirve un controlador:
+    <code>ControllerLogin:105-107</code>, un <code>@GetMapping("/login")</code>. Hace falta porque
+    <code>SecurityConfig:82</code> declara <code>.loginPage("/login")</code>.</li>
+    <li>Lo que se ejecuta al acertar o fallar no son controladores, son <b>lambdas</b>:
+    <code>successHandler</code> y <code>failureHandler</code>, en <code>SecurityConfig</code>.</li>
+    <li>En el login <b>no hay JavaScript que valide</b>: <code>registro.js</code> es del registro
+    (<code>crearCuenta.html:107</code>); el login solo carga <code>password.js</code>, el ojito de
+    mostrar la contraseña.</li>
+  </ol>
+</div>
+
+<table>
+  <thead><tr><th style="width:30%">Pieza</th><th>Qué hace</th></tr></thead>
+  <tbody>
+    <tr><td class="rol">login/login.html<br>:21, :41, :48, :69</td><td>
+      <code>&lt;form th:action="@{/login}" method="post"&gt;</code>, con
+      <code>name="username"</code> y <code>name="password"</code>. <b>Esos nombres son
+      obligatorios</b>: son los que lee el filtro por defecto. Con <code>name="email"</code> no
+      llegaría nada y el login fallaría siempre.</td></tr>
+
+    <tr><td class="rol">SecurityConfig<br>:27-30</td><td>
+      <code>@Bean PasswordEncoder</code> → <code>BCryptPasswordEncoder</code>. El
+      <code>DaoAuthenticationProvider</code> compara con <code>matches(escrita, hash)</code>:
+      <b>no descifra nada</b>, vuelve a aplicar BCrypt con la sal que va dentro del propio hash.</td></tr>
+
+    <tr><td class="rol">SecurityConfig<br>:33-46</td><td>
+      <code>@Bean UserDetailsService</code>, escrito como lambda: busca por email (36),
+      <code>UsernameNotFoundException</code> si no está (37) y devuelve un <code>UserDetails</code>
+      con <code>User.builder()</code>. <code>roles(u.getRol().name())</code> (41) —Spring añade solo
+      el <code>ROLE_</code>— y <code>.disabled(!u.isActivo())</code> (43), que hace que una cuenta
+      inactiva lance <code>DisabledException</code> <b>sin mirar la contraseña</b>.</td></tr>
+
+    <tr><td class="rol">SecurityConfig<br>:94-103</td><td>
+      <code>failureHandler</code>: si es <code>DisabledException</code> <b>o</b>
+      <code>registrarFalloLogin(...)</code> devuelve <code>true</code> →
+      <code>/login?inactivo&amp;email=…</code> (con el email URL-encoded, 98), que abre el
+      <code>&lt;dialog&gt;</code> de <code>login.html:84-91</code>. Si no →
+      <code>/login?error</code> (101), el mensaje genérico.</td></tr>
+
+    <tr><td class="rol">UsuarioServiceImpl<br>:112-134</td><td>
+      <code>registrarFalloLogin</code> devuelve <code>boolean</code>: <code>true</code> <b>solo si
+      ha sido este intento el que ha bloqueado la cuenta</b>. Por eso no es <code>void</code>: el
+      handler necesita saberlo para avisar ya, sin esperar al intento siguiente.</td></tr>
+
+    <tr class="bueno"><td class="rol">SecurityConfig<br>:84-90</td><td>
+      <code>successHandler</code>: <code>registrarAccesoCorrecto</code> (85) devuelve el contador a
+      cero, y según si entre sus authorities hay <code>ROLE_CLIENTE</code> o
+      <code>ROLE_COLABORADOR</code> redirige a <code>/tienda</code>; el resto, a
+      <code>/panelControl</code> (86-89).</td></tr>
+  </tbody>
+</table>
+
+<div class="salto"></div>
+<div class="seccion"><span class="n">06</span>Pregunta 4 · el contador y los casos raros</div>
+
+<p class="intro">Las dos consultas del contador están en <code>UsuarioDao</code>, las dos con
+<code>@Modifying(clearAutomatically = true)</code> y escritas como <code>UPDATE</code> directo:</p>
+
+<table>
+  <thead><tr><th style="width:34%">Consulta</th><th>Por qué está así</th></tr></thead>
+  <tbody>
+    <tr><td class="rol">sumarIntentoFallido<br>:23-25</td><td>
+      <code>set u.intentosFallidos = u.intentosFallidos + 1</code>. La suma la hace la <b>base</b>,
+      dentro de la sentencia. Si leyeras, sumaras y guardaras, dos intentos simultáneos leerían el
+      mismo valor, los dos escribirían el siguiente y <b>se perdería un fallo</b> (<i>lost
+      update</i>). Devuelve <code>int</code> = filas tocadas, y por eso se detecta un correo
+      inexistente: <b>0 filas</b>.</td></tr>
+    <tr><td class="rol">reiniciarIntentos<br>Fallidos :29-31</td><td>
+      <code>set u.intentosFallidos = 0 where email = :email and u.intentosFallidos &gt; 0</code>. El
+      <code>&gt; 0</code> evita escribir en la tabla en <b>cada</b> login correcto —la inmensa
+      mayoría— solo para dejarlo igual.</td></tr>
+  </tbody>
+</table>
+
+<div class="nota"><b>Qué es <code>clearAutomatically</code>.</b> Un <code>@Modifying</code> escribe
+saltándose el contexto de persistencia, así que la entidad que tengas en caché seguiría con el
+contador viejo. Esto limpia el contexto para que el <code>findByEmail</code> de
+<code>UsuarioServiceImpl:121</code> lea el valor nuevo. Sin él, el proyecto nunca llegaría a
+bloquear la cuenta.</div>
+
+<table style="margin-top:9pt">
+  <thead><tr><th style="width:32%">Caso</th><th>Qué pasa</th></tr></thead>
+  <tbody>
+    <tr><td>Email que <b>no existe</b>, cinco veces</td><td>
+      El UPDATE toca 0 filas, <code>registrarFalloLogin</code> devuelve <code>false</code> →
+      <code>/login?error</code>. El atacante ve <b>exactamente lo mismo</b> que con una contraseña
+      mal: no puede distinguir si el correo existe (<i>enumeración de usuarios</i>).</td></tr>
+    <tr><td>La cuenta ya estaba inactiva <b>con motivo escrito a mano</b></td><td>
+      El motivo <b>no se pisa</b>. Doble protección: el provider lanza <code>DisabledException</code>
+      sin comparar la contraseña, y aunque llegara, la línea 124 corta por
+      <code>!usuario.isActivo()</code>.</td></tr>
+    <tr class="bueno"><td>El quinto fallo</td><td>
+      Avisa <b>ya</b>, no en el intento siguiente. Lo decide el <code>||</code> de
+      <code>SecurityConfig:95-96</code>.</td></tr>
+    <tr><td>Acierta al cuarto</td><td>
+      El contador vuelve a cero: los fallos sueltos no se acumulan para siempre.</td></tr>
+  </tbody>
+</table>
+
+<div class="examen">
+  <p class="q">¿Dónde está el 5, exactamente?</p>
+  <p class="a"><code>UsuarioServiceImpl:22</code>, <code>private static final int MAX_INTENTOS = 5</code>.
+  En un solo sitio, y <b>el mismo valor se mete en el texto del motivo</b> como argumento
+  <code>{0}</code> (línea 130). Si mañana es 3, el texto dice 3 solo.</p>
+  <p class="q">¿Por qué el motivo se traduce con un idioma fijo?</p>
+  <p class="a"><code>IDIOMA_MOTIVO = Locale.forLanguageTag("es")</code> (<code>:23</code>), porque ese
+  texto <b>no lo lee quien falló</b>: se guarda en <code>motivo_inactivacion</code> y lo lee el
+  gestor de clientes, en el tooltip del badge INACTIVO
+  (<code>listadoClientes.html:121-122</code>). Con el idioma del que falló tendrías la base de datos
+  con motivos en tres idiomas según quién metiera la pata.</p>
+  <p class="q">El formulario no lleva token CSRF escrito, ¿por qué pasa el POST?</p>
+  <p class="a">Spring Security trae CSRF <b>activado por defecto</b> y, como el formulario usa
+  <code>th:action</code>, Thymeleaf añade solo el <code>&lt;input type="hidden" name="_csrf"&gt;</code>.
+  Con un <code>action="/login"</code> a secas no lo añadiría: <b>403</b>.</p>
+  <p class="q">Un cliente escribe <code>/panelControl</code> a mano. ¿403?</p>
+  <p class="a">No: el <code>accessDeniedHandler</code> de <code>SecurityConfig:106-120</code> lo manda
+  a <code>/tienda</code>. Para cualquier otra ruta sí responde 403.</p>
+</div>
+
+<!-- =================== 7 · PREGUNTAS CORTAS =================== -->
+
+<div class="salto"></div>
+<div class="seccion"><span class="n">07</span>Preguntas cortas · «esta variable de dónde viene»</div>
+
+<table>
+  <thead><tr><th style="width:26%">Si preguntan por…</th><th>La respuesta</th></tr></thead>
+  <tbody>
+    <tr><td class="rol">Long vs long</td><td>
+      <b>Primitivo cuando el valor siempre existe</b> (un <code>count</code>, un contador);
+      <b>objeto cuando puede faltar</b>. Todo lo que rellena Spring desde la petición puede no
+      llegar, así que va en objeto.</td></tr>
+    <tr><td class="rol">@RequestParam</td><td>
+      Un dato del <b>formulario o del query string</b>. <code>required=true</code> por defecto: si
+      falta, 400. Si el nombre Java no coincide con el del input, hay que poner
+      <code>name=</code>.</td></tr>
+    <tr><td class="rol">@PathVariable</td><td>
+      Un trozo de <b>la propia URL</b>, el <code>{id}</code> del mapeo. En la vista se rellena con
+      la sintaxis <code>@{/ruta/{id}(id=${…})}</code>.</td></tr>
+    <tr><td class="rol">@ModelAttribute</td><td>
+      En un <b>parámetro</b>: Spring construye el objeto rellenando sus campos con los inputs que
+      coincidan (así entra la <code>Compra</code> en <code>guardarOrden</code>). En un <b>método</b>
+      de un <code>@ControllerAdvice</code>: mete el resultado en el modelo de todas las vistas.</td></tr>
+    <tr><td class="rol">Authentication</td><td>
+      Lo inyecta Spring Security; <code>getName()</code> es el <b>email</b>. Nunca se saca el
+      usuario de un campo del formulario.</td></tr>
+    <tr><td class="rol">SimpMessagingTemplate</td><td>
+      El «cartero» del servidor para publicar en <code>/topic/…</code>. Existe como bean porque
+      <code>WebSocketConfig</code> lleva <code>@EnableWebSocketMessageBroker</code>.</td></tr>
+    <tr><td class="rol">RedirectAttributes</td><td>
+      Datos que <b>sobreviven a un redirect</b>: van a la sesión, aparecen en el Model de la
+      petición siguiente y se borran. El <code>Model</code> normal muere con la petición.</td></tr>
+    <tr><td class="rol">ROLE_</td><td>
+      Spring no distingue roles de permisos: todo son <code>GrantedAuthority</code>, y el convenio es
+      que un rol lleva <code>ROLE_</code> delante. <code>hasRole(...)</code> y
+      <code>sec:authorize</code> lo añaden solos; comparando a mano con
+      <code>getAuthority().equals(...)</code> hay que escribirlo.</td></tr>
+    <tr><td class="rol">@Transactional</td><td>
+      Todo lo del método es una sola unidad: o entra todo o no entra nada. Las clases de servicio van
+      en <code>readOnly=true</code> y cada método que escribe lo levanta con su propio
+      <code>@Transactional</code>.</td></tr>
+    <tr><td class="rol">@Modifying</td><td>
+      Marca un <code>@Query</code> que <b>escribe</b> (UPDATE o DELETE) en vez de leer. Con
+      <code>clearAutomatically</code> limpia el contexto para que lo que se lea después no sea el
+      valor viejo de la caché.</td></tr>
+    <tr><td class="rol">join fetch</td><td>
+      Trae la entidad y sus colecciones en una consulta. Evita el <b>N+1</b> y el
+      <code>LazyInitializationException</code>. Pide <code>distinct</code>, porque el join repite la
+      fila padre.</td></tr>
+    <tr><td class="rol">El mensaje de una excepción</td><td>
+      <b>Es la clave i18n</b>, no el texto. El controlador la resuelve con
+      <code>messageSource.getMessage(clave, args, clave, locale)</code>, pasando la clave también
+      como valor por defecto.</td></tr>
+  </tbody>
+</table>
+
+<div class="ojo"><b>Si te quedas en blanco en una pregunta de recorrido:</b> di en voz alta las cuatro
+capas en orden y ve nombrando archivos, aunque no recuerdes la línea. «El <code>form</code> de la
+ficha postea a <code>/tienda/cesta/anadir</code>, lo coge <code>ControllerCesta</code>, llama a
+<code>CestaServiceImpl.anadirVideojuego</code>, que usa <code>CestaDao</code>, y acaba en un redirect
+a la cesta» ya es la respuesta. La línea exacta es un extra.</div>
+
+<div class="pie">
+  Generado a partir del código en <code>master</code> (<code>57c3c62</code>). Las líneas citadas son
+  las de ese commit: si tocas un archivo, se mueven. Los temas por separado están en los demás
+  resúmenes de <code>docs/resumenes/</code> — <code>LoginYRegistro</code>,
+  <code>AvisosWebSocket</code>, <code>ComprasYClaves</code>, <code>CRUDS</code>,
+  <code>CifradoYHashes</code> y los demás.
+</div>
+
+</body>
+</html>

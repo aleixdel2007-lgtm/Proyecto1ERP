@@ -28,8 +28,8 @@
     </div>
   </div>
   <div class="cub-pie">
-    <span><b>Clases centrales:</b> <code>SecurityConfig</code> · <code>ControllerLogin</code></span>
-    <span><b>Código:</b> master en <code>abce22a</code></span>
+    <span><b>Clases centrales:</b> <code>SecurityConfig</code> · <code>CuentaServiceImpl</code></span>
+    <span><b>Código:</b> master en <code>57c3c62</code></span>
     <span><b>5 páginas</b></span>
   </div>
 </div>
@@ -260,7 +260,7 @@ están aplicadas. El color del borde dice de qué familia es cada una:
     <p>Como la sal es distinta cada vez, volver a codificar daría otro texto y la comparación
     fallaría siempre. <code>matches()</code> saca la sal del hash guardado, recalcula con ella y
     entonces compara.</p>
-    <span class="d">ControllerLogin.cambiarPassword</span>
+    <span class="d">CuentaServiceImpl.cambiarPassword</span>
   </div>
 
   <div class="cpt seg">
@@ -318,9 +318,9 @@ están aplicadas. El color del borde dice de qué familia es cada una:
   <div class="cpt seg">
     <span class="cn">10 · Contraseñas</span>
     <h4>Validar siempre en el servidor</h4>
-    <p>El formulario valida en el navegador por comodidad, pero el controlador lo <b>vuelve a
+    <p>El formulario valida en el navegador por comodidad, pero el servicio lo <b>vuelve a
     comprobar todo</b>: cualquiera puede saltarse el HTML y enviar la petición a mano.</p>
-    <span class="d">PASSWORD_VALIDA · ControllerLogin</span>
+    <span class="d">PASSWORD_VALIDA · CuentaServiceImpl</span>
   </div>
 
 </div>
@@ -342,20 +342,23 @@ están aplicadas. El color del borde dice de qué familia es cada una:
   sin esperar al servidor, pero cualquiera puede desactivar el JavaScript, editar el HTML o mandar la
   petición directamente sin pasar por la página. Lo único que de verdad protege los datos es lo que
   comprueba el servidor, porque es lo único que el usuario <b>no controla</b>. Por eso
-  <code>crearCuenta</code> vuelve a mirar el correo, la contraseña, que las dos coincidan y que se
-  acepten las condiciones, aunque el formulario ya lo hubiera mirado.</p>
+  <code>registrarCliente</code> vuelve a mirar el correo, la contraseña, que las dos coincidan y que
+  se acepten las condiciones, aunque el formulario ya lo hubiera mirado. El controlador solo recoge
+  los campos y traduce el error: las reglas viven en <code>CuentaServiceImpl</code>.</p>
 </div>
 
 <div class="ojo">
-  <b>Dos cosas que hoy están a medias.</b> La exigencia de la contraseña (ocho caracteres, una
-  mayúscula y un número) se aplica <b>al registrarse pero no al cambiarla</b>: ahí solo se mira la
-  longitud, así que se puede empezar fuerte y acabar con <code>aaaaaaaa</code>. Y
-  <code>debeCambiarPassword</code> se enseña como etiqueta en el listado de colaboradores, pero
-  <b>el login no la comprueba</b>: una contraseña temporal dura para siempre.
+  <b>Las dos reglas no son la misma.</b> Registrarse pide ocho caracteres, una mayúscula y
+  <b>un número</b>. Cambiar la contraseña pide ocho, una mayúscula, <b>un símbolo</b> y que sea
+  distinta de la anterior, pero <b>no pide número</b>. Así que <code>Partida1</code> abre una cuenta
+  y no sirve para cambiarla, y con <code>Partida!</code> pasa justo lo contrario. Y no hay
+  «he olvidado mi contraseña»: el aviso que lo insinuaba se quitó porque no llevaba a ninguna parte,
+  y un cliente que la olvide <b>se queda fuera</b>, porque nadie puede ponerle otra desde el panel
+  —a un empleado o a un colaborador sí se le puede, al editarlo—.
 </div>
 
 <div class="pie">
-  Resumen escrito a partir del código en <code>master</code> (<code>abce22a</code>).
+  Resumen escrito a partir del código en <code>master</code> (<code>57c3c62</code>).
   Fuente editable en <code>docs/resumenes/html/LoginYRegistro.html</code> (usa <code>estilo.css</code>). Para regenerar el PDF:
   <code>chrome --headless --no-pdf-header-footer --print-to-pdf=docs/resumenes/LoginYRegistro.pdf docs/resumenes/html/LoginYRegistro.html</code>
 </div>
